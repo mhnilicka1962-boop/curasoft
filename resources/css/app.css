@@ -207,6 +207,76 @@ body {
 .seiten-titel  { font-size: 1.25rem; font-weight: 600; color: var(--cs-text); margin-bottom: 1.25rem; }
 
 /* ============================================================
+   Logo
+   ============================================================ */
+
+.logo-text {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--cs-primaer);
+    letter-spacing: -0.02em;
+}
+
+/* ============================================================
+   Layout — Top-Navigation
+   ============================================================ */
+
+.topnav-wrapper   { display: flex; flex-direction: column; min-height: 100vh; }
+
+.topnav-header {
+    height: var(--cs-header-hoehe);
+    background-color: var(--cs-weiss);
+    border-bottom: 1px solid var(--cs-border);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+}
+
+.topnav-logo      { flex-shrink: 0; }
+
+.topnav-nav       { display: flex; align-items: center; gap: 0.25rem; flex: 1; }
+
+.topnav-link {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--cs-text-hell);
+    text-decoration: none;
+    border-radius: var(--cs-radius);
+    transition: background-color 0.1s, color 0.1s;
+    white-space: nowrap;
+}
+.topnav-link:hover { background-color: var(--cs-primaer-hell); color: var(--cs-primaer); }
+.topnav-link.aktiv { background-color: var(--cs-primaer-hell); color: var(--cs-primaer); font-weight: 600; }
+
+.topnav-inhalt    { flex: 1; }
+
+.topnav-mobile {
+    display: none;
+    flex-direction: column;
+    background-color: var(--cs-weiss);
+    border-bottom: 1px solid var(--cs-border);
+    padding: 0.5rem 0;
+}
+.topnav-mobile.offen { display: flex; }
+
+/* Sidebar Overlay (Mobile) */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgb(0 0 0 / 0.3);
+    z-index: 39;
+}
+.sidebar.offen ~ .sidebar-overlay { display: block; }
+
+/* Header rechts */
+.header-rechts { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
+
+/* ============================================================
    Responsive — Mobile
    ============================================================ */
 
