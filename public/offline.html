@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <title>Keine Verbindung — CuraSoft</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f9fafb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      color: #1f2937;
+    }
+    .card {
+      background: white;
+      border-radius: 1rem;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .icon {
+      width: 4rem;
+      height: 4rem;
+      background: #eff6ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-size: 1.75rem;
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+    p { color: #6b7280; font-size: 0.9375rem; line-height: 1.5; margin-bottom: 1.5rem; }
+    .hinweis {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+    .hinweis ul { padding-left: 1.25rem; margin-top: 0.375rem; }
+    .hinweis li { margin-bottom: 0.25rem; }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:active { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">📡</div>
+    <h1>Keine Internetverbindung</h1>
+    <p>CuraSoft konnte nicht geladen werden. Bitte prüfe deine Verbindung.</p>
+    <div class="hinweis">
+      <strong>Bereits besuchte Seiten sind verfügbar:</strong>
+      <ul>
+        <li>Dashboard</li>
+        <li>Meine Einsätze</li>
+        <li>Aktiver Einsatz (Check-out)</li>
+      </ul>
+    </div>
+    <button onclick="window.location.reload()">Erneut versuchen</button>
+  </div>
+</body>
+</html>
