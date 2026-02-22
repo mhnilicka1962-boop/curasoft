@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\EinladungMail;
 use App\Models\Benutzer;
 use App\Models\Klient;
 use App\Models\KlientBenutzer;
 use App\Models\Qualifikation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class MitarbeiterController extends Controller
 {
@@ -59,21 +62,43 @@ class MitarbeiterController extends Controller
             'vorname'        => ['required', 'string', 'max:100'],
             'nachname'       => ['required', 'string', 'max:100'],
             'email'          => ['required', 'email', 'unique:benutzer,email'],
-            'password'       => ['required', 'string', 'min:8'],
             'rolle'          => ['required', 'in:admin,pflege,buchhaltung'],
             'telefon'        => ['nullable', 'string', 'max:30'],
             'pensum'         => ['nullable', 'integer', 'min:0', 'max:100'],
             'eintrittsdatum' => ['nullable', 'date'],
         ]);
 
+        $token = Str::random(48);
+
         $benutzer = Benutzer::create(array_merge($daten, [
-            'organisation_id' => $this->orgId(),
-            'password'        => Hash::make($daten['password']),
-            'aktiv'           => true,
+            'organisation_id'         => $this->orgId(),
+            'password'                => Hash::make(Str::random(32)),
+            'aktiv'                   => true,
+            'einladungs_token'        => $token,
+            'einladungs_token_ablauf' => now()->addHours(48),
         ]));
 
+        $link = route('einladung.show', $token);
+        Mail::to($benutzer->email)->send(new EinladungMail($benutzer, $link));
+
         return redirect()->route('mitarbeiter.show', $benutzer)
-            ->with('erfolg', 'Mitarbeiter wurde angelegt.');
+            ->with('erfolg', 'Mitarbeiter wurde angelegt. Einladungs-E-Mail wurde gesendet.');
+    }
+
+    public function einladungSenden(Benutzer $mitarbeiter)
+    {
+        if ($mitarbeiter->organisation_id !== $this->orgId()) abort(403);
+
+        $token = Str::random(48);
+        $mitarbeiter->update([
+            'einladungs_token'        => $token,
+            'einladungs_token_ablauf' => now()->addHours(48),
+        ]);
+
+        $link = route('einladung.show', $token);
+        Mail::to($mitarbeiter->email)->send(new EinladungMail($mitarbeiter, $link));
+
+        return back()->with('erfolg', 'Einladung wurde erneut gesendet.');
     }
 
     public function update(Request $request, Benutzer $mitarbeiter)

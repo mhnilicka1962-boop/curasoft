@@ -23,6 +23,7 @@ class Benutzer extends Authenticatable
         'pensum', 'eintrittsdatum', 'austrittsdatum',
         'rolle', 'aktiv',
         'notizen',
+        'einladungs_token', 'einladungs_token_ablauf',
     ];
 
     protected $hidden = [
@@ -36,7 +37,8 @@ class Benutzer extends Authenticatable
             'password'       => 'hashed',
             'aktiv'          => 'boolean',
             'geburtsdatum'   => 'date',
-            'eintrittsdatum' => 'date',
+            'eintrittsdatum'          => 'date',
+            'einladungs_token_ablauf' => 'datetime',
             'austrittsdatum' => 'date',
         ];
     }

@@ -43,11 +43,6 @@
                 <input type="email" name="email" class="feld" required value="{{ old('email') }}">
                 @error('email')<div class="feld-fehler">{{ $message }}</div>@enderror
             </div>
-            <div style="min-width: 140px;">
-                <label class="feld-label">Passwort *</label>
-                <input type="password" name="password" class="feld" required autocomplete="new-password">
-                @error('password')<div class="feld-fehler">{{ $message }}</div>@enderror
-            </div>
             <div style="min-width: 130px;">
                 <label class="feld-label">Rolle *</label>
                 <select name="rolle" class="feld" required>
@@ -147,14 +142,22 @@
                 </td>
                 <td style="font-size: 0.8125rem;">{{ $ma->eintrittsdatum?->format('d.m.Y') ?? '—' }}</td>
                 <td class="text-mitte">
-                    @if($ma->aktiv)
-                        <span class="badge badge-erfolg">Aktiv</span>
-                    @else
+                    @if(!$ma->aktiv)
                         <span class="badge badge-grau">Inaktiv</span>
+                    @elseif($ma->einladungs_token && $ma->einladungs_token_ablauf?->isFuture())
+                        <span class="badge badge-warnung">Einladung offen</span>
+                    @else
+                        <span class="badge badge-erfolg">Aktiv</span>
                     @endif
                 </td>
-                <td>
+                <td style="white-space: nowrap;">
                     <a href="{{ route('mitarbeiter.show', $ma) }}" class="btn btn-sekundaer" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">✏</a>
+                    @if($ma->einladungs_token && $ma->einladungs_token_ablauf?->isFuture())
+                        <form method="POST" action="{{ route('mitarbeiter.einladung', $ma) }}" style="display:inline;">
+                            @csrf
+                            <button type="submit" class="btn btn-sekundaer" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" title="Einladung erneut senden">📧</button>
+                        </form>
+                    @endif
                 </td>
             </tr>
             @empty

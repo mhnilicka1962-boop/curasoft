@@ -18,6 +18,7 @@ use App\Http\Controllers\TourenController;
 use App\Http\Controllers\KiController;
 use App\Http\Controllers\MitarbeiterController;
 use App\Http\Controllers\RegionenController;
+use App\Http\Controllers\EinladungController;
 use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,11 @@ Route::get('/', function () {
 Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth');
+
+// Einladung (kein Auth erforderlich)
+Route::get('/einladung/{token}',  [EinladungController::class, 'show'])->name('einladung.show');
+Route::post('/einladung/{token}', [EinladungController::class, 'store'])->name('einladung.store');
 
 // ----------------------------------------------------------------
 // Geschützte Routen — alle eingeloggten Benutzer
@@ -215,6 +221,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/mitarbeiter/{mitarbeiter}/qualifikationen', [MitarbeiterController::class, 'qualifikationenSpeichern'])->name('mitarbeiter.qualifikationen');
         Route::post('/mitarbeiter/{mitarbeiter}/klienten', [MitarbeiterController::class, 'klientZuweisen'])->name('mitarbeiter.klient.zuweisen');
         Route::delete('/mitarbeiter/{mitarbeiter}/klienten/{zuweisung}', [MitarbeiterController::class, 'klientEntfernen'])->name('mitarbeiter.klient.entfernen');
+        Route::post('/mitarbeiter/{mitarbeiter}/einladung', [MitarbeiterController::class, 'einladungSenden'])->name('mitarbeiter.einladung');
     });
 
 });
