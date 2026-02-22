@@ -152,6 +152,11 @@ class EinsaetzeController extends Controller
             'status'          => 'geplant',
         ]);
 
+        if ($request->filled('_klient_redirect')) {
+            return redirect()->route('klienten.show', $daten['klient_id'])
+                ->with('erfolg', 'Einsatz wurde geplant.');
+        }
+
         return redirect()->route('einsaetze.show', $einsatz)
             ->with('erfolg', 'Einsatz wurde angelegt.');
     }
