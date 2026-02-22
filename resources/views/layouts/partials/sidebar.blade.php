@@ -23,9 +23,6 @@
         </header>
 
         <main class="seiteninhalt">
-            @if(isset($titel))
-                <h1 class="seiten-titel">{{ $titel }}</h1>
-            @endif
             @include('layouts.partials.alerts')
             {{ $slot }}
         </main>

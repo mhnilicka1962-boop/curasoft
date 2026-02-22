@@ -11,7 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->trustProxies(at: '*');
+        $middleware->web(append: [
+            \App\Http\Middleware\CheckSetupComplete::class,
+            \App\Http\Middleware\SecurityHeaders::class,
+        ]);
+        $middleware->alias([
+            'rolle' => \App\Http\Middleware\CheckRolle::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

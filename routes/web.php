@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EinsatzartenController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\EinsaetzeController;
 use App\Http\Controllers\KlientenController;
@@ -14,6 +15,8 @@ use App\Http\Controllers\DokumenteController;
 use App\Http\Controllers\KrankenkassenController;
 use App\Http\Controllers\RapporteController;
 use App\Http\Controllers\TourenController;
+use App\Http\Controllers\KiController;
+use App\Http\Controllers\MitarbeiterController;
 use App\Http\Controllers\RegionenController;
 use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
@@ -98,9 +101,12 @@ Route::middleware('auth')->group(function () {
     Route::patch('/nachrichten/{nachricht}/archivieren', [NachrichtenController::class, 'archivieren'])->name('nachrichten.archivieren');
     Route::post('/nachrichten/rundschreiben', [NachrichtenController::class, 'rundschreiben'])->name('nachrichten.rundschreiben');
 
+    // KI — alle eingeloggten Benutzer
+    Route::post('/ki/rapport', [KiController::class, 'rapportVorschlag'])->name('ki.rapport');
+
     // Betrieb — Pflege + Admin
     Route::middleware('rolle:admin,pflege')->group(function () {
-        Route::resource('/klienten', KlientenController::class);
+        Route::resource('/klienten', KlientenController::class)->parameters(['klienten' => 'klient']);
         Route::get('/klienten/{klient}/qr', [KlientenController::class, 'qr'])->name('klienten.qr');
         Route::post('/klienten/{klient}/adressen', [KlientenController::class, 'adresseSpeichern'])->name('klienten.adresse.speichern');
         Route::delete('/klienten/{klient}/adressen/{adresse}', [KlientenController::class, 'adresseLoeschen'])->name('klienten.adresse.loeschen');
@@ -112,6 +118,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/klienten/{klient}/krankenkassen/{klientKk}',  [KlientenController::class, 'krankenkasseEntfernen'])->name('klienten.kk.entfernen');
         Route::post('/klienten/{klient}/kontakte',                    [KlientenController::class, 'kontaktSpeichern'])->name('klienten.kontakt.speichern');
         Route::delete('/klienten/{klient}/kontakte/{kontakt}',        [KlientenController::class, 'kontaktEntfernen'])->name('klienten.kontakt.entfernen');
+        Route::post('/klienten/{klient}/beitraege',                   [KlientenController::class, 'beitragSpeichern'])->name('klienten.beitrag.speichern');
+        Route::delete('/klienten/{klient}/beitraege/{beitrag}',       [KlientenController::class, 'beitragLoeschen'])->name('klienten.beitrag.loeschen');
         Route::post('/klienten/{klient}/pflegestufen',                [KlientenController::class, 'pflegestufeSpeichern'])->name('klienten.pflegestufe.speichern');
         Route::post('/klienten/{klient}/diagnosen',                   [KlientenController::class, 'diagnoseSpeichern'])->name('klienten.diagnose.speichern');
         Route::delete('/klienten/{klient}/diagnosen/{diagnose}',      [KlientenController::class, 'diagnoseEntfernen'])->name('klienten.diagnose.entfernen');
@@ -168,11 +176,16 @@ Route::middleware('auth')->group(function () {
             [LeistungsartenController::class, 'tarifSpeichern'])->name('leistungsarten.tarif.speichern');
         Route::delete('/leistungsarten/{leistungsart}/tarife/{region}',
             [LeistungsartenController::class, 'tarifLoeschen'])->name('leistungsarten.tarif.loeschen');
+        Route::get('/leistungsarten/{leistungsart}/tarife/{tarif}/bearbeiten',
+            [LeistungsartenController::class, 'tarifeBearbeiten'])->name('leistungsarten.tarif.bearbeiten');
+        Route::put('/leistungsarten/{leistungsart}/tarife/{tarif}',
+            [LeistungsartenController::class, 'tarifeAktualisieren'])->name('leistungsarten.tarif.aktualisieren');
 
         // Regionen / Kantone
         Route::resource('/regionen', RegionenController::class)
-            ->only(['index', 'store', 'update', 'destroy'])
+            ->only(['index', 'store', 'show', 'update', 'destroy'])
             ->parameters(['regionen' => 'region']);
+        Route::post('/regionen/{region}/tarife', [RegionenController::class, 'tarifSpeichern'])->name('regionen.tarif.speichern');
 
         // Ärzte
         Route::resource('/aerzte', AerzteController::class)
@@ -184,8 +197,24 @@ Route::middleware('auth')->group(function () {
             ->only(['index', 'create', 'store', 'edit', 'update'])
             ->parameters(['krankenkassen' => 'krankenkasse']);
 
+        // Einsatzarten
+        Route::get('/einsatzarten', [EinsatzartenController::class, 'index'])->name('einsatzarten.index');
+        Route::post('/einsatzarten', [EinsatzartenController::class, 'store'])->name('einsatzarten.store');
+        Route::get('/einsatzarten/{einsatzart}/bearbeiten', [EinsatzartenController::class, 'edit'])->name('einsatzarten.edit');
+        Route::put('/einsatzarten/{einsatzart}', [EinsatzartenController::class, 'update'])->name('einsatzarten.update');
+        Route::delete('/einsatzarten/{einsatzart}', [EinsatzartenController::class, 'destroy'])->name('einsatzarten.destroy');
+
         // Audit-Log
         Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit.index');
+
+        // Mitarbeitende
+        Route::get('/mitarbeiter', [MitarbeiterController::class, 'index'])->name('mitarbeiter.index');
+        Route::post('/mitarbeiter', [MitarbeiterController::class, 'store'])->name('mitarbeiter.store');
+        Route::get('/mitarbeiter/{mitarbeiter}', [MitarbeiterController::class, 'show'])->name('mitarbeiter.show');
+        Route::put('/mitarbeiter/{mitarbeiter}', [MitarbeiterController::class, 'update'])->name('mitarbeiter.update');
+        Route::post('/mitarbeiter/{mitarbeiter}/qualifikationen', [MitarbeiterController::class, 'qualifikationenSpeichern'])->name('mitarbeiter.qualifikationen');
+        Route::post('/mitarbeiter/{mitarbeiter}/klienten', [MitarbeiterController::class, 'klientZuweisen'])->name('mitarbeiter.klient.zuweisen');
+        Route::delete('/mitarbeiter/{mitarbeiter}/klienten/{zuweisung}', [MitarbeiterController::class, 'klientEntfernen'])->name('mitarbeiter.klient.entfernen');
     });
 
 });

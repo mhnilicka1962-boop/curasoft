@@ -25,8 +25,8 @@
 
     {{-- Klient-Info --}}
     <div class="karte" style="margin-bottom: 1.25rem; padding: 1rem;">
-        <div style="font-weight: 600;">{{ $einsatz->klient->vorname }} {{ $einsatz->klient->nachname }}</div>
-        <div style="font-size: 0.875rem; color: var(--cs-text-hell);">{{ $einsatz->klient->adresse }} · {{ $einsatz->klient->ort }}</div>
+        <div class="text-fett">{{ $einsatz->klient->vorname }} {{ $einsatz->klient->nachname }}</div>
+        <div class="text-klein text-hell">{{ $einsatz->klient->adresse }} · {{ $einsatz->klient->ort }}</div>
     </div>
 
     {{-- GPS Check-out --}}
@@ -43,7 +43,7 @@
 
     {{-- Manueller Check-out --}}
     <details style="text-align: left;">
-        <summary style="font-size: 0.8125rem; color: var(--cs-text-hell); cursor: pointer; padding: 0.5rem 0; text-align: center;">✏️ Manuell eintragen</summary>
+        <summary class="text-klein text-hell" style="cursor: pointer; padding: 0.5rem 0; text-align: center;">✏️ Manuell eintragen</summary>
         <form method="POST" action="{{ route('checkout.manuell', $einsatz) }}" style="display: flex; gap: 0.5rem; align-items: flex-end; margin-top: 0.5rem;">
             @csrf
             <div style="flex: 1;">

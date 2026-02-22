@@ -5,6 +5,13 @@
 
     RewriteEngine On
 
+    # HTTPS erzwingen (Produktion)
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} !^localhost
+    RewriteCond %{HTTP_HOST} !^127\.
+    RewriteCond %{HTTP_HOST} !\.test$
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -22,4 +29,25 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    # HTTPS für 1 Jahr erzwingen (HSTS)
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+    # Kein Einbetten in iFrames (Clickjacking-Schutz)
+    Header always set X-Frame-Options "DENY"
+
+    # Browser darf MIME-Typ nicht erraten
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Referrer-Infos minimieren
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # XSS-Schutz (ältere Browser)
+    Header always set X-XSS-Protection "1; mode=block"
+
+    # Keine Browser-Features die nicht gebraucht werden
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 </IfModule>

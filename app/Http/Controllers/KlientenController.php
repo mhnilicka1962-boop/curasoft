@@ -11,6 +11,7 @@ use App\Models\KlientArzt;
 use App\Models\KlientDiagnose;
 use App\Models\KlientKontakt;
 use App\Models\KlientKrankenkasse;
+use App\Models\KlientBeitrag;
 use App\Models\KlientPflegestufe;
 use App\Models\Krankenkasse;
 use App\Models\Leistungsart;
@@ -38,8 +39,9 @@ class KlientenController extends Controller
             );
         }
 
-        if ($request->filled('status')) {
-            $query->where('aktiv', $request->status === 'aktiv');
+        $status = $request->input('status', 'aktiv');
+        if ($status !== 'alle') {
+            $query->where('aktiv', $status === 'aktiv');
         }
 
         $klienten = $query->paginate(25)->withQueryString();
@@ -300,6 +302,28 @@ class KlientenController extends Controller
         if ($kontakt->klient_id !== $klient->id) abort(403);
         $kontakt->delete();
         return back()->with('erfolg', 'Kontakt wurde entfernt.');
+    }
+
+    public function beitragSpeichern(Request $request, Klient $klient)
+    {
+        $this->autorisiereZugriff($klient);
+        $daten = $request->validate([
+            'gueltig_ab'               => ['required', 'date'],
+            'ansatz_kunde'             => ['required', 'numeric', 'min:0'],
+            'limit_restbetrag_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'ansatz_spitex'            => ['nullable', 'numeric', 'min:0'],
+            'kanton_abrechnung'        => ['nullable', 'numeric', 'min:0'],
+        ]);
+        $klient->beitraege()->create(array_merge($daten, ['erfasst_von' => auth()->id()]));
+        return back()->with('erfolg', 'Beitrag wurde erfasst.');
+    }
+
+    public function beitragLoeschen(Klient $klient, KlientBeitrag $beitrag)
+    {
+        $this->autorisiereZugriff($klient);
+        if ($beitrag->klient_id !== $klient->id) abort(403);
+        $beitrag->delete();
+        return back()->with('erfolg', 'Beitrag wurde entfernt.');
     }
 
     public function pflegestufeSpeichern(Request $request, Klient $klient)

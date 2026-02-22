@@ -3,8 +3,8 @@
 <div style="max-width: 860px;">
 
     {{-- Header --}}
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
-        <a href="{{ route('klienten.index') }}" style="font-size: 0.875rem; color: var(--cs-text-hell); text-decoration: none;">
+    <div class="seiten-kopf">
+        <a href="{{ route('klienten.index') }}" class="text-klein link-gedaempt">
             ← Alle Klienten
         </a>
         <div style="display: flex; gap: 0.5rem; align-items: center;">
@@ -26,7 +26,7 @@
                 <h2 style="font-size: 1.125rem; font-weight: 700; color: var(--cs-text); margin: 0 0 0.25rem;">
                     {{ $klient->vollname() }}
                 </h2>
-                <div style="font-size: 0.875rem; color: var(--cs-text-hell); display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div class="text-klein text-hell" style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     @if($klient->geburtsdatum)
                         <span>geb. {{ $klient->geburtsdatum->format('d.m.Y') }} ({{ $klient->geburtsdatum->age }} J.)</span>
                     @endif
@@ -45,7 +45,7 @@
 
         {{-- Planungs-Daten --}}
         @if($klient->einsatz_geplant_von || $klient->zustaendig)
-        <div style="margin-top: 0.875rem; padding-top: 0.875rem; border-top: 1px solid var(--cs-border); display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.8125rem; color: var(--cs-text-hell);">
+        <div class="abschnitt-trenn text-klein text-hell" style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
             @if($klient->einsatz_geplant_von)
                 <span>Einsatz:
                     <strong style="color: var(--cs-text);">{{ $klient->einsatz_geplant_von->format('d.m.Y') }}</strong>
@@ -62,11 +62,11 @@
         @endif
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+    <div class="form-grid-2" style="gap: 1rem; margin-bottom: 1rem;">
 
         {{-- Kontakt --}}
         <div class="karte">
-            <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell); margin-bottom: 0.875rem;">Kontakt & Adresse</div>
+            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Kontakt & Adresse</div>
             @foreach([
                 'Adresse'      => trim(($klient->adresse ?? '') . ($klient->adresse ? ', ' : '') . ($klient->plz ?? '') . ' ' . ($klient->ort ?? '')) ?: null,
                 'Telefon'      => $klient->telefon,
@@ -75,7 +75,7 @@
             ] as $label => $wert)
             @if($wert)
             <div style="display: flex; gap: 0.5rem; padding: 0.375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem;">
-                <span style="color: var(--cs-text-hell); min-width: 80px; flex-shrink: 0;">{{ $label }}</span>
+                <span class="text-hell" style="min-width: 80px; flex-shrink: 0;">{{ $label }}</span>
                 <span>{{ $wert }}</span>
             </div>
             @endif
@@ -84,7 +84,7 @@
 
         {{-- Krankenkasse --}}
         <div class="karte">
-            <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell); margin-bottom: 0.875rem;">Krankenkasse & AHV</div>
+            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Krankenkasse & AHV</div>
             @foreach([
                 'Krankenkasse' => $klient->krankenkasse_name,
                 'KK-Nr.'       => $klient->krankenkasse_nr,
@@ -93,7 +93,7 @@
             ] as $label => $wert)
             @if($wert)
             <div style="display: flex; gap: 0.5rem; padding: 0.375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem;">
-                <span style="color: var(--cs-text-hell); min-width: 100px; flex-shrink: 0;">{{ $label }}</span>
+                <span class="text-hell" style="min-width: 100px; flex-shrink: 0;">{{ $label }}</span>
                 <span>{{ $wert }}</span>
             </div>
             @endif
@@ -105,14 +105,14 @@
     {{-- Adressen --}}
     <div class="karte" style="margin-bottom: 1rem;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem;">
-            <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell);">Adressen</div>
+            <div class="abschnitt-label">Adressen</div>
         </div>
 
         @php $adressen = $klient->adressen()->with('region')->get(); @endphp
 
         {{-- Vorhandene Adressen --}}
         @if($adressen->count())
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+        <div class="form-grid" style="margin-bottom: 1rem;">
             @foreach($adressen as $adr)
             <div style="border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.75rem; position: relative; background: var(--cs-hintergrund);">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
@@ -124,22 +124,22 @@
                     </form>
                 </div>
                 @if($adr->vollname())
-                    <div style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.25rem;">{{ $adr->vollname() }}</div>
+                    <div class="text-fett" style="font-size: 0.875rem; margin-bottom: 0.25rem;">{{ $adr->vollname() }}</div>
                 @endif
                 @if($adr->strasse)
-                    <div style="font-size: 0.8125rem; color: var(--cs-text-hell);">{{ $adr->strasse }}</div>
+                    <div class="text-klein text-hell">{{ $adr->strasse }}</div>
                 @endif
                 @if($adr->plz || $adr->ort)
-                    <div style="font-size: 0.8125rem; color: var(--cs-text-hell);">{{ $adr->plz }} {{ $adr->ort }}{{ $adr->region ? ' (' . $adr->region->kuerzel . ')' : '' }}</div>
+                    <div class="text-klein text-hell">{{ $adr->plz }} {{ $adr->ort }}{{ $adr->region ? ' (' . $adr->region->kuerzel . ')' : '' }}</div>
                 @endif
                 @if($adr->telefon)
-                    <div style="font-size: 0.8125rem; color: var(--cs-text-hell); margin-top: 0.25rem;">{{ $adr->telefon }}</div>
+                    <div class="text-klein text-hell" style="margin-top: 0.25rem;">{{ $adr->telefon }}</div>
                 @endif
                 @if($adr->email)
-                    <div style="font-size: 0.8125rem; color: var(--cs-text-hell);">{{ $adr->email }}</div>
+                    <div class="text-klein text-hell">{{ $adr->email }}</div>
                 @endif
                 @if($adr->gueltig_ab)
-                    <div style="font-size: 0.75rem; color: var(--cs-text-hell); margin-top: 0.375rem; border-top: 1px solid var(--cs-border); padding-top: 0.25rem;">
+                    <div class="text-mini text-hell" style="margin-top: 0.375rem; border-top: 1px solid var(--cs-border); padding-top: 0.25rem;">
                         ab {{ $adr->gueltig_ab->format('d.m.Y') }}
                         @if($adr->gueltig_bis) – {{ $adr->gueltig_bis->format('d.m.Y') }} @endif
                     </div>
@@ -243,7 +243,7 @@
 
     {{-- Ärzte --}}
     <div class="karte" style="margin-bottom: 1rem;">
-        <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell); margin-bottom: 0.875rem;">Behandelnde Ärzte</div>
+        <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Behandelnde Ärzte</div>
 
         @php $klientAerzte = $klient->aerzte()->with('arzt')->get(); @endphp
 
@@ -255,13 +255,13 @@
                     @if($ka->hauptarzt)
                         <span class="badge badge-primaer" style="font-size: 0.7rem; margin-right: 0.375rem;">Hauptarzt</span>
                     @endif
-                    <span style="font-weight: 600;">{{ $ka->arzt->vollname() }}</span>
-                    <span style="color: var(--cs-text-hell); margin-left: 0.5rem;">{{ \App\Models\KlientArzt::$rollen[$ka->rolle] ?? $ka->rolle }}</span>
+                    <span class="text-fett">{{ $ka->arzt->vollname() }}</span>
+                    <span class="text-hell" style="margin-left: 0.5rem;">{{ \App\Models\KlientArzt::$rollen[$ka->rolle] ?? $ka->rolle }}</span>
                     @if($ka->arzt->praxis_name)
-                        <span style="color: var(--cs-text-hell); font-size: 0.8rem; margin-left: 0.5rem;">· {{ $ka->arzt->praxis_name }}</span>
+                        <span class="text-hell" style="font-size: 0.8rem; margin-left: 0.5rem;">· {{ $ka->arzt->praxis_name }}</span>
                     @endif
                     @if($ka->arzt->telefon)
-                        <span style="color: var(--cs-text-hell); font-size: 0.8rem; margin-left: 0.5rem;">{{ $ka->arzt->telefon }}</span>
+                        <span class="text-hell" style="font-size: 0.8rem; margin-left: 0.5rem;">{{ $ka->arzt->telefon }}</span>
                     @endif
                 </div>
                 <form method="POST" action="{{ route('klienten.arzt.entfernen', [$klient, $ka]) }}" style="margin: 0;" onsubmit="return confirm('Arzt entfernen?')">
@@ -319,7 +319,7 @@
 
     {{-- Krankenkassen --}}
     <div class="karte" style="margin-bottom: 1rem;">
-        <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell); margin-bottom: 0.875rem;">Krankenkassen</div>
+        <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Krankenkassen</div>
 
         @php $klientKk = $klient->krankenkassen()->with('krankenkasse')->orderBy('versicherungs_typ')->get(); @endphp
 
@@ -332,9 +332,9 @@
                     @if($kk->deckungstyp && $kk->deckungstyp !== 'allgemein')
                         <span class="badge badge-warnung" style="font-size: 0.7rem; margin-right: 0.375rem;">{{ $kk->deckungLabel() }}</span>
                     @endif
-                    <span style="font-weight: 600;">{{ $kk->krankenkasse->name }}</span>
+                    <span class="text-fett">{{ $kk->krankenkasse->name }}</span>
                     @if($kk->versichertennummer)
-                        <span style="color: var(--cs-text-hell); font-size: 0.8rem; margin-left: 0.5rem;">Nr. {{ $kk->versichertennummer }}</span>
+                        <span class="text-hell" style="font-size: 0.8rem; margin-left: 0.5rem;">Nr. {{ $kk->versichertennummer }}</span>
                     @endif
                     @if(!$kk->aktiv)
                         <span class="badge badge-grau" style="font-size: 0.7rem; margin-left: 0.375rem;">Inaktiv</span>
@@ -410,14 +410,96 @@
         </details>
     </div>
 
+    {{-- Beiträge --}}
+    <div class="karte" style="margin-bottom: 1rem;">
+        <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Beiträge</div>
+
+        @php $beitraege = $klient->beitraege()->with('erfasstVon')->get(); @endphp
+
+        @if($beitraege->count())
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; margin-bottom: 1rem;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--cs-border);">
+                    <th style="text-align: left; padding: 0.375rem 0.5rem; color: var(--cs-text-hell); font-weight: 600;">Gültig ab</th>
+                    <th style="text-align: right; padding: 0.375rem 0.5rem; color: var(--cs-text-hell); font-weight: 600;">Ansatz Kunde</th>
+                    <th style="text-align: right; padding: 0.375rem 0.5rem; color: var(--cs-text-hell); font-weight: 600;">Limit %</th>
+                    <th style="text-align: right; padding: 0.375rem 0.5rem; color: var(--cs-text-hell); font-weight: 600;">Ansatz SPITEX</th>
+                    <th style="text-align: right; padding: 0.375rem 0.5rem; color: var(--cs-text-hell); font-weight: 600;">Kanton</th>
+                    <th style="text-align: left; padding: 0.375rem 0.5rem; color: var(--cs-text-hell); font-weight: 600;">Erfasst</th>
+                    <th style="padding: 0.375rem 0.5rem;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($beitraege as $b)
+                <tr style="border-bottom: 1px solid var(--cs-border); {{ $loop->first ? 'background: var(--cs-hintergrund);' : '' }}">
+                    <td style="padding: 0.375rem 0.5rem; font-weight: {{ $loop->first ? '600' : '400' }};">
+                        {{ $b->gueltig_ab->format('d.m.Y') }}
+                        @if($loop->first)<span class="badge badge-erfolg" style="font-size: 0.65rem; margin-left: 0.25rem;">aktuell</span>@endif
+                    </td>
+                    <td class="text-rechts" style="padding: 0.375rem 0.5rem;">{{ number_format($b->ansatz_kunde, 2, '.', "'") }}</td>
+                    <td class="text-rechts" style="padding: 0.375rem 0.5rem;">{{ number_format($b->limit_restbetrag_prozent, 2, '.', "'") }}</td>
+                    <td class="text-rechts" style="padding: 0.375rem 0.5rem;">{{ number_format($b->ansatz_spitex, 2, '.', "'") }}</td>
+                    <td class="text-rechts" style="padding: 0.375rem 0.5rem;">{{ number_format($b->kanton_abrechnung, 2, '.', "'") }}</td>
+                    <td class="text-hell text-mini" style="padding: 0.375rem 0.5rem;">
+                        {{ $b->created_at->format('d.m.Y') }}
+                        @if($b->erfasstVon) / {{ $b->erfasstVon->vorname }} {{ $b->erfasstVon->nachname }} @endif
+                    </td>
+                    <td class="text-rechts" style="padding: 0.375rem 0.5rem;">
+                        <form method="POST" action="{{ route('klienten.beitrag.loeschen', [$klient, $b]) }}" style="margin: 0;" onsubmit="return confirm('Beitrag entfernen?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" style="background: none; border: none; color: var(--cs-fehler); cursor: pointer; font-size: 0.75rem; padding: 0;">entfernen</button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        @else
+        <p class="text-klein text-hell" style="margin-bottom: 1rem;">Noch keine Beiträge erfasst.</p>
+        @endif
+
+        <details>
+            <summary style="font-size: 0.8125rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; padding: 0.375rem 0; list-style: none; display: flex; align-items: center; gap: 0.375rem;">
+                + Beitrag erfassen
+            </summary>
+            <form method="POST" action="{{ route('klienten.beitrag.speichern', $klient) }}" style="margin-top: 0.75rem;">
+                @csrf
+                <div class="form-grid" style="margin-bottom: 0.75rem;">
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Gültig ab *</label>
+                        <input type="date" name="gueltig_ab" class="feld" required value="{{ old('gueltig_ab', date('Y-m-d')) }}" style="font-size: 0.875rem;">
+                    </div>
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Ansatz Kunde (CHF) *</label>
+                        <input type="number" name="ansatz_kunde" class="feld" step="0.05" min="0" required value="{{ old('ansatz_kunde', '0.00') }}" style="font-size: 0.875rem;">
+                    </div>
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Limit Restbetrag %</label>
+                        <input type="number" name="limit_restbetrag_prozent" class="feld" step="0.01" min="0" max="100" value="{{ old('limit_restbetrag_prozent', '0.00') }}" style="font-size: 0.875rem;">
+                    </div>
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Ansatz SPITEX (CHF)</label>
+                        <input type="number" name="ansatz_spitex" class="feld" step="0.05" min="0" value="{{ old('ansatz_spitex', '0.00') }}" style="font-size: 0.875rem;">
+                    </div>
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Kanton Abrechnung (CHF)</label>
+                        <input type="number" name="kanton_abrechnung" class="feld" step="0.05" min="0" value="{{ old('kanton_abrechnung', '0.00') }}" style="font-size: 0.875rem;">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">Beitrag speichern</button>
+            </form>
+        </details>
+    </div>
+
     {{-- Kontakte / Angehörige --}}
     <div class="karte" style="margin-bottom: 1rem;">
-        <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell); margin-bottom: 0.875rem;">Kontakte &amp; Angehörige</div>
+        <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Kontakte &amp; Angehörige</div>
 
         @php $kontakte = $klient->kontakte()->where('aktiv', true)->get(); @endphp
 
         @if($kontakte->count())
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+        <div class="form-grid" style="margin-bottom: 1rem;">
             @foreach($kontakte as $k)
             <div style="border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.75rem; position: relative; background: var(--cs-hintergrund);">
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.375rem;">
@@ -427,11 +509,11 @@
                         <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-text-hell); font-size: 0.8rem; padding: 0; line-height: 1;">×</button>
                     </form>
                 </div>
-                <div style="font-weight: 600; font-size: 0.875rem;">{{ $k->vollname() }}</div>
-                @if($k->beziehung)<div style="font-size: 0.8rem; color: var(--cs-text-hell);">{{ $k->beziehung }}</div>@endif
-                @if($k->telefon)<div style="font-size: 0.8125rem; color: var(--cs-text-hell); margin-top: 0.25rem;">{{ $k->telefon }}</div>@endif
-                @if($k->telefon_mobil)<div style="font-size: 0.8125rem; color: var(--cs-text-hell);">{{ $k->telefon_mobil }}</div>@endif
-                @if($k->email)<div style="font-size: 0.8125rem; color: var(--cs-text-hell);">{{ $k->email }}</div>@endif
+                <div class="text-fett" style="font-size: 0.875rem;">{{ $k->vollname() }}</div>
+                @if($k->beziehung)<div class="text-hell" style="font-size: 0.8rem;">{{ $k->beziehung }}</div>@endif
+                @if($k->telefon)<div class="text-klein text-hell" style="margin-top: 0.25rem;">{{ $k->telefon }}</div>@endif
+                @if($k->telefon_mobil)<div class="text-klein text-hell">{{ $k->telefon_mobil }}</div>@endif
+                @if($k->email)<div class="text-klein text-hell">{{ $k->email }}</div>@endif
                 <div style="display: flex; gap: 0.375rem; flex-wrap: wrap; margin-top: 0.375rem;">
                     @if($k->bevollmaechtigt)<span class="badge badge-warnung" style="font-size: 0.7rem;">Bevollmächtigt</span>@endif
                     @if($k->rechnungen_erhalten)<span class="badge badge-info" style="font-size: 0.7rem;">Erhält Rechnungen</span>@endif
@@ -480,7 +562,7 @@
                             <input type="text" name="nachname" class="feld" required style="font-size: 0.875rem;">
                         </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div class="form-grid-3" style="gap: 0.75rem; margin-bottom: 0.75rem;">
                         <div>
                             <label class="feld-label" style="font-size: 0.75rem;">Telefon</label>
                             <input type="text" name="telefon" class="feld" style="font-size: 0.875rem;">
@@ -512,7 +594,7 @@
 
     {{-- Pflegestufen --}}
     <div class="karte" style="margin-bottom: 1rem;">
-        <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell); margin-bottom: 0.875rem;">Pflegebedarf / Einstufungen</div>
+        <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Pflegebedarf / Einstufungen</div>
 
         @php $pflegestufen = $klient->pflegestufen()->with('erfasstVon')->orderByDesc('einstufung_datum')->get(); @endphp
 
@@ -520,17 +602,17 @@
         <div style="margin-bottom: 1rem;">
             @foreach($pflegestufen as $ps)
             <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; flex-wrap: wrap;">
-                <span style="color: var(--cs-text-hell); min-width: 90px;">{{ $ps->einstufung_datum->format('d.m.Y') }}</span>
+                <span class="text-hell" style="min-width: 90px;">{{ $ps->einstufung_datum->format('d.m.Y') }}</span>
                 <span class="badge badge-info" style="font-size: 0.75rem;">{{ \App\Models\KlientPflegestufe::$instrumente[$ps->instrument] ?? $ps->instrument }}</span>
                 <span style="font-weight: 700; font-size: 1rem;">Stufe {{ $ps->stufe }}</span>
                 @if($ps->punkte)
-                    <span style="color: var(--cs-text-hell);">{{ number_format($ps->punkte, 1) }} Pkt.</span>
+                    <span class="text-hell">{{ number_format($ps->punkte, 1) }} Pkt.</span>
                 @endif
                 @if($ps->naechste_pruefung)
-                    <span style="color: var(--cs-text-hell); font-size: 0.8rem;">Nächste Prüfung: {{ $ps->naechste_pruefung->format('d.m.Y') }}</span>
+                    <span class="text-hell" style="font-size: 0.8rem;">Nächste Prüfung: {{ $ps->naechste_pruefung->format('d.m.Y') }}</span>
                 @endif
                 @if($ps->erfasstVon)
-                    <span style="color: var(--cs-text-hell); font-size: 0.8rem; margin-left: auto;">{{ $ps->erfasstVon->vorname }}</span>
+                    <span class="text-hell" style="font-size: 0.8rem; margin-left: auto;">{{ $ps->erfasstVon->vorname }}</span>
                 @endif
             </div>
             @endforeach
@@ -578,7 +660,7 @@
 
     {{-- Diagnosen --}}
     <div class="karte" style="margin-bottom: 1rem;">
-        <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell); margin-bottom: 0.875rem;">Diagnosen (ICD-10)</div>
+        <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Diagnosen (ICD-10)</div>
 
         @php $diagnosen = $klient->diagnosen()->with('arzt')->orderByDesc('datum_gestellt')->get(); @endphp
 
@@ -588,15 +670,15 @@
             <div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem;">
                 <div style="flex: 1;">
                     <span class="badge {{ $d->diagnose_typ === 'haupt' ? 'badge-fehler' : 'badge-grau' }}" style="font-size: 0.7rem; margin-right: 0.375rem;">{{ \App\Models\KlientDiagnose::$typen[$d->diagnose_typ] ?? $d->diagnose_typ }}</span>
-                    <span style="font-weight: 600; font-family: monospace;">{{ $d->icd10_code }}</span>
+                    <span class="text-fett" style="font-family: monospace;">{{ $d->icd10_code }}</span>
                     <span style="margin-left: 0.5rem;">{{ $d->icd10_bezeichnung }}</span>
                     @if($d->arzt)
-                        <span style="color: var(--cs-text-hell); font-size: 0.8rem; margin-left: 0.5rem;">· {{ $d->arzt->vollname() }}</span>
+                        <span class="text-hell" style="font-size: 0.8rem; margin-left: 0.5rem;">· {{ $d->arzt->vollname() }}</span>
                     @endif
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
                     @if($d->datum_gestellt)
-                        <span style="color: var(--cs-text-hell); font-size: 0.8rem;">{{ $d->datum_gestellt->format('d.m.Y') }}</span>
+                        <span class="text-hell" style="font-size: 0.8rem;">{{ $d->datum_gestellt->format('d.m.Y') }}</span>
                     @endif
                     <form method="POST" action="{{ route('klienten.diagnose.entfernen', [$klient, $d]) }}" style="margin: 0;" onsubmit="return confirm('Diagnose deaktivieren?')">
                         @csrf @method('DELETE')
@@ -633,7 +715,7 @@
                             </select>
                         </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div class="form-grid-3" style="gap: 0.75rem; margin-bottom: 0.75rem;">
                         <div>
                             <label class="feld-label" style="font-size: 0.75rem;">Arzt (optional)</label>
                             <select name="arzt_id" class="feld" style="font-size: 0.875rem;">
@@ -660,7 +742,7 @@
 
     {{-- Dokumente --}}
     <div class="karte" style="margin-bottom: 1rem;">
-        <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell); margin-bottom: 0.875rem;">Dokumente</div>
+        <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Dokumente</div>
 
         @php $dokumente = $klient->dokumente()->with('hochgeladenVon')->orderByDesc('created_at')->get(); @endphp
 
@@ -670,14 +752,14 @@
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem;">
                 <div style="flex: 1;">
                     <span class="badge badge-grau" style="font-size: 0.7rem; margin-right: 0.375rem;">{{ \App\Models\Dokument::$typen[$dok->dokument_typ] ?? $dok->dokument_typ }}</span>
-                    <a href="{{ route('dokumente.download', $dok) }}" style="color: var(--cs-primaer); text-decoration: none; font-weight: 600;">{{ $dok->bezeichnung }}</a>
-                    <span style="color: var(--cs-text-hell); font-size: 0.8rem; margin-left: 0.5rem;">{{ $dok->groesseFormatiert() }}</span>
+                    <a href="{{ route('dokumente.download', $dok) }}" class="text-fett link-primaer">{{ $dok->bezeichnung }}</a>
+                    <span class="text-hell" style="font-size: 0.8rem; margin-left: 0.5rem;">{{ $dok->groesseFormatiert() }}</span>
                     @if($dok->vertraulich)
                         <span class="badge badge-warnung" style="font-size: 0.7rem; margin-left: 0.375rem;">Vertraulich</span>
                     @endif
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
-                    <span style="color: var(--cs-text-hell); font-size: 0.8rem;">{{ $dok->created_at->format('d.m.Y') }}</span>
+                    <span class="text-hell" style="font-size: 0.8rem;">{{ $dok->created_at->format('d.m.Y') }}</span>
                     <form method="POST" action="{{ route('dokumente.destroy', $dok) }}" style="margin: 0;" onsubmit="return confirm('Dokument löschen?')">
                         @csrf @method('DELETE')
                         <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-text-hell); font-size: 0.875rem; padding: 0;">×</button>
@@ -732,8 +814,8 @@
     {{-- Rapporte --}}
     <div class="karte" style="margin-bottom: 1rem;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem;">
-            <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell);">Rapporte</div>
-            <a href="{{ route('rapporte.create', ['klient_id' => $klient->id]) }}" style="font-size: 0.8125rem; color: var(--cs-primaer); text-decoration: none;">+ Neuer Rapport</a>
+            <div class="abschnitt-label">Rapporte</div>
+            <a href="{{ route('rapporte.create', ['klient_id' => $klient->id]) }}" class="text-klein link-primaer">+ Neuer Rapport</a>
         </div>
 
         @php $letzteRapporte = $klient->rapporte()->with('benutzer')->limit(5)->get(); @endphp
@@ -741,14 +823,14 @@
         @forelse($letzteRapporte as $r)
         <div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem;">
             <div style="flex: 1;">
-                <span style="color: var(--cs-text-hell); font-size: 0.8rem; margin-right: 0.5rem;">{{ $r->datum->format('d.m.Y') }}</span>
+                <span class="text-hell" style="font-size: 0.8rem; margin-right: 0.5rem;">{{ $r->datum->format('d.m.Y') }}</span>
                 <span class="badge {{ $r->rapport_typ === 'zwischenfall' ? 'badge-fehler' : 'badge-grau' }}" style="font-size: 0.7rem; margin-right: 0.375rem;">{{ \App\Models\Rapport::$typen[$r->rapport_typ] ?? $r->rapport_typ }}</span>
-                <span style="color: var(--cs-text-hell);">{{ Str::limit($r->inhalt, 80) }}</span>
+                <span class="text-hell">{{ Str::limit($r->inhalt, 80) }}</span>
             </div>
-            <a href="{{ route('rapporte.show', $r) }}" style="font-size: 0.75rem; color: var(--cs-primaer); text-decoration: none; flex-shrink: 0;">Detail →</a>
+            <a href="{{ route('rapporte.show', $r) }}" class="text-mini link-primaer" style="flex-shrink: 0;">Detail →</a>
         </div>
         @empty
-        <p style="color: var(--cs-text-hell); font-size: 0.875rem; margin: 0;">Noch keine Rapporte.</p>
+        <p class="text-klein text-hell" style="margin: 0;">Noch keine Rapporte.</p>
         @endforelse
     </div>
 
@@ -762,7 +844,7 @@
 
     <div class="karte" id="einsaetze-section">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem;">
-            <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--cs-text-hell);">Einsätze</div>
+            <div class="abschnitt-label">Einsätze</div>
         </div>
 
         {{-- Tabs --}}
@@ -787,20 +869,20 @@
                         @if($e->datum_bis) – {{ $e->datum_bis->format('d.m.Y') }} @endif
                     </span>
                     @if($e->zeit_von)
-                        <span style="color: var(--cs-text-hell); white-space: nowrap;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
+                        <span class="text-hell" style="white-space: nowrap;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
                     @endif
                     <span>{{ $e->leistungsart?->bezeichnung ?? '—' }}</span>
                     @if($e->benutzer)
-                        <span style="color: var(--cs-text-hell); font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
+                        <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
                     @endif
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                     <span class="badge {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
-                    <a href="{{ route('einsaetze.show', $e) }}" style="font-size: 0.75rem; color: var(--cs-primaer); text-decoration: none;">Detail →</a>
+                    <a href="{{ route('einsaetze.show', $e) }}" class="text-mini link-primaer">Detail →</a>
                 </div>
             </div>
             @empty
-            <p style="color: var(--cs-text-hell); font-size: 0.875rem; padding: 0.75rem 0; margin: 0;">Keine anstehenden Einsätze.</p>
+            <p class="text-klein text-hell" style="padding: 0.75rem 0; margin: 0;">Keine anstehenden Einsätze.</p>
             @endforelse
         </div>
 
@@ -809,25 +891,25 @@
             @forelse($vergangen as $e)
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem; flex-wrap: wrap;">
                 <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-                    <span style="color: var(--cs-text-hell); min-width: 80px;">
+                    <span class="text-hell" style="min-width: 80px;">
                         {{ $e->datum->format('d.m.Y') }}
                         @if($e->datum_bis) – {{ $e->datum_bis->format('d.m.Y') }} @endif
                     </span>
                     @if($e->zeit_von)
-                        <span style="color: var(--cs-text-hell); white-space: nowrap;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
+                        <span class="text-hell" style="white-space: nowrap;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
                     @endif
                     <span>{{ $e->leistungsart?->bezeichnung ?? '—' }}</span>
                     @if($e->benutzer)
-                        <span style="color: var(--cs-text-hell); font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
+                        <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
                     @endif
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                     <span class="badge {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
-                    <a href="{{ route('einsaetze.show', $e) }}" style="font-size: 0.75rem; color: var(--cs-primaer); text-decoration: none;">Detail →</a>
+                    <a href="{{ route('einsaetze.show', $e) }}" class="text-mini link-primaer">Detail →</a>
                 </div>
             </div>
             @empty
-            <p style="color: var(--cs-text-hell); font-size: 0.875rem; padding: 0.75rem 0; margin: 0;">Keine vergangenen Einsätze.</p>
+            <p class="text-klein text-hell" style="padding: 0.75rem 0; margin: 0;">Keine vergangenen Einsätze.</p>
             @endforelse
         </div>
 
@@ -847,7 +929,7 @@
                     <input type="hidden" name="klient_id" value="{{ $klient->id }}">
                     <input type="hidden" name="_klient_redirect" value="1">
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div class="form-grid" style="margin-bottom: 0.75rem;">
 
                         <div>
                             <label class="feld-label" style="font-size: 0.75rem;">Leistungsart *</label>
