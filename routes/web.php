@@ -1,7 +1,191 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\EinsaetzeController;
+use App\Http\Controllers\KlientenController;
+use App\Http\Controllers\FirmaController;
+use App\Http\Controllers\NachrichtenController;
+use App\Http\Controllers\LeistungsartenController;
+use App\Http\Controllers\RechnungenController;
+use App\Http\Controllers\AerzteController;
+use App\Http\Controllers\DokumenteController;
+use App\Http\Controllers\KrankenkassenController;
+use App\Http\Controllers\RapporteController;
+use App\Http\Controllers\TourenController;
+use App\Http\Controllers\RegionenController;
+use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
 
+// Setup-Wizard (nur wenn noch kein Benutzer existiert)
+Route::get('/setup', [SetupController::class, 'index'])->name('setup.index');
+Route::post('/setup', [SetupController::class, 'store'])->name('setup.store');
+
+// Startseite → Login weiterleiten
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
+});
+
+// Auth
+Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+// ----------------------------------------------------------------
+// Geschützte Routen — alle eingeloggten Benutzer
+// ----------------------------------------------------------------
+Route::middleware('auth')->group(function () {
+
+    Route::get('/dashboard', function () {
+        $orgId = auth()->user()->organisation_id;
+        $userId = auth()->id();
+        $rolle = auth()->user()->rolle;
+
+        $heute = today();
+
+        $klientenAktiv = \App\Models\Klient::where('organisation_id', $orgId)
+            ->where('aktiv', true)->count();
+
+        $einsaetzeHeute = \App\Models\Einsatz::where('organisation_id', $orgId)
+            ->whereDate('datum', $heute)
+            ->when($rolle === 'pflege', fn($q) => $q->where('benutzer_id', $userId))
+            ->count();
+
+        $einsaetzeGeplant = \App\Models\Einsatz::where('organisation_id', $orgId)
+            ->whereDate('datum', $heute)
+            ->where('status', 'geplant')
+            ->when($rolle === 'pflege', fn($q) => $q->where('benutzer_id', $userId))
+            ->count();
+
+        $offeneRechnungen = ($rolle !== 'pflege')
+            ? \App\Models\Rechnung::where('organisation_id', $orgId)
+                ->whereIn('status', ['entwurf', 'gesendet'])
+                ->sum('betrag_total')
+            : 0;
+
+        $ungeleseneNachrichten = \App\Models\NachrichtEmpfaenger::where('empfaenger_id', $userId)
+            ->whereNull('gelesen_am')->count();
+
+        $letzteRapporte = \App\Models\Rapport::where('organisation_id', $orgId)
+            ->with('klient', 'benutzer')
+            ->when($rolle === 'pflege', fn($q) => $q->where('benutzer_id', $userId))
+            ->orderByDesc('datum')
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get();
+
+        $meineTourenHeute = \App\Models\Tour::where('organisation_id', $orgId)
+            ->whereDate('datum', $heute)
+            ->when($rolle === 'pflege', fn($q) => $q->where('benutzer_id', $userId))
+            ->with('benutzer', 'einsaetze')
+            ->orderBy('start_zeit')
+            ->get();
+
+        return view('dashboard', compact(
+            'klientenAktiv', 'einsaetzeHeute', 'einsaetzeGeplant',
+            'offeneRechnungen', 'ungeleseneNachrichten',
+            'letzteRapporte', 'meineTourenHeute'
+        ));
+    })->name('dashboard');
+
+    // Internes Nachrichtensystem — alle eingeloggten Benutzer
+    Route::get('/nachrichten', [NachrichtenController::class, 'index'])->name('nachrichten.index');
+    Route::get('/nachrichten/neu', [NachrichtenController::class, 'create'])->name('nachrichten.create');
+    Route::post('/nachrichten', [NachrichtenController::class, 'store'])->name('nachrichten.store');
+    Route::get('/nachrichten/{nachricht}', [NachrichtenController::class, 'show'])->name('nachrichten.show');
+    Route::post('/nachrichten/{nachricht}/antworten', [NachrichtenController::class, 'antworten'])->name('nachrichten.antworten');
+    Route::patch('/nachrichten/{nachricht}/archivieren', [NachrichtenController::class, 'archivieren'])->name('nachrichten.archivieren');
+    Route::post('/nachrichten/rundschreiben', [NachrichtenController::class, 'rundschreiben'])->name('nachrichten.rundschreiben');
+
+    // Betrieb — Pflege + Admin
+    Route::middleware('rolle:admin,pflege')->group(function () {
+        Route::resource('/klienten', KlientenController::class);
+        Route::get('/klienten/{klient}/qr', [KlientenController::class, 'qr'])->name('klienten.qr');
+        Route::post('/klienten/{klient}/adressen', [KlientenController::class, 'adresseSpeichern'])->name('klienten.adresse.speichern');
+        Route::delete('/klienten/{klient}/adressen/{adresse}', [KlientenController::class, 'adresseLoeschen'])->name('klienten.adresse.loeschen');
+
+        // Klient — Unterbeziehungen
+        Route::post('/klienten/{klient}/aerzte',                      [KlientenController::class, 'arztSpeichern'])->name('klienten.arzt.speichern');
+        Route::delete('/klienten/{klient}/aerzte/{klientArzt}',       [KlientenController::class, 'arztEntfernen'])->name('klienten.arzt.entfernen');
+        Route::post('/klienten/{klient}/krankenkassen',               [KlientenController::class, 'krankenkasseSpeichern'])->name('klienten.kk.speichern');
+        Route::delete('/klienten/{klient}/krankenkassen/{klientKk}',  [KlientenController::class, 'krankenkasseEntfernen'])->name('klienten.kk.entfernen');
+        Route::post('/klienten/{klient}/kontakte',                    [KlientenController::class, 'kontaktSpeichern'])->name('klienten.kontakt.speichern');
+        Route::delete('/klienten/{klient}/kontakte/{kontakt}',        [KlientenController::class, 'kontaktEntfernen'])->name('klienten.kontakt.entfernen');
+        Route::post('/klienten/{klient}/pflegestufen',                [KlientenController::class, 'pflegestufeSpeichern'])->name('klienten.pflegestufe.speichern');
+        Route::post('/klienten/{klient}/diagnosen',                   [KlientenController::class, 'diagnoseSpeichern'])->name('klienten.diagnose.speichern');
+        Route::delete('/klienten/{klient}/diagnosen/{diagnose}',      [KlientenController::class, 'diagnoseEntfernen'])->name('klienten.diagnose.entfernen');
+        Route::resource('/einsaetze', EinsaetzeController::class)->only(['index','create','store','show','edit','update']);
+
+        // Rapporte
+        Route::resource('/rapporte', RapporteController::class)->only(['index', 'create', 'store', 'show']);
+
+        // Touren
+        Route::resource('/touren', TourenController::class)
+            ->only(['index', 'create', 'store', 'show', 'update'])
+            ->parameters(['touren' => 'tour']);
+        Route::post('/touren/{tour}/einsaetze',          [TourenController::class, 'einsatzZuweisen'])->name('touren.einsatz.zuweisen');
+        Route::delete('/touren/{tour}/einsaetze/{einsatz}', [TourenController::class, 'einsatzEntfernen'])->name('touren.einsatz.entfernen');
+
+        // Dokumente
+        Route::post('/dokumente',              [DokumenteController::class, 'store'])->name('dokumente.store');
+        Route::get('/dokumente/{dokument}/download', [DokumenteController::class, 'download'])->name('dokumente.download');
+        Route::delete('/dokumente/{dokument}', [DokumenteController::class, 'destroy'])->name('dokumente.destroy');
+
+        // Check-in / Check-out
+        Route::get('/checkin/{token}',               [CheckInController::class, 'scan'])->name('checkin.scan');
+        Route::post('/checkin/{token}',              [CheckInController::class, 'checkinQr'])->name('checkin.qr');
+        Route::post('/checkin/{einsatz}/gps',        [CheckInController::class, 'checkinGps'])->name('checkin.gps');
+        Route::post('/checkin/{einsatz}/manuell',    [CheckInController::class, 'checkinManuell'])->name('checkin.manuell');
+        Route::get('/checkin/{einsatz}/aktiv',       [CheckInController::class, 'aktiv'])->name('checkin.aktiv');
+        Route::post('/checkout/{einsatz}/gps',       [CheckInController::class, 'checkoutGps'])->name('checkout.gps');
+        Route::post('/checkout/{einsatz}/manuell',   [CheckInController::class, 'checkoutManuell'])->name('checkout.manuell');
+    });
+
+    // Abrechnung — Buchhaltung + Admin
+    Route::middleware('rolle:admin,buchhaltung')->group(function () {
+        Route::resource('/rechnungen', RechnungenController::class)->only(['index','create','store','show']);
+        Route::patch('/rechnungen/{rechnung}/status', [RechnungenController::class, 'statusUpdate'])->name('rechnungen.status');
+        Route::patch('/rechnungen/positionen/{position}', [RechnungenController::class, 'positionUpdate'])->name('rechnungen.position.update');
+        Route::get('/rechnungen/{rechnung}/xml', [RechnungenController::class, 'xmlExport'])->name('rechnungen.xml');
+    });
+
+    // Stammdaten + Audit — nur Admin
+    Route::middleware('rolle:admin')->group(function () {
+        // Firma / Organisation
+        Route::get('/firma', [FirmaController::class, 'index'])->name('firma.index');
+        Route::put('/firma', [FirmaController::class, 'update'])->name('firma.update');
+        Route::post('/firma/regionen', [FirmaController::class, 'regionSpeichern'])->name('firma.region.speichern');
+        Route::delete('/firma/regionen/{region}', [FirmaController::class, 'regionEntfernen'])->name('firma.region.entfernen');
+        Route::post('/firma/bexio', [FirmaController::class, 'bexioSpeichern'])->name('firma.bexio.speichern');
+        Route::get('/firma/bexio/testen', [FirmaController::class, 'bexioTesten'])->name('firma.bexio.testen');
+
+        // Leistungsarten + Tarife
+        Route::resource('/leistungsarten', LeistungsartenController::class)
+            ->only(['index', 'create', 'store', 'show', 'edit', 'update'])
+            ->parameters(['leistungsarten' => 'leistungsart']);
+        Route::post('/leistungsarten/{leistungsart}/tarife',
+            [LeistungsartenController::class, 'tarifSpeichern'])->name('leistungsarten.tarif.speichern');
+        Route::delete('/leistungsarten/{leistungsart}/tarife/{region}',
+            [LeistungsartenController::class, 'tarifLoeschen'])->name('leistungsarten.tarif.loeschen');
+
+        // Regionen / Kantone
+        Route::resource('/regionen', RegionenController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['regionen' => 'region']);
+
+        // Ärzte
+        Route::resource('/aerzte', AerzteController::class)
+            ->only(['index', 'create', 'store', 'edit', 'update'])
+            ->parameters(['aerzte' => 'arzt']);
+
+        // Krankenkassen
+        Route::resource('/krankenkassen', KrankenkassenController::class)
+            ->only(['index', 'create', 'store', 'edit', 'update'])
+            ->parameters(['krankenkassen' => 'krankenkasse']);
+
+        // Audit-Log
+        Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit.index');
+    });
+
 });
