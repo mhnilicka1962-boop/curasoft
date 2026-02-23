@@ -23,6 +23,7 @@ class RechnungsPosition extends Model
         'betrag_kk'     => 'decimal:2',
     ];
 
-    public function rechnung() { return $this->belongsTo(Rechnung::class); }
-    public function einsatz()  { return $this->belongsTo(Einsatz::class); }
+    public function rechnung()     { return $this->belongsTo(Rechnung::class); }
+    public function einsatz()      { return $this->belongsTo(Einsatz::class); }
+    public function leistungstyp() { return $this->belongsTo(Leistungstyp::class); }
 }
