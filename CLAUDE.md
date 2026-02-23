@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-23 (Session 5)
+## Stand: 2026-02-23 (Session 6)
 
 ---
 
@@ -58,6 +58,7 @@
 | `2026_02_23_130000` | klient_verordnungen (Ärztliche Verordnungen); einsaetze: verordnung_id FK |
 | `2026_02_23_140000` | leistungsarten: tarmed_code varchar(20) nullable |
 | `2026_02_23_150000` | klienten: klient_typ; klient_benutzer: beziehungstyp; benutzer: anstellungsart; einsaetze: leistungserbringer_typ |
+| `2026_02_23_125201` | benutzer_leistungsarten (Pivot: erlaubte Leistungsarten pro Mitarbeiter) |
 
 ### Seeders (bereits eingespielt)
 - `LeistungsartenSeeder` — 5 Leistungsarten mit Default-Ansätzen
@@ -219,6 +220,50 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **anstellungsart** | `/mitarbeiter/{id}` | Anstellungsart "Angehörig" setzen, speichern |
 | **beziehungstyp** | `/mitarbeiter/{id}` → Klient zuweisen | Beziehungstyp "Angehörig pflegend" wählen |
 | **Rate Limiter** | `/login` | 6× falsches PW → "Zu viele Versuche"-Meldung |
+| **Pflege-Login-Redirect** | Magic Link als Sandra | Landet direkt auf Tourenplan heute |
+| **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
+| **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
+| **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 6 (2026-02-23)
+
+### Apache als Windows-Dienst
+- Apache läuft jetzt als Windows-Dienst `Apache2.4` (auto-start)
+- Laragon GUI nicht mehr nötig für Entwicklung
+- PostgreSQL war bereits Dienst
+
+### Login-Verbesserungen
+- Magic Link als Standard-Tab auf Login-Seite (Passwort an zweiter Stelle)
+- Rate Limiter fix: `RateLimiter::hit($key, 900)` statt named argument `decay:`
+- Nach Login: `pflege`-Rolle landet direkt auf Tourenplan (heute + benutzer_id)
+
+### Leistungsarten-Freigabe pro Mitarbeiter
+- Migration `2026_02_23_125201`: Pivot `benutzer_leistungsarten`
+- `Benutzer::erlaubteLeistungsarten()` + `darfLeistungsart()` — leer = alle erlaubt
+- Mitarbeiter-Detail: Checkbox-Sektion "Erlaubte Leistungsarten"
+- EinsaetzeController store + update: Warnung wenn Pflegeperson nicht freigegeben
+
+### Vor-Ort-Ansicht (`/einsaetze/{id}/vor-ort`)
+- Eigene mobile HTML-Seite ohne Sidebar-Layout
+- Check-in/out direkt (grosser Button)
+- Adresse mit Google Maps Link, Telefon anklickbar (tel:)
+- Notfallkontakte rot hervorgehoben
+- Hinweis/Bemerkung gelb
+- Klient-Basisdaten, Diagnosen, Ärztliche Verordnung mit Ablaufwarnung
+- Navigation unten: + Rapport / Klient-Detail / Einsatz
+- Tour-Detail: Klientenname verlinkt auf Vor-Ort-Ansicht
+
+### Tourenplan — Pflege-Optimierung
+- Titel "Deine Tour heute" für pflege-Rolle
+- "+ Neue Tour" und "⚠ Nicht eingeplante Einsätze" für pflege ausgeblendet
+- Einsätze in Tour-Liste direkt auf Vor-Ort-Ansicht verlinkt
+- Bei keiner Tour: eigene Einsätze als anklickbare Fallback-Liste
+- Rote Karte "⚠ Offene Einsätze — bitte nachbearbeiten" für vergangene offene Einsätze
+
+### Diverses
+- Nav: Rechnungen-Link für pflege-Rolle ausgeblendet (Route ist admin/buchhaltung)
 
 ---
 
@@ -331,6 +376,9 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 - **Bexio**: Buttons gebaut. `bexio_api_key` muss in Firma → Bexio konfiguriert sein, sonst unsichtbar.
 - **Security Paket B**: Audit-Log (wer hat was wann geändert) — noch nicht gebaut.
 - **Security Paket C**: 2FA (TOTP) als zweiter Faktor — noch nicht gebaut. Passkey (WebAuthn) vorhanden als Alternative.
+- **Vor-Ort-Ansicht**: Check-in/out funktioniert nur wenn `checkin_token` auf Einsatz gesetzt ist.
+- **Tätigkeiten-Checkliste**: Beim Check-out auswählen was gemacht wurde (Ankleiden, Waschen…) — noch nicht gebaut.
+- **Apache Dienst**: Läuft als `Apache2.4` Windows-Dienst. Laragon GUI nicht mehr nötig.
 
 ---
 
@@ -340,11 +388,11 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 app/
   Http/Controllers/
     AerzteController.php
-    AuthController.php           ← Rate Limiter: max 5/15min auf login + magic-link
+    AuthController.php           ← Rate Limiter: max 5/15min; pflege → redirect Tourenplan
     CheckInController.php
     DokumenteController.php
     EinsatzartenController.php
-    EinsaetzeController.php      ← +5-min Validierung, +verordnung_id, +minuten-Berechnung, +leistungserbringer_typ
+    EinsaetzeController.php      ← +5-min Validierung, +verordnung_id, +leistungserbringer_typ, +vorOrt()
     FirmaController.php          ← +bexioSpeichern() +bexioTesten()
     KlientenController.php       ← +bexioSync(), +verordnungSpeichern/Entfernen(), +tiers_payant, +klient_typ
     KrankenkassenController.php
@@ -358,7 +406,7 @@ app/
     SecurityHeaders.php          ← CSP, HSTS+preload, X-Frame, X-Content-Type
   Models/
     Arzt.php, KlientArzt.php
-    Benutzer.php                 ← +organisation() Relationship, +anstellungsart
+    Benutzer.php                 ← +organisation(), +anstellungsart, +erlaubteLeistungsarten(), +darfLeistungsart()
     BexioSync.php
     Dokument.php
     Einsatz.php                  ← +verordnung_id, +verordnung() Relationship, +leistungserbringer_typ
@@ -394,12 +442,14 @@ resources/views/
   einsaetze/
     create.blade.php             ← +Verordnung-Dropdown, +leistungserbringer_typ
     edit.blade.php               ← +leistungserbringer_typ
+    vor-ort.blade.php            ← NEU: mobile Vor-Ort-Ansicht
   rechnungen/
     show.blade.php               ← +XML-Button, +Bexio-Sync Button
   rapporte/
     index.blade.php, create.blade.php, show.blade.php
   touren/
-    index.blade.php, create.blade.php, show.blade.php
+    index.blade.php              ← +pflege-Optimierung (Titel, Links, Fallback, offene Vergangen.)
+    create.blade.php, show.blade.php
   stammdaten/
     leistungsarten/
       index.blade.php
