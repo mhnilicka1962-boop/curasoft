@@ -83,7 +83,7 @@ class TestdatenSeeder extends Seeder
             'plz'             => '3000',
             'ort'             => 'Bern',
             'telefon'         => '031 123 45 67',
-            'email'           => 'sandra.huber@test.curasoft',
+            'email'           => 'sandra.huber@test.spitex',
             'password'        => Hash::make('test1234'),
             'pensum'          => 80,
             'eintrittsdatum'  => '2022-03-01',
@@ -109,7 +109,7 @@ class TestdatenSeeder extends Seeder
             'plz'             => '3001',
             'ort'             => 'Bern',
             'telefon'         => '031 234 56 78',
-            'email'           => 'peter.keller@test.curasoft',
+            'email'           => 'peter.keller@test.spitex',
             'password'        => Hash::make('test1234'),
             'pensum'          => 100,
             'eintrittsdatum'  => '2020-06-01',
@@ -135,7 +135,7 @@ class TestdatenSeeder extends Seeder
             'plz'             => '3002',
             'ort'             => 'Bern',
             'telefon'         => '031 345 67 89',
-            'email'           => 'lisa.bauer@test.curasoft',
+            'email'           => 'lisa.bauer@test.spitex',
             'password'        => Hash::make('test1234'),
             'pensum'          => 60,
             'eintrittsdatum'  => '2021-01-15',
@@ -647,9 +647,9 @@ class TestdatenSeeder extends Seeder
         $this->command->table(
             ['Benutzer', 'E-Mail', 'Passwort', 'Rolle'],
             [
-                ['Sandra Huber', 'sandra.huber@test.curasoft', 'test1234', 'Pflege'],
-                ['Peter Keller', 'peter.keller@test.curasoft', 'test1234', 'Pflege'],
-                ['Lisa Bauer',   'lisa.bauer@test.curasoft',   'test1234', 'Buchhaltung'],
+                ['Sandra Huber', 'sandra.huber@test.spitex', 'test1234', 'Pflege'],
+                ['Peter Keller', 'peter.keller@test.spitex', 'test1234', 'Pflege'],
+                ['Lisa Bauer',   'lisa.bauer@test.spitex',   'test1234', 'Buchhaltung'],
             ]
         );
     }

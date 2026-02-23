@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passwort festlegen — {{ config('theme.app_name', 'CuraSoft') }}</title>
+    <title>Passwort festlegen — {{ config('theme.app_name', 'Spitex') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body style="background-color: var(--cs-hintergrund); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
@@ -16,7 +16,7 @@
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
             </svg>
         </div>
-        <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--cs-text); margin: 0 0 0.25rem;">{{ config('theme.app_name', 'CuraSoft') }}</h1>
+        <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--cs-text); margin: 0 0 0.25rem;">{{ config('theme.app_name', 'Spitex') }}</h1>
         <p style="color: var(--cs-text-hell); font-size: 0.875rem; margin: 0;">Willkommen, {{ $benutzer->vorname }}!</p>
     </div>
 
@@ -54,7 +54,7 @@
     </div>
 
     <p style="text-align: center; margin-top: 1.5rem; font-size: 0.75rem; color: var(--cs-text-hell);">
-        &copy; {{ date('Y') }} {{ config('theme.app_name', 'CuraSoft') }}
+        &copy; {{ date('Y') }} {{ config('theme.app_name', 'Spitex') }}
     </p>
 </div>
 

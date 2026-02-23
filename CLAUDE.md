@@ -1,6 +1,6 @@
-# CLAUDE.md — CuraSoft Projektkontext
+# CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-22 (Session 3)
+## Stand: 2026-02-22 (Session 4)
 
 ---
 
@@ -8,8 +8,8 @@
 
 | | |
 |---|---|
-| **URL** | `http://curasoft.test/login` |
-| **E-Mail** | `admin@curasoft.ch` |
+| **URL** | `http://spitex.test/login` |
+| **E-Mail** | `admin@spitex.ch` |
 | **Passwort** | `Admin2026!` |
 | **Rolle** | admin |
 | **Organisation** | ID 1 (einzige — kein Multi-Tenant) |
@@ -144,11 +144,118 @@ Die Klient-Detailseite (`/klienten/{id}`) zeigt folgende Sektionen:
 
 ---
 
+## Prozesse: Mitarbeiter & Angehörigenpflege
+
+### Neue Mitarbeiterin erfasst — Ablauf
+
+| Schritt | Wo | Was |
+|---------|-----|-----|
+| 1 | `/mitarbeiter` → + Neu | Anrede, Vorname, Name, E-Mail*, Rolle*, evtl. Pensum, Eintrittsdatum |
+| 2 | — | Einladungs-Mail automatisch versendet (48h gültig) |
+| 3 | E-Mail → Link | Passwort setzen → Login |
+| 4 | Mitarbeiter-Detail | Stammdaten, Qualifikationen, Klient-Zuweisung |
+| 5 | Behörden | Berufsausübungsbewilligung (Kanton) falls Pflegefachperson, ca. 2 Monate vor Tätigkeitsbeginn |
+
+**Aargau:** [ag.ch – SPITEX Betriebsbewilligung](https://ag.ch/de/themen/gesundheit/gesundheitsberufe/betriebsbewilligungen/spitex)
+
+### Person pflegt Angehörigen (Angehörigenpflege)
+
+| Fall | Bedeutung | In Spitex |
+|------|-----------|-------------|
+| **A: Kontakt** | Angehöriger als Kontaktperson (nicht pflegend) | Klient → Kontakte & Angehörige → + Kontakt, Rolle „Angehöriger“ |
+| **B: Pflegend tätig** | Angehöriger wird angestellt, pflegt gegen Lohn | **Als Mitarbeiter erfassen** + Klient-Zuweisung beim gepflegten Klienten |
+
+Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammenarbeit vereinbart. Kantonal unterschiedlich.
+
+### KlientKontakt vs. Benutzer
+
+| | KlientKontakt (Angehöriger) | Benutzer (Mitarbeiter) |
+|---|----------------------------|-------------------------|
+| Zweck | Kontakt, Rechnungsempfänger, Bevollmächtigter | Pflegeperson mit Einsätzen |
+| Login | Nein | Ja |
+| Wo | Klient-Detail → Kontakte | Stammdaten → Mitarbeitende |
+
+→ Detaillierte Checkliste: `docs/CHECKLISTE_MORGEN.md`  
+→ Ablauf Einsatzplanung: `docs/ABLAUF_EINSATZPLANUNG.md`  
+→ Script Mitarbeiterin (täglicher Ablauf): `docs/SCRIPT_MITARBEITERIN.md`  
+→ Ablauf Rechnung: `docs/ABLAUF_RECHNUNG.md`  
+→ Anleitung Einloggen (für neue User): `docs/ANLEITUNG_EINLOGGEN.md`
+
+---
+
+## MORGEN TESTEN — Offen (2026-02-23)
+
+### Was heute gebaut wurde — noch nicht vollständig getestet
+
+| Feature | URL | Was testen |
+|---------|-----|------------|
+| **Schnellerfassung** | `/klienten` → "+ Neuer Patient" | Patient + Betreuer + Wochentage eingeben → 1 Klick → Pflegeplan prüfen |
+| **Wiederkehrende Einsätze** | `/einsaetze/create?klient_id=4` | Wiederholung Wöchentlich, Mo+Mi+Fr, Preview zeigt Anzahl, Speichern |
+| **Serie löschen** | `/klienten/4` → Pflegeplan → "× Serie löschen" | Serie-Badge sichtbar, Löschen → Bestätigung → Einsätze weg |
+| **Lücken-Warnung Touren** | `/touren?datum=2026-02-23` | ⚠ Banner mit Sandra, "Tour erstellen" Button |
+| **Einsatz anlegen aus Tour** | `/touren/create?benutzer_id=5&datum=2026-02-27` | Keine Einsätze → Button "+ Einsatz anlegen" → Formular vorausgefüllt → zurück |
+| **Pflegeplan Klient** | `/klienten/4` oder `/klienten/5` | 14-Tage-Übersicht, Mitarbeiter, Zeiten, Lücken grau |
+| **Face ID / Passkey** | `/profil` → Passkey registrieren | Gerätename eingeben → Face ID → Login-Test |
+
+### Schnelltest-Reihenfolge für morgen
+
+1. **Schnellerfassung testen** (wichtigste neue Funktion):
+   → `/klienten` → "+ Neuer Patient"
+   → Name: Test Patient, Kanton: AG, Betreuer: Peter, Leistungsart: Grundpflege
+   → Wochentage: Mo + Mi, Zeit: 09:00–10:00, Start: 02.03.2026, Ende: 31.03.2026
+   → "Patient + X Einsätze anlegen" klicken
+   → Pflegeplan des neuen Klienten prüfen
+
+2. **Serie löschen** (`/klienten/4` → Pflegeplan, März-Einsätze)
+
+3. **Lücken-Warnung** (`/touren?datum=2026-02-23`)
+
+4. **Face ID** (`/profil` → Passkey registrieren → ausloggen → Face ID Login)
+
+---
+
+## Neu in Session 4 (2026-02-22)
+
+### WebAuthn / Passkeys (Face ID Login)
+- `WebAuthnController.php` — komplett neu (CBOR-Decoder, COSE→SPKI, DER-Encoding, OpenSSL-Verify)
+- `ProfilController.php` — neu, zeigt Passkeys, Registrierung/Löschung
+- `resources/views/profil/index.blade.php` — neu
+- `resources/views/auth/login.blade.php` — Face-ID Tab, PWA-Metatags, Install-Banner
+- Migration `webauthn_credentials` bereits vorhanden
+- Routen: `webauthn.authenticate.options`, `webauthn.authenticate`, `webauthn.register.options`, `webauthn.register`, `webauthn.delete`, `profil.index`
+
+### Tourenplanung — Vollausbau
+- **Tour erstellen** (`/touren/create`): MA+Datum → Seite lädt, zeigt offene Einsätze als Checkboxen, Bezeichnung auto-generiert
+- **Tour-Detail** (`/touren/{id}`): Check-in/out-Zeiten mit Abweichung, Rapport-Badge, Zeilen-Farbkodierung (grün/orange), Mehrfach-Zuweisung per Checkboxen, Fortschrittsanzeige
+- **Touren-Index** (`/touren`): ⚠ Lücken-Warnung — zeigt Einsätze ohne Tour, gruppiert nach MA, "Tour erstellen"-Button
+- **Einsatz anlegen aus Tour**: Button "+ Einsatz anlegen" wenn keine Einsätze für MA+Datum, nach Speichern zurück zur Tour-Erstellung
+
+### Pflegeplan im Klienten-Detail
+- Abschnitt "Pflegeplan — Nächste 14 Tage" ganz oben in `klienten/show.blade.php`
+- Zeigt tageweise: Mitarbeiter, Leistungsart, Uhrzeit, Status
+- Grau bei fehlendem Einsatz ("Kein Einsatz geplant")
+- Serie-Badge + "× Serie löschen" Button für wiederkehrende Serien
+
+### Wiederkehrende Einsätze
+- Formular `/einsaetze/create`: Wiederholung (Wöchentlich / Täglich), Wochentage-Auswahl (farbige Pills), Enddatum, Live-Preview ("13 Einsätze werden erstellt")
+- Controller: Loop von Startdatum bis Enddatum, max 365 Iterationen, `serie_id` UUID als Gruppenkennung
+- Migration `2026_02_22_220913`: `serie_id UUID nullable` auf `einsaetze`
+- Serie löschen: `DELETE /einsaetze/serie/{serieId}` — löscht nur zukünftige, nicht abgeschlossene, nicht in Tour eingeplante Einsätze
+
+### Migration (neu)
+| Migration | Inhalt |
+|-----------|--------|
+| `2026_02_22_220913` | `einsaetze.serie_id` UUID nullable — Serien-Gruppierung |
+
+---
+
 ## Bekannte offene Punkte
 
 - **Bexio**: Kontakt-Sync und Rechnungs-Sync im Service vorhanden, aber kein UI-Button. Nächster Schritt: Button auf Klient-Detail und Rechnungs-Detail.
 - **XML-Export**: `tarmed_code`-Feld fehlt auf leistungsarten. Default `00.0010` verwenden oder Feld ergänzen.
 - **Tourenplanung**: Reihenfolge per Nummer setzbar, kein Drag-and-Drop.
+- **Wiederkehrende Einsätze**: Serie bearbeiten (alle verschieben) noch nicht gebaut — nur Löschen möglich.
+- **Profil-Seite**: Link im Header-User-Menu → `profil.index`.
 - **Dokumente**: Speicher unter `storage/app/dokumente/{org_id}/` — kein public Zugriff, nur Download.
 - **Klienten-Index**: Default zeigt nur aktive Klienten (Filter "Aktiv" vorausgewählt).
 
@@ -227,6 +334,50 @@ resources/views/
 
 ---
 
+## Session-Start — IMMER AUSFÜHREN
+
+Laragon GUI startet nicht mehr (Lizenzkey-Pflicht). Apache und PostgreSQL müssen manuell geprüft und ggf. gestartet werden.
+
+### 1. Prüfen ob Apache und PostgreSQL laufen
+
+```bash
+tasklist | grep -i httpd
+tasklist | grep -i postgres
+```
+
+### 2. Falls Apache nicht läuft — direkt starten
+
+```bash
+# Apache starten
+start "" "C:/laragon/bin/apache/httpd-2.4.66-260107-Win64-VS18/bin/httpd.exe"
+```
+
+### 3. Falls Apache neu geladen werden muss (z.B. neue VHost-Config)
+
+```bash
+# Erst beenden, dann neu starten
+taskkill //IM httpd.exe //F
+sleep 2
+start "" "C:/laragon/bin/apache/httpd-2.4.66-260107-Win64-VS18/bin/httpd.exe"
+```
+
+### 4. Falls PostgreSQL nicht läuft
+
+```bash
+start "" "C:/laragon/bin/postgresql/postgresql/bin/pg_ctl.exe" start -D "C:/laragon/data/postgresql"
+```
+
+### 5. Danach prüfen
+
+```bash
+tasklist | grep -i httpd    # httpd.exe muss erscheinen
+tasklist | grep -i postgres # postgres.exe muss erscheinen
+```
+
+→ Dann `http://spitex.test` im Browser aufrufen.
+
+---
+
 ## Laptop-Setup (neues Gerät)
 
 ```bash
@@ -235,10 +386,10 @@ resources/views/
 
 # 2. Projekt klonen
 cd C:\laragon\www
-git clone <repo-url> curasoft
+git clone <repo-url> spitex
 
 # 3. Dependencies
-cd curasoft
+cd spitex
 composer install
 npm install && npm run build
 
@@ -247,16 +398,16 @@ cp .env.example .env
 php artisan key:generate
 
 # .env anpassen:
-# APP_URL=http://curasoft.test
+# APP_URL=http://spitex.test
 # DB_CONNECTION=pgsql
 # DB_HOST=localhost
 # DB_PORT=5432
-# DB_DATABASE=curasoft
+# DB_DATABASE=spitex
 # DB_USERNAME=postgres
 # DB_PASSWORD=
 
 # 5. Datenbank anlegen (pgAdmin oder psql)
-# CREATE DATABASE curasoft;
+# CREATE DATABASE spitex;
 
 # 6. Migrationen + Seeders
 php artisan migrate
@@ -266,10 +417,10 @@ php artisan db:seed --class=EinsatzartenSeeder
 # 7. Storage verlinken
 php artisan storage:link
 
-# 8. Laragon: Virtual Host curasoft.test → C:\laragon\www\curasoft\public
+# 8. Laragon: Virtual Host spitex.test → C:\laragon\www\spitex\public
 
 # 9. Ersten Admin-User anlegen via Setup-Wizard
-# http://curasoft.test/setup
+# http://spitex.test/setup
 ```
 
 ---
@@ -300,7 +451,7 @@ Auftrag kommt → kurze Zusammenfassung → Mathias sagt ja → fertig bauen. Da
 Wenn etwas technisch unklar ist → einmal direkt fragen, dann sofort ausführen.
 
 ### Lokale Entwicklungsumgebung
-- App läuft auf `http://curasoft.test` (Laragon)
+- App läuft auf `http://spitex.test` (Laragon)
 - **Kein ngrok** — CSRF/Session-Probleme, nicht zuverlässig
 - Für Handy-Tests: gleiches WLAN, direkte IP des PCs
 

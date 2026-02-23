@@ -130,6 +130,10 @@ class EinsaetzeController extends Controller
             'zeit_bis'        => ['nullable', 'date_format:H:i'],
             'benutzer_id'     => ['nullable', 'exists:benutzer,id'],
             'bemerkung'       => ['nullable', 'string', 'max:1000'],
+            'wiederholung'    => ['nullable', 'in:woechentlich,taeglich'],
+            'serie_ende'      => ['nullable', 'date', 'after:datum'],
+            'wochentage'      => ['nullable', 'array'],
+            'wochentage.*'    => ['integer', 'between:0,6'],
         ]);
 
         $klient = Klient::findOrFail($daten['klient_id']);
@@ -138,23 +142,67 @@ class EinsaetzeController extends Controller
             ? $daten['benutzer_id']
             : auth()->id();
 
-        $einsatz = Einsatz::create([
+        $basis = [
             'organisation_id' => $this->orgId(),
             'klient_id'       => $daten['klient_id'],
             'leistungsart_id' => $daten['leistungsart_id'],
             'benutzer_id'     => $benutzerId,
             'region_id'       => $klient->region_id,
-            'datum'           => $daten['datum'],
             'datum_bis'       => $daten['datum_bis'] ?? null,
             'zeit_von'        => $daten['zeit_von'] ?? null,
             'zeit_bis'        => $daten['zeit_bis'] ?? null,
             'bemerkung'       => $daten['bemerkung'] ?? null,
             'status'          => 'geplant',
-        ]);
+        ];
+
+        // Wiederholung: mehrere Einsätze erstellen
+        $wiederholung = $daten['wiederholung'] ?? null;
+        if ($wiederholung && !empty($daten['serie_ende'])) {
+            $serieId    = (string) \Illuminate\Support\Str::uuid();
+            $current    = \Carbon\Carbon::parse($daten['datum']);
+            $ende       = \Carbon\Carbon::parse($daten['serie_ende']);
+            $wochentage = array_map('intval', $daten['wochentage'] ?? []);
+            $anzahl     = 0;
+            $ersterEinsatz = null;
+
+            while ($current->lte($ende) && $anzahl < 365) {
+                $passt = match($wiederholung) {
+                    'taeglich'     => true,
+                    'woechentlich' => empty($wochentage) || in_array($current->dayOfWeek, $wochentage),
+                    default        => false,
+                };
+                if ($passt) {
+                    $e = Einsatz::create(array_merge($basis, [
+                        'datum'    => $current->format('Y-m-d'),
+                        'serie_id' => $serieId,
+                    ]));
+                    if (!$ersterEinsatz) $ersterEinsatz = $e;
+                    $anzahl++;
+                }
+                $current->addDay();
+            }
+
+            $meldung = $anzahl . ' Einsatz' . ($anzahl !== 1 ? 'ätze' : '') . ' wurden angelegt.';
+
+            if ($request->filled('_klient_redirect')) {
+                return redirect()->route('klienten.show', $daten['klient_id'])->with('erfolg', $meldung);
+            }
+            return redirect()->route('einsaetze.index')->with('erfolg', $meldung);
+        }
+
+        // Einzelner Einsatz
+        $einsatz = Einsatz::create(array_merge($basis, ['datum' => $daten['datum']]));
 
         if ($request->filled('_klient_redirect')) {
             return redirect()->route('klienten.show', $daten['klient_id'])
                 ->with('erfolg', 'Einsatz wurde geplant.');
+        }
+
+        if ($request->filled('_nach_touren')) {
+            return redirect()->route('touren.create', [
+                'benutzer_id' => $einsatz->benutzer_id,
+                'datum'       => $einsatz->datum->format('Y-m-d'),
+            ])->with('erfolg', 'Einsatz angelegt – jetzt Tour erstellen.');
         }
 
         return redirect()->route('einsaetze.show', $einsatz)
@@ -224,6 +272,33 @@ class EinsaetzeController extends Controller
 
         return redirect()->route('einsaetze.show', $einsatz)
             ->with('erfolg', 'Einsatz wurde gespeichert.');
+    }
+
+    public function destroySerie(Request $request, string $serieId)
+    {
+        // Nur zukünftige, nicht abgeschlossene Einsätze löschen
+        $anzahl = Einsatz::where('organisation_id', $this->orgId())
+            ->where('serie_id', $serieId)
+            ->whereDate('datum', '>=', today())
+            ->whereNotIn('status', ['abgeschlossen'])
+            ->whereNull('tour_id')
+            ->count();
+
+        Einsatz::where('organisation_id', $this->orgId())
+            ->where('serie_id', $serieId)
+            ->whereDate('datum', '>=', today())
+            ->whereNotIn('status', ['abgeschlossen'])
+            ->whereNull('tour_id')
+            ->delete();
+
+        $meldung = $anzahl . ' Einsatz' . ($anzahl !== 1 ? 'ätze' : '') . ' der Serie gelöscht.';
+
+        if ($request->filled('_klient_redirect')) {
+            return redirect()->route('klienten.show', $request->_klient_redirect)
+                ->with('erfolg', $meldung);
+        }
+
+        return redirect()->route('einsaetze.index')->with('erfolg', $meldung);
     }
 
     private function autorisiereZugriff(Einsatz $einsatz): void

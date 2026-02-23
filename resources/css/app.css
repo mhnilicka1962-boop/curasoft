@@ -452,3 +452,66 @@ body {
 
 /* badge-primaer */
 .badge-primaer { background-color: var(--cs-primaer-hell); color: var(--cs-primaer); }
+
+/* ============================================================
+   Dashboard & Karten-Listen
+   ============================================================ */
+
+.karte-statisch { cursor: default; }
+.abschnitt-label-kompakt { margin-bottom: 0.5rem; }
+.kennzahl-zahl { font-size: 2rem; font-weight: 700; color: var(--cs-primaer); }
+.kennzahl-zahl-neutral { font-size: 2rem; font-weight: 700; color: var(--cs-text); }
+.kennzahl-hinweis { font-size: 0.8125rem; color: var(--cs-warnung); }
+.link-block-mt { text-decoration: none; display: inline-block; margin-top: 0.375rem; }
+.form-grid-mb { margin-bottom: 1.5rem; }
+.form-grid-2-gap { gap: 1rem; }
+.karten-kopf { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem; }
+.listen-zeile { padding: 0.5rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; }
+.listen-zeile-inner { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.listen-zeile-inner-start { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+.flex-1-min { flex: 1; min-width: 0; }
+.flex-shrink-0 { flex-shrink: 0; }
+.flex-gap-klein { display: flex; gap: 0.375rem; align-items: center; }
+.text-8 { font-size: 0.8rem; }
+.badge-klein { font-size: 0.7rem; }
+.text-ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.listen-meta { font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.125rem; }
+.seiten-titel-mb { margin: 0 0 1.5rem; }
+.m-05 { margin: 0.5rem 0; }
+.ml-klein { margin-left: 0.375rem; }
+
+/* ============================================================
+   Navigation Badge (Ungelesen-Zähler)
+   ============================================================ */
+
+.nav-link-mit-badge { display: flex; align-items: center; justify-content: space-between; }
+.nav-badge {
+    background: var(--cs-primaer);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    min-width: 1.2rem;
+    height: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.3rem;
+}
+
+/* ============================================================
+   Header User (Top-Bereich rechts)
+   ============================================================ */
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.header-user-link {
+    font-size: 0.875rem;
+    color: var(--cs-text-hell);
+    text-decoration: none;
+}
+.header-user form { margin: 0; }
+.btn-compact { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }

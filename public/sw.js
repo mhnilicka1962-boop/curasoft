@@ -1,4 +1,4 @@
-const CACHE = 'curasoft-v1';
+const CACHE = 'spitex-v1';
 const OFFLINE_PAGES = ['/dashboard', '/einsaetze', '/klienten'];
 
 // Install: Cache wichtige Seiten

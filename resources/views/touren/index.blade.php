@@ -75,5 +75,52 @@
     </div>
     @endforelse
 
+    {{-- Nicht eingeplante Einsätze (Lücken) --}}
+    @if($ohneTouren->isNotEmpty())
+    <div class="karte" style="border-left: 3px solid var(--cs-warnung); margin-top: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+                <span class="abschnitt-label" style="margin: 0; color: var(--cs-warnung);">
+                    ⚠ Nicht eingeplante Einsätze
+                </span>
+                <span class="text-hell" style="font-size: 0.8125rem; margin-left: 0.5rem;">
+                    ({{ $ohneTouren->flatten()->count() }} Einsatz/Einsätze ohne Tour)
+                </span>
+            </div>
+        </div>
+
+        @foreach($ohneTouren as $benutzerId => $einsaetze)
+        @php $ma = $einsaetze->first()->benutzer; @endphp
+        <div style="margin-bottom: 0.875rem; padding: 0.75rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                <span style="font-weight: 600; font-size: 0.9375rem;">
+                    {{ $ma?->vorname }} {{ $ma?->nachname }}
+                    <span class="text-hell" style="font-weight: 400; font-size: 0.8125rem; margin-left: 0.25rem;">{{ $einsaetze->count() }} Einsatz{{ $einsaetze->count() !== 1 ? 'ätze' : '' }}</span>
+                </span>
+                @if(auth()->user()->rolle === 'admin')
+                <a href="{{ route('touren.create', ['benutzer_id' => $benutzerId, 'datum' => $datum->format('Y-m-d')]) }}"
+                   class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.25rem 0.625rem;">
+                    + Tour erstellen
+                </a>
+                @endif
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                @foreach($einsaetze as $e)
+                <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.8125rem; padding: 0.25rem 0; border-top: 1px solid var(--cs-border);">
+                    @if($e->zeit_von)
+                        <span class="text-hell" style="min-width: 45px;">{{ substr($e->zeit_von,0,5) }}</span>
+                    @else
+                        <span class="text-hell" style="min-width: 45px;">—</span>
+                    @endif
+                    <span style="font-weight: 500;">{{ $e->klient?->vollname() }}</span>
+                    <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
 </div>
 </x-layouts.app>

@@ -4,10 +4,10 @@
 </a>
 
 <div class="nav-abschnitt">Kommunikation</div>
-<a href="{{ route('nachrichten.index') }}" class="nav-link {{ request()->routeIs('nachrichten.*') ? 'aktiv' : '' }}" style="display: flex; align-items: center; justify-content: space-between;">
+<a href="{{ route('nachrichten.index') }}" class="nav-link nav-link-mit-badge {{ request()->routeIs('nachrichten.*') ? 'aktiv' : '' }}">
     <span>Nachrichten</span>
     @if(!empty($navNachrichtenUngelesen) && $navNachrichtenUngelesen > 0)
-        <span style="background: var(--cs-primaer); color: #fff; border-radius: 999px; font-size: 0.65rem; font-weight: 700; min-width: 1.2rem; height: 1.2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0 0.3rem;">{{ $navNachrichtenUngelesen }}</span>
+        <span class="nav-badge">{{ $navNachrichtenUngelesen }}</span>
     @endif
 </a>
 

@@ -20,26 +20,61 @@ use App\Http\Controllers\MitarbeiterController;
 use App\Http\Controllers\RegionenController;
 use App\Http\Controllers\EinladungController;
 use App\Http\Controllers\SetupController;
+use App\Http\Controllers\WebAuthnController;
+use App\Http\Controllers\ProfilController;
 use Illuminate\Support\Facades\Route;
 
 // Setup-Wizard (nur wenn noch kein Benutzer existiert)
 Route::get('/setup', [SetupController::class, 'index'])->name('setup.index');
 Route::post('/setup', [SetupController::class, 'store'])->name('setup.store');
 
-// Startseite → Login weiterleiten
+// Startseite → Landing Page
 Route::get('/', function () {
-    return redirect()->route('login');
-});
+    return view('landing');
+})->name('home');
+
+// Kontaktformular Landing Page
+Route::post('/kontakt', function (\Illuminate\Http\Request $request) {
+    $data = $request->validate([
+        'name'          => 'required|string|max:100',
+        'organisation'  => 'nullable|string|max:150',
+        'email'         => 'required|email|max:150',
+        'mitarbeitende' => 'nullable|string|max:20',
+        'nachricht'     => 'nullable|string|max:2000',
+    ]);
+
+    \Illuminate\Support\Facades\Mail::raw(
+        "Neue Pilotanfrage von der Landing Page\n\n"
+        . "Name:           {$data['name']}\n"
+        . "Organisation:   " . ($data['organisation'] ?? '—') . "\n"
+        . "E-Mail:         {$data['email']}\n"
+        . "Mitarbeitende:  " . ($data['mitarbeitende'] ?? '—') . "\n\n"
+        . "Nachricht:\n" . ($data['nachricht'] ?? '—'),
+        function ($message) use ($data) {
+            $message->to('mhn@itjob.ch')
+                    ->replyTo($data['email'], $data['name'])
+                    ->subject('Spitex Pilotanfrage: ' . $data['name']);
+        }
+    );
+
+    return response()->json(['ok' => true]);
+})->name('kontakt.senden');
 
 // Auth
 Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login/magic', [AuthController::class, 'sendMagicLink'])->name('login.magic');
+Route::get('/login/verify/{token}', [AuthController::class, 'verifyMagicLink'])->name('login.verify');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
 // Einladung (kein Auth erforderlich)
 Route::get('/einladung/{token}',  [EinladungController::class, 'show'])->name('einladung.show');
 Route::post('/einladung/{token}', [EinladungController::class, 'store'])->name('einladung.store');
+
+// WebAuthn — Login (kein Auth nötig)
+Route::get('/webauthn/authenticate-options', [WebAuthnController::class, 'authenticateOptions'])->name('webauthn.authenticate.options');
+Route::post('/webauthn/authenticate',        [WebAuthnController::class, 'authenticate'])->name('webauthn.authenticate');
 
 // ----------------------------------------------------------------
 // Geschützte Routen — alle eingeloggten Benutzer
@@ -98,6 +133,12 @@ Route::middleware('auth')->group(function () {
         ));
     })->name('dashboard');
 
+    // Profil + WebAuthn (Passkeys) — alle eingeloggten Benutzer
+    Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
+    Route::get('/webauthn/register-options',    [WebAuthnController::class, 'registerOptions'])->name('webauthn.register.options');
+    Route::post('/webauthn/register',           [WebAuthnController::class, 'register'])->name('webauthn.register');
+    Route::delete('/webauthn/credentials/{id}', [WebAuthnController::class, 'delete'])->name('webauthn.delete');
+
     // Internes Nachrichtensystem — alle eingeloggten Benutzer
     Route::get('/nachrichten', [NachrichtenController::class, 'index'])->name('nachrichten.index');
     Route::get('/nachrichten/neu', [NachrichtenController::class, 'create'])->name('nachrichten.create');
@@ -129,10 +170,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/klienten/{klient}/pflegestufen',                [KlientenController::class, 'pflegestufeSpeichern'])->name('klienten.pflegestufe.speichern');
         Route::post('/klienten/{klient}/diagnosen',                   [KlientenController::class, 'diagnoseSpeichern'])->name('klienten.diagnose.speichern');
         Route::delete('/klienten/{klient}/diagnosen/{diagnose}',      [KlientenController::class, 'diagnoseEntfernen'])->name('klienten.diagnose.entfernen');
+        Route::get('/schnellerfassung',  [KlientenController::class, 'schnellerfassung'])->name('schnellerfassung');
+        Route::post('/schnellerfassung', [KlientenController::class, 'schnellSpeichern'])->name('schnellerfassung.speichern');
         Route::resource('/einsaetze', EinsaetzeController::class)->only(['index','create','store','show','edit','update']);
+        Route::delete('/einsaetze/serie/{serieId}', [EinsaetzeController::class, 'destroySerie'])->name('einsaetze.serie.loeschen');
 
         // Rapporte
-        Route::resource('/rapporte', RapporteController::class)->only(['index', 'create', 'store', 'show']);
+        Route::resource('/rapporte', RapporteController::class)->only(['index', 'create', 'store', 'show'])->parameters(['rapporte' => 'rapport']);
 
         // Touren
         Route::resource('/touren', TourenController::class)

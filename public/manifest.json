@@ -1,6 +1,6 @@
 {
-    "name": "CuraSoft",
-    "short_name": "CuraSoft",
+    "name": "Spitex",
+    "short_name": "Spitex",
     "description": "Pflegemanagement-Software",
     "start_url": "/dashboard",
     "scope": "/",

@@ -15,7 +15,8 @@
             <a href="{{ route('klienten.index') }}" class="btn btn-sekundaer">✕</a>
         @endif
     </form>
-    <a href="{{ route('klienten.create') }}" class="btn btn-primaer" style="white-space: nowrap;">+ Neu</a>
+    <a href="{{ route('schnellerfassung') }}" class="btn btn-primaer" style="white-space: nowrap;">+ Neuer Patient</a>
+    <a href="{{ route('klienten.create') }}" class="btn btn-sekundaer" style="white-space: nowrap; font-size: 0.8125rem;">Detailformular</a>
 </div>
 
 {{-- Liste --}}

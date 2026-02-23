@@ -69,7 +69,7 @@ class SetupController extends Controller
         // Direkt einloggen
         Auth::login($benutzer);
 
-        return redirect()->route('dashboard')->with('status', 'CuraSoft wurde erfolgreich eingerichtet. Willkommen!');
+        return redirect()->route('dashboard')->with('status', 'Spitex wurde erfolgreich eingerichtet. Willkommen!');
     }
 
     private function updateEnv(array $values): void

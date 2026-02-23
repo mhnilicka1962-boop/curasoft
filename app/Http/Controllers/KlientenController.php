@@ -92,6 +92,81 @@ class KlientenController extends Controller
             ->with('erfolg', 'Klient wurde erfolgreich angelegt.');
     }
 
+    public function schnellerfassung()
+    {
+        $mitarbeiter   = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
+        $regionen      = Region::orderBy('kuerzel')->get();
+        $leistungsarten = \App\Models\Leistungsart::where('aktiv', true)->orderBy('bezeichnung')->get();
+        return view('klienten.schnellerfassung', compact('mitarbeiter', 'regionen', 'leistungsarten'));
+    }
+
+    public function schnellSpeichern(Request $request)
+    {
+        $daten = $request->validate([
+            'vorname'         => ['required', 'string', 'max:100'],
+            'nachname'        => ['required', 'string', 'max:100'],
+            'telefon'         => ['nullable', 'string', 'max:50'],
+            'adresse'         => ['nullable', 'string', 'max:200'],
+            'plz'             => ['nullable', 'string', 'max:20'],
+            'ort'             => ['nullable', 'string', 'max:100'],
+            'region_id'       => ['nullable', 'exists:regionen,id'],
+            'benutzer_id'     => ['nullable', 'exists:benutzer,id'],
+            'leistungsart_id' => ['nullable', 'exists:leistungsarten,id'],
+            'zeit_von'        => ['nullable', 'date_format:H:i'],
+            'zeit_bis'        => ['nullable', 'date_format:H:i'],
+            'datum_start'     => ['nullable', 'date'],
+            'datum_ende'      => ['nullable', 'date', 'after_or_equal:datum_start'],
+            'wochentage'      => ['nullable', 'array'],
+            'wochentage.*'    => ['integer', 'between:0,6'],
+        ]);
+
+        // Klient anlegen
+        $klient = Klient::create([
+            'organisation_id' => $this->orgId(),
+            'vorname'         => $daten['vorname'],
+            'nachname'        => $daten['nachname'],
+            'telefon'         => $daten['telefon'] ?? null,
+            'adresse'         => $daten['adresse'] ?? null,
+            'plz'             => $daten['plz'] ?? null,
+            'ort'             => $daten['ort'] ?? null,
+            'region_id'       => $daten['region_id'] ?? null,
+            'aktiv'           => true,
+        ]);
+
+        // Einsätze anlegen wenn Einsatzplan ausgefüllt
+        $anzahl = 0;
+        if (!empty($daten['benutzer_id']) && !empty($daten['leistungsart_id']) && !empty($daten['datum_start'])) {
+            $wochentage = array_map('intval', $daten['wochentage'] ?? []);
+            $serieId    = (string) \Illuminate\Support\Str::uuid();
+            $current    = \Carbon\Carbon::parse($daten['datum_start']);
+            $ende       = isset($daten['datum_ende']) ? \Carbon\Carbon::parse($daten['datum_ende']) : $current->copy()->addMonths(3);
+
+            while ($current->lte($ende) && $anzahl < 365) {
+                if (empty($wochentage) || in_array($current->dayOfWeek, $wochentage)) {
+                    \App\Models\Einsatz::create([
+                        'organisation_id' => $this->orgId(),
+                        'klient_id'       => $klient->id,
+                        'benutzer_id'     => $daten['benutzer_id'],
+                        'leistungsart_id' => $daten['leistungsart_id'],
+                        'region_id'       => $klient->region_id,
+                        'datum'           => $current->format('Y-m-d'),
+                        'zeit_von'        => $daten['zeit_von'] ?? null,
+                        'zeit_bis'        => $daten['zeit_bis'] ?? null,
+                        'status'          => 'geplant',
+                        'serie_id'        => count($wochentage) ? $serieId : null,
+                    ]);
+                    $anzahl++;
+                }
+                $current->addDay();
+            }
+        }
+
+        $meldung = "Klient {$klient->vorname} {$klient->nachname} angelegt" .
+            ($anzahl ? " · {$anzahl} Einsatz" . ($anzahl !== 1 ? 'ätze' : '') . ' geplant' : '') . '.';
+
+        return redirect()->route('klienten.show', $klient)->with('erfolg', $meldung);
+    }
+
     public function show(Klient $klient)
     {
         $this->autorisiereZugriff($klient);

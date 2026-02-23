@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="/manifest.json">
-    <title>Einsatz läuft — {{ config('theme.app_name', 'CuraSoft') }}</title>
+    <title>Einsatz läuft — {{ config('theme.app_name', 'Spitex') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body style="background-color: var(--cs-hintergrund); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem;">

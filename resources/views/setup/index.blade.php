@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CuraSoft einrichten</title>
+    <title>Spitex einrichten</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .schritt { display: none; }
@@ -68,7 +68,7 @@
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
             </svg>
         </div>
-        <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--cs-text); margin: 0 0 0.25rem;">CuraSoft einrichten</h1>
+        <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--cs-text); margin: 0 0 0.25rem;">Spitex einrichten</h1>
         <p style="color: var(--cs-text-hell); font-size: 0.875rem; margin: 0;">Erstmalige Konfiguration — dauert nur 2 Minuten</p>
     </div>
 
@@ -234,7 +234,7 @@
     </div>
 
     <p style="text-align: center; margin-top: 1.5rem; font-size: 0.75rem; color: var(--cs-text-hell);">
-        CuraSoft &copy; {{ date('Y') }}
+        Spitex &copy; {{ date('Y') }}
     </p>
 </div>
 

@@ -18,7 +18,7 @@
 <div style="text-align: center; max-width: 320px;">
 
     <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #6b7280; margin-bottom: 0.5rem;">
-        {{ config('theme.app_name', 'CuraSoft') }} · Check-in
+        {{ config('theme.app_name', 'Spitex') }} · Check-in
     </div>
 
     <div style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin-bottom: 0.25rem;">

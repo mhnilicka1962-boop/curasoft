@@ -62,6 +62,92 @@
         @endif
     </div>
 
+    {{-- Pflegeplan: Nächste 14 Tage --}}
+    @php
+        $pflegeplan = $klient->einsaetze()
+            ->with('benutzer', 'leistungsart')
+            ->whereDate('datum', '>=', today())
+            ->whereDate('datum', '<=', today()->addDays(13))
+            ->whereNotIn('status', ['storniert'])
+            ->orderBy('datum')->orderBy('zeit_von')
+            ->get()
+            ->groupBy(fn($e) => $e->datum->format('Y-m-d'));
+        $gezeigteSeries = [];
+    @endphp
+
+    <div class="karte" style="margin-bottom: 1rem; padding: 0;">
+        <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--cs-border); display: flex; align-items: center; justify-content: space-between;">
+            <span class="abschnitt-label" style="margin: 0;">Pflegeplan — Nächste 14 Tage</span>
+            <a href="{{ route('einsaetze.create', ['klient_id' => $klient->id]) }}" class="text-klein link-primaer">+ Einsatz planen</a>
+        </div>
+
+        @if($pflegeplan->isEmpty())
+        <div style="padding: 1.25rem 1rem; text-align: center; font-size: 0.875rem; color: var(--cs-text-hell);">
+            Keine Einsätze in den nächsten 14 Tagen geplant.
+            <a href="{{ route('einsaetze.create', ['klient_id' => $klient->id]) }}" class="link-primaer" style="display: block; margin-top: 0.5rem;">→ Jetzt planen</a>
+        </div>
+        @else
+        @foreach(collect(range(0,13))->map(fn($i) => today()->addDays($i)) as $tag)
+        @php
+            $key = $tag->format('Y-m-d');
+            $tagesEinsaetze = $pflegeplan->get($key, collect());
+            $istHeute = $tag->isToday();
+            $hatEinsatz = $tagesEinsaetze->isNotEmpty();
+        @endphp
+        <div style="display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.5rem 1rem; border-bottom: 1px solid var(--cs-border);
+            background: {{ $istHeute ? 'var(--cs-primaer-hell, #eff6ff)' : ($hatEinsatz ? 'transparent' : 'var(--cs-hintergrund)') }};">
+
+            {{-- Datum --}}
+            <div style="min-width: 100px; flex-shrink: 0;">
+                <div style="font-size: 0.8125rem; font-weight: {{ $istHeute ? '700' : '400' }}; color: {{ $istHeute ? 'var(--cs-primaer)' : 'var(--cs-text)' }};">
+                    {{ $tag->isoFormat('dd, D. MMM') }}
+                </div>
+                @if($istHeute)
+                    <span class="badge badge-primaer" style="font-size: 0.65rem;">Heute</span>
+                @endif
+            </div>
+
+            {{-- Einsätze oder Lücke --}}
+            @if($hatEinsatz)
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 0.25rem;">
+                @foreach($tagesEinsaetze as $e)
+                @php $zeigeSerieBtn = $e->serie_id && !in_array($e->serie_id, $gezeigteSeries); @endphp
+                @if($zeigeSerieBtn) @php $gezeigteSeries[] = $e->serie_id; @endphp @endif
+                <div style="display: flex; align-items: center; gap: 0.625rem; font-size: 0.8125rem; flex-wrap: wrap;">
+                    <span style="font-weight: 600; color: var(--cs-primaer);">
+                        {{ $e->benutzer?->vorname }} {{ $e->benutzer?->nachname }}
+                    </span>
+                    <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
+                    @if($e->serie_id)
+                        <span class="badge badge-info" style="font-size: 0.65rem;">Serie</span>
+                    @endif
+                    @if($e->zeit_von)
+                        <span class="text-hell" style="font-size: 0.75rem; white-space: nowrap;">
+                            {{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}
+                        </span>
+                    @endif
+                    <span class="badge {{ $e->statusBadgeKlasse() }}" style="font-size: 0.65rem;">{{ $e->statusLabel() }}</span>
+                    @if($zeigeSerieBtn)
+                    <form method="POST" action="{{ route('einsaetze.serie.loeschen', $e->serie_id) }}" style="margin-left: auto;"
+                        onsubmit="return confirm('Alle zukünftigen Einsätze dieser Serie löschen?')">
+                        @csrf @method('DELETE')
+                        <input type="hidden" name="_klient_redirect" value="{{ $klient->id }}">
+                        <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 0.75rem; color: var(--cs-fehler); padding: 0; white-space: nowrap;">× Serie löschen</button>
+                    </form>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+            @else
+            <div style="flex: 1; font-size: 0.8125rem; color: var(--cs-text-hell); font-style: italic;">
+                Kein Einsatz geplant
+            </div>
+            @endif
+        </div>
+        @endforeach
+        @endif
+    </div>
+
     <div class="form-grid-2" style="gap: 1rem; margin-bottom: 1rem;">
 
         {{-- Kontakt --}}

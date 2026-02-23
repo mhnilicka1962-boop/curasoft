@@ -25,7 +25,7 @@ return [
     | App-Name & Logo
     |--------------------------------------------------------------------------
     */
-    'app_name' => env('CS_APP_NAME', 'CuraSoft'),
+    'app_name' => env('CS_APP_NAME', 'Spitex'),
     'logo'     => env('CS_LOGO', null), // Pfad zu Default-Logo
 
 ];

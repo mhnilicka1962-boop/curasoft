@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * Bexio API Integration Service
  *
- * Handles synchronisation between CuraSoft and Bexio accounting.
+ * Handles synchronisation between Spitex and Bexio accounting.
  * API Docs: https://docs.bexio.com/
  */
 class BexioService
@@ -74,7 +74,7 @@ class BexioService
                 'country_id'      => 1, // Schweiz
                 'phone_fixed'     => $klient->telefon ?? '',
                 'mail'            => $klient->email ?? '',
-                'remarks'         => 'CuraSoft ID: ' . $klient->id,
+                'remarks'         => 'Spitex ID: ' . $klient->id,
             ];
 
             if ($klient->bexio_kontakt_id) {

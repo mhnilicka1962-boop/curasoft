@@ -32,32 +32,75 @@ class TourenController extends Controller
         $touren      = $query->orderBy('start_zeit')->get();
         $mitarbeiter = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
 
-        return view('touren.index', compact('touren', 'datum', 'mitarbeiter'));
+        // Einsätze ohne Tour für diesen Tag (Lücken-Warnung)
+        $ohneTouren = Einsatz::where('organisation_id', $this->orgId())
+            ->whereDate('datum', $datum)
+            ->whereNull('tour_id')
+            ->with('klient', 'benutzer', 'leistungsart')
+            ->orderBy('benutzer_id')
+            ->orderBy('zeit_von')
+            ->get()
+            ->groupBy('benutzer_id');
+
+        return view('touren.index', compact('touren', 'datum', 'mitarbeiter', 'ohneTouren'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $mitarbeiter = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
-        return view('touren.create', compact('mitarbeiter'));
+        $mitarbeiter      = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
+        $vorDatum         = $request->filled('datum') ? $request->datum : date('Y-m-d');
+        $vorBenutzerId    = $request->filled('benutzer_id') ? (int) $request->benutzer_id : null;
+        $vorBezeichnung   = $request->filled('bezeichnung') ? $request->bezeichnung : null;
+
+        $verfuegbareEinsaetze = collect();
+        if ($vorBenutzerId) {
+            $verfuegbareEinsaetze = Einsatz::where('organisation_id', $this->orgId())
+                ->whereDate('datum', $vorDatum)
+                ->where('benutzer_id', $vorBenutzerId)
+                ->whereNull('tour_id')
+                ->with('klient', 'leistungsart')
+                ->orderBy('zeit_von')
+                ->get();
+
+            if (!$vorBezeichnung) {
+                $ma = $mitarbeiter->firstWhere('id', $vorBenutzerId);
+                $vorBezeichnung = $ma ? 'Tour ' . $ma->vorname . ' · ' . \Carbon\Carbon::parse($vorDatum)->format('d.m.Y') : null;
+            }
+        }
+
+        return view('touren.create', compact('mitarbeiter', 'vorDatum', 'vorBenutzerId', 'vorBezeichnung', 'verfuegbareEinsaetze'));
     }
 
     public function store(Request $request)
     {
         $daten = $request->validate([
-            'benutzer_id' => ['required', 'exists:benutzer,id'],
-            'datum'       => ['required', 'date'],
-            'bezeichnung' => ['required', 'string', 'max:200'],
-            'start_zeit'  => ['nullable', 'date_format:H:i'],
-            'bemerkung'   => ['nullable', 'string', 'max:500'],
+            'benutzer_id'   => ['required', 'exists:benutzer,id'],
+            'datum'         => ['required', 'date'],
+            'bezeichnung'   => ['required', 'string', 'max:200'],
+            'start_zeit'    => ['nullable', 'date_format:H:i'],
+            'bemerkung'     => ['nullable', 'string', 'max:500'],
+            'einsatz_ids'   => ['nullable', 'array'],
+            'einsatz_ids.*' => ['exists:einsaetze,id'],
         ]);
 
-        $tour = Tour::create(array_merge($daten, [
+        $tour = Tour::create([
             'organisation_id' => $this->orgId(),
+            'benutzer_id'     => $daten['benutzer_id'],
+            'datum'           => $daten['datum'],
+            'bezeichnung'     => $daten['bezeichnung'],
+            'start_zeit'      => $daten['start_zeit'] ?? null,
+            'bemerkung'       => $daten['bemerkung'] ?? null,
             'status'          => 'geplant',
-        ]));
+        ]);
 
-        return redirect()->route('touren.show', $tour)
-            ->with('erfolg', 'Tour wurde erstellt.');
+        foreach ($daten['einsatz_ids'] ?? [] as $i => $einsatzId) {
+            $einsatz = Einsatz::find($einsatzId);
+            if ($einsatz && $einsatz->organisation_id === $this->orgId()) {
+                $einsatz->update(['tour_id' => $tour->id, 'tour_reihenfolge' => $i + 1]);
+            }
+        }
+
+        return redirect()->route('touren.show', $tour)->with('erfolg', 'Tour wurde erstellt.');
     }
 
     public function show(Tour $tour)
@@ -66,7 +109,13 @@ class TourenController extends Controller
 
         $tour->load('benutzer', 'einsaetze.klient', 'einsaetze.leistungsart');
 
-        // Nicht zugewiesene Einsätze dieses Tages für diesen Mitarbeiter
+        $einsatzIds    = $tour->einsaetze->pluck('id');
+        $rapportZahlen = \Illuminate\Support\Facades\DB::table('rapporte')
+            ->whereIn('einsatz_id', $einsatzIds)
+            ->selectRaw('einsatz_id, COUNT(*) as anzahl')
+            ->groupBy('einsatz_id')
+            ->pluck('anzahl', 'einsatz_id');
+
         $offeneEinsaetze = Einsatz::where('organisation_id', $this->orgId())
             ->whereDate('datum', $tour->datum)
             ->where('benutzer_id', $tour->benutzer_id)
@@ -75,7 +124,7 @@ class TourenController extends Controller
             ->orderBy('zeit_von')
             ->get();
 
-        return view('touren.show', compact('tour', 'offeneEinsaetze'));
+        return view('touren.show', compact('tour', 'offeneEinsaetze', 'rapportZahlen'));
     }
 
     public function update(Request $request, Tour $tour)
@@ -99,22 +148,20 @@ class TourenController extends Controller
         if ($tour->organisation_id !== $this->orgId()) abort(403);
 
         $request->validate([
-            'einsatz_id'       => ['required', 'exists:einsaetze,id'],
-            'tour_reihenfolge' => ['nullable', 'integer', 'min:1'],
+            'einsatz_ids'   => ['required', 'array', 'min:1'],
+            'einsatz_ids.*' => ['exists:einsaetze,id'],
         ]);
 
-        $einsatz = Einsatz::findOrFail($request->einsatz_id);
-        if ($einsatz->organisation_id !== $this->orgId()) abort(403);
+        $max = $tour->einsaetze()->max('tour_reihenfolge') ?? 0;
+        $i   = 0;
+        foreach ($request->einsatz_ids as $einsatzId) {
+            $einsatz = Einsatz::find($einsatzId);
+            if ($einsatz && $einsatz->organisation_id === $this->orgId() && !$einsatz->tour_id) {
+                $einsatz->update(['tour_id' => $tour->id, 'tour_reihenfolge' => $max + ++$i]);
+            }
+        }
 
-        $reihenfolge = $request->tour_reihenfolge
-            ?? ($tour->einsaetze()->max('tour_reihenfolge') + 1);
-
-        $einsatz->update([
-            'tour_id'          => $tour->id,
-            'tour_reihenfolge' => $reihenfolge,
-        ]);
-
-        return back()->with('erfolg', 'Einsatz wurde der Tour zugewiesen.');
+        return back()->with('erfolg', $i . ' Einsatz' . ($i !== 1 ? 'ätze' : '') . ' der Tour zugewiesen.');
     }
 
     public function einsatzEntfernen(Tour $tour, Einsatz $einsatz)
