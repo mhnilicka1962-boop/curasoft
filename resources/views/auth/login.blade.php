@@ -51,10 +51,6 @@
 
         {{-- Tabs --}}
         <div style="display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 2px solid var(--cs-border);">
-            <button type="button" id="tab-passwort" onclick="zeigeTab('passwort')"
-                style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; color: var(--cs-text-hell);">
-                Passwort
-            </button>
             <button type="button" id="tab-magic" onclick="zeigeTab('magic')"
                 style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; color: var(--cs-text-hell);">
                 Link per E-Mail
@@ -62,6 +58,10 @@
             <button type="button" id="tab-faceid" onclick="zeigeTab('faceid')"
                 style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; color: var(--cs-text-hell); display: none;">
                 Face ID
+            </button>
+            <button type="button" id="tab-passwort" onclick="zeigeTab('passwort')"
+                style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; color: var(--cs-text-hell);">
+                Passwort
             </button>
         </div>
 
@@ -150,9 +150,9 @@ if (passkeyVerfuegbar) {
     document.getElementById('tab-faceid').style.display = 'inline-block';
 }
 
-// Auf Mobil → Face ID als Standard; sonst Passwort
+// Magic Link als Standard; auf Mobil mit Passkey → Face ID
 const istMobil = window.innerWidth < 768 && passkeyVerfuegbar;
-zeigeTab(istMobil ? 'faceid' : 'passwort');
+zeigeTab(istMobil ? 'faceid' : 'magic');
 
 // ── WebAuthn Login ─────────────────────────────────────────────────
 async function startPasskeyLogin() {
