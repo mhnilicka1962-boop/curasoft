@@ -57,6 +57,7 @@
 | `2026_02_23_120000` | klient_krankenkassen: tiers_payant boolean (Tiers payant vs. Tiers garant) |
 | `2026_02_23_130000` | klient_verordnungen (Ärztliche Verordnungen); einsaetze: verordnung_id FK |
 | `2026_02_23_140000` | leistungsarten: tarmed_code varchar(20) nullable |
+| `2026_02_23_150000` | klienten: klient_typ; klient_benutzer: beziehungstyp; benutzer: anstellungsart; einsaetze: leistungserbringer_typ |
 
 ### Seeders (bereits eingespielt)
 - `LeistungsartenSeeder` — 5 Leistungsarten mit Default-Ansätzen
@@ -213,6 +214,11 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **tarmed_code** | `/leistungsarten/{id}` → Bearbeiten | Code `00.0010` eingeben, speichern, in Show-Ansicht `T311:` sehen |
 | **Face ID / Passkey** | `/profil` → Passkey registrieren | Gerätename eingeben → Face ID → Login-Test |
 | **Lücken-Warnung Touren** | `/touren` | ⚠ Banner mit Mitarbeitern ohne Tour |
+| **klient_typ** | `/klienten/{id}` → Bearbeiten | Typ "Pflegender Angehöriger" wählen → Badge im Header sichtbar |
+| **leistungserbringer_typ** | `/einsaetze/create` | Leistungserbringer "Pflegender Angehöriger" wählen → XML specialty=39 |
+| **anstellungsart** | `/mitarbeiter/{id}` | Anstellungsart "Angehörig" setzen, speichern |
+| **beziehungstyp** | `/mitarbeiter/{id}` → Klient zuweisen | Beziehungstyp "Angehörig pflegend" wählen |
+| **Rate Limiter** | `/login` | 6× falsches PW → "Zu viele Versuche"-Meldung |
 
 ---
 
@@ -246,6 +252,25 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 - Button `→ Bexio` (erster Sync) / `↻ Bexio` (Update) — nur sichtbar wenn `bexio_api_key` konfiguriert
 - Tooltip zeigt vorhandene Bexio-ID
 - `Benutzer::organisation()` Relationship ergänzt
+
+### Security Paket A (nDSG/VDSG-Konformität)
+- **Rate Limiter** wieder aktiv in `AuthController`: `login()` + `sendMagicLink()` — max. 5 Versuche / 15 min pro IP (`RateLimiter::tooManyAttempts`), bei Erfolg automatisch gelöscht
+- **Content-Security-Policy** in `SecurityHeaders`-Middleware: `default-src 'self'`, `script-src 'unsafe-inline'`, `connect-src https://api.bexio.com`, `frame-ancestors 'none'`; HSTS mit `preload`
+- **Session-Sicherheit** in `.env.example`: `SESSION_LIFETIME=60`, `SESSION_ENCRYPT=true`, `SESSION_SECURE_COOKIE=true`
+- **bexio_api_key verschlüsselt**: `Organisation::$casts['bexio_api_key'] = 'encrypted'` — Laravel verschlüsselt transparenter mit APP_KEY
+
+### Angehörigenpflege (CH-Regelung ab 1.5.2023)
+- Migration `2026_02_23_150000`: 4 neue Felder
+  - `klienten.klient_typ`: `patient` | `pflegebeduerftig` | `angehoerig` (default `patient`)
+  - `klient_benutzer.beziehungstyp`: `fachperson` | `angehoerig_pflegend` | `freiwillig` (nullable)
+  - `benutzer.anstellungsart`: `fachperson` | `angehoerig` | `freiwillig` | `praktikum` (default `fachperson`)
+  - `einsaetze.leistungserbringer_typ`: `fachperson` | `angehoerig` (default `fachperson`)
+- `Klient`: +`klientTypBadge()` (Badge im Header), +`klientTypLabel()`
+- `Einsatz`: +`leistungserbringer_typ` in `$fillable`
+- `KlientBenutzer`: +`beziehungstyp` in `$fillable`
+- `Benutzer`: +`anstellungsart` in `$fillable`
+- `XmlExportService`: `specialty` jetzt dynamisch — `39` wenn mind. 1 Einsatz `leistungserbringer_typ=angehoerig`, sonst `37`
+- Views: Klient-Formular (+klient_typ), Einsatz create/edit (+leistungserbringer_typ), Mitarbeiter-Detail (+anstellungsart + beziehungstyp in Klient-Zuweisung)
 
 ### Swiss Krankenkassen Seeder
 - `KrankenkassenSeeder`: 39 KVG-Krankenkassen mit BAG-Nr und EAN (CSS, Helsana, SWICA, Concordia, Sanitas, KPT, Visana, Sympany, Assura, Atupri, Groupe Mutuel, EGK, ÖKK u.a.)
@@ -304,6 +329,8 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 - **MediData-Schnittstelle**: Auf Landing Page als "in Entwicklung" markiert — noch nicht gebaut.
 - **EPD** (Elektronisches Patientendossier): Pflicht ab 2026 — noch nicht geplant.
 - **Bexio**: Buttons gebaut. `bexio_api_key` muss in Firma → Bexio konfiguriert sein, sonst unsichtbar.
+- **Security Paket B**: Audit-Log (wer hat was wann geändert) — noch nicht gebaut.
+- **Security Paket C**: 2FA (TOTP) als zweiter Faktor — noch nicht gebaut. Passkey (WebAuthn) vorhanden als Alternative.
 
 ---
 
@@ -313,13 +340,13 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 app/
   Http/Controllers/
     AerzteController.php
-    AuthController.php           ← kein Rate Limiter
+    AuthController.php           ← Rate Limiter: max 5/15min auf login + magic-link
     CheckInController.php
     DokumenteController.php
     EinsatzartenController.php
-    EinsaetzeController.php      ← +5-min Validierung, +verordnung_id, +minuten-Berechnung
+    EinsaetzeController.php      ← +5-min Validierung, +verordnung_id, +minuten-Berechnung, +leistungserbringer_typ
     FirmaController.php          ← +bexioSpeichern() +bexioTesten()
-    KlientenController.php       ← +bexioSync(), +verordnungSpeichern/Entfernen(), +tiers_payant
+    KlientenController.php       ← +bexioSync(), +verordnungSpeichern/Entfernen(), +tiers_payant, +klient_typ
     KrankenkassenController.php
     LeistungsartenController.php ← +tarmed_code Validierung
     NachrichtenController.php
@@ -327,13 +354,16 @@ app/
     RechnungenController.php     ← +xmlExport() +bexioSync()
     RegionenController.php
     TourenController.php
+  Middleware/
+    SecurityHeaders.php          ← CSP, HSTS+preload, X-Frame, X-Content-Type
   Models/
     Arzt.php, KlientArzt.php
-    Benutzer.php                 ← +organisation() Relationship
+    Benutzer.php                 ← +organisation() Relationship, +anstellungsart
     BexioSync.php
     Dokument.php
-    Einsatz.php                  ← +verordnung_id, +verordnung() Relationship
-    Klient.php                   ← +verordnungen() Relationship
+    Einsatz.php                  ← +verordnung_id, +verordnung() Relationship, +leistungserbringer_typ
+    KlientBenutzer.php           ← +beziehungstyp
+    Klient.php                   ← +verordnungen() Relationship, +klient_typ, +klientTypBadge()
     KlientAdresse.php
     KlientBeitrag.php
     KlientDiagnose.php
@@ -345,24 +375,25 @@ app/
     Leistungsart.php             ← +tarmed_code
     Leistungsregion.php
     Leistungstyp.php
-    Organisation.php
+    Organisation.php             ← +bexio_api_key encrypted cast
     Rapport.php
     RechnungsPosition.php        ← +leistungstyp() Relationship
     Region.php
     Tour.php
   Services/
     BexioService.php             ← verbindungTesten(), kontaktSynchronisieren(), rechnungSynchronisieren()
-    XmlExportService.php         ← Vollständige Neuimplementierung 450.100
+    XmlExportService.php         ← Vollständige Neuimplementierung 450.100; specialty 37/39 dynamisch
 
 resources/views/
   landing.blade.php              ← Neugestaltung: alle 26 Kantone, kantonsübergreifend
   dashboard.blade.php
   klienten/
     index.blade.php              ← Default: nur aktive Klienten
-    show.blade.php               ← +Bexio-Sync Button, +Tiers payant Badge, +Ärztliche Verordnungen
-    _formular.blade.php
+    show.blade.php               ← +Bexio-Sync Button, +Tiers payant Badge, +Ärztliche Verordnungen, +klientTypBadge
+    _formular.blade.php          ← +klient_typ Dropdown
   einsaetze/
-    create.blade.php             ← +Verordnung-Dropdown
+    create.blade.php             ← +Verordnung-Dropdown, +leistungserbringer_typ
+    edit.blade.php               ← +leistungserbringer_typ
   rechnungen/
     show.blade.php               ← +XML-Button, +Bexio-Sync Button
   rapporte/
@@ -382,6 +413,8 @@ resources/views/
     aerzte/    (index, create, edit, _formular)
     krankenkassen/ (index, create, edit, _formular)
     firma/     (index + Bexio-Sektion)
+    mitarbeiter/
+      show.blade.php             ← +anstellungsart, +beziehungstyp in Klient-Zuweisung
 ```
 
 ---
@@ -635,7 +668,7 @@ Alles was sich wiederholt oder auf Mobile anders aussehen soll:
 - **Multi-Tenant**: `where('organisation_id', $this->orgId())` — nur 1 Org vorhanden
 - **Rollen**: `admin` | `pflege` | `buchhaltung` — Middleware `rolle:admin,pflege`
 - **Auth-Model**: `App\Models\Benutzer`, Tabelle `benutzer`
-- **Rate Limiter**: entfernt aus AuthController
+- **Rate Limiter**: aktiv in AuthController — max 5/15 min auf `login` + `magic-link` pro IP
 - **CSS-Klassen**: siehe CSS-Architektur-Sektion oben
 - **Formulare**: `@csrf`, `@method('PUT'/'DELETE')`, Fehler mit `@error('feld')`
 - **Suche**: PostgreSQL `ilike` für case-insensitive
@@ -653,7 +686,7 @@ Route::resource ohne `.parameters()` → `{klienten}` statt `{klient}` → null 
 Fix: `.parameters(['klienten' => 'klient'])`.
 
 ### Rate Limiter nach 4 Versuchen
-Laravel-Standard-Throttle war aktiv. Fix: komplett entfernt.
+Laravel-Standard-Throttle war aktiv → zu aggressiv. Fix: Throttle-Middleware entfernt, stattdessen eigene Logik mit `RateLimiter`-Facade (max 5/15min) in AuthController.
 
 ### 2 Organisationen in DB
 Beim Setup versehentlich zweite Org erstellt. Fix: Org 2 gelöscht. Regel: max. 1 Org.
