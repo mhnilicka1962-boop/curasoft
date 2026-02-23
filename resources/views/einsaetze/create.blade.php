@@ -99,6 +99,25 @@
             </div>
             @endif
 
+            {{-- Ärztliche Verordnung --}}
+            <div style="margin-bottom: 1rem;" id="verordnung-bereich">
+                <label class="feld-label" for="verordnung_id">Ärztliche Verordnung</label>
+                <select id="verordnung_id" name="verordnung_id" class="feld">
+                    <option value="">— keine / später zuweisen —</option>
+                    @if(request('klient_id'))
+                        @foreach(\App\Models\KlientVerordnung::where('klient_id', request('klient_id'))->where('aktiv', true)->orderByDesc('gueltig_ab')->get() as $vo)
+                            <option value="{{ $vo->id }}" {{ old('verordnung_id') == $vo->id ? 'selected' : '' }}>
+                                {{ $vo->leistungsart?->bezeichnung ?? 'Alle Leistungen' }}
+                                · gültig {{ $vo->gueltig_ab?->format('d.m.Y') }}
+                                @if($vo->gueltig_bis) – {{ $vo->gueltig_bis->format('d.m.Y') }} @endif
+                                @if($vo->verordnungs_nr) (Nr. {{ $vo->verordnungs_nr }}) @endif
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+                <p style="font-size: 0.75rem; color: var(--cs-text-hell); margin-top: 0.25rem;">Verordnung wird für die KK-Abrechnung benötigt (Behandlungspflege).</p>
+            </div>
+
             {{-- Bemerkung --}}
             <div style="margin-bottom: 1rem;">
                 <label class="feld-label" for="bemerkung">Bemerkung</label>

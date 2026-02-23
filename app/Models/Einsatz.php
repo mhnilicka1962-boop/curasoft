@@ -10,7 +10,7 @@ class Einsatz extends Model
 
     protected $fillable = [
         'organisation_id', 'klient_id', 'benutzer_id',
-        'leistungsart_id', 'region_id', 'status',
+        'leistungsart_id', 'verordnung_id', 'region_id', 'status',
         'datum', 'datum_bis', 'zeit_von', 'zeit_bis', 'minuten', 'bemerkung', 'verrechnet',
         'checkin_zeit', 'checkin_lat', 'checkin_lng', 'checkin_methode', 'checkin_distanz_meter',
         'checkout_zeit', 'checkout_lat', 'checkout_lng', 'checkout_methode', 'checkout_distanz_meter',
@@ -27,6 +27,7 @@ class Einsatz extends Model
     public function klient()       { return $this->belongsTo(Klient::class); }
     public function benutzer()     { return $this->belongsTo(Benutzer::class); }
     public function leistungsart() { return $this->belongsTo(Leistungsart::class); }
+    public function verordnung()   { return $this->belongsTo(KlientVerordnung::class, 'verordnung_id'); }
     public function region()       { return $this->belongsTo(Region::class); }
     public function tour()         { return $this->belongsTo(Tour::class); }
 

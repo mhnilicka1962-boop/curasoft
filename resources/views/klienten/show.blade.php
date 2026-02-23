@@ -834,6 +834,102 @@
         </details>
     </div>
 
+    {{-- Ärztliche Verordnungen --}}
+    <div class="karte" style="margin-bottom: 1rem;">
+        <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Ärztliche Verordnungen</div>
+
+        @php $verordnungen = $klient->verordnungen()->with(['arzt', 'leistungsart'])->get(); @endphp
+
+        @if($verordnungen->count())
+        <div style="margin-bottom: 1rem;">
+            @foreach($verordnungen as $v)
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 0.5rem 0.75rem; background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); font-size: 0.875rem; gap: 0.75rem; margin-bottom: 0.375rem;">
+                <div style="flex: 1;">
+                    <span class="badge {{ $v->statusBadge() }}" style="font-size: 0.7rem; margin-right: 0.375rem;">{{ $v->statusLabel() }}</span>
+                    @if($v->leistungsart)
+                        <span class="badge badge-primaer" style="font-size: 0.7rem; margin-right: 0.375rem;">{{ $v->leistungsart->bezeichnung }}</span>
+                    @endif
+                    @if($v->verordnungs_nr)
+                        <span class="text-fett">Nr. {{ $v->verordnungs_nr }}</span>
+                    @endif
+                    @if($v->arzt)
+                        <span class="text-hell" style="margin-left: 0.375rem;">· Dr. {{ $v->arzt->vollname() }}</span>
+                    @endif
+                    <div style="margin-top: 0.25rem; font-size: 0.8rem; color: var(--cs-text-hell);">
+                        Gültig: {{ $v->gueltig_ab?->format('d.m.Y') }}
+                        @if($v->gueltig_bis) – {{ $v->gueltig_bis->format('d.m.Y') }} @else (offen) @endif
+                        @if($v->ausgestellt_am) · Ausgestellt: {{ $v->ausgestellt_am->format('d.m.Y') }} @endif
+                    </div>
+                    @if($v->bemerkung)
+                        <div style="font-size: 0.8rem; color: var(--cs-text-hell); margin-top: 0.125rem;">{{ $v->bemerkung }}</div>
+                    @endif
+                </div>
+                <form method="POST" action="{{ route('klienten.verordnung.entfernen', [$klient, $v]) }}" style="margin: 0; flex-shrink: 0;" onsubmit="return confirm('Verordnung löschen?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-text-hell); font-size: 0.875rem; padding: 0;">×</button>
+                </form>
+            </div>
+            @endforeach
+        </div>
+        @else
+            <p class="text-hell text-klein" style="margin-bottom: 0.875rem;">Keine Verordnungen erfasst.</p>
+        @endif
+
+        <details>
+            <summary style="font-size: 0.8125rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; padding: 0.375rem 0; list-style: none; display: flex; align-items: center; gap: 0.375rem;">
+                + Verordnung hinzufügen
+            </summary>
+            <div style="margin-top: 0.875rem; padding: 1rem; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); background: var(--cs-hintergrund);">
+                <form method="POST" action="{{ route('klienten.verordnung.speichern', $klient) }}">
+                    @csrf
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div>
+                            <label class="feld-label" style="font-size: 0.75rem;">Arzt</label>
+                            <select name="arzt_id" class="feld" style="font-size: 0.875rem;">
+                                <option value="">— kein Arzt —</option>
+                                @foreach(\App\Models\Arzt::where('organisation_id', auth()->user()->organisation_id)->where('aktiv', true)->orderBy('nachname')->get() as $a)
+                                    <option value="{{ $a->id }}">{{ $a->vollname() }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="feld-label" style="font-size: 0.75rem;">Leistungsart</label>
+                            <select name="leistungsart_id" class="feld" style="font-size: 0.875rem;">
+                                <option value="">— alle —</option>
+                                @foreach(\App\Models\Leistungsart::where('aktiv', true)->orderBy('bezeichnung')->get() as $la)
+                                    <option value="{{ $la->id }}">{{ $la->bezeichnung }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="feld-label" style="font-size: 0.75rem;">Verordnungs-Nr.</label>
+                            <input type="text" name="verordnungs_nr" class="feld" placeholder="z.B. 2026-001" style="font-size: 0.875rem;">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div>
+                            <label class="feld-label" style="font-size: 0.75rem;">Ausgestellt am</label>
+                            <input type="date" name="ausgestellt_am" class="feld" style="font-size: 0.875rem;">
+                        </div>
+                        <div>
+                            <label class="feld-label" style="font-size: 0.75rem;">Gültig ab *</label>
+                            <input type="date" name="gueltig_ab" class="feld" required value="{{ today()->format('Y-m-d') }}" style="font-size: 0.875rem;">
+                        </div>
+                        <div>
+                            <label class="feld-label" style="font-size: 0.75rem;">Gültig bis</label>
+                            <input type="date" name="gueltig_bis" class="feld" style="font-size: 0.875rem;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 0.75rem;">
+                        <label class="feld-label" style="font-size: 0.75rem;">Bemerkung</label>
+                        <input type="text" name="bemerkung" class="feld" placeholder="z.B. Verlängerung, Notfallverordnung..." style="font-size: 0.875rem;">
+                    </div>
+                    <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">Verordnung speichern</button>
+                </form>
+            </div>
+        </details>
+    </div>
+
     {{-- Dokumente --}}
     <div class="karte" style="margin-bottom: 1rem;">
         <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Dokumente</div>

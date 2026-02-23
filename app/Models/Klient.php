@@ -75,8 +75,9 @@ class Klient extends Model
     public function pflegestufen()   { return $this->hasMany(KlientPflegestufe::class)->orderByDesc('einstufung_datum'); }
     public function aktPflegestufe() { return $this->hasOne(KlientPflegestufe::class)->latestOfMany('einstufung_datum'); }
     public function diagnosen()      { return $this->hasMany(KlientDiagnose::class)->where('aktiv', true); }
-    public function beitraege()     { return $this->hasMany(KlientBeitrag::class)->orderByDesc('gueltig_ab'); }
-    public function aktBeitrag()    { return $this->hasOne(KlientBeitrag::class)->latestOfMany('gueltig_ab'); }
+    public function beitraege()      { return $this->hasMany(KlientBeitrag::class)->orderByDesc('gueltig_ab'); }
+    public function aktBeitrag()     { return $this->hasOne(KlientBeitrag::class)->latestOfMany('gueltig_ab'); }
+    public function verordnungen()   { return $this->hasMany(KlientVerordnung::class)->orderByDesc('ausgestellt_am'); }
     public function rapporte()         { return $this->hasMany(Rapport::class)->orderByDesc('datum'); }
     public function dokumente()        { return $this->hasMany(Dokument::class)->orderByDesc('created_at'); }
     public function betreuungspersonen() { return $this->hasMany(KlientBenutzer::class)->with('benutzer')->orderBy('rolle'); }

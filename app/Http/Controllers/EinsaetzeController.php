@@ -140,6 +140,7 @@ class EinsaetzeController extends Controller
                                             $f('Einsatz muss mindestens 10 Minuten dauern (KLV-Mindestdauer).');
                                     }
                                 }],
+            'verordnung_id'   => ['nullable', 'exists:klient_verordnungen,id'],
             'benutzer_id'     => ['nullable', 'exists:benutzer,id'],
             'bemerkung'       => ['nullable', 'string', 'max:1000'],
             'wiederholung'    => ['nullable', 'in:woechentlich,taeglich'],
@@ -158,6 +159,7 @@ class EinsaetzeController extends Controller
             'organisation_id' => $this->orgId(),
             'klient_id'       => $daten['klient_id'],
             'leistungsart_id' => $daten['leistungsart_id'],
+            'verordnung_id'   => $daten['verordnung_id'] ?? null,
             'benutzer_id'     => $benutzerId,
             'region_id'       => $klient->region_id,
             'datum_bis'       => $daten['datum_bis'] ?? null,

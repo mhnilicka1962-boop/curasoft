@@ -170,6 +170,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/klienten/{klient}/pflegestufen',                [KlientenController::class, 'pflegestufeSpeichern'])->name('klienten.pflegestufe.speichern');
         Route::post('/klienten/{klient}/diagnosen',                   [KlientenController::class, 'diagnoseSpeichern'])->name('klienten.diagnose.speichern');
         Route::delete('/klienten/{klient}/diagnosen/{diagnose}',      [KlientenController::class, 'diagnoseEntfernen'])->name('klienten.diagnose.entfernen');
+        Route::post('/klienten/{klient}/verordnungen',                [KlientenController::class, 'verordnungSpeichern'])->name('klienten.verordnung.speichern');
+        Route::delete('/klienten/{klient}/verordnungen/{verordnung}', [KlientenController::class, 'verordnungEntfernen'])->name('klienten.verordnung.entfernen');
         Route::get('/schnellerfassung',  [KlientenController::class, 'schnellerfassung'])->name('schnellerfassung');
         Route::post('/schnellerfassung', [KlientenController::class, 'schnellSpeichern'])->name('schnellerfassung.speichern');
         Route::resource('/einsaetze', EinsaetzeController::class)->only(['index','create','store','show','edit','update']);

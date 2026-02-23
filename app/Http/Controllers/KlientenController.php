@@ -351,6 +351,30 @@ class KlientenController extends Controller
         return back()->with('erfolg', 'Krankenkasse wurde entfernt.');
     }
 
+    public function verordnungSpeichern(Request $request, Klient $klient)
+    {
+        $this->autorisiereZugriff($klient);
+        $daten = $request->validate([
+            'arzt_id'         => ['nullable', 'exists:aerzte,id'],
+            'leistungsart_id' => ['nullable', 'exists:leistungsarten,id'],
+            'verordnungs_nr'  => ['nullable', 'string', 'max:50'],
+            'ausgestellt_am'  => ['nullable', 'date'],
+            'gueltig_ab'      => ['required', 'date'],
+            'gueltig_bis'     => ['nullable', 'date', 'after_or_equal:gueltig_ab'],
+            'bemerkung'       => ['nullable', 'string', 'max:500'],
+        ]);
+        $klient->verordnungen()->create(array_merge($daten, ['aktiv' => true]));
+        return back()->with('erfolg', 'Verordnung wurde gespeichert.');
+    }
+
+    public function verordnungEntfernen(Klient $klient, \App\Models\KlientVerordnung $verordnung)
+    {
+        $this->autorisiereZugriff($klient);
+        if ($verordnung->klient_id !== $klient->id) abort(403);
+        $verordnung->delete();
+        return back()->with('erfolg', 'Verordnung wurde entfernt.');
+    }
+
     public function kontaktSpeichern(Request $request, Klient $klient)
     {
         $this->autorisiereZugriff($klient);
