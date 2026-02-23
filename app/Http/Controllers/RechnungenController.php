@@ -8,6 +8,7 @@ use App\Models\Klient;
 use App\Models\Organisation;
 use App\Models\Rechnung;
 use App\Models\RechnungsPosition;
+use App\Services\BexioService;
 use App\Services\XmlExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -174,6 +175,26 @@ class RechnungenController extends Controller
         } catch (\Exception $e) {
             return back()->with('fehler', 'XML-Export fehlgeschlagen: ' . $e->getMessage());
         }
+    }
+
+    public function bexioSync(Rechnung $rechnung)
+    {
+        $this->autorisiereZugriff($rechnung);
+
+        $org = Organisation::findOrFail($this->orgId());
+        if (empty($org->bexio_api_key)) {
+            return back()->with('fehler', 'Kein Bexio API-Key konfiguriert. Bitte unter Firma → Bexio einrichten.');
+        }
+
+        $rechnung->loadMissing(['klient', 'positionen.leistungsart']);
+
+        $service = new BexioService($org);
+        $ok = $service->rechnungSynchronisieren($rechnung);
+
+        return back()->with(
+            $ok ? 'erfolg' : 'fehler',
+            $ok ? 'Rechnung wurde mit Bexio synchronisiert.' : 'Bexio-Sync fehlgeschlagen. Bitte Verbindung unter Firma prüfen.'
+        );
     }
 
     private function autorisiereZugriff(Rechnung $rechnung): void

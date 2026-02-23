@@ -7,9 +7,17 @@
         <a href="{{ route('klienten.index') }}" class="text-klein link-gedaempt">
             ← Alle Klienten
         </a>
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
             @if(!$klient->aktiv)
                 <span class="badge badge-grau">Inaktiv</span>
+            @endif
+            @if(auth()->user()->organisation->bexio_api_key)
+            <form method="POST" action="{{ route('klienten.bexio.sync', $klient) }}" style="display:inline;">
+                @csrf
+                <button type="submit" class="btn btn-sekundaer" title="{{ $klient->bexio_kontakt_id ? 'Bexio-Kontakt aktualisieren (ID: '.$klient->bexio_kontakt_id.')' : 'Kontakt in Bexio anlegen' }}">
+                    {{ $klient->bexio_kontakt_id ? '↻ Bexio' : '→ Bexio' }}
+                </button>
+            </form>
             @endif
             <a href="{{ route('klienten.edit', $klient) }}" class="btn btn-sekundaer">Bearbeiten</a>
             <a href="{{ route('einsaetze.create', ['klient_id' => $klient->id]) }}" class="btn btn-primaer">+ Einsatz</a>

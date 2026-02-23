@@ -48,6 +48,11 @@ class Benutzer extends Authenticatable
         return $this->vorname . ' ' . $this->nachname;
     }
 
+    public function organisation()
+    {
+        return $this->belongsTo(Organisation::class);
+    }
+
     public function qualifikationen()
     {
         return $this->belongsToMany(Qualifikation::class, 'benutzer_qualifikation')

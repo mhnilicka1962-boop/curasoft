@@ -3,8 +3,19 @@
 
     <div class="seiten-kopf">
         <a href="{{ route('rechnungen.index') }}" class="link-gedaempt" style="font-size: 0.875rem;">← Alle Rechnungen</a>
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
             {!! $rechnung->statusBadge() !!}
+            {{-- XML 450.100 Export --}}
+            <a href="{{ route('rechnungen.xml', $rechnung) }}" class="btn btn-sekundaer" title="XML 450.100 exportieren">📋 XML</a>
+            {{-- Bexio Sync --}}
+            @if(auth()->user()->organisation->bexio_api_key)
+            <form method="POST" action="{{ route('rechnungen.bexio.sync', $rechnung) }}" style="display:inline;">
+                @csrf
+                <button type="submit" class="btn btn-sekundaer" title="{{ $rechnung->bexio_rechnung_id ? 'Bexio-Rechnung aktualisieren (ID: '.$rechnung->bexio_rechnung_id.')' : 'Rechnung in Bexio anlegen' }}">
+                    {{ $rechnung->bexio_rechnung_id ? '↻ Bexio' : '→ Bexio' }}
+                </button>
+            </form>
+            @endif
             {{-- PDF Placeholder --}}
             <button class="btn btn-sekundaer" disabled title="Folgt bald">📄 PDF</button>
         </div>

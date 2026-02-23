@@ -15,7 +15,9 @@ use App\Models\KlientBeitrag;
 use App\Models\KlientPflegestufe;
 use App\Models\Krankenkasse;
 use App\Models\Leistungsart;
+use App\Models\Organisation;
 use App\Models\Region;
+use App\Services\BexioService;
 use Illuminate\Http\Request;
 
 class KlientenController extends Controller
@@ -466,6 +468,24 @@ class KlientenController extends Controller
         if ($diagnose->klient_id !== $klient->id) abort(403);
         $diagnose->update(['aktiv' => false]);
         return back()->with('erfolg', 'Diagnose wurde deaktiviert.');
+    }
+
+    public function bexioSync(Klient $klient)
+    {
+        $this->autorisiereZugriff($klient);
+
+        $org = Organisation::findOrFail($this->orgId());
+        if (empty($org->bexio_api_key)) {
+            return back()->with('fehler', 'Kein Bexio API-Key konfiguriert. Bitte unter Firma → Bexio einrichten.');
+        }
+
+        $service = new BexioService($org);
+        $ok = $service->kontaktSynchronisieren($klient);
+
+        return back()->with(
+            $ok ? 'erfolg' : 'fehler',
+            $ok ? 'Kontakt wurde mit Bexio synchronisiert.' : 'Bexio-Sync fehlgeschlagen. Bitte Verbindung unter Firma prüfen.'
+        );
     }
 
     private function autorisiereZugriff(Klient $klient): void

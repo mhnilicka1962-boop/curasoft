@@ -172,6 +172,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/klienten/{klient}/diagnosen/{diagnose}',      [KlientenController::class, 'diagnoseEntfernen'])->name('klienten.diagnose.entfernen');
         Route::post('/klienten/{klient}/verordnungen',                [KlientenController::class, 'verordnungSpeichern'])->name('klienten.verordnung.speichern');
         Route::delete('/klienten/{klient}/verordnungen/{verordnung}', [KlientenController::class, 'verordnungEntfernen'])->name('klienten.verordnung.entfernen');
+        Route::post('/klienten/{klient}/bexio/sync',                  [KlientenController::class, 'bexioSync'])->name('klienten.bexio.sync');
         Route::get('/schnellerfassung',  [KlientenController::class, 'schnellerfassung'])->name('schnellerfassung');
         Route::post('/schnellerfassung', [KlientenController::class, 'schnellSpeichern'])->name('schnellerfassung.speichern');
         Route::resource('/einsaetze', EinsaetzeController::class)->only(['index','create','store','show','edit','update']);
@@ -207,7 +208,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('/rechnungen', RechnungenController::class)->only(['index','create','store','show']);
         Route::patch('/rechnungen/{rechnung}/status', [RechnungenController::class, 'statusUpdate'])->name('rechnungen.status');
         Route::patch('/rechnungen/positionen/{position}', [RechnungenController::class, 'positionUpdate'])->name('rechnungen.position.update');
-        Route::get('/rechnungen/{rechnung}/xml', [RechnungenController::class, 'xmlExport'])->name('rechnungen.xml');
+        Route::get('/rechnungen/{rechnung}/xml',        [RechnungenController::class, 'xmlExport'])->name('rechnungen.xml');
+        Route::post('/rechnungen/{rechnung}/bexio/sync', [RechnungenController::class, 'bexioSync'])->name('rechnungen.bexio.sync');
     });
 
     // Stammdaten + Audit — nur Admin
