@@ -56,7 +56,7 @@ class AuthController extends Controller
             return redirect()->intended(route('dashboard'));
         }
 
-        RateLimiter::hit($rateLimiterKey, decay: 900); // 15 Minuten Sperre nach 5 Versuchen
+        RateLimiter::hit($rateLimiterKey, 900); // 15 Minuten Sperre nach 5 Versuchen
 
         return back()->withErrors([
             'email' => 'E-Mail oder Passwort ist falsch.',
@@ -75,7 +75,7 @@ class AuthController extends Controller
                 'email' => "Zu viele Anfragen. Bitte warten Sie {$sekunden} Sekunden.",
             ]);
         }
-        RateLimiter::hit($rateLimiterKey, decay: 900);
+        RateLimiter::hit($rateLimiterKey, 900);
 
         $benutzer = Benutzer::where('email', $request->email)->where('aktiv', true)->first();
 
