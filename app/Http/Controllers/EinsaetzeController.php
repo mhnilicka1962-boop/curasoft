@@ -126,8 +126,20 @@ class EinsaetzeController extends Controller
             'leistungsart_id' => ['required', 'exists:leistungsarten,id'],
             'datum'           => ['required', 'date'],
             'datum_bis'       => ['nullable', 'date', 'after_or_equal:datum'],
-            'zeit_von'        => ['nullable', 'date_format:H:i'],
-            'zeit_bis'        => ['nullable', 'date_format:H:i'],
+            'zeit_von'        => ['nullable', 'date_format:H:i', fn($a, $v, $f) =>
+                                    $v && (int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0
+                                        ? $f('Startzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).') : null],
+            'zeit_bis'        => ['nullable', 'date_format:H:i', function($a, $v, $f) use ($request) {
+                                    if (!$v) return;
+                                    if ((int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0)
+                                        return $f('Endzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).');
+                                    if ($request->zeit_von) {
+                                        $dauer = \Carbon\Carbon::createFromFormat('H:i', $request->zeit_von)
+                                                    ->diffInMinutes(\Carbon\Carbon::createFromFormat('H:i', $v));
+                                        if ($dauer < 10)
+                                            $f('Einsatz muss mindestens 10 Minuten dauern (KLV-Mindestdauer).');
+                                    }
+                                }],
             'benutzer_id'     => ['nullable', 'exists:benutzer,id'],
             'bemerkung'       => ['nullable', 'string', 'max:1000'],
             'wiederholung'    => ['nullable', 'in:woechentlich,taeglich'],
@@ -151,6 +163,10 @@ class EinsaetzeController extends Controller
             'datum_bis'       => $daten['datum_bis'] ?? null,
             'zeit_von'        => $daten['zeit_von'] ?? null,
             'zeit_bis'        => $daten['zeit_bis'] ?? null,
+            'minuten'         => (isset($daten['zeit_von'], $daten['zeit_bis']))
+                                    ? \Carbon\Carbon::createFromFormat('H:i', $daten['zeit_von'])
+                                        ->diffInMinutes(\Carbon\Carbon::createFromFormat('H:i', $daten['zeit_bis']))
+                                    : null,
             'bemerkung'       => $daten['bemerkung'] ?? null,
             'status'          => 'geplant',
         ];
@@ -247,8 +263,20 @@ class EinsaetzeController extends Controller
             'leistungsart_id' => ['required', 'exists:leistungsarten,id'],
             'datum'           => ['required', 'date'],
             'datum_bis'       => ['nullable', 'date', 'after_or_equal:datum'],
-            'zeit_von'        => ['nullable', 'date_format:H:i'],
-            'zeit_bis'        => ['nullable', 'date_format:H:i'],
+            'zeit_von'        => ['nullable', 'date_format:H:i', fn($a, $v, $f) =>
+                                    $v && (int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0
+                                        ? $f('Startzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).') : null],
+            'zeit_bis'        => ['nullable', 'date_format:H:i', function($a, $v, $f) use ($request) {
+                                    if (!$v) return;
+                                    if ((int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0)
+                                        return $f('Endzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).');
+                                    if ($request->zeit_von) {
+                                        $dauer = \Carbon\Carbon::createFromFormat('H:i', $request->zeit_von)
+                                                    ->diffInMinutes(\Carbon\Carbon::createFromFormat('H:i', $v));
+                                        if ($dauer < 10)
+                                            $f('Einsatz muss mindestens 10 Minuten dauern (KLV-Mindestdauer).');
+                                    }
+                                }],
             'bemerkung'       => ['nullable', 'string', 'max:1000'],
         ];
 

@@ -6,10 +6,10 @@ class KlientKrankenkasse extends Model
 {
     protected $table = 'klient_krankenkassen';
     protected $fillable = [
-        'klient_id', 'krankenkasse_id', 'versicherungs_typ', 'deckungstyp',
+        'klient_id', 'krankenkasse_id', 'versicherungs_typ', 'tiers_payant', 'deckungstyp',
         'versichertennummer', 'kartennummer', 'gueltig_ab', 'gueltig_bis', 'aktiv', 'bemerkung',
     ];
-    protected $casts = ['gueltig_ab' => 'date', 'gueltig_bis' => 'date', 'aktiv' => 'boolean'];
+    protected $casts = ['gueltig_ab' => 'date', 'gueltig_bis' => 'date', 'aktiv' => 'boolean', 'tiers_payant' => 'boolean'];
 
     public function klient()       { return $this->belongsTo(Klient::class); }
     public function krankenkasse() { return $this->belongsTo(Krankenkasse::class); }

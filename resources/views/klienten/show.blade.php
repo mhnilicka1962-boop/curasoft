@@ -418,6 +418,7 @@
                     @if($kk->deckungstyp && $kk->deckungstyp !== 'allgemein')
                         <span class="badge badge-warnung" style="font-size: 0.7rem; margin-right: 0.375rem;">{{ $kk->deckungLabel() }}</span>
                     @endif
+                    <span class="badge {{ $kk->tiers_payant ? 'badge-erfolg' : 'badge-grau' }}" style="font-size: 0.7rem; margin-right: 0.375rem;" title="{{ $kk->tiers_payant ? 'KK zahlt direkt an Spitex' : 'Klient zahlt, holt sich Geld zurück' }}">{{ $kk->tiers_payant ? 'Tiers payant' : 'Tiers garant' }}</span>
                     <span class="text-fett">{{ $kk->krankenkasse->name }}</span>
                     @if($kk->versichertennummer)
                         <span class="text-hell" style="font-size: 0.8rem; margin-left: 0.5rem;">Nr. {{ $kk->versichertennummer }}</span>
@@ -442,7 +443,7 @@
             <div style="margin-top: 0.875rem; padding: 1rem; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); background: var(--cs-hintergrund);">
                 <form method="POST" action="{{ route('klienten.kk.speichern', $klient) }}">
                     @csrf
-                    <div style="display: grid; grid-template-columns: 1fr 160px 180px; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 160px 180px 180px; gap: 0.75rem; margin-bottom: 0.75rem;">
                         <div>
                             <label class="feld-label" style="font-size: 0.75rem;">Krankenkasse *</label>
                             <select name="krankenkasse_id" class="feld" required style="font-size: 0.875rem;">
@@ -467,6 +468,13 @@
                                 @foreach(\App\Models\KlientKrankenkasse::$deckungstypen as $wert => $lbl)
                                     <option value="{{ $wert }}">{{ $lbl }}</option>
                                 @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="feld-label" style="font-size: 0.75rem;">Abrechnungsmodell</label>
+                            <select name="tiers_payant" class="feld" style="font-size: 0.875rem;">
+                                <option value="1" selected>Tiers payant (Standard)</option>
+                                <option value="0">Tiers garant</option>
                             </select>
                         </div>
                     </div>
