@@ -63,6 +63,16 @@
                 </div>
             </div>
 
+            {{-- TARMED-Code für XML 450.100 --}}
+            <div style="margin-bottom: 0.875rem;">
+                <label class="feld-label">TARMED-Code <span style="font-size: 0.75rem; font-weight: 400; color: var(--cs-text-hell);">(Tarif 311, XML 450.100)</span></label>
+                <input type="text" name="tarmed_code" class="feld" maxlength="20"
+                    style="max-width: 180px;"
+                    placeholder="z.B. 00.0010"
+                    value="{{ old('tarmed_code', $leistungsart->tarmed_code) }}">
+                @error('tarmed_code') <div style="color: var(--cs-fehler); font-size: 0.8125rem; margin-top: 0.25rem;">{{ $message }}</div> @enderror
+            </div>
+
             {{-- Status + KVG --}}
             <div style="display: flex; gap: 1.5rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
                 <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.875rem;">

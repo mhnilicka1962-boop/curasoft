@@ -106,6 +106,7 @@ class LeistungsartenController extends Controller
             'kvg_default'         => ['nullable', 'numeric', 'min:0'],
             'ansatz_akut_default' => ['nullable', 'numeric', 'min:0'],
             'kvg_akut_default'    => ['nullable', 'numeric', 'min:0'],
+            'tarmed_code'         => ['nullable', 'string', 'max:20'],
         ]);
 
         $leistungsart->update([
@@ -119,6 +120,7 @@ class LeistungsartenController extends Controller
             'kvg_default'         => $request->kvg_default ?? 0,
             'ansatz_akut_default' => $request->ansatz_akut_default ?? 0,
             'kvg_akut_default'    => $request->kvg_akut_default ?? 0,
+            'tarmed_code'         => $request->tarmed_code ?: null,
         ]);
 
         return redirect()->route('leistungsarten.show', $leistungsart)

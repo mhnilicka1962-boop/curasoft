@@ -12,6 +12,7 @@ class Leistungsart extends Model
         'bezeichnung', 'einheit', 'kassenpflichtig', 'aktiv',
         'gueltig_ab', 'gueltig_bis',
         'ansatz_default', 'kvg_default', 'ansatz_akut_default', 'kvg_akut_default',
+        'tarmed_code',
     ];
 
     protected $casts = [

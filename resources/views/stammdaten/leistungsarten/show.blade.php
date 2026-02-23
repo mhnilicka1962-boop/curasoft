@@ -11,6 +11,9 @@
             @else
                 <span class="badge badge-grau">Privat</span>
             @endif
+            @if($leistungsart->tarmed_code)
+                &nbsp;·&nbsp; <span style="font-family: monospace;">T311: {{ $leistungsart->tarmed_code }}</span>
+            @endif
         </div>
     </div>
     <a href="{{ route('leistungsarten.edit', $leistungsart) }}" class="btn btn-sekundaer">Grundset bearbeiten</a>
