@@ -25,10 +25,12 @@
     Rapporte
 </a>
 
+@if(auth()->user()?->rolle !== 'pflege')
 <div class="nav-abschnitt">Abrechnung</div>
 <a href="{{ route('rechnungen.index') }}" class="nav-link {{ request()->routeIs('rechnungen.*') ? 'aktiv' : '' }}">
     Rechnungen
 </a>
+@endif
 
 @if(auth()->user()?->rolle === 'admin')
 <div class="nav-abschnitt">Stammdaten</div>
