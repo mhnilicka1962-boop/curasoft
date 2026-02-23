@@ -2,8 +2,16 @@
 <div style="max-width: 1000px;">
 
     <div class="seiten-kopf">
-        <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Tourenplanung</h1>
+        <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">
+            @if(auth()->user()->rolle === 'pflege')
+                Deine Tour heute
+            @else
+                Tourenplanung
+            @endif
+        </h1>
+        @if(auth()->user()->rolle !== 'pflege')
         <a href="{{ route('touren.create') }}" class="btn btn-primaer">+ Neue Tour</a>
+        @endif
     </div>
 
     {{-- Tages-Navigation --}}
@@ -54,7 +62,7 @@
         @if($tour->einsaetze->count())
         <div style="display: flex; flex-direction: column; gap: 0.375rem;">
             @foreach($tour->einsaetze as $idx => $e)
-            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.375rem 0.625rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem;">
+            <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.375rem 0.625rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit;">
                 <span class="text-hell" style="font-size: 0.8rem; min-width: 20px;">{{ $idx + 1 }}.</span>
                 <span class="text-fett">{{ $e->klient?->vollname() }}</span>
                 <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
@@ -62,7 +70,7 @@
                     <span class="text-hell" style="margin-left: auto; font-size: 0.8rem;">{{ $e->zeit_von }}</span>
                 @endif
                 <span class="badge {{ $e->statusBadgeKlasse() }}" style="font-size: 0.7rem;">{{ $e->statusLabel() }}</span>
-            </div>
+            </a>
             @endforeach
         </div>
         @else
@@ -71,12 +79,70 @@
     </div>
     @empty
     <div class="karte" style="text-align: center; padding: 2rem; color: var(--cs-text-hell);">
-        Keine Touren für diesen Tag.
+        @if(auth()->user()->rolle === 'pflege')
+            Keine Tour für heute geplant.
+            @php
+                $eigeneEinsaetze = \App\Models\Einsatz::where('benutzer_id', auth()->id())
+                    ->whereDate('datum', $datum)
+                    ->with('klient','leistungsart')
+                    ->orderBy('zeit_von')
+                    ->get();
+            @endphp
+            @if($eigeneEinsaetze->isNotEmpty())
+            <div style="margin-top: 1.25rem; text-align: left;">
+                <div class="abschnitt-label" style="margin-bottom: 0.75rem;">Deine Einsätze heute</div>
+                <div style="display: flex; flex-direction: column; gap: 0.375rem;">
+                    @foreach($eigeneEinsaetze as $e)
+                    <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; border: 1px solid var(--cs-border);">
+                        <span class="text-fett">{{ $e->klient?->vollname() }}</span>
+                        <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
+                        @if($e->zeit_von)
+                            <span class="text-hell" style="margin-left: auto; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}</span>
+                        @endif
+                        <span class="badge {{ $e->statusBadgeKlasse() }}" style="font-size: 0.7rem;">{{ $e->statusLabel() }}</span>
+                    </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+        @else
+            Keine Touren für diesen Tag.
+        @endif
     </div>
     @endforelse
 
-    {{-- Nicht eingeplante Einsätze (Lücken) --}}
-    @if($ohneTouren->isNotEmpty())
+    {{-- Offene Einsätze aus Vergangenheit — nur für pflege --}}
+    @if(auth()->user()->rolle === 'pflege')
+    @php
+        $offeneVergangen = \App\Models\Einsatz::where('benutzer_id', auth()->id())
+            ->whereDate('datum', '<', today())
+            ->whereIn('status', ['geplant', 'aktiv'])
+            ->with('klient', 'leistungsart')
+            ->orderByDesc('datum')
+            ->limit(10)
+            ->get();
+    @endphp
+    @if($offeneVergangen->isNotEmpty())
+    <div class="karte" style="border-left: 3px solid var(--cs-fehler); margin-top: 1rem;">
+        <div class="abschnitt-label" style="color: var(--cs-fehler); margin-bottom: 0.75rem;">
+            ⚠ Offene Einsätze — bitte nachbearbeiten
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.375rem;">
+            @foreach($offeneVergangen as $e)
+            <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: #fff5f5; border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; border: 1px solid #fca5a5;">
+                <span style="font-size: 0.8rem; color: var(--cs-fehler); min-width: 60px;">{{ $e->datum->format('d.m.') }}</span>
+                <span class="text-fett">{{ $e->klient?->vollname() }}</span>
+                <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
+                <span class="badge badge-fehler" style="margin-left: auto; font-size: 0.7rem;">{{ $e->statusLabel() }}</span>
+            </a>
+            @endforeach
+        </div>
+    </div>
+    @endif
+    @endif
+
+    {{-- Nicht eingeplante Einsätze (Lücken) — nur für Admin --}}
+    @if($ohneTouren->isNotEmpty() && auth()->user()->rolle !== 'pflege')
     <div class="karte" style="border-left: 3px solid var(--cs-warnung); margin-top: 1rem;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.875rem; flex-wrap: wrap; gap: 0.5rem;">
             <div>

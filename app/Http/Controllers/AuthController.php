@@ -53,7 +53,10 @@ class AuthController extends Controller
                 beschreibung: 'Erfolgreich angemeldet',
             );
 
-            return redirect()->intended(route('dashboard'));
+            $ziel = Auth::user()->rolle === 'pflege'
+                ? route('touren.index', ['datum' => today()->format('Y-m-d'), 'benutzer_id' => Auth::id()])
+                : route('dashboard');
+            return redirect()->intended($ziel);
         }
 
         RateLimiter::hit($rateLimiterKey, 900); // 15 Minuten Sperre nach 5 Versuchen
@@ -120,7 +123,10 @@ class AuthController extends Controller
 
         AuditLog::schreiben('login', 'Erfolgreich angemeldet (Magic Link)');
 
-        return redirect()->intended(route('dashboard'));
+        $ziel = $benutzer->rolle === 'pflege'
+            ? route('touren.index', ['datum' => today()->format('Y-m-d'), 'benutzer_id' => $benutzer->id])
+            : route('dashboard');
+        return redirect()->intended($ziel);
     }
 
     public function logout(Request $request)
