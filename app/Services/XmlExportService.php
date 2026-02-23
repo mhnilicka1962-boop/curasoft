@@ -127,10 +127,16 @@ class XmlExportService
         $this->adresseAnhaengen($dom, $biller, $org->name, $org->adresse, $org->plz, $org->ort);
 
         // ── Provider (Leistungserbringer = gleiche Org) ───────────────────────
+        // specialty: 37 = Spitex (Fachperson), 39 = Angehörigenpflege (informelle Pflege)
+        $hatAngehoerigEinsatz = $positionen->contains(
+            fn($p) => ($p->einsatz?->leistungserbringer_typ ?? 'fachperson') === 'angehoerig'
+        );
+        $specialty = $hatAngehoerigEinsatz ? '39' : '37';
+
         $provider = $dom->createElement('provider');
         $provider->setAttribute('zsr', $zsrNr ?? '');
         $provider->setAttribute('ean_party', $org->ean_nr ?? '');
-        $provider->setAttribute('specialty', '37'); // 37 = Spitex
+        $provider->setAttribute('specialty', $specialty);
         $tiersEl->appendChild($provider);
         $this->adresseAnhaengen($dom, $provider, $org->name, $org->adresse, $org->plz, $org->ort);
 

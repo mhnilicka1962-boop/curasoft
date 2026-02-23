@@ -127,6 +127,7 @@ class MitarbeiterController extends Controller
             'eintrittsdatum'  => ['nullable', 'date'],
             'austrittsdatum'  => ['nullable', 'date'],
             'rolle'           => ['required', 'in:admin,pflege,buchhaltung'],
+            'anstellungsart'  => ['nullable', 'in:fachperson,angehoerig,freiwillig,praktikum'],
             'aktiv'           => ['boolean'],
             'notizen'         => ['nullable', 'string', 'max:5000'],
         ];
@@ -158,13 +159,14 @@ class MitarbeiterController extends Controller
         if ($mitarbeiter->organisation_id !== $this->orgId()) abort(403);
 
         $request->validate([
-            'klient_id' => ['required', 'exists:klienten,id'],
-            'rolle'     => ['required', 'in:hauptbetreuer,betreuer,vertretung'],
+            'klient_id'       => ['required', 'exists:klienten,id'],
+            'rolle'           => ['required', 'in:hauptbetreuer,betreuer,vertretung'],
+            'beziehungstyp'   => ['nullable', 'in:fachperson,angehoerig_pflegend,freiwillig'],
         ]);
 
         KlientBenutzer::updateOrCreate(
             ['klient_id' => $request->klient_id, 'benutzer_id' => $mitarbeiter->id],
-            ['rolle' => $request->rolle, 'aktiv' => true]
+            ['rolle' => $request->rolle, 'beziehungstyp' => $request->beziehungstyp, 'aktiv' => true]
         );
 
         return back()->with('erfolg', 'Klient zugewiesen.');

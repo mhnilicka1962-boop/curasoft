@@ -145,6 +145,15 @@
                     <option value="admin"       {{ $mitarbeiter->rolle === 'admin'       ? 'selected' : '' }}>Admin</option>
                 </select>
             </div>
+            <div>
+                <label class="feld-label">Anstellungsart</label>
+                <select name="anstellungsart" class="feld">
+                    <option value="fachperson"  {{ ($mitarbeiter->anstellungsart ?? 'fachperson') === 'fachperson'  ? 'selected' : '' }}>Fachperson</option>
+                    <option value="angehoerig"  {{ ($mitarbeiter->anstellungsart ?? '') === 'angehoerig'  ? 'selected' : '' }}>Pflegender Angehöriger</option>
+                    <option value="freiwillig"  {{ ($mitarbeiter->anstellungsart ?? '') === 'freiwillig'  ? 'selected' : '' }}>Freiwillig</option>
+                    <option value="praktikum"   {{ ($mitarbeiter->anstellungsart ?? '') === 'praktikum'   ? 'selected' : '' }}>Praktikum</option>
+                </select>
+            </div>
         </div>
 
         <div style="margin-bottom: 0.75rem;">
@@ -201,6 +210,7 @@
             <tr>
                 <th>Klient</th>
                 <th>Rolle</th>
+                <th>Beziehung</th>
                 <th class="text-mitte">Status</th>
                 <th></th>
             </tr>
@@ -216,6 +226,13 @@
                 <td>
                     @php $rolleKlasse = match($zuw->rolle) { 'hauptbetreuer' => 'badge-erfolg', 'betreuer' => 'badge-primaer', default => 'badge-grau' }; @endphp
                     <span class="badge {{ $rolleKlasse }}">{{ \App\Models\KlientBenutzer::$rollen[$zuw->rolle] }}</span>
+                </td>
+                <td>
+                    @if($zuw->beziehungstyp === 'angehoerig_pflegend')
+                        <span class="badge badge-info">Pflegender Angehöriger</span>
+                    @elseif($zuw->beziehungstyp === 'freiwillig')
+                        <span class="badge badge-grau">Freiwillig</span>
+                    @endif
                 </td>
                 <td class="text-mitte">
                     @if($zuw->aktiv)<span class="badge badge-erfolg">Aktiv</span>@else<span class="badge badge-grau">Inaktiv</span>@endif
@@ -251,6 +268,14 @@
                 @foreach(\App\Models\KlientBenutzer::$rollen as $wert => $lbl)
                     <option value="{{ $wert }}">{{ $lbl }}</option>
                 @endforeach
+            </select>
+        </div>
+        <div>
+            <label class="feld-label">Beziehungstyp</label>
+            <select name="beziehungstyp" class="feld">
+                <option value="fachperson">Fachperson</option>
+                <option value="angehoerig_pflegend">Pflegender Angehöriger</option>
+                <option value="freiwillig">Freiwillig</option>
             </select>
         </div>
         <button type="submit" class="btn btn-sekundaer">Zuweisen</button>

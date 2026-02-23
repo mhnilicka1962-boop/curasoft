@@ -8,7 +8,7 @@ class KlientBenutzer extends Model
 {
     protected $table = 'klient_benutzer';
 
-    protected $fillable = ['klient_id', 'benutzer_id', 'rolle', 'aktiv', 'bemerkung'];
+    protected $fillable = ['klient_id', 'benutzer_id', 'rolle', 'beziehungstyp', 'aktiv', 'bemerkung'];
 
     protected $casts = ['aktiv' => 'boolean'];
 
@@ -16,6 +16,12 @@ class KlientBenutzer extends Model
         'hauptbetreuer' => 'Hauptbetreuer',
         'betreuer'      => 'Betreuer',
         'vertretung'    => 'Vertretung',
+    ];
+
+    public static array $beziehungstypen = [
+        'fachperson'         => 'Fachperson',
+        'angehoerig_pflegend' => 'Pflegender Angehöriger',
+        'freiwillig'         => 'Freiwillig',
     ];
 
     public function klient()   { return $this->belongsTo(Klient::class); }

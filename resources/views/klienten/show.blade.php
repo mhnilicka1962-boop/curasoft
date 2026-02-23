@@ -11,6 +11,7 @@
             @if(!$klient->aktiv)
                 <span class="badge badge-grau">Inaktiv</span>
             @endif
+            {!! $klient->klientTypBadge() !!}
             @if(auth()->user()->organisation->bexio_api_key)
             <form method="POST" action="{{ route('klienten.bexio.sync', $klient) }}" style="display:inline;">
                 @csrf

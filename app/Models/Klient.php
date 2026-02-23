@@ -18,7 +18,7 @@ class Klient extends Model
 
     protected $fillable = [
         'organisation_id',
-        'anrede',
+        'anrede', 'klient_typ',
         'vorname',
         'nachname',
         'geburtsdatum',
@@ -81,6 +81,26 @@ class Klient extends Model
     public function rapporte()         { return $this->hasMany(Rapport::class)->orderByDesc('datum'); }
     public function dokumente()        { return $this->hasMany(Dokument::class)->orderByDesc('created_at'); }
     public function betreuungspersonen() { return $this->hasMany(KlientBenutzer::class)->with('benutzer')->orderBy('rolle'); }
+
+    public static array $klientTypen = [
+        'patient'          => 'Patient',
+        'pflegebeduerftig' => 'Pflegebedürftig',
+        'angehoerig'       => 'Pflegender Angehöriger',
+    ];
+
+    public function klientTypLabel(): string
+    {
+        return self::$klientTypen[$this->klient_typ ?? 'patient'] ?? 'Patient';
+    }
+
+    public function klientTypBadge(): string
+    {
+        return match($this->klient_typ ?? 'patient') {
+            'pflegebeduerftig' => '<span class="badge badge-warnung">Pflegebedürftig</span>',
+            'angehoerig'       => '<span class="badge badge-info">Pflegender Angehöriger</span>',
+            default            => '',
+        };
+    }
 
     public function vollname(): string
     {

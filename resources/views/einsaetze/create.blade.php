@@ -118,6 +118,16 @@
                 <p style="font-size: 0.75rem; color: var(--cs-text-hell); margin-top: 0.25rem;">Verordnung wird für die KK-Abrechnung benötigt (Behandlungspflege).</p>
             </div>
 
+            {{-- Leistungserbringer-Typ --}}
+            <div style="margin-bottom: 1rem;">
+                <label class="feld-label" for="leistungserbringer_typ">Leistungserbringer</label>
+                <select id="leistungserbringer_typ" name="leistungserbringer_typ" class="feld" style="max-width: 260px;">
+                    <option value="fachperson" {{ old('leistungserbringer_typ', 'fachperson') === 'fachperson' ? 'selected' : '' }}>Fachperson (Standard)</option>
+                    <option value="angehoerig" {{ old('leistungserbringer_typ') === 'angehoerig' ? 'selected' : '' }}>Pflegender Angehöriger</option>
+                </select>
+                <p style="font-size: 0.75rem; color: var(--cs-text-hell); margin-top: 0.25rem;">Relevant für KVG-Abrechnung und XML 450.100.</p>
+            </div>
+
             {{-- Bemerkung --}}
             <div style="margin-bottom: 1rem;">
                 <label class="feld-label" for="bemerkung">Bemerkung</label>

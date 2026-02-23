@@ -10,7 +10,7 @@ class Einsatz extends Model
 
     protected $fillable = [
         'organisation_id', 'klient_id', 'benutzer_id',
-        'leistungsart_id', 'verordnung_id', 'region_id', 'status',
+        'leistungsart_id', 'verordnung_id', 'leistungserbringer_typ', 'region_id', 'status',
         'datum', 'datum_bis', 'zeit_von', 'zeit_bis', 'minuten', 'bemerkung', 'verrechnet',
         'checkin_zeit', 'checkin_lat', 'checkin_lng', 'checkin_methode', 'checkin_distanz_meter',
         'checkout_zeit', 'checkout_lat', 'checkout_lng', 'checkout_methode', 'checkout_distanz_meter',

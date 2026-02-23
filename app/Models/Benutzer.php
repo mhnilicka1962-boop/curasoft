@@ -21,7 +21,7 @@ class Benutzer extends Authenticatable
         'password',
         'ahv_nr', 'iban', 'bank',
         'pensum', 'eintrittsdatum', 'austrittsdatum',
-        'rolle', 'aktiv',
+        'rolle', 'anstellungsart', 'aktiv',
         'notizen',
         'einladungs_token', 'einladungs_token_ablauf',
     ];
