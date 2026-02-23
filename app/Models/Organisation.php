@@ -22,6 +22,7 @@ class Organisation extends Model
     protected $casts = [
         'aktiv'               => 'boolean',
         'druck_mit_firmendaten' => 'boolean',
+        'bexio_api_key'       => 'encrypted', // nDSG: API-Schlüssel verschlüsselt in DB
     ];
 
     public function regionen()

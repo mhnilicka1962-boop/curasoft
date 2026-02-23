@@ -8,6 +8,7 @@ use App\Models\Benutzer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 
@@ -30,7 +31,16 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+        $rateLimiterKey = 'login:' . $request->ip();
+        if (RateLimiter::tooManyAttempts($rateLimiterKey, maxAttempts: 5)) {
+            $sekunden = RateLimiter::availableIn($rateLimiterKey);
+            return back()->withErrors([
+                'email' => "Zu viele Anmeldeversuche. Bitte warten Sie {$sekunden} Sekunden.",
+            ])->onlyInput('email');
+        }
+
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+            RateLimiter::clear($rateLimiterKey);
             $request->session()->regenerate();
 
             if (!Auth::user()->aktiv) {
@@ -46,6 +56,8 @@ class AuthController extends Controller
             return redirect()->intended(route('dashboard'));
         }
 
+        RateLimiter::hit($rateLimiterKey, decay: 900); // 15 Minuten Sperre nach 5 Versuchen
+
         return back()->withErrors([
             'email' => 'E-Mail oder Passwort ist falsch.',
         ])->onlyInput('email');
@@ -55,6 +67,15 @@ class AuthController extends Controller
     public function sendMagicLink(Request $request)
     {
         $request->validate(['email' => ['required', 'email']]);
+
+        $rateLimiterKey = 'magic-link:' . $request->ip();
+        if (RateLimiter::tooManyAttempts($rateLimiterKey, maxAttempts: 5)) {
+            $sekunden = RateLimiter::availableIn($rateLimiterKey);
+            return back()->withErrors([
+                'email' => "Zu viele Anfragen. Bitte warten Sie {$sekunden} Sekunden.",
+            ]);
+        }
+        RateLimiter::hit($rateLimiterKey, decay: 900);
 
         $benutzer = Benutzer::where('email', $request->email)->where('aktiv', true)->first();
 

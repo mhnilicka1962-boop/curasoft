@@ -22,10 +22,26 @@ class SecurityHeaders
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
+        // Content-Security-Policy
+        // 'unsafe-inline' für Blade-inline-styles + Alpine/inline-JS nötig
+        // api.bexio.com + fonts.googleapis.com für externe Ressourcen erlaubt
+        $csp = implode('; ', [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "font-src 'self' https://fonts.gstatic.com",
+            "img-src 'self' data:",
+            "connect-src 'self' https://api.bexio.com",
+            "frame-ancestors 'none'",
+            "base-uri 'self'",
+            "form-action 'self'",
+        ]);
+        $response->headers->set('Content-Security-Policy', $csp);
+
         if ($request->secure()) {
             $response->headers->set(
                 'Strict-Transport-Security',
-                'max-age=31536000; includeSubDomains'
+                'max-age=31536000; includeSubDomains; preload'
             );
         }
 
