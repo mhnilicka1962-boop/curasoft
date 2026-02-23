@@ -61,7 +61,7 @@
                 {{-- Hauptinfo --}}
                 <div style="flex: 1; min-width: 0;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                        <span style="font-weight: 600; font-size: 0.9375rem;">{{ $e->klient?->vollname() }}</span>
+                        <a href="{{ route('einsaetze.vor-ort', $e) }}" style="font-weight: 600; font-size: 0.9375rem; color: var(--cs-text); text-decoration: none;">{{ $e->klient?->vollname() }}</a>
                         <span class="badge {{ $e->statusBadgeKlasse() }}" style="font-size: 0.7rem;">{{ $e->statusLabel() }}</span>
                         @if($rapporte > 0)
                             <a href="{{ route('rapporte.index', ['klient_id' => $e->klient_id]) }}" class="badge badge-info" style="font-size: 0.7rem; text-decoration: none;">

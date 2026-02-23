@@ -244,6 +244,21 @@ class EinsaetzeController extends Controller
         return view('einsaetze.show', compact('einsatz'));
     }
 
+    public function vorOrt(Einsatz $einsatz)
+    {
+        $this->autorisiereZugriff($einsatz);
+        $einsatz->load([
+            'klient.adressen',
+            'klient.kontakte',
+            'klient.diagnosen',
+            'klient.krankenkassen.krankenkasse',
+            'klient.verordnungen' => fn($q) => $q->where('aktiv', true),
+            'leistungsart',
+            'verordnung',
+        ]);
+        return view('einsaetze.vor-ort', compact('einsatz'));
+    }
+
     public function edit(Einsatz $einsatz)
     {
         $this->autorisiereZugriff($einsatz);
