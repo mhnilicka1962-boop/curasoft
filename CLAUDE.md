@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-22 (Session 4)
+## Stand: 2026-02-23 (Session 5)
 
 ---
 
@@ -48,10 +48,20 @@
 | `2026_02_22_350000` | Performance-Indizes (25 Indizes auf allen relevanten Tabellen) |
 | `2026_02_22_360000` | leistungsarten: gueltig_ab/bis + Default-Ansätze; leistungsregionen: verrechnung/einsatz_minuten/stunden/tage/mwst |
 | `2026_02_22_370000` | leistungsregionen: Unique-Constraint (leistungsart_id, region_id) entfernt → Historisierung |
+| `2026_02_22_380000` | benutzer: neue Felder (anrede, geschlecht, zivilstand, strasse, telefax, email_privat, ahv_nr, iban, bank, notizen, einladungs_token) |
+| `2026_02_22_390000` | qualifikationen + benutzer_qualifikation |
+| `2026_02_22_400000` | klient_benutzer (Klient-Mitarbeiter-Zuweisung) |
+| `2026_02_23_000001` | webauthn_credentials (Face ID / Passkey) |
+| `2026_02_23_000002` | benutzer: einladungs_token_ablauf |
+| `2026_02_23_100000` | login_tokens (Magic Link) |
+| `2026_02_23_120000` | klient_krankenkassen: tiers_payant boolean (Tiers payant vs. Tiers garant) |
+| `2026_02_23_130000` | klient_verordnungen (Ärztliche Verordnungen); einsaetze: verordnung_id FK |
+| `2026_02_23_140000` | leistungsarten: tarmed_code varchar(20) nullable |
 
 ### Seeders (bereits eingespielt)
 - `LeistungsartenSeeder` — 5 Leistungsarten mit Default-Ansätzen
 - `EinsatzartenSeeder` — 30 Einsatzarten, je einer Leistungsart zugeordnet
+- `KrankenkassenSeeder` — 39 Schweizer KVG-Krankenkassen (BAG-Nr + EAN) — per Tinker eingespielt
 
 ### DB-Inhalt (Testdaten)
 - Region AG (Aargau) mit 5 Leistungsregionen (Auto-Copy beim Anlegen)
@@ -64,12 +74,14 @@
 |-------|-----|------------|--------|
 | Dashboard | `/dashboard` | Route-Closure | alle |
 | Klienten | `/klienten` | KlientenController | admin, pflege |
+| Klient Bexio-Sync | `POST /klienten/{id}/bexio/sync` | KlientenController | admin, pflege |
 | Einsätze | `/einsaetze` | EinsaetzeController | admin, pflege |
 | Check-In/Out | `/checkin/{token}` | CheckInController | admin, pflege |
 | Rapporte | `/rapporte` | RapporteController | admin, pflege |
 | Tourenplanung | `/touren` | TourenController | admin, pflege |
 | Rechnungen | `/rechnungen` | RechnungenController | admin, buchhaltung |
-| XML-Export | `/rechnungen/{id}/xml` | RechnungenController | admin, buchhaltung |
+| XML-Export 450.100 | `GET /rechnungen/{id}/xml` | RechnungenController | admin, buchhaltung |
+| Rechnung Bexio-Sync | `POST /rechnungen/{id}/bexio/sync` | RechnungenController | admin, buchhaltung |
 | Firma | `/firma` | FirmaController | admin |
 | Leistungsarten Grundset | `/leistungsarten` | LeistungsartenController | admin |
 | Leistungsart Tarife | `/leistungsarten/{id}` | LeistungsartenController | admin |
@@ -91,6 +103,7 @@ leistungsarten (5 Grundset)
   id, bezeichnung, einheit, kassenpflichtig, aktiv
   gueltig_ab, gueltig_bis
   ansatz_default, kvg_default, ansatz_akut_default, kvg_akut_default
+  tarmed_code (z.B. '00.0010') → für XML 450.100 Tarif 311
 
 leistungstypen (30 Einsatzarten)
   id, leistungsart_id, bezeichnung, gueltig_ab, gueltig_bis, aktiv
@@ -124,14 +137,15 @@ Die Klient-Detailseite (`/klienten/{id}`) zeigt folgende Sektionen:
 3. **Krankenkasse & AHV** — Legacy-Felder (Fallback wenn keine KK-Verknüpfung)
 4. **Adressen** — einsatzort / rechnung / notfall / korrespondenz (Cards + Formular)
 5. **Behandelnde Ärzte** — mit Rolle (Hauptarzt / Einweisend / Konsultierend)
-6. **Krankenkassen** — KVG / VVG, Deckungstyp, Versichertennummer
-7. **Beiträge** — Ansatz Kunde, Limit %, Ansatz SPITEX, Kanton, historisiert nach gültig_ab
-8. **Kontakte & Angehörige** — Rolle, Bevollmächtigt, Erhält Rechnungen
-9. **Pflegebedarf / Einstufungen** — BESA / RAI-HC / IBM / Manuell, Stufe, Punkte, Nächste Prüfung
-10. **Diagnosen (ICD-10)** — Code, Bezeichnung, Typ (Haupt/Neben/Einweisung)
-11. **Dokumente** — Upload (PDF/DOCX/XLSX/Bilder, max 20 MB), Download
-12. **Rapporte** — letzte 5, Link zu neuen Rapport
-13. **Letzte Einsätze** — letzte 5
+6. **Krankenkassen** — KVG / VVG, Deckungstyp, Versichertennummer, **Tiers payant/garant Badge**
+7. **Ärztliche Verordnungen** — NEU: Verordnungs-Nr, Arzt, Leistungsart, gültig ab/bis, Status-Badge (Aktiv/Läuft ab/Abgelaufen)
+8. **Beiträge** — Ansatz Kunde, Limit %, Ansatz SPITEX, Kanton, historisiert nach gültig_ab
+9. **Kontakte & Angehörige** — Rolle, Bevollmächtigt, Erhält Rechnungen
+10. **Pflegebedarf / Einstufungen** — BESA / RAI-HC / IBM / Manuell, Stufe, Punkte, Nächste Prüfung
+11. **Diagnosen (ICD-10)** — Code, Bezeichnung, Typ (Haupt/Neben/Einweisung)
+12. **Dokumente** — Upload (PDF/DOCX/XLSX/Bilder, max 20 MB), Download
+13. **Rapporte** — letzte 5, Link zu neuen Rapport
+14. **Letzte Einsätze** — letzte 5
 
 ---
 
@@ -183,34 +197,64 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 
 ---
 
-## MORGEN TESTEN — Offen (2026-02-23)
+## ZUM TESTEN — Offen (2026-02-23)
 
-### Was heute gebaut wurde — noch nicht vollständig getestet
+### Noch nicht vollständig getestet
 
 | Feature | URL | Was testen |
 |---------|-----|------------|
 | **Schnellerfassung** | `/klienten` → "+ Neuer Patient" | Patient + Betreuer + Wochentage eingeben → 1 Klick → Pflegeplan prüfen |
-| **Wiederkehrende Einsätze** | `/einsaetze/create?klient_id=4` | Wiederholung Wöchentlich, Mo+Mi+Fr, Preview zeigt Anzahl, Speichern |
-| **Serie löschen** | `/klienten/4` → Pflegeplan → "× Serie löschen" | Serie-Badge sichtbar, Löschen → Bestätigung → Einsätze weg |
-| **Lücken-Warnung Touren** | `/touren?datum=2026-02-23` | ⚠ Banner mit Sandra, "Tour erstellen" Button |
-| **Einsatz anlegen aus Tour** | `/touren/create?benutzer_id=5&datum=2026-02-27` | Keine Einsätze → Button "+ Einsatz anlegen" → Formular vorausgefüllt → zurück |
-| **Pflegeplan Klient** | `/klienten/4` oder `/klienten/5` | 14-Tage-Übersicht, Mitarbeiter, Zeiten, Lücken grau |
+| **Wiederkehrende Einsätze** | `/einsaetze/create?klient_id=X` | Wiederholung Wöchentlich, Mo+Mi+Fr, Preview zeigt Anzahl, Speichern |
+| **5-Minuten-Takt** | `/einsaetze/create` | Zeit 08:07 eingeben → Fehler; 08:05 → OK; Dauer < 10 min → Fehler |
+| **Tiers payant** | `/klienten/{id}` → Krankenkassen | Badge "Tiers payant" / "Tiers garant" sichtbar |
+| **Ärztliche Verordnung** | `/klienten/{id}` → Verordnungen | Verordnung anlegen, Status-Badge, Einsatz erstellen → Verordnung wählen |
+| **XML 450.100** | `/rechnungen/{id}` → 📋 XML | XML herunterladen, Struktur `generalInvoiceRequest` prüfen |
+| **Bexio-Button** | `/klienten/{id}` oder `/rechnungen/{id}` | Nur sichtbar wenn API-Key gesetzt; `→ Bexio` klicken |
+| **tarmed_code** | `/leistungsarten/{id}` → Bearbeiten | Code `00.0010` eingeben, speichern, in Show-Ansicht `T311:` sehen |
 | **Face ID / Passkey** | `/profil` → Passkey registrieren | Gerätename eingeben → Face ID → Login-Test |
+| **Lücken-Warnung Touren** | `/touren` | ⚠ Banner mit Mitarbeitern ohne Tour |
 
-### Schnelltest-Reihenfolge für morgen
+---
 
-1. **Schnellerfassung testen** (wichtigste neue Funktion):
-   → `/klienten` → "+ Neuer Patient"
-   → Name: Test Patient, Kanton: AG, Betreuer: Peter, Leistungsart: Grundpflege
-   → Wochentage: Mo + Mi, Zeit: 09:00–10:00, Start: 02.03.2026, Ende: 31.03.2026
-   → "Patient + X Einsätze anlegen" klicken
-   → Pflegeplan des neuen Klienten prüfen
+## Neu in Session 5 (2026-02-23)
 
-2. **Serie löschen** (`/klienten/4` → Pflegeplan, März-Einsätze)
+### KLV-Compliance
+- **5-Minuten-Takt**: Validierung in EinsaetzeController (store + update) — Startzeit und Endzeit müssen Vielfache von 5 min sein; Mindestdauer 10 Minuten
+- **Tiers payant / Tiers garant**: Boolean-Feld auf `klient_krankenkassen` — steuert XML-Struktur und Betrag-Aufteilung
+- **Ärztliche Verordnungen** (`klient_verordnungen`): Neue Tabelle, Model, Routes, Controller-Methoden, Blade-Sektion im Klienten-Detail
+  - Verknüpfung auf Einsatz-Ebene: `verordnung_id` FK auf `einsaetze`
+  - Einsatz-Formular zeigt aktive Verordnungen des gewählten Klienten
 
-3. **Lücken-Warnung** (`/touren?datum=2026-02-23`)
+### XML 450.100 — Vollständige Neuimplementierung
+- Root-Element: `generalInvoiceRequest` (war falsch: `medicalInvoice`)
+- Korrekte Struktur: `payload > invoice + body > tiers_payant|tiers_garant > biller/provider/insurance/patient/kvg`
+- Biller + Provider: verschachtelte `company > postal > street/zip/city` Elemente
+- Patient: `person (familyname/givenname)` + `postal`
+- `kvg > treatment`: Periode, Kanton aus `region.kuerzel`, ICD-10-Diagnosen (main/secondary)
+- Services: `tariff_type=311`, `unit=min`, Minuten als Quantität, CHF/min Preis, per-Service-Datum
+- Tiers payant/garant dynamisch aus KK-Zuweisung — `amount_due` / `amount_prepaid` korrekt aufgeteilt
+- Verordnungs-Nr als `obligation`-Attribut auf Service-Ebene
 
-4. **Face ID** (`/profil` → Passkey registrieren → ausloggen → Face ID Login)
+### tarmed_code auf leistungsarten
+- Migration `2026_02_23_140000`: `tarmed_code varchar(20) nullable`
+- Edit-Formular + Show-Ansicht ergänzt
+- XmlExportService nutzt `$la->tarmed_code ?? '00.0010'`
+
+### Bexio UI-Buttons
+- `POST /klienten/{klient}/bexio/sync` → `KlientenController@bexioSync`
+- `POST /rechnungen/{rechnung}/bexio/sync` → `RechnungenController@bexioSync`
+- Button `→ Bexio` (erster Sync) / `↻ Bexio` (Update) — nur sichtbar wenn `bexio_api_key` konfiguriert
+- Tooltip zeigt vorhandene Bexio-ID
+- `Benutzer::organisation()` Relationship ergänzt
+
+### Swiss Krankenkassen Seeder
+- `KrankenkassenSeeder`: 39 KVG-Krankenkassen mit BAG-Nr und EAN (CSS, Helsana, SWICA, Concordia, Sanitas, KPT, Visana, Sympany, Assura, Atupri, Groupe Mutuel, EGK, ÖKK u.a.)
+
+### Landing Page — Neugestaltung
+- Zielt auf **alle** Schweizer Spitex-Dienste (kantonal + kantonsübergreifend)
+- 26 Kantone als Pills, Kantonsübergreifend als zentrales USP
+- Tarif-Beispieltabelle (AG/ZH/BE/ZG), 3 Zielgruppen-Cards
+- Schnittstellen: XML 450.100 ✅, MediData (in Entwicklung), Bexio ✅, QR/GPS ✅
 
 ---
 
@@ -251,13 +295,15 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 
 ## Bekannte offene Punkte
 
-- **Bexio**: Kontakt-Sync und Rechnungs-Sync im Service vorhanden, aber kein UI-Button. Nächster Schritt: Button auf Klient-Detail und Rechnungs-Detail.
-- **XML-Export**: `tarmed_code`-Feld fehlt auf leistungsarten. Default `00.0010` verwenden oder Feld ergänzen.
 - **Tourenplanung**: Reihenfolge per Nummer setzbar, kein Drag-and-Drop.
 - **Wiederkehrende Einsätze**: Serie bearbeiten (alle verschieben) noch nicht gebaut — nur Löschen möglich.
 - **Profil-Seite**: Link im Header-User-Menu → `profil.index`.
 - **Dokumente**: Speicher unter `storage/app/dokumente/{org_id}/` — kein public Zugriff, nur Download.
 - **Klienten-Index**: Default zeigt nur aktive Klienten (Filter "Aktiv" vorausgewählt).
+- **PDF-Druck**: Button auf Rechnungs-Detail vorhanden aber `disabled` ("Folgt bald").
+- **MediData-Schnittstelle**: Auf Landing Page als "in Entwicklung" markiert — noch nicht gebaut.
+- **EPD** (Elektronisches Patientendossier): Pflicht ab 2026 — noch nicht geplant.
+- **Bexio**: Buttons gebaut. `bexio_api_key` muss in Firma → Bexio konfiguriert sein, sonst unsichtbar.
 
 ---
 
@@ -270,63 +316,69 @@ app/
     AuthController.php           ← kein Rate Limiter
     CheckInController.php
     DokumenteController.php
-    EinsatzartenController.php   ← NEU: /einsatzarten CRUD
-    EinsaetzeController.php
-    FirmaController.php
-    KlientenController.php       ← +11 Unterbeziehungs-Methoden (inkl. Beiträge)
+    EinsatzartenController.php
+    EinsaetzeController.php      ← +5-min Validierung, +verordnung_id, +minuten-Berechnung
+    FirmaController.php          ← +bexioSpeichern() +bexioTesten()
+    KlientenController.php       ← +bexioSync(), +verordnungSpeichern/Entfernen(), +tiers_payant
     KrankenkassenController.php
-    LeistungsartenController.php ← +tarifeBearbeiten/tarifeAktualisieren
+    LeistungsartenController.php ← +tarmed_code Validierung
     NachrichtenController.php
     RapporteController.php
-    RechnungenController.php     ← +xmlExport()
-    RegionenController.php       ← +show() +tarifSpeichern() +Auto-Copy
+    RechnungenController.php     ← +xmlExport() +bexioSync()
+    RegionenController.php
     TourenController.php
   Models/
     Arzt.php, KlientArzt.php
+    Benutzer.php                 ← +organisation() Relationship
     BexioSync.php
     Dokument.php
-    Einsatz.php
-    Klient.php
+    Einsatz.php                  ← +verordnung_id, +verordnung() Relationship
+    Klient.php                   ← +verordnungen() Relationship
     KlientAdresse.php
     KlientBeitrag.php
     KlientDiagnose.php
     KlientKontakt.php
-    KlientKrankenkasse.php
+    KlientKrankenkasse.php       ← +tiers_payant
     KlientPflegestufe.php
+    KlientVerordnung.php         ← NEU: Ärztliche Verordnungen
     Krankenkasse.php
-    Leistungsart.php             ← +gueltig_ab/bis, +Default-Ansätze
-    Leistungsregion.php          ← +verrechnung/einsatz_*/mwst
-    Leistungstyp.php             ← Einsatzarten
+    Leistungsart.php             ← +tarmed_code
+    Leistungsregion.php
+    Leistungstyp.php
     Organisation.php
     Rapport.php
+    RechnungsPosition.php        ← +leistungstyp() Relationship
     Region.php
     Tour.php
   Services/
-    BexioService.php
-    XmlExportService.php
+    BexioService.php             ← verbindungTesten(), kontaktSynchronisieren(), rechnungSynchronisieren()
+    XmlExportService.php         ← Vollständige Neuimplementierung 450.100
 
 resources/views/
+  landing.blade.php              ← Neugestaltung: alle 26 Kantone, kantonsübergreifend
   dashboard.blade.php
   klienten/
     index.blade.php              ← Default: nur aktive Klienten
-    show.blade.php               ← 13 Sektionen
+    show.blade.php               ← +Bexio-Sync Button, +Tiers payant Badge, +Ärztliche Verordnungen
     _formular.blade.php
+  einsaetze/
+    create.blade.php             ← +Verordnung-Dropdown
+  rechnungen/
+    show.blade.php               ← +XML-Button, +Bexio-Sync Button
   rapporte/
     index.blade.php, create.blade.php, show.blade.php
   touren/
     index.blade.php, create.blade.php, show.blade.php
   stammdaten/
     leistungsarten/
-      index.blade.php            ← Grundset + Formular
-      edit.blade.php             ← inkl. Default-Ansätze
-      show.blade.php             ← Tarife pro Kanton, historisiert
-      tarif_edit.blade.php       ← Einzel-Tarif bearbeiten
+      index.blade.php
+      edit.blade.php             ← +tarmed_code Feld
+      show.blade.php             ← +tarmed_code im Header
+      tarif_edit.blade.php
     einsatzarten/
-      index.blade.php            ← Liste + Filter + Formular
-      edit.blade.php
+      index.blade.php, edit.blade.php
     regionen/
-      index.blade.php            ← ✏ Leistungsarten Button pro Kanton
-      show.blade.php             ← 5 Leistungsarten + Historisierung + Neuerfassung
+      index.blade.php, show.blade.php
     aerzte/    (index, create, edit, _formular)
     krankenkassen/ (index, create, edit, _formular)
     firma/     (index + Bexio-Sektion)
