@@ -36,6 +36,11 @@ class Leistungsart extends Model
         return $this->hasMany(Leistungstyp::class, 'leistungsart_id');
     }
 
+    public function benutzer()
+    {
+        return $this->belongsToMany(Benutzer::class, 'benutzer_leistungsarten');
+    }
+
     public function einheitLabel(): string
     {
         return match($this->einheit ?? 'minuten') {

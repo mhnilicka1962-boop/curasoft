@@ -156,6 +156,14 @@ class EinsaetzeController extends Controller
             ? $daten['benutzer_id']
             : auth()->id();
 
+        // Warnung wenn Pflegeperson diese Leistungsart nicht darf
+        $pflegeperson = \App\Models\Benutzer::find($benutzerId);
+        if ($pflegeperson && !$pflegeperson->darfLeistungsart((int) $daten['leistungsart_id'])) {
+            return back()->withInput()->withErrors([
+                'leistungsart_id' => $pflegeperson->vorname . ' ' . $pflegeperson->nachname . ' ist für diese Leistungsart nicht freigegeben.',
+            ]);
+        }
+
         $basis = [
             'organisation_id' => $this->orgId(),
             'klient_id'       => $daten['klient_id'],
@@ -298,6 +306,15 @@ class EinsaetzeController extends Controller
             $daten['benutzer_id'] = $daten['benutzer_id'];
         } else {
             unset($daten['benutzer_id']);
+        }
+
+        // Warnung wenn Pflegeperson diese Leistungsart nicht darf
+        $benutzerId = $daten['benutzer_id'] ?? $einsatz->benutzer_id;
+        $pflegeperson = \App\Models\Benutzer::find($benutzerId);
+        if ($pflegeperson && !$pflegeperson->darfLeistungsart((int) $daten['leistungsart_id'])) {
+            return back()->withInput()->withErrors([
+                'leistungsart_id' => $pflegeperson->vorname . ' ' . $pflegeperson->nachname . ' ist für diese Leistungsart nicht freigegeben.',
+            ]);
         }
 
         $einsatz->update($daten);

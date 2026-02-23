@@ -200,7 +200,33 @@
     </form>
 </div>
 
-{{-- ═══ 3. KLIENTENZUWEISUNG ═══ --}}
+{{-- ═══ 3. ERLAUBTE LEISTUNGSARTEN ═══ --}}
+<div class="karte" style="margin-bottom: 1.25rem;">
+    <div class="abschnitt-label">Erlaubte Leistungsarten</div>
+    <p class="text-klein text-hell" style="margin: 0 0 0.875rem;">Welche Leistungsarten darf diese Person erbringen? Leer = alle erlaubt.</p>
+    <form method="POST" action="{{ route('mitarbeiter.leistungsarten', $mitarbeiter) }}">
+        @csrf
+        <div style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 1rem;">
+            @foreach($leistungsarten as $la)
+            @php $erlaubt = $mitarbeiter->erlaubteLeistungsarten->contains($la->id); @endphp
+            <label id="la-label-{{ $la->id }}" style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.875rem; cursor: pointer; background: {{ $erlaubt ? 'var(--cs-primaer)' : 'var(--cs-hintergrund)' }}; color: {{ $erlaubt ? '#fff' : 'var(--cs-text)' }}; border: 1px solid {{ $erlaubt ? 'var(--cs-primaer)' : 'var(--cs-border)' }}; padding: 0.3rem 0.65rem; border-radius: 999px; transition: all 0.1s;">
+                <input type="checkbox" name="leistungsart_ids[]" value="{{ $la->id }}"
+                    {{ $erlaubt ? 'checked' : '' }}
+                    style="display: none;"
+                    onchange="
+                        this.closest('label').style.background = this.checked ? 'var(--cs-primaer)' : 'var(--cs-hintergrund)';
+                        this.closest('label').style.color = this.checked ? '#fff' : 'var(--cs-text)';
+                        this.closest('label').style.borderColor = this.checked ? 'var(--cs-primaer)' : 'var(--cs-border)';
+                    ">
+                {{ $la->bezeichnung }}
+            </label>
+            @endforeach
+        </div>
+        <button type="submit" class="btn btn-primaer">Leistungsarten speichern</button>
+    </form>
+</div>
+
+{{-- ═══ 4. KLIENTENZUWEISUNG ═══ --}}
 <div class="karte" style="margin-bottom: 1.25rem;">
     <div class="abschnitt-label">Zugewiesene Klienten</div>
 

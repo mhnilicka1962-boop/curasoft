@@ -64,6 +64,20 @@ class Benutzer extends Authenticatable
         return $this->hasMany(KlientBenutzer::class)->with('klient');
     }
 
+    public function erlaubteLeistungsarten()
+    {
+        return $this->belongsToMany(Leistungsart::class, 'benutzer_leistungsarten');
+    }
+
+    public function darfLeistungsart(int $leistungsartId): bool
+    {
+        // Wenn keine Einschränkungen definiert → alles erlaubt
+        if ($this->erlaubteLeistungsarten()->count() === 0) {
+            return true;
+        }
+        return $this->erlaubteLeistungsarten()->where('leistungsarten.id', $leistungsartId)->exists();
+    }
+
     public function alterInJahren(): ?int
     {
         return $this->geburtsdatum?->age;

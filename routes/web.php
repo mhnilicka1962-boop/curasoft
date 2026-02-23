@@ -267,6 +267,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/mitarbeiter/{mitarbeiter}', [MitarbeiterController::class, 'show'])->name('mitarbeiter.show');
         Route::put('/mitarbeiter/{mitarbeiter}', [MitarbeiterController::class, 'update'])->name('mitarbeiter.update');
         Route::post('/mitarbeiter/{mitarbeiter}/qualifikationen', [MitarbeiterController::class, 'qualifikationenSpeichern'])->name('mitarbeiter.qualifikationen');
+        Route::post('/mitarbeiter/{mitarbeiter}/leistungsarten', [MitarbeiterController::class, 'leistungsartenSpeichern'])->name('mitarbeiter.leistungsarten');
         Route::post('/mitarbeiter/{mitarbeiter}/klienten', [MitarbeiterController::class, 'klientZuweisen'])->name('mitarbeiter.klient.zuweisen');
         Route::delete('/mitarbeiter/{mitarbeiter}/klienten/{zuweisung}', [MitarbeiterController::class, 'klientEntfernen'])->name('mitarbeiter.klient.entfernen');
         Route::post('/mitarbeiter/{mitarbeiter}/einladung', [MitarbeiterController::class, 'einladungSenden'])->name('mitarbeiter.einladung');

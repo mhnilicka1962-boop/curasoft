@@ -6,6 +6,7 @@ use App\Mail\EinladungMail;
 use App\Models\Benutzer;
 use App\Models\Klient;
 use App\Models\KlientBenutzer;
+use App\Models\Leistungsart;
 use App\Models\Qualifikation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -48,10 +49,11 @@ class MitarbeiterController extends Controller
     public function show(Benutzer $mitarbeiter)
     {
         if ($mitarbeiter->organisation_id !== $this->orgId()) abort(403);
-        $mitarbeiter->load('qualifikationen', 'klientZuweisungen.klient');
+        $mitarbeiter->load('qualifikationen', 'klientZuweisungen.klient', 'erlaubteLeistungsarten');
         $qualifikationen = Qualifikation::where('aktiv', true)->orderBy('sort_order')->get();
+        $leistungsarten  = Leistungsart::where('aktiv', true)->orderBy('id')->get();
         $klienten        = Klient::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
-        return view('stammdaten.mitarbeiter.show', compact('mitarbeiter', 'qualifikationen', 'klienten'));
+        return view('stammdaten.mitarbeiter.show', compact('mitarbeiter', 'qualifikationen', 'leistungsarten', 'klienten'));
     }
 
     public function store(Request $request)
@@ -152,6 +154,16 @@ class MitarbeiterController extends Controller
         $mitarbeiter->qualifikationen()->sync($ids);
 
         return back()->with('erfolg', 'Qualifikationen wurden gespeichert.');
+    }
+
+    public function leistungsartenSpeichern(Request $request, Benutzer $mitarbeiter)
+    {
+        if ($mitarbeiter->organisation_id !== $this->orgId()) abort(403);
+
+        $ids = $request->input('leistungsart_ids', []);
+        $mitarbeiter->erlaubteLeistungsarten()->sync($ids);
+
+        return back()->with('erfolg', 'Erlaubte Leistungsarten wurden gespeichert.');
     }
 
     public function klientZuweisen(Request $request, Benutzer $mitarbeiter)
