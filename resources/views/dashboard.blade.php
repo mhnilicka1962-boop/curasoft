@@ -6,39 +6,35 @@
         Willkommen, {{ Auth::user()->vorname }}!
     </h1>
 
-    {{-- Kennzahlen-Karten --}}
-    <div class="form-grid form-grid-mb" style="align-items: stretch;">
+    {{-- Stat-Chips --}}
+    <div class="stat-chips">
 
-        <div class="karte karte-statisch">
-            <div class="abschnitt-label abschnitt-label-kompakt">Aktive Klienten</div>
-            <div class="kennzahl-zahl">{{ $klientenAktiv }}</div>
-            <a href="{{ route('klienten.index', ['status' => 'aktiv']) }}" class="text-klein text-hell link-block-mt">Alle anzeigen →</a>
-        </div>
+        <a href="{{ route('klienten.index', ['status' => 'aktiv']) }}" class="stat-chip">
+            <span class="stat-chip-label">Aktive Klienten</span>
+            <span class="stat-chip-zahl primaer">{{ $klientenAktiv }}</span>
+        </a>
 
-        <div class="karte karte-statisch">
-            <div class="abschnitt-label abschnitt-label-kompakt">Einsätze heute</div>
-            <div class="kennzahl-zahl-neutral">{{ $einsaetzeHeute }}</div>
-            @if($einsaetzeGeplant > 0)
-                <div class="kennzahl-hinweis">{{ $einsaetzeGeplant }} noch geplant</div>
-            @endif
-            <a href="{{ route('einsaetze.index', ['datum_von' => today()->format('Y-m-d'), 'datum_bis' => today()->format('Y-m-d')]) }}" class="text-klein text-hell link-block-mt">Alle anzeigen →</a>
-        </div>
+        <a href="{{ route('einsaetze.index', ['datum_von' => today()->format('Y-m-d'), 'datum_bis' => today()->format('Y-m-d')]) }}" class="stat-chip">
+            <span class="stat-chip-label">
+                Einsätze heute
+                @if($einsaetzeGeplant > 0)
+                    <span class="stat-chip-sub">{{ $einsaetzeGeplant }} geplant</span>
+                @endif
+            </span>
+            <span class="stat-chip-zahl">{{ $einsaetzeHeute }}</span>
+        </a>
 
         @if(auth()->user()->rolle !== 'pflege')
-        <div class="karte karte-statisch">
-            <div class="abschnitt-label abschnitt-label-kompakt">Offene Rechnungen</div>
-            <div class="kennzahl-zahl-neutral" style="color: {{ $offeneRechnungen > 0 ? 'var(--cs-warnung)' : 'var(--cs-text)' }};">
-                CHF {{ number_format($offeneRechnungen, 0, '.', "'") }}
-            </div>
-            <a href="{{ route('rechnungen.index') }}" class="text-klein text-hell link-block-mt">Rechnungen →</a>
-        </div>
+        <a href="{{ route('rechnungen.index') }}" class="stat-chip">
+            <span class="stat-chip-label">Offene Rechnungen</span>
+            <span class="stat-chip-zahl {{ $offeneRechnungen > 0 ? 'warnung' : '' }}">CHF {{ number_format($offeneRechnungen, 0, '.', "'") }}</span>
+        </a>
         @endif
 
-        <div class="karte karte-statisch">
-            <div class="abschnitt-label abschnitt-label-kompakt">Nachrichten</div>
-            <div class="kennzahl-zahl-neutral" style="color: {{ $ungeleseneNachrichten > 0 ? 'var(--cs-primaer)' : 'var(--cs-text)' }};">{{ $ungeleseneNachrichten }}</div>
-            <a href="{{ route('nachrichten.index') }}" class="text-klein text-hell link-block-mt">Posteingang →</a>
-        </div>
+        <a href="{{ route('nachrichten.index') }}" class="stat-chip">
+            <span class="stat-chip-label">Nachrichten</span>
+            <span class="stat-chip-zahl {{ $ungeleseneNachrichten > 0 ? 'primaer' : '' }}">{{ $ungeleseneNachrichten }}</span>
+        </a>
 
     </div>
 
