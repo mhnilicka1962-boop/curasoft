@@ -1,9 +1,9 @@
 <x-layouts.app titel="Neuer Rapport">
 <div style="max-width: 680px;">
 
-    <a href="{{ $einsatz ? route('einsaetze.show', $einsatz) : route('rapporte.index') }}"
+    <a href="{{ $einsatz ? route('einsaetze.vor-ort', $einsatz) : route('rapporte.index') }}"
         class="link-gedaempt" style="font-size: 0.875rem; display: inline-block; margin-bottom: 1rem;">
-        ← {{ $einsatz ? 'Einsatz' : 'Rapporte' }}
+        ← {{ $einsatz ? 'Zurück' : 'Rapporte' }}
     </a>
 
     <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0 0 1.25rem;">Neuer Rapport</h1>
