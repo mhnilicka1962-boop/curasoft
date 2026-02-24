@@ -31,6 +31,7 @@ class Einsatz extends Model
     public function region()        { return $this->belongsTo(Region::class); }
     public function tour()          { return $this->belongsTo(Tour::class); }
     public function aktivitaeten()  { return $this->hasMany(EinsatzAktivitaet::class); }
+    public function rapporte()      { return $this->hasMany(Rapport::class); }
 
     public function isEingecheckt(): bool  { return !is_null($this->checkin_zeit); }
     public function isAusgecheckt(): bool  { return !is_null($this->checkout_zeit); }

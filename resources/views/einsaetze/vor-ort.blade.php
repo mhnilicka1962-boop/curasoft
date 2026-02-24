@@ -268,6 +268,21 @@
 
 </div>
 
+{{-- Rapporte zu diesem Einsatz --}}
+@if($einsatz->rapporte->isNotEmpty())
+<div class="vo-karte" style="margin: 0 0 0.75rem;">
+    <div class="vo-abschnitt-titel">Rapporte</div>
+    @foreach($einsatz->rapporte as $r)
+    <a href="{{ route('rapporte.show', $r) }}" style="display: block; text-decoration: none; padding: 0.625rem 0; border-bottom: 1px solid var(--vo-border, #e5e7eb);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
+            <div style="font-size: 0.875rem; color: var(--cs-text);">{{ Str::limit($r->inhalt, 80) }}</div>
+            <div style="font-size: 0.75rem; color: var(--cs-text-hell); white-space: nowrap;">{{ $r->datum->format('d.m.') }}</div>
+        </div>
+    </a>
+    @endforeach
+</div>
+@endif
+
 {{-- Navigation unten --}}
 <div class="vo-nav">
     <a href="{{ route('rapporte.create', ['klient_id' => $einsatz->klient_id, 'einsatz_id' => $einsatz->id]) }}" style="background: var(--cs-primaer); color: #fff; border-color: var(--cs-primaer); font-size: 0.9375rem;">+ Rapport schreiben</a>

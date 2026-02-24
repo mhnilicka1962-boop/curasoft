@@ -256,6 +256,7 @@ class EinsaetzeController extends Controller
             'leistungsart',
             'verordnung',
             'aktivitaeten',
+            'rapporte' => fn($q) => $q->orderByDesc('datum')->orderByDesc('id'),
         ]);
         // Gespeicherte Aktivitäten als Lookup-Map: "Kategorie|Aktivität" => EinsatzAktivitaet
         $gespeicherteAktivitaeten = $einsatz->aktivitaeten
