@@ -1,4 +1,7 @@
 <div class="nav-abschnitt">Übersicht</div>
+<a href="{{ route('hilfe') }}" class="nav-link {{ request()->routeIs('hilfe') ? 'aktiv' : '' }}">
+    Hilfe
+</a>
 <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'aktiv' : '' }}">
     Dashboard
 </a>
