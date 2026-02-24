@@ -75,9 +75,10 @@
     {{-- Adresse + Kontakt --}}
     <div style="margin-top: 0.625rem; font-size: 0.8125rem; display: flex; flex-wrap: wrap; gap: 0.375rem 1rem;">
         @if($adresse)
+        <span style="color: rgba(255,255,255,0.9);">{{ $adresse }}, {{ $plz }} {{ $ort }}</span>
         <a href="https://maps.google.com/?q={{ urlencode($adresse . ', ' . $plz . ' ' . $ort) }}"
-           target="_blank" style="color: rgba(255,255,255,0.9); text-decoration: none;">
-            📍 {{ $adresse }}, {{ $plz }} {{ $ort }}
+           target="_blank" style="background: rgba(255,255,255,0.2); color: #fff; text-decoration: none; border-radius: 1rem; padding: 0.2rem 0.6rem; font-size: 0.75rem; white-space: nowrap;">
+            📍 Maps
         </a>
         @endif
         @if($einsatz->klient->telefon)
