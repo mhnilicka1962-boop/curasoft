@@ -133,31 +133,40 @@ Route::middleware('auth')->group(function () {
             ->limit(8)
             ->get();
 
-        $meineTourenHeute = \App\Models\Tour::where('organisation_id', $orgId)
+        // Einsätze heute als Liste (max. 10), falls keine: nächste bevorstehende
+        $einsaetzeDatumLabel = 'Einsätze heute';
+        $einsaetzeListeDatum = $heute;
+        $einsaetzeListe = \App\Models\Einsatz::where('organisation_id', $orgId)
             ->whereDate('datum', $heute)
             ->when($rolle === 'pflege', fn($q) => $q->where('benutzer_id', $userId))
-            ->with('benutzer', 'einsaetze')
-            ->orderBy('start_zeit')
+            ->with('klient', 'benutzer', 'leistungsart')
+            ->orderBy('zeit_von')
+            ->limit(10)
             ->get();
 
-        // Falls heute keine Touren: nächste bevorstehende anzeigen (max. 5)
-        $tourenLabel = 'Touren heute';
-        if ($meineTourenHeute->isEmpty()) {
-            $meineTourenHeute = \App\Models\Tour::where('organisation_id', $orgId)
+        if ($einsaetzeListe->isEmpty()) {
+            $naechster = \App\Models\Einsatz::where('organisation_id', $orgId)
                 ->whereDate('datum', '>', $heute)
                 ->when($rolle === 'pflege', fn($q) => $q->where('benutzer_id', $userId))
-                ->with('benutzer', 'einsaetze')
-                ->orderBy('datum')
-                ->orderBy('start_zeit')
-                ->limit(5)
-                ->get();
-            $tourenLabel = $meineTourenHeute->isNotEmpty() ? 'Nächste Touren' : 'Touren heute';
+                ->orderBy('datum')->orderBy('zeit_von')
+                ->first();
+            if ($naechster) {
+                $einsaetzeListeDatum = $naechster->datum;
+                $einsaetzeDatumLabel = 'Einsätze ' . $naechster->datum->format('d.m.Y');
+                $einsaetzeListe = \App\Models\Einsatz::where('organisation_id', $orgId)
+                    ->whereDate('datum', $naechster->datum)
+                    ->when($rolle === 'pflege', fn($q) => $q->where('benutzer_id', $userId))
+                    ->with('klient', 'benutzer', 'leistungsart')
+                    ->orderBy('zeit_von')
+                    ->limit(10)
+                    ->get();
+            }
         }
 
         return view('dashboard', compact(
             'klientenAktiv', 'einsaetzeHeute', 'einsaetzeGeplant',
             'offeneRechnungen', 'ungeleseneNachrichten',
-            'letzteRapporte', 'meineTourenHeute', 'tourenLabel'
+            'letzteRapporte', 'einsaetzeListe', 'einsaetzeDatumLabel'
         ));
     })->name('dashboard');
 

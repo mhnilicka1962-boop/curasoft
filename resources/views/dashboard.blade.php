@@ -38,42 +38,38 @@
 
     </div>
 
-    <div class="form-grid-2 form-grid-2-gap">
-
-        {{-- Heutige Touren --}}
-        <div class="karte">
-            <div class="karten-kopf">
-                <div class="abschnitt-label">{{ $tourenLabel }}</div>
-                <a href="{{ route('touren.index', ['datum' => today()->format('Y-m-d')]) }}" class="text-klein link-primaer">Tourenplan →</a>
-            </div>
-
-            @forelse($meineTourenHeute as $tour)
-            <div class="listen-zeile">
-                <div class="listen-zeile-inner">
-                    <div>
-                        <span class="text-fett">{{ $tour->bezeichnung }}</span>
-                        @if(auth()->user()->rolle === 'admin')
-                            <span class="text-hell text-8 ml-klein">{{ $tour->benutzer?->vorname }}</span>
-                        @endif
-                        @if($tour->datum->toDateString() !== today()->toDateString())
-                            <span class="text-hell text-8 ml-klein">{{ $tour->datum->format('d.m.') }}</span>
-                        @endif
-                    </div>
-                    <div class="flex-gap-klein">
-                        <span class="text-hell text-8">{{ $tour->einsaetze->count() }} Einsätze</span>
-                        <span class="badge badge-klein {{ $tour->status === 'abgeschlossen' ? 'badge-erfolg' : ($tour->status === 'gestartet' ? 'badge-warnung' : 'badge-grau') }}">{{ ucfirst($tour->status) }}</span>
-                    </div>
-                </div>
-            </div>
-            @empty
-            <p class="text-klein text-hell m-05">
-                Keine Touren für heute.
-            </p>
-            @endforelse
+    {{-- Einsätze heute / nächste --}}
+    <div class="karte" style="margin-bottom: 1rem;">
+        <div class="karten-kopf">
+            <div class="abschnitt-label">{{ $einsaetzeDatumLabel }}</div>
+            <a href="{{ route('einsaetze.index', ['datum_von' => today()->format('Y-m-d'), 'datum_bis' => today()->format('Y-m-d')]) }}" class="text-klein link-primaer">Alle →</a>
         </div>
 
-        {{-- Letzte Rapporte --}}
-        <div class="karte">
+        @forelse($einsaetzeListe as $e)
+        <div class="listen-zeile">
+            <div class="listen-zeile-inner" style="flex-wrap: wrap; gap: 0.25rem 0.5rem;">
+                <div class="flex-1-min" style="min-width: 160px;">
+                    <a href="{{ route('klienten.show', $e->klient) }}" class="text-fett link-primaer">{{ $e->klient->vollname() }}</a>
+                    <span class="badge badge-klein ml-klein {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
+                    @if($e->leistungsart)
+                        <div class="text-hell listen-meta">{{ $e->leistungsart->bezeichnung }}</div>
+                    @endif
+                </div>
+                <div class="text-mini text-hell text-rechts flex-shrink-0">
+                    @if($e->zeit_von) <div>{{ substr($e->zeit_von, 0, 5) }}@if($e->zeit_bis) – {{ substr($e->zeit_bis, 0, 5) }}@endif</div> @endif
+                    @if(auth()->user()->rolle === 'admin' && $e->benutzer)
+                        <div>{{ $e->benutzer->vorname }}</div>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @empty
+        <p class="text-klein text-hell m-05">Keine Einsätze.</p>
+        @endforelse
+    </div>
+
+    {{-- Letzte Rapporte --}}
+    <div class="karte">
             <div class="karten-kopf">
                 <div class="abschnitt-label">
                     Letzte Rapporte
@@ -105,8 +101,6 @@
             </p>
             @endforelse
         </div>
-
-    </div>
 
 </div>
 
