@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-24 (Session 9)
+## Stand: 2026-02-24 (Session 10)
 
 ---
 
@@ -237,6 +237,35 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 10 (2026-02-24)
+
+### Demo-Server: Stale Cache Fix
+- **Problem:** Nach `git pull` auf Demo-Server crashte Dashboard mit `Undefined variable $einsaetzeDatumLabel`
+- **Ursache:** Alter Route- und View-Cache wurde nicht automatisch invalidiert
+- **Fix:** `php artisan optimize:clear` — clearrt config, cache, compiled, events, routes, views auf einmal
+- **Merk-Regel:** Nach jedem `git pull` auf Demo: `php artisan optimize:clear` (nicht nur `view:clear`)
+
+### Demo-Server: CLAUDE_API_KEY gesetzt
+- `CLAUDE_API_KEY` fehlte in `/home/devitjob/public_html/spitex/.env`
+- Manuell per `echo "CLAUDE_API_KEY=..." >> .env && php artisan config:clear` nachgetragen
+- KI-Rapport funktioniert jetzt auf Demo-Server
+
+### Rollenbasierte Back-Links — alle Pfade repariert
+**Problem:** Pflege-Benutzer (Sandra) erhielten 403 beim Navigieren zurück, weil mehrere Links auf `einsaetze.show` zeigten, das nur für Admin zugänglich ist.
+
+**Gefixt (3 Stellen):**
+| Datei | War | Jetzt |
+|-------|-----|-------|
+| `rapporte/create.blade.php` "Abbrechen"-Button | `einsaetze.show` | `einsaetze.vor-ort` |
+| `rapporte/show.blade.php` Einsatz-Datum-Link | `einsaetze.show` (immer) | admin→`show`, pflege→`vor-ort` |
+| `einsaetze/vor-ort.blade.php` Header "← Zurück" | `einsaetze.show` (immer) | admin→`show`, pflege→`dashboard` |
+
+**Noch vorhanden** (nur für Admin/Pflege mit Zugriff):
+- `einsaetze/index.blade.php` → `einsaetze.show` (ok, pflege hat Zugriff auf Index)
+- `klienten/show.blade.php` → `einsaetze.show` "Detail →" (nur Admin sieht das)
 
 ---
 
