@@ -116,11 +116,19 @@
 </div>
 
 {{-- Rapport-Button oben --}}
+@php $ersterRapport = $einsatz->rapporte->first(); @endphp
 <div style="padding: 0.75rem 0.75rem 0;">
+    @if($ersterRapport)
+    <a href="{{ route('rapporte.edit', $ersterRapport) }}"
+       class="vo-checkin-btn ein" style="display: block; text-decoration: none; text-align: center; padding: 0.75rem; background: var(--cs-primaer);">
+        ✏ Rapport bearbeiten
+    </a>
+    @else
     <a href="{{ route('rapporte.create', ['klient_id' => $einsatz->klient_id, 'einsatz_id' => $einsatz->id]) }}"
        class="vo-checkin-btn ein" style="display: block; text-decoration: none; text-align: center; padding: 0.75rem; background: var(--cs-primaer);">
         + Rapport schreiben
     </a>
+    @endif
 </div>
 
 {{-- Check-in / Check-out --}}
@@ -226,7 +234,11 @@
 
 {{-- Navigation unten --}}
 <div class="vo-nav">
+    @if($ersterRapport)
+    <a href="{{ route('rapporte.edit', $ersterRapport) }}" style="background: var(--cs-primaer); color: #fff; border-color: var(--cs-primaer); font-size: 0.9375rem;">✏ Rapport bearbeiten</a>
+    @else
     <a href="{{ route('rapporte.create', ['klient_id' => $einsatz->klient_id, 'einsatz_id' => $einsatz->id]) }}" style="background: var(--cs-primaer); color: #fff; border-color: var(--cs-primaer); font-size: 0.9375rem;">+ Rapport schreiben</a>
+    @endif
 </div>
 
 <div style="height: 1.5rem;"></div>

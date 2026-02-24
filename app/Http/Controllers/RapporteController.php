@@ -107,8 +107,50 @@ class RapporteController extends Controller
             );
         }
 
-        return redirect()->route('klienten.show', $rapport->klient_id)
-            ->with('erfolg', 'Rapport wurde gespeichert.');
+        $ziel = $rapport->einsatz_id
+            ? redirect()->route('einsaetze.vor-ort', $rapport->einsatz_id)
+            : redirect()->route('klienten.show', $rapport->klient_id);
+
+        return $ziel->with('erfolg', 'Rapport wurde gespeichert.');
+    }
+
+    public function edit(Rapport $rapport)
+    {
+        if ($rapport->organisation_id !== $this->orgId()) abort(403);
+        $rapport->load('einsatz');
+
+        $klienten    = Klient::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
+        $klient      = $rapport->klient;
+        $einsatz     = $rapport->einsatz;
+        $mitarbeiter = Benutzer::where('organisation_id', $this->orgId())
+            ->where('aktiv', true)
+            ->where('id', '!=', auth()->id())
+            ->orderBy('nachname')
+            ->get();
+
+        return view('rapporte.create', compact('rapport', 'klienten', 'klient', 'einsatz', 'mitarbeiter'));
+    }
+
+    public function update(Request $request, Rapport $rapport)
+    {
+        if ($rapport->organisation_id !== $this->orgId()) abort(403);
+
+        $daten = $request->validate([
+            'datum'       => ['required', 'date'],
+            'zeit_von'    => ['nullable', 'date_format:H:i'],
+            'zeit_bis'    => ['nullable', 'date_format:H:i'],
+            'rapport_typ' => ['required', 'in:pflege,verlauf,information,zwischenfall,medikament'],
+            'inhalt'      => ['required', 'string', 'max:10000'],
+            'vertraulich' => ['boolean'],
+        ]);
+
+        $rapport->update($daten);
+
+        $ziel = $rapport->einsatz_id
+            ? redirect()->route('einsaetze.vor-ort', $rapport->einsatz_id)
+            : redirect()->route('klienten.show', $rapport->klient_id);
+
+        return $ziel->with('erfolg', 'Rapport wurde aktualisiert.');
     }
 
     public function show(Rapport $rapport)

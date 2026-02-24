@@ -1,4 +1,4 @@
-<x-layouts.app titel="Neuer Rapport">
+<x-layouts.app titel="{{ isset($rapport) ? 'Rapport bearbeiten' : 'Neuer Rapport' }}">
 <div style="max-width: 680px;">
 
     <a href="{{ $einsatz ? route('einsaetze.vor-ort', $einsatz) : route('rapporte.index') }}"
@@ -6,11 +6,12 @@
         ← {{ $einsatz ? 'Zurück' : 'Rapporte' }}
     </a>
 
-    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0 0 1.25rem;">Neuer Rapport</h1>
+    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0 0 1.25rem;">{{ isset($rapport) ? 'Rapport bearbeiten' : 'Neuer Rapport' }}</h1>
 
     <div class="karte">
-        <form method="POST" action="{{ route('rapporte.store') }}" id="rapport-form">
+        <form method="POST" action="{{ isset($rapport) ? route('rapporte.update', $rapport) : route('rapporte.store') }}" id="rapport-form">
             @csrf
+            @if(isset($rapport)) @method('PUT') @endif
 
             @if($einsatz)
                 <input type="hidden" name="einsatz_id" value="{{ $einsatz->id }}">
@@ -39,7 +40,7 @@
                         style="font-size: 1rem; padding: 0.625rem 0.75rem;">
                         @foreach(\App\Models\Rapport::$typen as $wert => $lbl)
                             <option value="{{ $wert }}"
-                                {{ old('rapport_typ', 'pflege') === $wert ? 'selected' : '' }}>
+                                {{ old('rapport_typ', $rapport->rapport_typ ?? 'pflege') === $wert ? 'selected' : '' }}>
                                 {{ $lbl }}
                             </option>
                         @endforeach
@@ -53,19 +54,19 @@
                     <label class="feld-label">Datum *</label>
                     <input type="date" name="datum" class="feld" required
                         style="font-size: 1rem; padding: 0.625rem 0.75rem;"
-                        value="{{ old('datum', $einsatz?->datum?->format('Y-m-d') ?? date('Y-m-d')) }}">
+                        value="{{ old('datum', $rapport->datum?->format('Y-m-d') ?? $einsatz?->datum?->format('Y-m-d') ?? date('Y-m-d')) }}">
                 </div>
                 <div>
                     <label class="feld-label">Zeit von</label>
                     <input type="time" name="zeit_von" class="feld"
                         style="font-size: 1rem; padding: 0.625rem 0.75rem;"
-                        value="{{ old('zeit_von', $einsatz?->checkin_zeit?->format('H:i') ?? '') }}">
+                        value="{{ old('zeit_von', $rapport->zeit_von ?? $einsatz?->checkin_zeit?->format('H:i') ?? '') }}">
                 </div>
                 <div>
                     <label class="feld-label">Zeit bis</label>
                     <input type="time" name="zeit_bis" class="feld"
                         style="font-size: 1rem; padding: 0.625rem 0.75rem;"
-                        value="{{ old('zeit_bis', $einsatz?->checkout_zeit?->format('H:i') ?? '') }}">
+                        value="{{ old('zeit_bis', $rapport->zeit_bis ?? $einsatz?->checkout_zeit?->format('H:i') ?? '') }}">
                 </div>
             </div>
 
@@ -126,7 +127,7 @@
                 </label>
                 <textarea name="inhalt" id="inhalt" class="feld" required rows="8"
                     style="font-family: inherit; resize: vertical; font-size: 1rem; padding: 0.75rem; margin-bottom: 0.5rem;"
-                    placeholder="Pflegebericht, Beobachtungen, Massnahmen …">{{ old('inhalt') }}</textarea>
+                    placeholder="Pflegebericht, Beobachtungen, Massnahmen …">{{ old('inhalt', $rapport->inhalt ?? '') }}</textarea>
                 {{-- Mikrofon direkt in Bericht --}}
                 <button type="button" id="btn-mikro-haupt" onclick="toggleDiktatHaupt()"
                     style="width: 100%; background: #fff; color: #374151; border: 1px solid var(--cs-border); border-radius: 0.5rem; padding: 0.5rem 1rem; font-size: 0.9375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: all 0.15s;">

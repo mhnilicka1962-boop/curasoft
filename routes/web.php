@@ -218,7 +218,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/einsaetze/serie/{serieId}', [EinsaetzeController::class, 'destroySerie'])->name('einsaetze.serie.loeschen');
 
         // Rapporte
-        Route::resource('/rapporte', RapporteController::class)->only(['index', 'create', 'store', 'show'])->parameters(['rapporte' => 'rapport']);
+        Route::resource('/rapporte', RapporteController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update'])->parameters(['rapporte' => 'rapport']);
 
         // Touren
         Route::resource('/touren', TourenController::class)
