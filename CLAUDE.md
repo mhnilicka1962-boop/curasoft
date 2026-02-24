@@ -20,9 +20,9 @@
 | | |
 |---|---|
 | **URL** | `https://www.curasoft.ch/login` |
-| **Admin E-Mail** | `demo@curasoft.ch` |
+| **Admin E-Mail** | `mhn@itjob.ch` |
 | **Admin Passwort** | `Admin2026!` |
-| **Pflege E-Mail** | `sandra.huber@test.spitex` |
+| **Pflege E-Mail** | `1234@itjob.ch` (Sandra Huber) |
 | **Pflege Passwort** | `test1234` |
 | **Weitere Pflege** | `peter.keller@test.spitex` / `test1234` etc. |
 | **Buchhaltung** | `lisa.bauer@test.spitex` / `test1234` |
