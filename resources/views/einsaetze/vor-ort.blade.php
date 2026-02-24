@@ -262,9 +262,7 @@
 
 {{-- Navigation unten --}}
 <div class="vo-nav">
-    <a href="{{ route('rapporte.create', ['klient_id' => $einsatz->klient_id, 'einsatz_id' => $einsatz->id]) }}">+ Rapport</a>
-    <a href="{{ route('klienten.show', $einsatz->klient) }}">Klient-Detail</a>
-    <a href="{{ route('einsaetze.show', $einsatz) }}">Einsatz</a>
+    <a href="{{ route('rapporte.create', ['klient_id' => $einsatz->klient_id, 'einsatz_id' => $einsatz->id]) }}" style="background: var(--cs-primaer); color: #fff; border-color: var(--cs-primaer); font-size: 0.9375rem;">+ Rapport schreiben</a>
 </div>
 
 <div style="height: 1.5rem;"></div>
