@@ -124,7 +124,26 @@ class TourenController extends Controller
             ->orderBy('zeit_von')
             ->get();
 
-        return view('touren.show', compact('tour', 'offeneEinsaetze', 'rapportZahlen'));
+        // Zeitkonflikt-Erkennung: Einsätze mit überlappenden geplanten Zeiten
+        $konflikteIds = collect();
+        $mitZeit = $tour->einsaetze->filter(fn($e) => $e->zeit_von && $e->zeit_bis)->values();
+        for ($i = 0; $i < $mitZeit->count(); $i++) {
+            for ($j = $i + 1; $j < $mitZeit->count(); $j++) {
+                $a = $mitZeit[$i];
+                $b = $mitZeit[$j];
+                $aVon = \Carbon\Carbon::parse($a->zeit_von);
+                $aBis = \Carbon\Carbon::parse($a->zeit_bis);
+                $bVon = \Carbon\Carbon::parse($b->zeit_von);
+                $bBis = \Carbon\Carbon::parse($b->zeit_bis);
+                if ($aVon < $bBis && $aBis > $bVon) {
+                    $konflikteIds->push($a->id);
+                    $konflikteIds->push($b->id);
+                }
+            }
+        }
+        $konflikteIds = $konflikteIds->unique()->values();
+
+        return view('touren.show', compact('tour', 'offeneEinsaetze', 'rapportZahlen', 'konflikteIds'));
     }
 
     public function update(Request $request, Tour $tour)
@@ -161,7 +180,25 @@ class TourenController extends Controller
             }
         }
 
-        return back()->with('erfolg', $i . ' Einsatz' . ($i !== 1 ? 'ätze' : '') . ' der Tour zugewiesen.');
+        // Zeitkonflikte nach Zuweisung prüfen
+        $tour->load('einsaetze');
+        $mitZeit = $tour->einsaetze->filter(fn($e) => $e->zeit_von && $e->zeit_bis)->values();
+        $hatKonflikt = false;
+        for ($x = 0; $x < $mitZeit->count() && !$hatKonflikt; $x++) {
+            for ($y = $x + 1; $y < $mitZeit->count() && !$hatKonflikt; $y++) {
+                $a = $mitZeit[$x]; $b = $mitZeit[$y];
+                if (\Carbon\Carbon::parse($a->zeit_von) < \Carbon\Carbon::parse($b->zeit_bis) &&
+                    \Carbon\Carbon::parse($a->zeit_bis) > \Carbon\Carbon::parse($b->zeit_von)) {
+                    $hatKonflikt = true;
+                }
+            }
+        }
+
+        $meldung = $i . ' Einsatz' . ($i !== 1 ? 'ätze' : '') . ' der Tour zugewiesen.';
+        if ($hatKonflikt) {
+            return back()->with('erfolg', $meldung)->with('warnung', 'Achtung: Es gibt Zeitüberschneidungen in dieser Tour.');
+        }
+        return back()->with('erfolg', $meldung);
     }
 
     public function einsatzEntfernen(Tour $tour, Einsatz $einsatz)

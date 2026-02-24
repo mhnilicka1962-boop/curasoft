@@ -22,6 +22,14 @@
     @if(session('erfolg'))
         <div class="alert alert-erfolg" style="margin-bottom: 1rem;">{{ session('erfolg') }}</div>
     @endif
+    @if(session('warnung'))
+        <div class="alert alert-warnung" style="margin-bottom: 1rem;">⚠ {{ session('warnung') }}</div>
+    @endif
+    @if($konflikteIds->isNotEmpty())
+        <div class="alert alert-warnung" style="margin-bottom: 1rem;">
+            ⚠ <strong>Zeitüberschneidung:</strong> {{ $konflikteIds->count() }} Einsatz/Einsätze haben überlappende geplante Zeiten. Bitte Zeiten prüfen.
+        </div>
+    @endif
 
     {{-- Einsätze --}}
     <div class="karte" style="margin-bottom: 1rem; padding: 0;">
@@ -63,6 +71,9 @@
                     <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                         <a href="{{ route('einsaetze.vor-ort', $e) }}" style="font-weight: 600; font-size: 0.9375rem; color: var(--cs-text); text-decoration: none;">{{ $e->klient?->vollname() }}</a>
                         <span class="badge {{ $e->statusBadgeKlasse() }}" style="font-size: 0.7rem;">{{ $e->statusLabel() }}</span>
+                        @if($konflikteIds->contains($e->id))
+                            <span title="Zeitüberschneidung mit einem anderen Einsatz" style="color: var(--cs-warnung); font-size: 0.85rem;">⚠</span>
+                        @endif
                         @if($rapporte > 0)
                             <a href="{{ route('rapporte.index', ['klient_id' => $e->klient_id]) }}" class="badge badge-info" style="font-size: 0.7rem; text-decoration: none;">
                                 {{ $rapporte }} Rapport{{ $rapporte > 1 ? 'e' : '' }}

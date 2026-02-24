@@ -30,7 +30,7 @@
                     @foreach($klienten as $k)
                         <option value="{{ $k->id }}"
                             data-kanton="{{ $k->region?->kuerzel ?? '' }}"
-                            {{ old('klient_id') == $k->id ? 'selected' : '' }}>
+                            {{ (old('klient_id', request('klient_id'))) == $k->id ? 'selected' : '' }}>
                             {{ $k->vollname() }}
                             @if($k->region) ({{ $k->region->kuerzel }}) @endif
                         </option>
@@ -75,12 +75,14 @@
                 <div>
                     <label class="feld-label" for="zeit_von">Von (geplant)</label>
                     <input type="time" id="zeit_von" name="zeit_von" class="feld"
-                        value="{{ old('zeit_von') }}">
+                        step="300" value="{{ old('zeit_von') }}">
+                    <div class="text-klein text-hell" style="margin-top: 0.25rem;">5-Minuten-Schritte (KLV)</div>
                 </div>
                 <div>
                     <label class="feld-label" for="zeit_bis">Bis (geplant)</label>
                     <input type="time" id="zeit_bis" name="zeit_bis" class="feld"
-                        value="{{ old('zeit_bis') }}">
+                        step="300" value="{{ old('zeit_bis') }}">
+                    <div class="text-klein text-hell" style="margin-top: 0.25rem;">5-Minuten-Schritte (KLV)</div>
                 </div>
             </div>
 
