@@ -54,19 +54,19 @@
                     <label class="feld-label">Datum *</label>
                     <input type="date" name="datum" class="feld" required
                         style="font-size: 1rem; padding: 0.625rem 0.75rem;"
-                        value="{{ old('datum', $rapport->datum?->format('Y-m-d') ?? $einsatz?->datum?->format('Y-m-d') ?? date('Y-m-d')) }}">
+                        value="{{ old('datum', $rapport?->datum?->format('Y-m-d') ?? $einsatz?->datum?->format('Y-m-d') ?? date('Y-m-d')) }}">
                 </div>
                 <div>
                     <label class="feld-label">Zeit von</label>
                     <input type="time" name="zeit_von" class="feld"
                         style="font-size: 1rem; padding: 0.625rem 0.75rem;"
-                        value="{{ old('zeit_von', $rapport->zeit_von ?? $einsatz?->checkin_zeit?->format('H:i') ?? '') }}">
+                        value="{{ old('zeit_von', $rapport?->zeit_von ?? $einsatz?->checkin_zeit?->format('H:i') ?? '') }}">
                 </div>
                 <div>
                     <label class="feld-label">Zeit bis</label>
                     <input type="time" name="zeit_bis" class="feld"
                         style="font-size: 1rem; padding: 0.625rem 0.75rem;"
-                        value="{{ old('zeit_bis', $rapport->zeit_bis ?? $einsatz?->checkout_zeit?->format('H:i') ?? '') }}">
+                        value="{{ old('zeit_bis', $rapport?->zeit_bis ?? $einsatz?->checkout_zeit?->format('H:i') ?? '') }}">
                 </div>
             </div>
 
