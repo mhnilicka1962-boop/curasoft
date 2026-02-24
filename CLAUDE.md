@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-24 (Session 8)
+## Stand: 2026-02-24 (Session 9)
 
 ---
 
@@ -12,7 +12,7 @@
 | **Admin E-Mail** | `mhn@itjob.ch` |
 | **Admin Passwort** | `Admin2026!` |
 | **Rolle** | admin |
-| **Pflege (Test)** | `1234@itjob.ch` / `test1234` (Sandra Huber) |
+| **Pflege (Test)** | `1234@itjob.ch` / `Sandra2026!` (Sandra Huber) |
 | **Organisation** | ID 1 (einzige — kein Multi-Tenant) |
 
 ## Login-Daten (Demo-Server)
@@ -23,7 +23,7 @@
 | **Admin E-Mail** | `mhn@itjob.ch` |
 | **Admin Passwort** | `Admin2026!` |
 | **Pflege E-Mail** | `1234@itjob.ch` (Sandra Huber) |
-| **Pflege Passwort** | `test1234` |
+| **Pflege Passwort** | `Sandra2026!` |
 | **Weitere Pflege** | `peter.keller@test.spitex` / `test1234` etc. |
 | **Buchhaltung** | `lisa.bauer@test.spitex` / `test1234` |
 
@@ -237,6 +237,48 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 9 (2026-02-24)
+
+### Vor-Ort-Workflow — Vollständig repariert und ausgebaut
+
+#### Check-in/out auf Vor-Ort-Seite repariert
+- `vor-ort.blade.php` verwendete `route('checkin.in', $einsatz->checkin_token)` — Route und Feld existierten nicht → 500er
+- Neue Routen: `POST /checkin/{einsatz}/in` → `checkin.in`, `POST /checkout/{einsatz}/out` → `checkin.out`
+- Neue Controller-Methoden `CheckInController::checkinVorOrt()` + `checkoutVorOrt()` — nutzen `now()` direkt, kein Token nötig
+- Nach GPS/manuell Checkout: Redirect zu `einsaetze.vor-ort` statt `einsaetze.show` → Pflegerin sieht sofort Rapport-Button
+
+#### Dashboard: "Vor Ort →" Link
+- Jede Einsatz-Zeile auf Dashboard hat rechts Badge-Link `Vor Ort →` → direkt zur Vor-Ort-Seite
+- Rapport-Back-Link: `← Zurück` geht zu `einsaetze.vor-ort` statt `einsaetze.show` (kein Zugriffsproblem mehr)
+
+#### Rapport-Buttons: oben UND unten
+- Vor-Ort-Seite: `+ Rapport schreiben` Button sowohl oben (nach Header) als auch unten (nach Leistungserfassung)
+- Bottom Nav reduziert auf nur diesen einen Button — volle Breite, blau
+
+### Leistungserfassung — NEU
+- Neue Tabelle `einsatz_aktivitaeten` (migration `2026_02_24_000001`)
+- Model `EinsatzAktivitaet` mit 25 vordefinierten Tätigkeiten in 5 Kategorien:
+  - **Grundpflege**: Körperwäsche, Intimpflege, Ankleiden, Mund-/Zahnpflege, Rasur, Haarpflege, Nagelpflege
+  - **Untersuchung/Behandlung**: Medikamentengabe, Verbandswechsel, Blutdruck/Vitalzeichen, Injektion/Insulin, Augentropfen, Sondenpflege/PEG
+  - **Mobilisation**: Aufstehen/Hinlegen, Transfer, Gehübungen, Lagerung
+  - **Hauswirtschaft**: Zimmer, Wäsche, Einkaufen, Kochen, Abwaschen
+  - **Abklärung/Beratung**: Erstassessment, Beratungsgespräch, Angehörige informieren, Arztgespräch
+- `Einsatz::aktivitaeten()` hasMany Relationship
+- `EinsaetzeController::aktivitaetenSpeichern()` — delete + recreate Strategie
+- Route: `POST /einsaetze/{einsatz}/aktivitaeten` → `einsaetze.aktivitaeten.speichern`
+- **Vor-Ort-UI**: Checkliste mit Kategorien, Checkbox anklicken → Zeile grün, Standard 5 Min, `[−]` / `[+]` in 5er-Schritten, Gesamt-Minuten-Anzeige, gespeicherte Tätigkeiten vorausgefüllt
+
+### KI-Assistent — Mikrofon-Buttons überarbeitet
+- Rapport-Seite: Mikrofon-Button war winziges Icon-in-Textarea → jetzt volle Buttons
+- **Stichworte-Bereich**: `[🎙 Diktieren]` und `[✨ KI Rapport schreiben]` nebeneinander, gleich gross
+- **Bericht-Feld**: `[🎙 Direkt in Bericht diktieren]` volle Breite unterhalb Textarea
+- Button wechselt zu `🔴 Stoppen` (roter Hintergrund) wenn Diktat läuft
+
+### Sandra-Passwort zurückgesetzt
+- Lokal: `Sandra2026!` (Spalte heisst `password` nicht `passwort`)
 
 ---
 
@@ -457,8 +499,8 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 - **Bexio**: Buttons gebaut. `bexio_api_key` muss in Firma → Bexio konfiguriert sein, sonst unsichtbar.
 - **Security Paket B**: Audit-Log (wer hat was wann geändert) — noch nicht gebaut.
 - **Security Paket C**: 2FA (TOTP) als zweiter Faktor — noch nicht gebaut. Passkey (WebAuthn) vorhanden als Alternative.
-- **Vor-Ort-Ansicht**: Check-in/out funktioniert nur wenn `checkin_token` auf Einsatz gesetzt ist.
-- **Tätigkeiten-Checkliste**: Beim Check-out auswählen was gemacht wurde (Ankleiden, Waschen…) — noch nicht gebaut.
+- **Vor-Ort-Ansicht**: Check-in/out vollständig repariert — `checkin.in` / `checkin.out` Routen vorhanden.
+- **Leistungserfassung**: Checkliste auf Vor-Ort-Seite vorhanden. Noch nicht: Anbindung an Abrechnung (welche Minuten → welche Leistungsart → Rechnung).
 - **Apache Dienst**: Läuft als `Apache2.4` Windows-Dienst. Laragon GUI nicht mehr nötig.
 
 ---
