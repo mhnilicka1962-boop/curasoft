@@ -32,7 +32,15 @@ class NachrichtenController extends Controller
             ->paginate(20, ['*'], 'seite');
 
         $gesendet = Nachricht::where('absender_id', auth()->id())
+            ->whereNull('parent_id')
             ->with(['empfaenger.empfaenger'])
+            ->orderByDesc('created_at')
+            ->paginate(20, ['*'], 'seite');
+
+        $archiviert = NachrichtEmpfaenger::where('empfaenger_id', auth()->id())
+            ->where('archiviert', true)
+            ->whereHas('nachricht', fn($q) => $q->whereNull('parent_id'))
+            ->with(['nachricht.absender'])
             ->orderByDesc('created_at')
             ->paginate(20, ['*'], 'seite');
 
@@ -41,7 +49,7 @@ class NachrichtenController extends Controller
             ->where('archiviert', false)
             ->count();
 
-        return view('nachrichten.index', compact('posteingang', 'gesendet', 'ungelesen', 'tab'));
+        return view('nachrichten.index', compact('posteingang', 'gesendet', 'archiviert', 'ungelesen', 'tab'));
     }
 
     /** Neue Nachricht schreiben */

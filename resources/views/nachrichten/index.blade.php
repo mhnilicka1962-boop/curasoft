@@ -27,6 +27,10 @@
         style="padding: 0.625rem 1.25rem; font-size: 0.875rem; font-weight: 600; text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -2px; color: {{ $tab === 'gesendet' ? 'var(--cs-primaer)' : 'var(--cs-text-hell)' }}; border-bottom-color: {{ $tab === 'gesendet' ? 'var(--cs-primaer)' : 'transparent' }};">
         Gesendet
     </a>
+    <a href="{{ route('nachrichten.index', ['tab' => 'archiv']) }}"
+        style="padding: 0.625rem 1.25rem; font-size: 0.875rem; font-weight: 600; text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -2px; color: {{ $tab === 'archiv' ? 'var(--cs-primaer)' : 'var(--cs-text-hell)' }}; border-bottom-color: {{ $tab === 'archiv' ? 'var(--cs-primaer)' : 'transparent' }};">
+        Archiv
+    </a>
 </div>
 
 {{-- Posteingang --}}
@@ -83,7 +87,7 @@
 @endif
 
 {{-- Gesendet --}}
-@else
+@elseif($tab === 'gesendet')
 <div class="karte-null">
     @forelse($gesendet as $nachricht)
     <div style="display: flex; align-items: flex-start; gap: 1rem; padding: 0.875rem 1rem; border-bottom: 1px solid var(--cs-border);">
@@ -130,6 +134,39 @@
 @if($gesendet->hasPages())
 <div style="margin-top: 1rem;">{{ $gesendet->appends(['tab' => 'gesendet'])->links() }}</div>
 @endif
+
+{{-- Archiv --}}
+@elseif($tab === 'archiv')
+<div class="karte-null">
+    @forelse($archiviert as $eintrag)
+    <div style="display: flex; align-items: flex-start; gap: 1rem; padding: 0.875rem 1rem; border-bottom: 1px solid var(--cs-border); opacity: 0.75;">
+        <div style="width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--cs-hintergrund); border: 1px solid var(--cs-border); display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 700; flex-shrink: 0; color: var(--cs-text-hell);">
+            {{ strtoupper(substr($eintrag->nachricht->absender->vorname ?? '?', 0, 1)) }}{{ strtoupper(substr($eintrag->nachricht->absender->nachname ?? '', 0, 1)) }}
+        </div>
+        <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem;">
+                <div class="text-hell" style="font-size: 0.8125rem;">{{ $eintrag->nachricht->absender->name ?? 'Unbekannt' }}</div>
+                <div class="text-mini text-hell" style="flex-shrink: 0;">{{ $eintrag->nachricht->created_at->format('d.m.Y') }}</div>
+            </div>
+            <a href="{{ route('nachrichten.show', $eintrag->nachricht) }}" style="text-decoration: none; color: inherit;">
+                <div style="font-size: 0.875rem; color: var(--cs-text);">{{ $eintrag->nachricht->betreff }}</div>
+                <div class="text-hell" style="font-size: 0.8125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ Str::limit(strip_tags($eintrag->nachricht->inhalt), 100) }}
+                </div>
+            </a>
+        </div>
+    </div>
+    @empty
+    <div class="text-mitte text-hell" style="padding: 3rem;">
+        Archiv ist leer.
+    </div>
+    @endforelse
+</div>
+
+@if($archiviert->hasPages())
+<div style="margin-top: 1rem;">{{ $archiviert->appends(['tab' => 'archiv'])->links() }}</div>
+@endif
+
 @endif
 
 </x-layouts.app>
