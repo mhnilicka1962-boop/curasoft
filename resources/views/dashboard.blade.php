@@ -86,19 +86,21 @@
 
             @forelse($letzteRapporte as $r)
             <div class="listen-zeile">
-                <div class="listen-zeile-inner-start">
-                    <div class="flex-1-min">
-                        <a href="{{ route('klienten.show', $r->klient) }}" class="text-fett link-primaer">{{ $r->klient->vollname() }}</a>
-                        <span class="badge badge-klein ml-klein {{ $r->rapport_typ === 'zwischenfall' ? 'badge-fehler' : 'badge-grau' }}">{{ \App\Models\Rapport::$typen[$r->rapport_typ] ?? $r->rapport_typ }}</span>
-                        <div class="text-hell listen-meta">
-                            {{ Str::limit($r->inhalt, 60) }}
+                <a href="{{ route('rapporte.show', $r) }}" style="text-decoration: none; color: inherit; display: block;">
+                    <div class="listen-zeile-inner-start" style="flex-wrap: wrap; gap: 0.25rem 0.5rem;">
+                        <div class="flex-1-min" style="min-width: 150px;">
+                            <span class="text-fett" style="color: var(--cs-text);">{{ $r->klient->vollname() }}</span>
+                            <span class="badge badge-klein ml-klein {{ $r->rapport_typ === 'zwischenfall' ? 'badge-fehler' : 'badge-grau' }}">{{ \App\Models\Rapport::$typen[$r->rapport_typ] ?? $r->rapport_typ }}</span>
+                            <div class="text-hell listen-meta">
+                                {{ Str::limit($r->inhalt, 60) }}
+                            </div>
+                        </div>
+                        <div class="text-mini text-hell text-rechts flex-shrink-0">
+                            {{ $r->datum->format('d.m.') }}
+                            @if($r->benutzer) <div>{{ $r->benutzer->vorname }}</div> @endif
                         </div>
                     </div>
-                    <div class="text-mini text-hell text-rechts flex-shrink-0">
-                        {{ $r->datum->format('d.m.') }}
-                        @if($r->benutzer) <div>{{ $r->benutzer->vorname }}</div> @endif
-                    </div>
-                </div>
+                </a>
             </div>
             @empty
             <p class="text-klein text-hell m-05">

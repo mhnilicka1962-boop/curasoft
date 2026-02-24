@@ -471,6 +471,10 @@ body {
     .form-grid-3,
     .form-grid,
     .detail-raster      { grid-template-columns: 1fr; }
+
+    /* Listenzeilen: umbrechen statt überlaufen */
+    .listen-zeile-inner,
+    .listen-zeile-inner-start { flex-wrap: wrap; gap: 0.25rem 0.5rem; }
 }
 @media (min-width: 769px) {
     .mobile-menu-btn    { display: none; }
