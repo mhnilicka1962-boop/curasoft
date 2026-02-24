@@ -226,6 +226,20 @@
     @endif
 
 
+    {{-- Rapporte zu diesem Einsatz --}}
+    @if($einsatz->rapporte->isNotEmpty())
+    <div class="vo-karte" style="margin-bottom: 0.75rem;">
+        <div class="vo-abschnitt-titel">Rapporte</div>
+        @foreach($einsatz->rapporte as $r)
+        <div onclick="zeigeRapport('{{ $r->datum->format('d.m.Y') }}', '{{ addslashes($r->inhalt) }}')"
+             style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; padding: 0.625rem 0; border-bottom: 1px solid var(--vo-border, #e5e7eb); cursor: pointer;">
+            <div style="font-size: 0.875rem; color: var(--cs-text);">{{ Str::limit($r->inhalt, 80) }}</div>
+            <div style="font-size: 0.75rem; color: var(--cs-text-hell); white-space: nowrap;">{{ $r->datum->format('d.m.') }}</div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     {{-- Leistungen erfassen --}}
     <div class="vo-karte">
         <div class="vo-karte-titel">Leistungen erfassen</div>
@@ -267,20 +281,6 @@
     </div>
 
 </div>
-
-{{-- Rapporte zu diesem Einsatz --}}
-@if($einsatz->rapporte->isNotEmpty())
-<div class="vo-karte" style="margin: 0 0 0.75rem;">
-    <div class="vo-abschnitt-titel">Rapporte</div>
-    @foreach($einsatz->rapporte as $r)
-    <div onclick="zeigeRapport('{{ $r->datum->format('d.m.Y') }}', '{{ addslashes($r->inhalt) }}')"
-         style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; padding: 0.625rem 0; border-bottom: 1px solid var(--vo-border, #e5e7eb); cursor: pointer;">
-        <div style="font-size: 0.875rem; color: var(--cs-text);">{{ Str::limit($r->inhalt, 80) }}</div>
-        <div style="font-size: 0.75rem; color: var(--cs-text-hell); white-space: nowrap;">{{ $r->datum->format('d.m.') }}</div>
-    </div>
-    @endforeach
-</div>
-@endif
 
 {{-- Rapport-Modal --}}
 <div id="rapport-modal" onclick="if(event.target===this)schliesseRapport()"
