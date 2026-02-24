@@ -14,8 +14,19 @@ class NachrichtenController extends Controller
     {
         $tab = $request->get('tab', 'posteingang');
 
+        // Auto-Archivierung: einmal täglich, Nachrichten >90 Tage archivieren
+        $cacheKey = 'nachrichten_archiv_' . auth()->id();
+        if (!\Cache::has($cacheKey)) {
+            NachrichtEmpfaenger::where('empfaenger_id', auth()->id())
+                ->where('archiviert', false)
+                ->whereHas('nachricht', fn($q) => $q->where('created_at', '<', now()->subDays(90)))
+                ->update(['archiviert' => true]);
+            \Cache::put($cacheKey, true, now()->addHours(24));
+        }
+
         $posteingang = NachrichtEmpfaenger::where('empfaenger_id', auth()->id())
             ->where('archiviert', false)
+            ->whereHas('nachricht', fn($q) => $q->whereNull('parent_id'))
             ->with(['nachricht.absender'])
             ->orderByDesc('created_at')
             ->paginate(20, ['*'], 'seite');
@@ -81,17 +92,29 @@ class NachrichtenController extends Controller
     /** Nachricht lesen — automatisch als gelesen markieren */
     public function show(Nachricht $nachricht)
     {
-        // Zugriff: Absender oder Empfänger
+        // Wenn es eine Antwort ist → zur Root-Nachricht weiterleiten
+        if ($nachricht->parent_id) {
+            return redirect()->route('nachrichten.show', $nachricht->parent_id);
+        }
+
+        // Zugriff: Absender oder Empfänger der Root-Nachricht oder einer Antwort
         $istEmpfaenger = $nachricht->empfaenger()
             ->where('empfaenger_id', auth()->id())
             ->exists();
         $istAbsender = $nachricht->absender_id === auth()->id();
 
         if (!$istEmpfaenger && !$istAbsender) {
-            abort(403);
+            // Evtl. Zugriff über eine Antwort
+            $hatZugriff = $nachricht->antworten()
+                ->where(fn($q) => $q
+                    ->where('absender_id', auth()->id())
+                    ->orWhereHas('empfaenger', fn($q2) => $q2->where('empfaenger_id', auth()->id()))
+                )
+                ->exists();
+            if (!$hatZugriff) abort(403);
         }
 
-        // Als gelesen markieren
+        // Root als gelesen markieren
         if ($istEmpfaenger) {
             NachrichtEmpfaenger::where('nachricht_id', $nachricht->id)
                 ->where('empfaenger_id', auth()->id())
@@ -99,7 +122,16 @@ class NachrichtenController extends Controller
                 ->update(['gelesen_am' => now()]);
         }
 
-        $nachricht->load(['absender', 'empfaenger.empfaenger']);
+        // Alle Antworten als gelesen markieren
+        $antwortIds = $nachricht->antworten()->pluck('id');
+        if ($antwortIds->isNotEmpty()) {
+            NachrichtEmpfaenger::whereIn('nachricht_id', $antwortIds)
+                ->where('empfaenger_id', auth()->id())
+                ->whereNull('gelesen_am')
+                ->update(['gelesen_am' => now()]);
+        }
+
+        $nachricht->load(['absender', 'empfaenger.empfaenger', 'antworten.absender']);
 
         return view('nachrichten.show', compact('nachricht', 'istEmpfaenger', 'istAbsender'));
     }
@@ -111,25 +143,38 @@ class NachrichtenController extends Controller
             'inhalt' => ['required', 'string', 'max:10000'],
         ]);
 
-        $empfaengerId = ($nachricht->absender_id === auth()->id())
-            ? null   // Antwort an alle Empfänger
-            : $nachricht->absender_id;
+        // Root-Nachricht ermitteln (Falls doch mal eine Antwort übergeben wird)
+        $root = $nachricht->parent_id
+            ? Nachricht::with('empfaenger')->findOrFail($nachricht->parent_id)
+            : $nachricht;
 
         $antwort = Nachricht::create([
             'absender_id' => auth()->id(),
-            'betreff'     => Str_starts_with($nachricht->betreff, 'Re: ')
-                ? $nachricht->betreff
-                : 'Re: ' . $nachricht->betreff,
+            'parent_id'   => $root->id,
+            'betreff'     => str_starts_with($root->betreff, 'Re: ')
+                ? $root->betreff
+                : 'Re: ' . $root->betreff,
             'inhalt'      => $request->inhalt,
         ]);
 
-        // An Original-Absender antworten
-        NachrichtEmpfaenger::create([
-            'nachricht_id'  => $antwort->id,
-            'empfaenger_id' => $empfaengerId ?? $nachricht->absender_id,
-        ]);
+        // Empfänger: Absender antwortet → alle ursprünglichen Empfänger
+        //            Empfänger antwortet → ursprünglicher Absender
+        if (auth()->id() === $root->absender_id) {
+            $recipients = $root->empfaenger->pluck('empfaenger_id')->toArray();
+        } else {
+            $recipients = [$root->absender_id];
+        }
 
-        return redirect()->route('nachrichten.show', $antwort)
+        foreach (array_unique($recipients) as $id) {
+            if ($id !== auth()->id()) {
+                NachrichtEmpfaenger::create([
+                    'nachricht_id'  => $antwort->id,
+                    'empfaenger_id' => $id,
+                ]);
+            }
+        }
+
+        return redirect()->route('nachrichten.show', $root->id)
             ->with('erfolg', 'Antwort wurde gesendet.');
     }
 

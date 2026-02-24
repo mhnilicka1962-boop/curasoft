@@ -9,12 +9,22 @@ class Nachricht extends Model
     protected $table = 'nachrichten';
 
     protected $fillable = [
-        'absender_id', 'betreff', 'inhalt', 'referenz_typ', 'referenz_id',
+        'absender_id', 'parent_id', 'betreff', 'inhalt', 'referenz_typ', 'referenz_id',
     ];
 
     public function absender()
     {
         return $this->belongsTo(Benutzer::class, 'absender_id');
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Nachricht::class, 'parent_id');
+    }
+
+    public function antworten()
+    {
+        return $this->hasMany(Nachricht::class, 'parent_id')->orderBy('created_at');
     }
 
     public function empfaenger()
