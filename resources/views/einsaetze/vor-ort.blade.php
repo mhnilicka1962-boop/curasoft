@@ -54,7 +54,7 @@
 
 {{-- Header --}}
 <div class="vo-header">
-    <a href="{{ route('einsaetze.show', $einsatz) }}">← Einsatz</a>
+    <a href="{{ auth()->user()->rolle === 'admin' ? route('einsaetze.show', $einsatz) : route('dashboard') }}">← Zurück</a>
     <div class="vo-name">{{ $einsatz->klient->vollname() }}</div>
     <div class="vo-meta">
         {{ $einsatz->datum->format('d.m.Y') }}
