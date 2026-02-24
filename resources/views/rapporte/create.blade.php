@@ -78,33 +78,29 @@
                 </div>
 
                 {{-- Stichworte-Feld --}}
-                <div style="margin-bottom: 0.625rem;">
+                <div style="margin-bottom: 0.75rem;">
                     <label style="font-size: 0.8125rem; color: #1d4ed8; margin-bottom: 0.3rem; display: block;">
-                        Stichworte / Beobachtungen (KI schreibt daraus den Bericht)
+                        Stichworte / Beobachtungen — tippen oder diktieren, KI schreibt den Bericht
                     </label>
-                    <div style="position: relative;">
-                        <textarea id="stichworte" rows="3"
-                            style="width: 100%; border: 1px solid #bfdbfe; border-radius: 0.5rem; padding: 0.625rem 2.75rem 0.625rem 0.75rem; font-size: 0.9375rem; font-family: inherit; resize: vertical; background: #fff; box-sizing: border-box;"
-                            placeholder="z.B. unruhig geschlafen, Medikament verweigert, Wunde gereinigt, Blutdruck normal…"></textarea>
-                        {{-- Mikrofon-Button im Feld --}}
-                        <button type="button" id="btn-mikro" title="Diktat starten"
-                            onclick="toggleDiktat()"
-                            style="position: absolute; right: 0.5rem; top: 0.5rem; background: none; border: none; cursor: pointer; font-size: 1.25rem; line-height: 1; padding: 0.25rem; border-radius: 0.375rem; transition: background 0.15s;"
-                            onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='none'">
-                            🎙
-                        </button>
-                    </div>
-                    <div id="diktat-status" style="display: none; font-size: 0.75rem; color: #1d4ed8; margin-top: 0.25rem;">
-                        🔴 Diktat läuft… (nochmals klicken zum Stoppen)
+                    <textarea id="stichworte" rows="3"
+                        style="width: 100%; border: 1px solid #bfdbfe; border-radius: 0.5rem; padding: 0.625rem 0.75rem; font-size: 0.9375rem; font-family: inherit; resize: vertical; background: #fff; box-sizing: border-box;"
+                        placeholder="z.B. unruhig geschlafen, Medikament verweigert, Wunde gereinigt, Blutdruck normal…"></textarea>
+                    <div id="diktat-status" style="display: none; font-size: 0.8125rem; color: #dc2626; margin-top: 0.25rem; font-weight: 500;">
+                        🔴 Diktat läuft… nochmals klicken zum Stoppen
                     </div>
                 </div>
 
-                {{-- KI-Vorschlag Button --}}
-                <button type="button" id="btn-ki" onclick="kiVorschlag()"
-                    style="background: #2563eb; color: #fff; border: none; border-radius: 0.5rem; padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; transition: background 0.15s;"
-                    onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
-                    <span id="ki-btn-text">✨ KI Rapport schreiben</span>
-                </button>
+                {{-- Buttons: Mikrofon + KI --}}
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button type="button" id="btn-mikro" onclick="toggleDiktat()"
+                        style="flex: 1; min-width: 140px; background: #fff; color: #1d4ed8; border: 2px solid #2563eb; border-radius: 0.5rem; padding: 0.625rem 1rem; font-size: 0.9375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: all 0.15s;">
+                        <span id="mikro-btn-text">🎙 Diktieren</span>
+                    </button>
+                    <button type="button" id="btn-ki" onclick="kiVorschlag()"
+                        style="flex: 1; min-width: 140px; background: #2563eb; color: #fff; border: 2px solid #2563eb; border-radius: 0.5rem; padding: 0.625rem 1rem; font-size: 0.9375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: background 0.15s;">
+                        <span id="ki-btn-text">✨ KI Rapport schreiben</span>
+                    </button>
+                </div>
 
                 {{-- KI Vorschau --}}
                 <div id="ki-vorschau" style="display: none; margin-top: 0.75rem;">
@@ -125,23 +121,19 @@
                 <label class="feld-label" style="font-size: 0.9375rem;">
                     Bericht *
                     <span class="text-mini text-hell" style="margin-left: 0.5rem; font-weight: 400;">
-                        (direkt tippen oder KI-Vorschlag übernehmen)
+                        (direkt tippen, diktieren oder KI-Vorschlag übernehmen)
                     </span>
                 </label>
-                <div style="position: relative;">
-                    <textarea name="inhalt" id="inhalt" class="feld" required rows="8"
-                        style="font-family: inherit; resize: vertical; font-size: 1rem; padding: 0.75rem; padding-right: 2.75rem;"
-                        placeholder="Pflegebericht, Beobachtungen, Massnahmen …">{{ old('inhalt') }}</textarea>
-                    {{-- Mikrofon direkt in Hauptfeld --}}
-                    <button type="button" id="btn-mikro-haupt" title="Direkt in Bericht diktieren"
-                        onclick="toggleDiktatHaupt()"
-                        style="position: absolute; right: 0.5rem; top: 0.5rem; background: none; border: none; cursor: pointer; font-size: 1.25rem; line-height: 1; padding: 0.25rem; border-radius: 0.375rem; transition: background 0.15s;"
-                        onmouseover="this.style.background='rgba(0,0,0,.06)'" onmouseout="this.style.background='none'">
-                        🎙
-                    </button>
-                </div>
-                <div id="diktat-haupt-status" style="display: none; font-size: 0.75rem; color: #dc2626; margin-top: 0.25rem;">
-                    🔴 Diktat läuft direkt in Bericht… (nochmals klicken zum Stoppen)
+                <textarea name="inhalt" id="inhalt" class="feld" required rows="8"
+                    style="font-family: inherit; resize: vertical; font-size: 1rem; padding: 0.75rem; margin-bottom: 0.5rem;"
+                    placeholder="Pflegebericht, Beobachtungen, Massnahmen …">{{ old('inhalt') }}</textarea>
+                {{-- Mikrofon direkt in Bericht --}}
+                <button type="button" id="btn-mikro-haupt" onclick="toggleDiktatHaupt()"
+                    style="width: 100%; background: #fff; color: #374151; border: 1px solid var(--cs-border); border-radius: 0.5rem; padding: 0.5rem 1rem; font-size: 0.9375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: all 0.15s;">
+                    <span id="mikro-haupt-btn-text">🎙 Direkt in Bericht diktieren</span>
+                </button>
+                <div id="diktat-haupt-status" style="display: none; font-size: 0.8125rem; color: #dc2626; margin-top: 0.25rem; font-weight: 500;">
+                    🔴 Diktat läuft direkt in Bericht… nochmals klicken zum Stoppen
                 </div>
                 @error('inhalt')<div class="feld-fehler">{{ $message }}</div>@enderror
             </div>
@@ -300,6 +292,9 @@ function toggleDiktat() {
     diktatRec.onstart = () => {
         diktatAktiv = true;
         document.getElementById('btn-mikro').style.background = '#fee2e2';
+        document.getElementById('btn-mikro').style.borderColor = '#dc2626';
+        document.getElementById('btn-mikro').style.color = '#dc2626';
+        document.getElementById('mikro-btn-text').textContent = '🔴 Stoppen';
         document.getElementById('diktat-status').style.display = 'block';
     };
 
@@ -312,7 +307,10 @@ function toggleDiktat() {
 
     diktatRec.onend = () => {
         diktatAktiv = false;
-        document.getElementById('btn-mikro').style.background = 'none';
+        document.getElementById('btn-mikro').style.background = '#fff';
+        document.getElementById('btn-mikro').style.borderColor = '#2563eb';
+        document.getElementById('btn-mikro').style.color = '#1d4ed8';
+        document.getElementById('mikro-btn-text').textContent = '🎙 Diktieren';
         document.getElementById('diktat-status').style.display = 'none';
     };
 
@@ -343,6 +341,9 @@ function toggleDiktatHaupt() {
     diktatHauptRec.onstart = () => {
         diktatHauptAktiv = true;
         document.getElementById('btn-mikro-haupt').style.background = '#fee2e2';
+        document.getElementById('btn-mikro-haupt').style.borderColor = '#dc2626';
+        document.getElementById('btn-mikro-haupt').style.color = '#dc2626';
+        document.getElementById('mikro-haupt-btn-text').textContent = '🔴 Stoppen';
         document.getElementById('diktat-haupt-status').style.display = 'block';
     };
 
@@ -355,7 +356,10 @@ function toggleDiktatHaupt() {
 
     diktatHauptRec.onend = () => {
         diktatHauptAktiv = false;
-        document.getElementById('btn-mikro-haupt').style.background = 'none';
+        document.getElementById('btn-mikro-haupt').style.background = '#fff';
+        document.getElementById('btn-mikro-haupt').style.borderColor = 'var(--cs-border)';
+        document.getElementById('btn-mikro-haupt').style.color = '#374151';
+        document.getElementById('mikro-haupt-btn-text').textContent = '🎙 Direkt in Bericht diktieren';
         document.getElementById('diktat-haupt-status').style.display = 'none';
     };
 
