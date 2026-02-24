@@ -34,9 +34,10 @@ class WebAuthnController extends Controller
                 ['type' => 'public-key', 'alg' => -257],
             ],
             'authenticatorSelection' => [
-                'userVerification'   => 'required',
-                'residentKey'        => 'preferred',
-                'requireResidentKey' => false,
+                'authenticatorAttachment' => 'platform',
+                'userVerification'        => 'required',
+                'residentKey'             => 'preferred',
+                'requireResidentKey'      => false,
             ],
             'timeout'     => 60000,
             'attestation' => 'none',

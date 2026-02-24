@@ -263,10 +263,14 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 ### AuthController — Email trim()
 - `Auth::attempt()` ruft jetzt `trim($request->email)` auf → verhindert Login-Fehler bei versehentlichen Leerzeichen
 
-### Passkeys / Face ID — Testworkflow
+### Passkeys / Face ID — Testworkflow & Erkenntnisse
 - Lokal (`http://spitex.test`) **nicht testbar** — kein HTTPS, Browser blockiert WebAuthn
 - **Demo-Server** (`https://www.curasoft.ch`) hat HTTPS → Passkeys dort testen
 - Workflow: lokal entwickeln → auf Demo deployen → Passkeys auf Demo testen
+- **Fix `authenticatorAttachment: 'platform'`** in `WebAuthnController::registerOptions()` — erzwingt Gerät-Authenticator (Face ID) statt externe Geräte
+- **Microsoft Authenticator Problem:** Wenn installiert, fängt er Passkeys ab. Fix: iOS Einstellungen → Passwörter → AutoFill → "Passwörter (Passkeys)" aktivieren, dann "In Passwörter sichern" wählen
+- **PWA installierbar:** Safari → Teilen → "Zum Home-Bildschirm" → App-Icon → Face ID → drin
+- Betriebsanweisung: `docs/ANLEITUNG_EINLOGGEN.md`
 
 ---
 

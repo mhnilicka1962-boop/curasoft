@@ -33,6 +33,11 @@ Route::get('/', function () {
     return view('landing');
 })->name('home');
 
+// Hilfe / Betriebsanweisung (öffentlich)
+Route::get('/hilfe', function () {
+    return view('hilfe.index');
+})->name('hilfe');
+
 // Kontaktformular Landing Page
 Route::post('/kontakt', function (\Illuminate\Http\Request $request) {
     $data = $request->validate([

@@ -1,69 +1,130 @@
-# Anleitung: So loggst du dich ein
+# Betriebsanweisung — Kapitel 1: Einloggen
 
-Ganz einfach. Schritt für Schritt.
-
-## Zwei Möglichkeiten
-
-1. **Link per E-Mail** (empfohlen) — E-Mail eintragen, Link klicken, fertig. Kein Passwort.
-2. **Passwort** — Klassisch mit Passwort.
-
-Auf der Login-Seite: Tab **„Link per E-Mail“** wählen.
+**Gültig für:** Alle Mitarbeitenden
+**URL Demo:** `https://www.curasoft.ch/login`
+**URL Lokal:** `http://spitex.test/login`
 
 ---
 
-## 1. Öffne die Seite
+## Übersicht — 3 Wege zum Login
 
-Gib im Browser ein: **http://spitex.test/login**
-
-(oder klicke auf einen Link, den du bekommen hast)
-
----
-
-## 2. Tippe deine E-Mail
-
-- Klicke in das Feld „E-Mail-Adresse“
-- Tippe deine E-Mail
-- Beispiel: `sandra.huber@test.spitex`
-
-**Wichtig:** Keine Leerzeichen vor oder nach der E-Mail.
+| Methode | Geeignet für | Aufwand |
+|---------|-------------|---------|
+| **Link per E-Mail** (Magic Link) | Alle Geräte, alle Benutzer | Tief — empfohlen |
+| **Face ID / Fingerabdruck** | iPhone, Android, Windows Hello | Einmalige Einrichtung |
+| **Passwort** | Fallback | Klassisch |
 
 ---
 
-## 3. Tippe dein Passwort
+## Methode 1 — Link per E-Mail (empfohlen)
 
-- Klicke in das Feld „Passwort“
-- Tippe dein Passwort
-- Du siehst Punkte (••••) statt Buchstaben — das ist so gewollt
+Der einfachste Weg. Funktioniert auf jedem Gerät ohne Konfiguration.
 
----
+1. Login-Seite öffnen → Tab **„Link per E-Mail"** ist vorausgewählt
+2. E-Mail-Adresse eingeben
+3. **„Login-Link senden"** klicken
+4. E-Mail öffnen → auf den Link klicken
+5. Fertig — du bist eingeloggt
 
-## 4. Klicke „Anmelden“
-
-- Klicke den blauen Button „Anmelden“
-- Fertig. Du bist drin.
-
----
-
-## Tipp: Angemeldet bleiben
-
-- Setze ein Häkchen bei „Angemeldet bleiben“
-- Dann musst du dich nicht jeden Tag neu einloggen (auf demselben Gerät)
+> Der Link ist **15 Minuten** gültig. Danach neuen Link anfordern.
 
 ---
 
-## Problem?
+## Methode 2 — Face ID / Fingerabdruck (Passkey)
 
-| Problem | Lösung |
+Einmal einrichten, danach immer mit Gesicht oder Finger einloggen — kein Passwort nötig.
+
+### Einmalige Einrichtung
+
+1. Zuerst normal einloggen (Magic Link oder Passwort)
+2. **Profil** öffnen (oben rechts → Profil, oder `…/profil`)
+3. **„+ Passkey registrieren"** tippen
+4. Gerätename eingeben (optional, z.B. „iPhone Sandra")
+5. Dialog erscheint → **„In Passwörter sichern"** wählen *(nicht Authenticator!)*
+6. **„Passkey hinzufügen"** tippen
+7. Face ID / Fingerabdruck bestätigen
+8. Fertig — Passkey ist registriert
+
+### Ab sofort einloggen
+
+1. Login-Seite öffnen → Tab **„Face ID"** tippen
+2. **„Face ID / Fingerabdruck"** tippen
+3. Ins Gesicht schauen (oder Finger auflegen)
+4. Fertig — eingeloggt
+
+---
+
+## Methode 3 — App-Icon auf dem Homescreen (empfohlen für tägl. Nutzung)
+
+Die App kann wie eine native App auf dem Homescreen installiert werden.
+
+### iPhone (Safari)
+
+1. Safari öffnen → `https://www.curasoft.ch`
+2. Unten das **Teilen-Symbol** tippen (Quadrat mit Pfeil nach oben)
+3. **„Zum Home-Bildschirm"** tippen
+4. Name bestätigen → **„Hinzufügen"**
+5. Icon erscheint auf dem Homescreen
+
+→ App öffnet sich ohne Browser-Leiste, direkt auf der Login-Seite. Mit Face ID in Sekunden drin.
+
+### Android (Chrome)
+
+1. Chrome öffnen → `https://www.curasoft.ch`
+2. Menü (drei Punkte) → **„Zum Startbildschirm hinzufügen"**
+3. Bestätigen
+
+---
+
+## Bekannte Probleme & Lösungen
+
+### Face ID zeigt „Authenticator" statt iCloud
+
+**Problem:** Microsoft Authenticator ist auf dem iPhone installiert und fängt den Passkey ab.
+
+**Lösung:**
+1. iPhone **Einstellungen** öffnen
+2. **Passwörter** → **Passwörter automatisch ausfüllen**
+3. **„Passwörter (Passkeys, Passwörter und Codes)"** aktivieren
+4. Danach Passkey-Registrierung nochmals versuchen → **„In Passwörter sichern"** wählen
+
+---
+
+### Magic Link kommt nicht an
+
+| Ursache | Lösung |
 |---------|--------|
-| „Diese Kombination ist ungültig“ | E-Mail und Passwort nochmal prüfen. Tippfehler? Gross/Klein? |
-| Seite lädt nicht | Prüfen: Stimmt die Adresse? `spitex.test` — nicht `spitex.com` |
-| Passwort vergessen | Admin fragen. Der kann dir eine neue Einladung schicken. |
+| Spam-Ordner | Im Spam-Ordner nachschauen |
+| Falsche E-Mail | Admin fragen welche E-Mail hinterlegt ist |
+| Link abgelaufen | Neuen Link anfordern (15 Min. Gültigkeit) |
 
 ---
 
-## Test-Login (nur zum Probieren)
+### „Zu viele Versuche"
 
-| | |
-|---|---|
-| E-Mail | `admin@spitex.ch` |
-| Passwort | `Admin2026!` |
+Nach 5 falschen Passwort-Eingaben wird der Zugang für **15 Minuten** gesperrt.
+→ 15 Minuten warten, dann erneut versuchen.
+→ Oder Magic Link verwenden (separate Rate-Limite).
+
+---
+
+### Passwort vergessen
+
+Kein Problem — Magic Link verwenden (kein Passwort nötig).
+Oder Admin bitten, eine neue Einladung zu senden.
+
+---
+
+## Login-Daten Demo-Umgebung
+
+| Rolle | E-Mail | Passwort |
+|-------|--------|----------|
+| Admin | `demo@curasoft.ch` | `Admin2026!` |
+| Pflege | `sandra.huber@test.spitex` | `test1234` |
+| Buchhaltung | `lisa.bauer@test.spitex` | `test1234` |
+
+> Alle Testbenutzer Pflege: Passwort `test1234`
+
+---
+
+*Stand: 2026-02-24*

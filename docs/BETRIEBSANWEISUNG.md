@@ -1,150 +1,150 @@
-# Spitex — Betriebsanweisung
-**Stand: 22.02.2026**
+# Curasoft — Betriebsanweisung
+**Stand: 2026-02-24**
 
 ---
 
-## Einloggen
+## Kapitel 1 — Einloggen
 
-| Weg | Beschreibung |
-|-----|-------------|
-| **Passwort** | E-Mail + Passwort eingeben |
-| **Link per E-Mail** | E-Mail eingeben → Login-Link kommt per Mail → anklicken |
-| **Face ID / Fingerabdruck** | Nur wenn Passkey registriert (unter Profil einrichten) |
+### 3 Möglichkeiten
 
-> Auf Handy: App installierbar über "Zum Homescreen hinzufügen" (iOS) oder Install-Banner (Android)
+| Methode | Für wen | Aufwand |
+|---------|---------|---------|
+| **Link per E-Mail** (Magic Link) | Alle | Kein Passwort nötig — empfohlen |
+| **Face ID / Fingerabdruck** | iPhone, Android, Windows Hello | Einmalige Einrichtung |
+| **Passwort** | Fallback | Klassisch |
 
 ---
 
-## Tagesablauf Admin
+### 1.1 Link per E-Mail (empfohlen)
+
+Funktioniert auf jedem Gerät, keine Konfiguration nötig.
+
+1. Login-Seite öffnen → Tab **„Link per E-Mail"** ist vorausgewählt
+2. E-Mail-Adresse eingeben
+3. **„Login-Link senden"** klicken
+4. E-Mail öffnen → auf den Link klicken → eingeloggt
+
+> Der Link ist **15 Minuten** gültig.
+
+---
+
+### 1.2 Face ID / Fingerabdruck einrichten (einmalig)
+
+1. Zuerst normal einloggen (Magic Link oder Passwort)
+2. Oben rechts → **Profil** öffnen (oder `/profil`)
+3. **„+ Passkey registrieren"** tippen
+4. Gerätename eingeben (optional, z.B. „iPhone Sandra")
+5. Dialog erscheint → **„In Passwörter sichern"** wählen
+6. **„Passkey hinzufügen"** tippen → Face ID bestätigen
+7. Fertig — ab sofort mit Face ID einloggen
+
+**Ab sofort einloggen:**
+1. Login-Seite → Tab **„Face ID"** tippen
+2. **„Face ID / Fingerabdruck"** tippen → ins Gesicht schauen → eingeloggt
+
+---
+
+### 1.3 App als Icon auf dem Homescreen
+
+**iPhone (Safari):**
+1. Safari → `https://www.curasoft.ch` öffnen
+2. Unten Teilen-Symbol tippen (Quadrat mit Pfeil)
+3. **„Zum Home-Bildschirm"** → Hinzufügen
+4. Icon erscheint — tippen → App öffnet ohne Browser, Face ID → drin
+
+**Android (Chrome):**
+1. Chrome → Menü (drei Punkte) → **„Zum Startbildschirm hinzufügen"**
+
+---
+
+### 1.4 Probleme beim Einloggen
+
+| Problem | Lösung |
+|---------|--------|
+| Face ID zeigt „Authenticator" | iOS Einstellungen → Passwörter → AutoFill → „Passwörter (Passkeys)" aktivieren |
+| Magic Link kommt nicht an | Spam-Ordner prüfen. Oder Admin fragen. |
+| „Zu viele Versuche" | 15 Minuten warten, dann erneut versuchen |
+| Passwort vergessen | Magic Link verwenden — kein Passwort nötig |
+
+---
+
+## Kapitel 2 — Tagesablauf Admin
 
 ### Morgens: Planen
 
-**Schritt 1 — Einsätze anlegen** (falls noch nicht vorhanden)
+**Schritt 1 — Einsätze anlegen**
 1. `Klienten` → Patient öffnen
-2. Oben im Pflegeplan: **"+ Einsatz planen"** klicken
+2. Oben im Pflegeplan: **„+ Einsatz planen"** klicken
 3. Mitarbeiter, Datum, Zeit, Leistungsart wählen → **Einsatz planen**
 4. Für regelmässige Einsätze: Wiederholung = Wöchentlich, Wochentage wählen, Enddatum setzen
 
 **Schritt 2 — Touren erstellen**
 1. `Touren` → Datum wählen
-2. Gelbe Warnung "Nicht eingeplante Einsätze" zeigt offene Einsätze pro Mitarbeiter
-3. **"+ Tour erstellen"** klicken → alle Einsätze des MA sind vorgehakt
+2. Gelbe Warnung zeigt offene Einsätze pro Mitarbeiter
+3. **„+ Tour erstellen"** klicken → alle Einsätze des MA sind vorgehakt
 4. Bezeichnung prüfen → **Tour erstellen**
-
----
 
 ### Tagsüber: Überblick
 
-**Touren-Übersicht**
-- `Touren` → Datum wählen
-- Jede Tour zeigt: Einsätze, Status (Geplant / Gestartet / Abgeschlossen)
-- Detail-Button → Check-in/out-Zeiten, Abweichungen, Rapporte
-
-**Pflegeplan Klient**
-- `Klienten` → Patient öffnen
-- Ganz oben: 14-Tage-Übersicht wer, wann, welche Leistung
-- Tage ohne Einsatz: grau, mit "Kein Einsatz geplant"
-
----
+- `Touren` → Datum wählen → Status pro Tour sehen (Geplant / Gestartet / Abgeschlossen)
+- `Klienten` → Patient → 14-Tage-Pflegeplan oben
 
 ### Abends: Nachkontrolle
 
-**Rapporte prüfen**
-- `Rapporte` → Heute filtern
-- Zwischenfälle erscheinen als rotes Badge
-
-**Einsätze ohne Check-in prüfen**
-- `Touren` → Tour-Detail öffnen
-- Orange = zu spät eingecheckt (>5 Min.)
-- Kein Check-in = Mitarbeiter hat nicht eingecheckt → nachfragen
+- `Rapporte` → Heute filtern → Zwischenfälle (rotes Badge)
+- `Touren` → Tour-Detail → Orange = zu spät, kein Check-in = nicht eingecheckt
 
 ---
 
-## Wiederkehrende Einsätze
+## Kapitel 3 — Neuer Patient (Klient)
 
-### Anlegen
-1. `Klienten` → Patient → **"+ Einsatz planen"**
-   oder direkt: `Einsätze` → **"+ Neuer Einsatz"**
-2. Leistungsart, Mitarbeiter, Startdatum, Zeit wählen
-3. **Wiederholung: Wöchentlich** wählen
-4. Wochentage anklicken (z.B. Mo / Mi / Fr)
-5. **"Wiederholen bis"** Datum setzen
-6. Preview zeigt Anzahl → **Einsätze anlegen**
-
-### Löschen (ganze Serie)
-1. `Klienten` → Patient → Pflegeplan
-2. Beim ersten Serien-Einsatz: **"× Serie löschen"** klicken
-3. Bestätigen → alle zukünftigen Einsätze der Serie gelöscht
-4. Bereits abgeschlossene Einsätze bleiben erhalten
-
----
-
-## Neuer Patient (Klient)
-
-1. `Klienten` → **"+ Neuer Klient"**
+1. `Klienten` → **„+ Neuer Klient"**
 2. Pflichtfelder: Vorname, Nachname, Region (Kanton)
-3. Nach dem Speichern im Klienten-Detail ergänzen:
+3. Danach im Klienten-Detail ergänzen:
    - Adresse
    - Krankenkasse (KVG + ggf. VVG)
    - Pflegestufe (BESA-Einstufung)
    - Behandelnder Arzt
    - Kontaktperson / Angehörige
-4. Ersten Einsatz planen (Pflegeplan → "+ Einsatz planen")
+4. Ersten Einsatz planen (Pflegeplan → „+ Einsatz planen")
 
 ---
 
-## Neuer Mitarbeiter
+## Kapitel 4 — Neuer Mitarbeiter
 
-1. `Mitarbeiter` → **"+ Neuer Mitarbeiter"**
-2. E-Mail-Adresse, Rolle (Pflege / Buchhaltung / Admin)
+1. `Mitarbeiter` → **„+ Neuer Mitarbeiter"**
+2. E-Mail, Rolle (Pflege / Buchhaltung / Admin) eingeben
 3. Einladungs-Mail wird automatisch verschickt (48h gültig)
 4. Mitarbeiter setzt Passwort über Link in der Mail
 5. Im Mitarbeiter-Detail: Qualifikationen + Klienten-Zuweisung ergänzen
 
 ---
 
-## Face ID einrichten (Mitarbeiter)
+## Kapitel 5 — Rapport schreiben (Pflege)
 
-1. Einloggen (Passwort oder Magic Link)
-2. Oben rechts auf Namen klicken → **Profil**
-3. Geräte-Name eingeben (z.B. "iPhone Sandra")
-4. **"Passkey registrieren"** klicken → Face ID / Fingerabdruck bestätigen
-5. Ab sofort: Login mit Face ID möglich (Tab "Face ID" auf Loginseite)
-
----
-
-## Rapport schreiben (Mitarbeiter Pflege)
-
-1. Nach dem Check-out: `Rapporte` → **"+ Neuer Rapport"**
+1. Nach dem Einsatz: `Rapporte` → **„+ Neuer Rapport"**
 2. Klient wählen, Typ (Verlaufsbericht / Zwischenfall / Übergabe)
 3. Text eingeben → speichern
 4. Zwischenfälle → Admin sieht rotes Badge in der Tour-Übersicht
 
 ---
 
-## Rechnung erstellen
+## Kapitel 6 — Rechnung erstellen
 
-1. `Rechnungen` → **"+ Neue Rechnung"**
+1. `Rechnungen` → **„+ Neue Rechnung"**
 2. Klient wählen → Leistungsperiode (Von–Bis)
 3. Einsätze werden automatisch einbezogen
-4. XML-Export für Krankenkasse: Rechnung öffnen → **"XML exportieren"**
+4. XML-Export für Krankenkasse: Rechnung öffnen → **„XML exportieren"**
 
 ---
 
-## Häufige Fragen
+## Kapitel 7 — Häufige Fragen
 
-**Einsatz falsch zugewiesen (falscher Mitarbeiter)?**
+**Einsatz falsch zugewiesen?**
 → `Einsätze` → Einsatz öffnen → Bearbeiten → Mitarbeiter ändern
 
 **Tour-Einsatz entfernen?**
 → `Touren` → Tour-Detail → × beim Einsatz klicken
-
-**Einsatz einer anderen Tour zuweisen?**
-→ Einsatz aus alter Tour entfernen → in neuer Tour unten "Einsatz hinzufügen"
-
-**Serie: einzelnen Einsatz löschen, Rest behalten?**
-→ `Einsätze` → Einsatz öffnen → Status auf "Storniert" setzen
-(Komplettes Löschen einzelner Einsätze noch nicht implementiert)
 
 **Klient kurz abwesend (Spital)?**
 → Einsätze für diesen Zeitraum stornieren oder nicht anlegen
@@ -165,3 +165,4 @@
 | Nachrichten | `/nachrichten` |
 | Firma / Einstellungen | `/firma` |
 | Mein Profil / Passkeys | `/profil` |
+| **Hilfe / Betriebsanweisung** | `/hilfe` |
