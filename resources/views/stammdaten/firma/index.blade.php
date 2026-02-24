@@ -131,10 +131,106 @@
             </div>
         </div>
 
+        {{-- Abschnitt: Design & Logo --}}
+        <div class="karte" style="margin-bottom: 1rem;">
+            <div class="abschnitt-label" style="margin-bottom: 1rem;">Design & Logo</div>
+
+            {{-- Aktuelles Logo --}}
+            @if($org->logo_pfad)
+            <div style="margin-bottom: 1rem;">
+                <div class="feld-label">Aktuelles Logo</div>
+                <img src="{{ asset($org->logo_pfad) }}" alt="Logo"
+                    style="max-height: 48px; max-width: 200px; object-fit: contain; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.5rem; background: #fff; margin-top: 0.375rem; display: block;">
+            </div>
+            @endif
+
+            {{-- Logo hochladen --}}
+            <div style="margin-bottom: 1.25rem;">
+                <label class="feld-label" for="logo">{{ $org->logo_pfad ? 'Neues Logo hochladen' : 'Logo hochladen' }}</label>
+                <input type="file" id="logo" name="logo" accept="image/png,image/jpeg,image/svg+xml,image/gif"
+                    class="feld" style="padding: 0.375rem;" onchange="logoVorschau(this)">
+                <div class="text-mini text-hell" style="margin-top: 0.25rem;">PNG, SVG oder JPG — max. 2 MB. Empfohlen: transparenter Hintergrund, ca. 200×50 px.</div>
+                <div id="logo-vorschau-wrapper" style="display: none; margin-top: 0.75rem;">
+                    <img id="logo-vorschau-img" src="" alt="Vorschau"
+                        style="max-height: 48px; max-width: 200px; object-fit: contain; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.5rem; background: #fff;">
+                </div>
+            </div>
+
+            {{-- Primärfarbe --}}
+            <div style="margin-bottom: 1.25rem;">
+                <label class="feld-label">Primärfarbe</label>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
+                    <input type="color" id="farbe_picker" value="{{ old('theme_farbe_primaer', $org->theme_farbe_primaer ?? '#2563eb') }}"
+                        style="width: 2.5rem; height: 2.5rem; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); cursor: pointer; padding: 2px;"
+                        oninput="document.getElementById('farbe_hex').value=this.value; document.getElementById('theme_farbe_primaer').value=this.value; document.getElementById('farb-demo').style.backgroundColor=this.value;">
+                    <input type="text" id="farbe_hex" value="{{ old('theme_farbe_primaer', $org->theme_farbe_primaer ?? '#2563eb') }}"
+                        class="feld" style="max-width: 120px; font-family: monospace;" placeholder="#2563eb"
+                        oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){document.getElementById('farbe_picker').value=this.value; document.getElementById('theme_farbe_primaer').value=this.value; document.getElementById('farb-demo').style.backgroundColor=this.value;}">
+                    <input type="hidden" name="theme_farbe_primaer" id="theme_farbe_primaer" value="{{ old('theme_farbe_primaer', $org->theme_farbe_primaer ?? '#2563eb') }}">
+                    <div id="farb-demo" style="width: 2.5rem; height: 2.5rem; border-radius: var(--cs-radius); background-color: {{ old('theme_farbe_primaer', $org->theme_farbe_primaer ?? '#2563eb') }};"></div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                    @foreach(['#2563eb','#16a34a','#9333ea','#dc2626','#d97706','#0891b2','#1f2937'] as $farbeOpt)
+                        <button type="button"
+                            style="width: 1.5rem; height: 1.5rem; border-radius: 50%; background-color: {{ $farbeOpt }}; border: 2px solid transparent; cursor: pointer;"
+                            onclick="setFarbe('{{ $farbeOpt }}')"></button>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Navigation --}}
+            <div>
+                <label class="feld-label">Navigation</label>
+                <div style="display: flex; gap: 0.75rem; margin-top: 0.25rem;">
+                    @php $aktLayout = old('theme_layout', $org->theme_layout ?? 'sidebar'); @endphp
+                    @foreach(['sidebar' => ['◫', 'Sidebar', 'Navigation links'], 'topnav' => ['⬒', 'Top-Navigation', 'Navigation oben']] as $val => [$icon, $lbl, $desc])
+                    <label style="flex: 1; cursor: pointer;">
+                        <input type="radio" name="theme_layout" value="{{ $val }}"
+                            {{ $aktLayout === $val ? 'checked' : '' }}
+                            style="display: none;" class="layout-radio-firma">
+                        <div style="border: 2px solid {{ $aktLayout === $val ? 'var(--cs-primaer)' : 'var(--cs-border)' }}; border-radius: var(--cs-radius); padding: 0.75rem; text-align: center; font-size: 0.8125rem; transition: border-color 0.15s;">
+                            <div style="font-size: 1.25rem; margin-bottom: 0.25rem;">{{ $icon }}</div>
+                            <div style="font-weight: 500;">{{ $lbl }}</div>
+                            <div style="color: var(--cs-text-hell); font-size: 0.75rem;">{{ $desc }}</div>
+                        </div>
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
         <div style="margin-bottom: 2rem;">
             <button type="submit" class="btn btn-primaer">Firmadaten speichern</button>
         </div>
     </form>
+
+    <script>
+    function logoVorschau(input) {
+        const wrapper = document.getElementById('logo-vorschau-wrapper');
+        const img = document.getElementById('logo-vorschau-img');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => { img.src = e.target.result; wrapper.style.display = 'block'; };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            wrapper.style.display = 'none';
+        }
+    }
+    function setFarbe(hex) {
+        document.getElementById('farbe_picker').value = hex;
+        document.getElementById('farbe_hex').value = hex;
+        document.getElementById('theme_farbe_primaer').value = hex;
+        document.getElementById('farb-demo').style.backgroundColor = hex;
+    }
+    document.querySelectorAll('.layout-radio-firma').forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.querySelectorAll('.layout-radio-firma').forEach(r => {
+                r.closest('label').querySelector('div').style.borderColor = 'var(--cs-border)';
+            });
+            radio.closest('label').querySelector('div').style.borderColor = 'var(--cs-primaer)';
+        });
+    });
+    </script>
 
     {{-- Abschnitt: Kantone --}}
     <div class="karte-null" style="margin-bottom: 1rem;">

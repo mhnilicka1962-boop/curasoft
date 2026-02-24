@@ -7,7 +7,7 @@
     </h1>
 
     {{-- Kennzahlen-Karten --}}
-    <div class="form-grid form-grid-mb">
+    <div class="form-grid form-grid-mb" style="align-items: stretch;">
 
         <div class="karte karte-statisch">
             <div class="abschnitt-label abschnitt-label-kompakt">Aktive Klienten</div>

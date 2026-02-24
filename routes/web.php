@@ -38,6 +38,15 @@ Route::get('/hilfe', function () {
     return view('hilfe.index');
 })->name('hilfe');
 
+// Layout umschalten (sidebar ↔ topnav)
+Route::post('/layout/toggle', function () {
+    $org = \App\Models\Organisation::first();
+    $current = $org?->theme_layout ?? config('theme.layout', 'sidebar');
+    $new = $current === 'sidebar' ? 'topnav' : 'sidebar';
+    $org?->update(['theme_layout' => $new]);
+    return back();
+})->name('layout.toggle')->middleware('auth');
+
 // Kontaktformular Landing Page
 Route::post('/kontakt', function (\Illuminate\Http\Request $request) {
     $data = $request->validate([

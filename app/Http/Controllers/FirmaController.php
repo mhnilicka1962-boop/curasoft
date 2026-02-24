@@ -47,9 +47,14 @@ class FirmaController extends Controller
             'postcheckkonto'           => ['nullable', 'string', 'max:30'],
             'rechnungsadresse_position'=> ['nullable', 'in:links,rechts'],
             'logo_ausrichtung'         => ['nullable', 'in:links_anschrift_rechts,rechts_anschrift_links,mitte_anschrift_fusszeile'],
+            'logo'                     => ['nullable', 'image', 'max:2048'],
+            'theme_farbe_primaer'      => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'theme_layout'             => ['nullable', 'in:sidebar,topnav'],
         ]);
 
-        $this->org()->update(array_merge(
+        $org = $this->org();
+
+        $updates = array_merge(
             $request->only([
                 'name', 'zsr_nr', 'mwst_nr', 'adresse', 'postfach', 'adresszusatz',
                 'plz', 'ort', 'telefon', 'fax', 'email', 'website',
@@ -57,9 +62,50 @@ class FirmaController extends Controller
                 'rechnungsadresse_position', 'logo_ausrichtung',
             ]),
             ['druck_mit_firmendaten' => $request->boolean('druck_mit_firmendaten', true)]
-        ));
+        );
+
+        // Logo hochladen
+        if ($request->hasFile('logo')) {
+            $file      = $request->file('logo');
+            $dateiname = 'logo.' . $file->getClientOriginalExtension();
+            $file->move(public_path('uploads'), $dateiname);
+            $updates['logo_pfad'] = 'uploads/' . $dateiname;
+        }
+
+        // Design-Einstellungen
+        $envUpdates = [];
+        if ($request->filled('theme_farbe_primaer')) {
+            $updates['theme_farbe_primaer'] = $request->theme_farbe_primaer;
+            $envUpdates['CS_FARBE_PRIMAER'] = $request->theme_farbe_primaer;
+        }
+        if ($request->filled('theme_layout')) {
+            $updates['theme_layout'] = $request->theme_layout;
+            $envUpdates['CS_LAYOUT']  = $request->theme_layout;
+        }
+        if (!empty($envUpdates)) {
+            $this->updateEnv($envUpdates);
+            \Artisan::call('config:clear');
+        }
+
+        $org->update($updates);
 
         return back()->with('erfolg', 'Firmadaten wurden gespeichert.');
+    }
+
+    private function updateEnv(array $values): void
+    {
+        $envPfad = base_path('.env');
+        $inhalt  = file_get_contents($envPfad);
+        foreach ($values as $key => $value) {
+            $pattern     = '/^' . preg_quote($key, '/') . '=.*/m';
+            $replacement = $key . '=' . $value;
+            if (preg_match($pattern, $inhalt)) {
+                $inhalt = preg_replace($pattern, $replacement, $inhalt);
+            } else {
+                $inhalt .= "\n" . $replacement;
+            }
+        }
+        file_put_contents($envPfad, $inhalt);
     }
 
     /** Kanton-Einstellungen speichern (ESR / IBAN-Override) */

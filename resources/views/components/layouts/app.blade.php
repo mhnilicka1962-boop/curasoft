@@ -1,25 +1,42 @@
+@php
+    $org = auth()->check() ? \App\Models\Organisation::first() : null;
+    $layout = $org?->theme_layout ?? config('theme.layout', 'sidebar');
+    $farbePrimaer = $org?->theme_farbe_primaer ?? config('theme.farbe_primaer');
+    if ($org?->logo_pfad) config(['theme.logo' => $org->logo_pfad]);
+    // Abgeleitete Farben berechnen
+    if ($farbePrimaer && preg_match('/^#([a-fA-F0-9]{6})$/', $farbePrimaer, $m)) {
+        $r = hexdec(substr($m[1], 0, 2));
+        $g = hexdec(substr($m[1], 2, 2));
+        $b = hexdec(substr($m[1], 4, 2));
+        $farbePrimaerHell   = sprintf('#%02x%02x%02x', round($r+(255-$r)*.88), round($g+(255-$g)*.88), round($b+(255-$b)*.88));
+        $farbePrimaerDunkel = sprintf('#%02x%02x%02x', round($r*.82), round($g*.82), round($b*.82));
+    } else {
+        $farbePrimaerHell   = config('theme.farbe_primaer_hell',   '#eff6ff');
+        $farbePrimaerDunkel = config('theme.farbe_primaer_dunkel', '#1d4ed8');
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="{{ $farbePrimaer ?? '#2563eb' }}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="{{ config('theme.app_name', 'Spitex') }}">
+    <meta name="apple-mobile-web-app-title" content="{{ $org?->name ?? config('theme.app_name', 'Spitex') }}">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icon-192.svg">
-    <title>{{ $titel ?? 'Dashboard' }} — {{ config('theme.app_name') }}</title>
+    <title>{{ $titel ?? 'Dashboard' }} — {{ $org?->name ?? config('theme.app_name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    @if(config('theme.farbe_primaer'))
+    @if($farbePrimaer)
     <style>
         :root {
-            --cs-primaer: {{ config('theme.farbe_primaer') }};
-            --cs-primaer-dunkel: {{ config('theme.farbe_primaer_dunkel') }};
-            --cs-primaer-hell: {{ config('theme.farbe_primaer_hell') }};
+            --cs-primaer: {{ $farbePrimaer }};
+            --cs-primaer-dunkel: {{ $farbePrimaerDunkel }};
+            --cs-primaer-hell: {{ $farbePrimaerHell }};
         }
     </style>
     @endif
@@ -27,8 +44,6 @@
     @stack('styles')
 </head>
 <body>
-
-@php $layout = config('theme.layout', 'sidebar'); @endphp
 
 @if($layout === 'topnav')
     @include('layouts.partials.topnav')
