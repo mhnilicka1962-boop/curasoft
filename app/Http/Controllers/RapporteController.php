@@ -72,7 +72,8 @@ class RapporteController extends Controller
             ->orderBy('nachname')
             ->get();
 
-        return view('rapporte.create', compact('klienten', 'klient', 'einsatz', 'mitarbeiter'));
+        $rapport = null;
+        return view('rapporte.create', compact('rapport', 'klienten', 'klient', 'einsatz', 'mitarbeiter'));
     }
 
     public function store(Request $request)
