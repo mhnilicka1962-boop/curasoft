@@ -39,7 +39,7 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
-        if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        if (Auth::attempt(['email' => trim($request->email), 'password' => $request->password], $request->boolean('remember'))) {
             RateLimiter::clear($rateLimiterKey);
             $request->session()->regenerate();
 
