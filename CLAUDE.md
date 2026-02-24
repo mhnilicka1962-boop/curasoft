@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-24 (Session 7)
+## Stand: 2026-02-24 (Session 8)
 
 ---
 
@@ -237,6 +237,39 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 8 (2026-02-24)
+
+### Dashboard — komplett überarbeitet
+- **Stat-Chips** statt grosse Kacheln: `[Label  Zahl]` in einer Zeile, anklickbar, kaum Platzbedarf
+- **Einsätze-Liste** direkt auf Dashboard: Zeit, Patient, Leistungsart, Status, Mitarbeiter (max. 10)
+  - Ersetzt die "Touren heute"-Karte — kein doppelter Begriff mehr
+  - Falls heute keine Einsätze: automatisch nächsten Tag mit Einsätzen anzeigen
+- **Rapporte-Liste**: Klick auf Rapport → Rapport-Detail (nicht mehr Klient-Seite)
+- **Logo/Firmenname**: Klick → Dashboard
+- **Mobile Fix**: Listenzeilen umbrechen statt überlaufen; Firmenname im Header sichtbar wenn Sidebar versteckt
+
+### Navigation — Topnav Dropdown
+- "Verwaltung"-Menü in horizontaler Nav als **Dropdown** ausgebaut
+- Enthält: Mitarbeitende, Firma, Leistungsarten, Einsatzarten, Regionen, Ärzte, Krankenkassen, Audit-Log
+- **Layout-Toggle-Button** im Header (Admin): wechselt Sidebar ↔ Topnav per Klick
+
+### Firma / Design-Einstellungen
+- Neuer Abschnitt **"Design & Logo"** in `/firma`:
+  - Logo hochladen (PNG/SVG/JPG, max. 2 MB) — wird in `public/uploads/` gespeichert
+  - Primärfarbe mit Farbwähler + 7 Schnellfarben + Hex-Eingabe
+  - Navigation (Sidebar / Top) umschalten
+- Layout + Farbe + Logo werden **aus DB gelesen** (nicht mehr nur aus `.env`) → sofort aktiv ohne Restart
+- Abgeleitete Farben (hell/dunkel) werden automatisch aus Primärfarbe berechnet
+- App-Name im Titel kommt aus `organisation.name` (DB)
+
+### Deploy-Workflow (etabliert)
+- **Lokal entwickeln** → testen → commit+push → Demo-Server `git pull`
+- Demo-Server hat manchmal lokale Konflikte → `git reset --hard origin/master` löst es
+- Vite-Assets werden lokal gebaut und per FTP hochgeladen (kein Node.js auf Server)
+- FTP: `curl -T datei ftp://ftp.devitjob.ch/public_html/spitex/public/build/... --user "vscode@devitjob.ch:VsCode2026!Ftp"`
 
 ---
 
