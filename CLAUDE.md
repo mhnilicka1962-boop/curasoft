@@ -9,9 +9,10 @@
 | | |
 |---|---|
 | **URL** | `http://spitex.test/login` |
-| **E-Mail** | `admin@spitex.ch` |
-| **Passwort** | `Admin2026!` |
+| **Admin E-Mail** | `mhn@itjob.ch` |
+| **Admin Passwort** | `Admin2026!` |
 | **Rolle** | admin |
+| **Pflege (Test)** | `1234@itjob.ch` / `test1234` (Sandra Huber) |
 | **Organisation** | ID 1 (einzige — kein Multi-Tenant) |
 
 ## Login-Daten (Demo-Server)
