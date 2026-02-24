@@ -53,7 +53,7 @@
             <div class="listen-zeile">
                 <div class="listen-zeile-inner">
                     <div>
-                        <a href="{{ route('touren.show', $tour) }}" class="text-fett link-primaer">{{ $tour->bezeichnung }}</a>
+                        <span class="text-fett">{{ $tour->bezeichnung }}</span>
                         @if(auth()->user()->rolle === 'admin')
                             <span class="text-hell text-8 ml-klein">{{ $tour->benutzer?->vorname }}</span>
                         @endif
