@@ -43,9 +43,7 @@
         {{-- Heutige Touren --}}
         <div class="karte">
             <div class="karten-kopf">
-                <div class="abschnitt-label">
-                    Touren heute
-                </div>
+                <div class="abschnitt-label">{{ $tourenLabel }}</div>
                 <a href="{{ route('touren.index', ['datum' => today()->format('Y-m-d')]) }}" class="text-klein link-primaer">Tourenplan →</a>
             </div>
 
@@ -56,6 +54,9 @@
                         <span class="text-fett">{{ $tour->bezeichnung }}</span>
                         @if(auth()->user()->rolle === 'admin')
                             <span class="text-hell text-8 ml-klein">{{ $tour->benutzer?->vorname }}</span>
+                        @endif
+                        @if($tour->datum->toDateString() !== today()->toDateString())
+                            <span class="text-hell text-8 ml-klein">{{ $tour->datum->format('d.m.') }}</span>
                         @endif
                     </div>
                     <div class="flex-gap-klein">

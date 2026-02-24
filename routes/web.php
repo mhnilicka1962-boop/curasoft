@@ -140,10 +140,24 @@ Route::middleware('auth')->group(function () {
             ->orderBy('start_zeit')
             ->get();
 
+        // Falls heute keine Touren: nächste bevorstehende anzeigen (max. 5)
+        $tourenLabel = 'Touren heute';
+        if ($meineTourenHeute->isEmpty()) {
+            $meineTourenHeute = \App\Models\Tour::where('organisation_id', $orgId)
+                ->whereDate('datum', '>', $heute)
+                ->when($rolle === 'pflege', fn($q) => $q->where('benutzer_id', $userId))
+                ->with('benutzer', 'einsaetze')
+                ->orderBy('datum')
+                ->orderBy('start_zeit')
+                ->limit(5)
+                ->get();
+            $tourenLabel = $meineTourenHeute->isNotEmpty() ? 'Nächste Touren' : 'Touren heute';
+        }
+
         return view('dashboard', compact(
             'klientenAktiv', 'einsaetzeHeute', 'einsaetzeGeplant',
             'offeneRechnungen', 'ungeleseneNachrichten',
-            'letzteRapporte', 'meineTourenHeute'
+            'letzteRapporte', 'meineTourenHeute', 'tourenLabel'
         ));
     })->name('dashboard');
 
