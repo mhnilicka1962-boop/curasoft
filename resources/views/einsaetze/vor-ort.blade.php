@@ -273,15 +273,26 @@
 <div class="vo-karte" style="margin: 0 0 0.75rem;">
     <div class="vo-abschnitt-titel">Rapporte</div>
     @foreach($einsatz->rapporte as $r)
-    <a href="{{ route('rapporte.show', $r) }}" style="display: block; text-decoration: none; padding: 0.625rem 0; border-bottom: 1px solid var(--vo-border, #e5e7eb);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
-            <div style="font-size: 0.875rem; color: var(--cs-text);">{{ Str::limit($r->inhalt, 80) }}</div>
-            <div style="font-size: 0.75rem; color: var(--cs-text-hell); white-space: nowrap;">{{ $r->datum->format('d.m.') }}</div>
-        </div>
-    </a>
+    <div onclick="zeigeRapport('{{ $r->datum->format('d.m.Y') }}', '{{ addslashes($r->inhalt) }}')"
+         style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; padding: 0.625rem 0; border-bottom: 1px solid var(--vo-border, #e5e7eb); cursor: pointer;">
+        <div style="font-size: 0.875rem; color: var(--cs-text);">{{ Str::limit($r->inhalt, 80) }}</div>
+        <div style="font-size: 0.75rem; color: var(--cs-text-hell); white-space: nowrap;">{{ $r->datum->format('d.m.') }}</div>
+    </div>
     @endforeach
 </div>
 @endif
+
+{{-- Rapport-Modal --}}
+<div id="rapport-modal" onclick="if(event.target===this)schliesseRapport()"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-end; justify-content:center;">
+    <div style="background:#fff; border-radius:1rem 1rem 0 0; padding:1.5rem; width:100%; max-width:480px; max-height:80vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <strong id="rapport-modal-datum" style="font-size:1rem;"></strong>
+            <button onclick="schliesseRapport()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#6b7280;">×</button>
+        </div>
+        <p id="rapport-modal-inhalt" style="font-size:0.9375rem; line-height:1.6; white-space:pre-wrap; color:#374151; margin:0;"></p>
+    </div>
+</div>
 
 {{-- Navigation unten --}}
 <div class="vo-nav">
@@ -291,6 +302,16 @@
 <div style="height: 1.5rem;"></div>
 
 <script>
+function zeigeRapport(datum, inhalt) {
+    document.getElementById('rapport-modal-datum').textContent = 'Rapport ' + datum;
+    document.getElementById('rapport-modal-inhalt').textContent = inhalt;
+    const m = document.getElementById('rapport-modal');
+    m.style.display = 'flex';
+}
+function schliesseRapport() {
+    document.getElementById('rapport-modal').style.display = 'none';
+}
+
 function toggleZeile(cb) {
     cb.closest('.vo-akt-zeile').classList.toggle('vo-akt-aktiv', cb.checked);
 }
