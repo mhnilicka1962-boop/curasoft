@@ -242,6 +242,44 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 
 ## Neu in Session 10 (2026-02-24)
 
+### Vor-Ort-Seite: Komplettes Redesign
+- **Header-Kachel (blau)** enthält jetzt alle Klienteninfos kompakt:
+  - Name, Datum, Leistungsart, Zeit, Alter, Krankenkasse
+  - Adresse als Text + `📍 Maps`-Button (anklickbar → Google Maps)
+  - Telefon anklickbar (tel:)
+  - Notfall in rot anklickbar
+  - Diagnosen klein darunter
+  - Verordnung abgelaufen → Warnung in rot
+- Separate Adresse/Telefon/Patient/Diagnosen-Karten entfernt → alles im Header
+- Hinweis (⚠) bleibt als eigene gelbe Karte direkt darunter
+
+### Vor-Ort-Seite: Rapporte zum Einsatz
+- `Einsatz::rapporte()` hasMany Relationship hinzugefügt
+- `vorOrt()` lädt rapporte eager (`orderByDesc('datum')`)
+- **Rapporte-Sektion** direkt nach Hinweis (vor Leistungserfassung)
+- Klick auf Rapport → **Popup/Modal** von unten (kein Seitenwechsel)
+- Modal zeigt: Datum + vollständiger Rapport-Text, `×` schliesst
+
+### Rapport bearbeiten — NEU
+- `RapporteController::edit()` + `update()` hinzugefügt
+- Route: `GET /rapporte/{id}/edit` + `PUT /rapporte/{id}`
+- `create.blade.php` dient als gemeinsame Create+Edit-View:
+  - Titel, Form-Action, `@method('PUT')` je nach `$rapport` (null = neu)
+  - Alle Felder vorausgefüllt mit bestehenden Werten (`$rapport?->feld`)
+- **Vor-Ort-Button smart:**
+  - Kein Rapport vorhanden → `+ Rapport schreiben`
+  - Rapport vorhanden → `✏ Rapport bearbeiten`
+  - Gilt für Button oben UND unten (Nav)
+- **Store/Update Redirect:** wenn `einsatz_id` vorhanden → `einsaetze.vor-ort`, sonst `klienten.show`
+
+### Security-Audit (extern)
+- **SSL Labs:** A+ — TLS 1.3, HSTS, Forward Secrecy, alle bekannten Angriffe abgewehrt
+- **Mozilla Observatory:** B+ (80/100) — nur CSP `unsafe-inline` als Abzug (-20)
+  - `unsafe-inline` ist nötig für Blade-Inline-Styles/JS → bewusstes Tradeoff
+  - Alle anderen Tests grün: Cookies, CORS, X-Frame, X-Content-Type, Referrer-Policy
+- **Passwort-Sicherheit:** bcrypt, Rate Limiter, Magic Link, Face ID/Passkeys, CSRF-Schutz
+- **Fazit:** Für Spitex-Pflegesoftware sehr solides Sicherheitsniveau — kein Handlungsbedarf
+
 ### Demo-Server: Stale Cache Fix
 - **Problem:** Nach `git pull` auf Demo-Server crashte Dashboard mit `Undefined variable $einsaetzeDatumLabel`
 - **Ursache:** Alter Route- und View-Cache wurde nicht automatisch invalidiert
