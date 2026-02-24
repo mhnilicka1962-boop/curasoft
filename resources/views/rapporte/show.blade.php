@@ -29,7 +29,7 @@
                 <span>Verfasst von: <strong style="color: var(--cs-text);">{{ $rapport->benutzer->vorname }} {{ $rapport->benutzer->nachname }}</strong></span>
             @endif
             @if($rapport->einsatz)
-                <span>Einsatz: <a href="{{ route('einsaetze.show', $rapport->einsatz) }}" class="link-primaer">{{ $rapport->einsatz->datum->format('d.m.Y') }}</a></span>
+                <span>Einsatz: <a href="{{ auth()->user()->rolle === 'admin' ? route('einsaetze.show', $rapport->einsatz) : route('einsaetze.vor-ort', $rapport->einsatz) }}" class="link-primaer">{{ $rapport->einsatz->datum->format('d.m.Y') }}</a></span>
             @endif
             <span>Erstellt: {{ $rapport->created_at->format('d.m.Y H:i') }}</span>
         </div>
