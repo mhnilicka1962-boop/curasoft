@@ -214,6 +214,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/schnellerfassung', [KlientenController::class, 'schnellSpeichern'])->name('schnellerfassung.speichern');
         Route::resource('/einsaetze', EinsaetzeController::class)->only(['index','create','store','show','edit','update']);
         Route::get('/einsaetze/{einsatz}/vor-ort', [EinsaetzeController::class, 'vorOrt'])->name('einsaetze.vor-ort');
+        Route::post('/einsaetze/{einsatz}/aktivitaeten', [EinsaetzeController::class, 'aktivitaetenSpeichern'])->name('einsaetze.aktivitaeten.speichern');
         Route::delete('/einsaetze/serie/{serieId}', [EinsaetzeController::class, 'destroySerie'])->name('einsaetze.serie.loeschen');
 
         // Rapporte

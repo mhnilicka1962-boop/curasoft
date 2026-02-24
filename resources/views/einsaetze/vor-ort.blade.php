@@ -37,6 +37,17 @@
         .vo-badge-grau { background: #f3f4f6; color: #6b7280; }
         .vo-nav { display: flex; gap: 0.5rem; padding: 0.75rem; }
         .vo-nav a { flex: 1; text-align: center; padding: 0.5rem; background: #fff; border-radius: 8px; font-size: 0.8125rem; color: var(--cs-primaer); text-decoration: none; border: 1px solid var(--cs-border); font-weight: 500; }
+        .vo-kat-label { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--cs-text-hell); margin: 0.75rem 0 0.25rem; }
+        .vo-kat-label:first-child { margin-top: 0; }
+        .vo-akt-zeile { display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0.5rem; border-radius: 7px; margin-bottom: 0.2rem; background: var(--cs-hintergrund); transition: background 0.15s; }
+        .vo-akt-zeile.vo-akt-aktiv { background: #dcfce7; }
+        .vo-akt-check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; cursor: pointer; flex: 1; min-width: 0; }
+        .vo-akt-check input[type=checkbox] { width: 1.1rem; height: 1.1rem; flex-shrink: 0; accent-color: var(--cs-primaer); }
+        .vo-akt-min { display: flex; align-items: center; gap: 0.25rem; flex-shrink: 0; }
+        .vo-min-btn { width: 1.75rem; height: 1.75rem; border: 1px solid var(--cs-border); background: #fff; border-radius: 5px; font-size: 1rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .vo-min-input { width: 3rem; text-align: center; border: 1px solid var(--cs-border); border-radius: 5px; padding: 0.2rem 0.25rem; font-size: 0.875rem; background: #fff; }
+        .vo-min-label { font-size: 0.75rem; color: var(--cs-text-hell); }
+        .vo-akt-gesamt { text-align: right; font-size: 0.875rem; color: var(--cs-text-hell); padding: 0.5rem 0.25rem 0; }
     </style>
 </head>
 <body>
@@ -206,6 +217,47 @@
     </div>
     @endif
 
+
+    {{-- Leistungen erfassen --}}
+    <div class="vo-karte">
+        <div class="vo-karte-titel">Leistungen erfassen</div>
+        <form method="POST" action="{{ route('einsaetze.aktivitaeten.speichern', $einsatz) }}" id="form-leistungen">
+            @csrf
+            @foreach(\App\Models\EinsatzAktivitaet::$aktivitaeten as $kategorie => $items)
+            <div class="vo-kat-label">{{ $kategorie }}</div>
+            @foreach($items as $item)
+            @php $key = $kategorie . '|' . $item; $saved = $gespeicherteAktivitaeten[$key] ?? null; @endphp
+            <div class="vo-akt-zeile" id="zeile-{{ md5($key) }}">
+                <label class="vo-akt-check">
+                    <input type="checkbox" name="akt[]" value="{{ $key }}"
+                        {{ $saved ? 'checked' : '' }}
+                        onchange="toggleZeile(this)">
+                    <span>{{ $item }}</span>
+                </label>
+                <div class="vo-akt-min">
+                    <button type="button" class="vo-min-btn" onclick="adjustMin(this, -5)">−</button>
+                    <input type="number" name="min[{{ $key }}]"
+                        value="{{ $saved?->minuten ?? 5 }}" min="5" step="5"
+                        class="vo-min-input">
+                    <button type="button" class="vo-min-btn" onclick="adjustMin(this, 5)">+</button>
+                    <span class="vo-min-label">min</span>
+                </div>
+            </div>
+            @endforeach
+            @endforeach
+
+            @if($gespeicherteAktivitaeten->isNotEmpty())
+            <div class="vo-akt-gesamt">
+                Gesamt: <strong>{{ $einsatz->aktivitaeten->sum('minuten') }} min</strong>
+            </div>
+            @endif
+
+            <button type="submit" class="vo-checkin-btn ein" style="margin-top: 0.75rem;">
+                ✓ Leistungen speichern
+            </button>
+        </form>
+    </div>
+
 </div>
 
 {{-- Navigation unten --}}
@@ -217,5 +269,18 @@
 
 <div style="height: 1.5rem;"></div>
 
+<script>
+function toggleZeile(cb) {
+    cb.closest('.vo-akt-zeile').classList.toggle('vo-akt-aktiv', cb.checked);
+}
+function adjustMin(btn, delta) {
+    const input = btn.closest('.vo-akt-min').querySelector('.vo-min-input');
+    input.value = Math.max(5, (parseInt(input.value) || 5) + delta);
+}
+// Initialer Zustand
+document.querySelectorAll('.vo-akt-zeile input[type=checkbox]:checked').forEach(cb => {
+    cb.closest('.vo-akt-zeile').classList.add('vo-akt-aktiv');
+});
+</script>
 </body>
 </html>

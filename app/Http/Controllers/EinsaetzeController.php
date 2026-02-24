@@ -255,8 +255,32 @@ class EinsaetzeController extends Controller
             'klient.verordnungen' => fn($q) => $q->where('aktiv', true),
             'leistungsart',
             'verordnung',
+            'aktivitaeten',
         ]);
-        return view('einsaetze.vor-ort', compact('einsatz'));
+        // Gespeicherte Aktivitäten als Lookup-Map: "Kategorie|Aktivität" => EinsatzAktivitaet
+        $gespeicherteAktivitaeten = $einsatz->aktivitaeten
+            ->keyBy(fn($a) => $a->kategorie . '|' . $a->aktivitaet);
+        return view('einsaetze.vor-ort', compact('einsatz', 'gespeicherteAktivitaeten'));
+    }
+
+    public function aktivitaetenSpeichern(\Illuminate\Http\Request $request, Einsatz $einsatz)
+    {
+        $this->autorisiereZugriff($einsatz);
+
+        $einsatz->aktivitaeten()->delete();
+
+        foreach ($request->input('akt', []) as $key) {
+            [$kategorie, $aktivitaet] = explode('|', $key, 2);
+            $minuten = max(5, (int) ($request->input("min.$key") ?? 5));
+            $einsatz->aktivitaeten()->create([
+                'organisation_id' => $einsatz->organisation_id,
+                'kategorie'       => $kategorie,
+                'aktivitaet'      => $aktivitaet,
+                'minuten'         => $minuten,
+            ]);
+        }
+
+        return back()->with('erfolg', 'Leistungen gespeichert.');
     }
 
     public function edit(Einsatz $einsatz)

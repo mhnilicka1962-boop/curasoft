@@ -24,12 +24,13 @@ class Einsatz extends Model
         'verrechnet'   => 'boolean',
     ];
 
-    public function klient()       { return $this->belongsTo(Klient::class); }
-    public function benutzer()     { return $this->belongsTo(Benutzer::class); }
-    public function leistungsart() { return $this->belongsTo(Leistungsart::class); }
-    public function verordnung()   { return $this->belongsTo(KlientVerordnung::class, 'verordnung_id'); }
-    public function region()       { return $this->belongsTo(Region::class); }
-    public function tour()         { return $this->belongsTo(Tour::class); }
+    public function klient()        { return $this->belongsTo(Klient::class); }
+    public function benutzer()      { return $this->belongsTo(Benutzer::class); }
+    public function leistungsart()  { return $this->belongsTo(Leistungsart::class); }
+    public function verordnung()    { return $this->belongsTo(KlientVerordnung::class, 'verordnung_id'); }
+    public function region()        { return $this->belongsTo(Region::class); }
+    public function tour()          { return $this->belongsTo(Tour::class); }
+    public function aktivitaeten()  { return $this->hasMany(EinsatzAktivitaet::class); }
 
     public function isEingecheckt(): bool  { return !is_null($this->checkin_zeit); }
     public function isAusgecheckt(): bool  { return !is_null($this->checkout_zeit); }
