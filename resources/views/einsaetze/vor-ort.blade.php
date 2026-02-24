@@ -95,60 +95,17 @@
 
 <div class="vo-sektion">
 
-    {{-- Adresse --}}
     @php
         $einsatzort = $einsatz->klient->adressen->firstWhere('typ', 'einsatzort');
         $adresse    = $einsatzort?->strasse ?? $einsatz->klient->adresse;
         $plz        = $einsatzort?->plz ?? $einsatz->klient->plz;
         $ort        = $einsatzort?->ort ?? $einsatz->klient->ort;
-    @endphp
-    @if($adresse || $plz)
-    <div class="vo-karte">
-        <div class="vo-karte-titel">Adresse</div>
-        <div class="vo-adresse">{{ $adresse }}</div>
-        <div class="vo-adresse">{{ $plz }} {{ $ort }}</div>
-        @if($adresse)
-        <a href="https://maps.google.com/?q={{ urlencode($adresse . ', ' . $plz . ' ' . $ort) }}"
-           target="_blank" style="display: inline-block; margin-top: 0.5rem; font-size: 0.8125rem; color: var(--cs-primaer);">
-            📍 In Maps öffnen
-        </a>
-        @endif
-    </div>
-    @endif
-
-    {{-- Telefon --}}
-    @if($einsatz->klient->telefon)
-    <div class="vo-karte">
-        <div class="vo-karte-titel">Telefon</div>
-        <span class="vo-tel-label">Klient</span>
-        <a href="tel:{{ preg_replace('/\s+/', '', $einsatz->klient->telefon) }}" class="vo-tel">
-            {{ $einsatz->klient->telefon }}
-        </a>
-    </div>
-    @endif
-
-    {{-- Notfallkontakte --}}
-    @php
-        $notfall = $einsatz->klient->notfallnummer;
+        $notfall    = $einsatz->klient->notfallnummer;
         $notfallkontakte = $einsatz->klient->kontakte->filter(fn($k) => $k->notfallkontakt || $k->bevollmaechtigt)->take(2);
+        $kk = $einsatz->klient->krankenkassen->first();
     @endphp
-    @if($notfall || $notfallkontakte->isNotEmpty())
-    <div class="vo-notfall">
-        <div class="vo-karte-titel">🚨 Notfall</div>
-        @if($notfall)
-        <span class="vo-tel-label">Notfallnummer</span>
-        <a href="tel:{{ preg_replace('/\s+/', '', $notfall) }}" class="vo-tel">{{ $notfall }}</a>
-        @endif
-        @foreach($notfallkontakte as $nk)
-        <span class="vo-tel-label">{{ $nk->vorname }} {{ $nk->nachname }} ({{ $nk->rolle }})</span>
-        @if($nk->telefon)
-        <a href="tel:{{ preg_replace('/\s+/', '', $nk->telefon) }}" class="vo-tel">{{ $nk->telefon }}</a>
-        @endif
-        @endforeach
-    </div>
-    @endif
 
-    {{-- Pflegehinweis (Bemerkung auf Einsatz) --}}
+    {{-- Pflegehinweis — immer sichtbar --}}
     @if($einsatz->bemerkung)
     <div class="vo-hinweis">
         <div class="vo-karte-titel">⚠ Hinweis</div>
@@ -156,74 +113,55 @@
     </div>
     @endif
 
-    {{-- Klient Basisdaten --}}
-    <div class="vo-karte">
-        <div class="vo-karte-titel">Patient</div>
-        @if($einsatz->klient->geburtsdatum)
-        <div class="vo-zeile">
-            <span class="vo-label">Geburtsdatum</span>
-            <span class="vo-wert">{{ $einsatz->klient->geburtsdatum->format('d.m.Y') }} ({{ $einsatz->klient->geburtsdatum->age }} J.)</span>
-        </div>
-        @endif
-        @if($einsatz->klient->geschlecht)
-        <div class="vo-zeile">
-            <span class="vo-label">Geschlecht</span>
-            <span class="vo-wert">{{ match($einsatz->klient->geschlecht) { 'm' => 'Männlich', 'w' => 'Weiblich', default => 'Divers' } }}</span>
-        </div>
-        @endif
-        @if($einsatz->klient->ahv_nr)
-        <div class="vo-zeile">
-            <span class="vo-label">AHV-Nr.</span>
-            <span class="vo-wert" style="font-family: monospace; font-size: 0.875rem;">{{ $einsatz->klient->ahv_nr }}</span>
-        </div>
-        @endif
-        @php $kk = $einsatz->klient->krankenkassen->first(); @endphp
-        @if($kk)
-        <div class="vo-zeile">
-            <span class="vo-label">Krankenkasse</span>
-            <span class="vo-wert">{{ $kk->krankenkasse?->name ?? $einsatz->klient->krankenkasse_name }}</span>
-        </div>
-        @endif
-    </div>
-
-    {{-- Diagnosen --}}
-    @if($einsatz->klient->diagnosen->isNotEmpty())
-    <div class="vo-karte">
-        <div class="vo-karte-titel">Diagnosen</div>
-        @foreach($einsatz->klient->diagnosen->take(5) as $d)
-        <div class="vo-zeile">
-            <span class="vo-label" style="font-family: monospace; font-size: 0.8125rem;">{{ $d->icd_code }}</span>
-            <span class="vo-wert" style="font-size: 0.875rem; font-weight: 400;">{{ $d->bezeichnung }}</span>
-        </div>
-        @endforeach
-    </div>
-    @endif
-
-    {{-- Verordnung --}}
-    @if($einsatz->verordnung)
-    <div class="vo-karte">
-        <div class="vo-karte-titel">Ärztliche Verordnung</div>
-        <div class="vo-zeile">
-            <span class="vo-label">Leistung</span>
-            <span class="vo-wert">{{ $einsatz->verordnung->leistungsart?->bezeichnung ?? 'Alle Leistungen' }}</span>
-        </div>
-        @if($einsatz->verordnung->gueltig_ab)
-        <div class="vo-zeile">
-            <span class="vo-label">Gültig ab</span>
-            <span class="vo-wert">{{ $einsatz->verordnung->gueltig_ab->format('d.m.Y') }}</span>
-        </div>
-        @endif
-        @if($einsatz->verordnung->gueltig_bis)
-        <div class="vo-zeile">
-            <span class="vo-label">Gültig bis</span>
-            <span class="vo-wert" style="color: {{ $einsatz->verordnung->gueltig_bis->isPast() ? 'var(--cs-fehler)' : 'inherit' }};">
-                {{ $einsatz->verordnung->gueltig_bis->format('d.m.Y') }}
-                @if($einsatz->verordnung->gueltig_bis->isPast()) ⚠ abgelaufen @endif
+    {{-- Kompakt-Info (aufklappbar) --}}
+    <div class="vo-karte" style="padding: 0;">
+        <button type="button" onclick="toggleInfo()"
+            style="width:100%; text-align:left; background:none; border:none; padding:0.625rem 0.75rem; font-size:0.8125rem; color:var(--cs-text-hell); cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+            <span>
+                @if($adresse){{ $adresse }}, {{ $plz }} {{ $ort }} · @endif
+                @if($einsatz->klient->telefon)<a href="tel:{{ preg_replace('/\s+/', '', $einsatz->klient->telefon) }}" onclick="event.stopPropagation()" style="color:var(--cs-primaer);">{{ $einsatz->klient->telefon }}</a>@endif
             </span>
+            <span id="info-pfeil" style="font-size:0.75rem;">▼</span>
+        </button>
+        <div id="info-details" style="display:none; padding: 0 0.75rem 0.75rem; border-top:1px solid var(--vo-border,#e5e7eb); font-size:0.8125rem; color:var(--cs-text);">
+            @if($adresse)
+            <div style="margin-top:0.5rem;">
+                {{ $adresse }}, {{ $plz }} {{ $ort }}
+                <a href="https://maps.google.com/?q={{ urlencode($adresse . ', ' . $plz . ' ' . $ort) }}" target="_blank" style="margin-left:0.5rem; color:var(--cs-primaer);">📍 Maps</a>
+            </div>
+            @endif
+            @if($notfall || $notfallkontakte->isNotEmpty())
+            <div style="margin-top:0.5rem; color:#dc2626; font-weight:600;">🚨 Notfall:
+                @if($notfall)<a href="tel:{{ preg_replace('/\s+/', '', $notfall) }}" style="color:#dc2626;">{{ $notfall }}</a>@endif
+                @foreach($notfallkontakte as $nk)
+                    @if($nk->telefon) · {{ $nk->vorname }} <a href="tel:{{ preg_replace('/\s+/', '', $nk->telefon) }}" style="color:#dc2626;">{{ $nk->telefon }}</a>@endif
+                @endforeach
+            </div>
+            @endif
+            @if($einsatz->klient->geburtsdatum)
+            <div style="margin-top:0.5rem;">
+                {{ $einsatz->klient->geburtsdatum->format('d.m.Y') }} ({{ $einsatz->klient->geburtsdatum->age }} J.)
+                @if($einsatz->klient->geschlecht) · {{ match($einsatz->klient->geschlecht) { 'm' => 'M', 'w' => 'W', default => 'D' } }}@endif
+                @if($kk) · {{ $kk->krankenkasse?->name ?? $einsatz->klient->krankenkasse_name }}@endif
+            </div>
+            @endif
+            @if($einsatz->klient->diagnosen->isNotEmpty())
+            <div style="margin-top:0.5rem; color:var(--cs-text-hell);">
+                @foreach($einsatz->klient->diagnosen->take(5) as $d)
+                <span style="font-family:monospace;">{{ $d->icd_code }}</span> {{ $d->bezeichnung }}@if(!$loop->last), @endif
+                @endforeach
+            </div>
+            @endif
+            @if($einsatz->verordnung)
+            <div style="margin-top:0.5rem;">Verordnung: {{ $einsatz->verordnung->leistungsart?->bezeichnung ?? 'Alle Leistungen' }}
+                @if($einsatz->verordnung->gueltig_bis)
+                bis {{ $einsatz->verordnung->gueltig_bis->format('d.m.Y') }}
+                @if($einsatz->verordnung->gueltig_bis->isPast()) <span style="color:#dc2626;">⚠ abgelaufen</span>@endif
+                @endif
+            </div>
+            @endif
         </div>
-        @endif
     </div>
-    @endif
 
 
     {{-- Rapporte zu diesem Einsatz --}}
@@ -302,6 +240,13 @@
 <div style="height: 1.5rem;"></div>
 
 <script>
+function toggleInfo() {
+    const d = document.getElementById('info-details');
+    const p = document.getElementById('info-pfeil');
+    const open = d.style.display === 'block';
+    d.style.display = open ? 'none' : 'block';
+    p.textContent   = open ? '▼' : '▲';
+}
 function zeigeRapport(datum, inhalt) {
     document.getElementById('rapport-modal-datum').textContent = 'Rapport ' + datum;
     document.getElementById('rapport-modal-inhalt').textContent = inhalt;
