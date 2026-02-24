@@ -176,7 +176,7 @@
                 <button type="submit" class="btn btn-primaer" style="font-size: 1rem; padding: 0.625rem 1.5rem;">
                     Rapport speichern
                 </button>
-                <a href="{{ $einsatz ? route('einsaetze.show', $einsatz) : route('rapporte.index') }}"
+                <a href="{{ $einsatz ? route('einsaetze.vor-ort', $einsatz) : route('rapporte.index') }}"
                     class="btn btn-sekundaer" style="font-size: 1rem; padding: 0.625rem 1rem;">
                     Abbrechen
                 </a>
