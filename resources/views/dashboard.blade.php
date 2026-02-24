@@ -55,11 +55,12 @@
                         <div class="text-hell listen-meta">{{ $e->leistungsart->bezeichnung }}</div>
                     @endif
                 </div>
-                <div class="text-mini text-hell text-rechts flex-shrink-0">
+                <div class="text-mini text-hell text-rechts flex-shrink-0" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem;">
                     @if($e->zeit_von) <div>{{ substr($e->zeit_von, 0, 5) }}@if($e->zeit_bis) – {{ substr($e->zeit_bis, 0, 5) }}@endif</div> @endif
                     @if(auth()->user()->rolle === 'admin' && $e->benutzer)
                         <div>{{ $e->benutzer->vorname }}</div>
                     @endif
+                    <a href="{{ route('einsaetze.vor-ort', $e) }}" class="badge badge-klein badge-grau" style="text-decoration: none;">Vor Ort →</a>
                 </div>
             </div>
         </div>

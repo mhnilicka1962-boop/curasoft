@@ -239,6 +239,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/checkin/{einsatz}/aktiv',       [CheckInController::class, 'aktiv'])->name('checkin.aktiv');
         Route::post('/checkout/{einsatz}/gps',       [CheckInController::class, 'checkoutGps'])->name('checkout.gps');
         Route::post('/checkout/{einsatz}/manuell',   [CheckInController::class, 'checkoutManuell'])->name('checkout.manuell');
+        Route::post('/checkin/{einsatz}/in',         [CheckInController::class, 'checkinVorOrt'])->name('checkin.in');
+        Route::post('/checkout/{einsatz}/out',       [CheckInController::class, 'checkoutVorOrt'])->name('checkin.out');
     });
 
     // Abrechnung — Buchhaltung + Admin

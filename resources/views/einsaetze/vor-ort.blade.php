@@ -55,7 +55,7 @@
 {{-- Check-in / Check-out --}}
 <div style="margin-top: 0.75rem;">
 @if(!$einsatz->checkin_zeit)
-    <form method="POST" action="{{ route('checkin.in', $einsatz->checkin_token) }}">
+    <form method="POST" action="{{ route('checkin.in', $einsatz) }}">
         @csrf
         <button type="submit" class="vo-checkin-btn ein">▶ Check-in jetzt</button>
     </form>
@@ -63,7 +63,7 @@
     <div style="padding: 0.5rem 0.75rem 0; font-size: 0.8125rem; color: #16a34a; font-weight: 500; text-align: center;">
         ✓ Eingecheckt {{ $einsatz->checkin_zeit->format('H:i') }} Uhr
     </div>
-    <form method="POST" action="{{ route('checkin.out', $einsatz->checkin_token) }}">
+    <form method="POST" action="{{ route('checkin.out', $einsatz) }}">
         @csrf
         <button type="submit" class="vo-checkin-btn aus" style="margin-top: 0.5rem;">■ Check-out</button>
     </form>

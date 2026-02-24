@@ -140,7 +140,7 @@ class CheckInController extends Controller
         AuditLog::schreiben('checkout', 'Einsatz', $einsatz->id,
             "Check-out via GPS — Dauer: {$einsatz->dauerMinuten()} Min.");
 
-        return redirect()->route('einsaetze.show', $einsatz)
+        return redirect()->route('einsaetze.vor-ort', $einsatz)
             ->with('erfolg', "Einsatz abgeschlossen — Dauer: {$einsatz->fresh()->dauerMinuten()} Minuten.");
     }
 
@@ -166,8 +166,45 @@ class CheckInController extends Controller
         AuditLog::schreiben('checkout', 'Einsatz', $einsatz->id,
             "Check-out manuell: {$request->checkout_zeit}");
 
-        return redirect()->route('einsaetze.show', $einsatz)
+        return redirect()->route('einsaetze.vor-ort', $einsatz)
             ->with('erfolg', 'Einsatz abgeschlossen.');
+    }
+
+    // Check-in direkt von Vor-Ort-Seite (kein GPS/QR nötig)
+    public function checkinVorOrt(Einsatz $einsatz)
+    {
+        $this->autorisiereZugriff($einsatz);
+
+        $einsatz->update([
+            'checkin_zeit'    => now(),
+            'checkin_methode' => 'manuell',
+            'status'          => 'aktiv',
+        ]);
+
+        AuditLog::schreiben('checkin', 'Einsatz', $einsatz->id, "Check-in vor Ort");
+
+        return redirect()->route('einsaetze.vor-ort', $einsatz)
+            ->with('erfolg', 'Eingecheckt.');
+    }
+
+    // Check-out direkt von Vor-Ort-Seite
+    public function checkoutVorOrt(Einsatz $einsatz)
+    {
+        $this->autorisiereZugriff($einsatz);
+
+        $einsatz->update([
+            'checkout_zeit'    => now(),
+            'checkout_methode' => 'manuell',
+            'minuten'          => $einsatz->checkin_zeit
+                ? (int) $einsatz->checkin_zeit->diffInMinutes(now())
+                : null,
+            'status'           => 'abgeschlossen',
+        ]);
+
+        AuditLog::schreiben('checkout', 'Einsatz', $einsatz->id, "Check-out vor Ort");
+
+        return redirect()->route('einsaetze.vor-ort', $einsatz)
+            ->with('erfolg', 'Abgeschlossen.');
     }
 
     // Haversine-Formel: Distanz in Metern zwischen zwei GPS-Punkten
