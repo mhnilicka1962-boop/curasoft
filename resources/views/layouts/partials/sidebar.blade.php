@@ -17,6 +17,9 @@
     <div class="hauptinhalt">
         <header class="header">
             <button class="mobile-menu-btn btn btn-sekundaer" onclick="toggleSidebar()">☰</button>
+            <div class="header-logo-mobile">
+                <x-logo />
+            </div>
             <div class="header-rechts">
                 @include('layouts.partials.header-user')
             </div>

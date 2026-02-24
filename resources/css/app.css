@@ -440,6 +440,8 @@ body {
 
 /* Header rechts */
 .header-rechts { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
+.header-logo-mobile { flex: 1; display: flex; justify-content: center; }
+@media (min-width: 769px) { .header-logo-mobile { display: none; } }
 
 /* ============================================================
    Responsive — Mobile
