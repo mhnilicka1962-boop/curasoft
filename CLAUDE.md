@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-24 (Session 10)
+## Stand: 2026-02-24 (Session 11)
 
 ---
 
@@ -72,6 +72,7 @@
 | `2026_02_23_140000` | leistungsarten: tarmed_code varchar(20) nullable |
 | `2026_02_23_150000` | klienten: klient_typ; klient_benutzer: beziehungstyp; benutzer: anstellungsart; einsaetze: leistungserbringer_typ |
 | `2026_02_23_125201` | benutzer_leistungsarten (Pivot: erlaubte Leistungsarten pro Mitarbeiter) |
+| `2026_02_24_215401` | nachrichten: parent_id (nullable FK Self-Reference → Threading) |
 
 ### Seeders (bereits eingespielt)
 - `LeistungsartenSeeder` — 5 Leistungsarten mit Default-Ansätzen
@@ -237,6 +238,39 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 11 (2026-02-24)
+
+### Nachrichten: Threading (parent_id)
+- Migration: `parent_id` nullable FK auf `nachrichten` (Self-Reference), `nullOnDelete`
+- `Nachricht` Model: `parent_id` in fillable, neue Beziehungen:
+  - `antworten()` → hasMany Nachricht (parent_id), geordnet nach `created_at`
+  - `parent()` → belongsTo Nachricht
+- `NachrichtenController::antworten()`:
+  - Setzt `parent_id = root.id` auf neue Antwort (immer zur Root-Nachricht verlinkt)
+  - Empfänger-Logik: Absender antwortet → alle ursprünglichen Empfänger; Empfänger antwortet → Absender
+  - Redirect immer zur Root-Nachricht (`nachrichten.show $root->id`)
+- `NachrichtenController::show()`:
+  - Wenn `parent_id` gesetzt → Redirect zur Root-Nachricht
+  - Lädt vollständigen Thread: Root + alle Antworten (eager load `antworten.absender`)
+  - Markiert alle Nachrichten im Thread als gelesen (Root + alle Antworten)
+- `nachrichten/show.blade.php` — Thread-Ansicht:
+  - Originalnachricht als Karte
+  - Antworten als blau-linierte Karten (`border-left: 3px solid var(--cs-primaer)`)
+  - Gemeinsames Antwort-Formular am Ende für alle Thread-Teilnehmer
+
+### Nachrichten: Auto-Archivierung nach 90 Tagen
+- In `index()`: einmal täglich (Cache-Throttle per `auth()->id()`, 24h TTL)
+- Archiviert alle `nachricht_empfaenger`-Einträge älter als 90 Tage für den aktuellen Benutzer
+- Kein Cronjob nötig — lazy cleanup beim ersten Posteingang-Aufruf des Tages
+
+### Nachrichten: Archiv-Tab
+- Dritter Tab "Archiv" in `nachrichten/index.blade.php`
+- Zeigt alle archivierten Root-Nachrichten des Benutzers (manuell ✕ oder Auto-90-Tage)
+- Archivierte Nachrichten bleiben lesbar (Thread-Ansicht weiterhin erreichbar)
+- Posteingang und Gesendet filtern nun auf `whereNull('parent_id')` — nur Root-Nachrichten, keine einzelnen Antworten als separate Einträge
 
 ---
 
