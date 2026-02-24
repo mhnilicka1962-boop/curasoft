@@ -63,6 +63,14 @@
     </div>
 </div>
 
+{{-- Rapport-Button oben --}}
+<div style="padding: 0.75rem 0.75rem 0;">
+    <a href="{{ route('rapporte.create', ['klient_id' => $einsatz->klient_id, 'einsatz_id' => $einsatz->id]) }}"
+       class="vo-checkin-btn ein" style="display: block; text-decoration: none; text-align: center; padding: 0.75rem; background: var(--cs-primaer);">
+        + Rapport schreiben
+    </a>
+</div>
+
 {{-- Check-in / Check-out --}}
 <div style="margin-top: 0.75rem;">
 @if(!$einsatz->checkin_zeit)
