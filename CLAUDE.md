@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-23 (Session 6)
+## Stand: 2026-02-24 (Session 7)
 
 ---
 
@@ -13,6 +13,18 @@
 | **Passwort** | `Admin2026!` |
 | **Rolle** | admin |
 | **Organisation** | ID 1 (einzige — kein Multi-Tenant) |
+
+## Login-Daten (Demo-Server)
+
+| | |
+|---|---|
+| **URL** | `https://www.curasoft.ch/login` |
+| **Admin E-Mail** | `demo@curasoft.ch` |
+| **Admin Passwort** | `Admin2026!` |
+| **Pflege E-Mail** | `sandra.huber@test.spitex` |
+| **Pflege Passwort** | `test1234` |
+| **Weitere Pflege** | `peter.keller@test.spitex` / `test1234` etc. |
+| **Buchhaltung** | `lisa.bauer@test.spitex` / `test1234` |
 
 ---
 
@@ -224,6 +236,37 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 7 (2026-02-24)
+
+### Demo-Server aufgesetzt (www.curasoft.ch)
+- **Host:** devitjob.ch (cPanel Shared Hosting)
+- **Domain:** `www.curasoft.ch` → Document Root: `/home/devitjob/public_html/spitex/public`
+- **DB:** `devitjob_curasoft`, User: `devitjob_csapp`
+- **PHP:** 8.2.29, Git 2.48.2, Composer 2.8.11, PostgreSQL 13.23
+- **Repo:** Public GitHub `mhnilicka1962-boop/curasoft` — via `git clone` auf Server
+- **Vite Assets:** Lokal gebaut (`npm run build`), per FTP hochgeladen nach `public/build/`
+- **Alle Seeders eingespielt:** LeistungsartenSeeder, EinsatzartenSeeder, KrankenkassenSeeder, QualifikationenSeeder, TestdatenSeeder
+- **Cache-Tabelle** nachträglich angelegt: `php artisan cache:table && php artisan migrate --force`
+
+### TestdatenSeeder — Vollständig ausgebaut
+- 10 Pflegefachpersonen (Sandra Huber, Peter Keller, Monika Leuthold, Beat Zimmermann, Claudia Roth, Thomas Brunner, Ursula Streit, Marco Steiner, Andrea Maurer, Daniel Fehr)
+- 3 pflegende Angehörige (Ruth Gerber, Franziska Käser, Stefan Schneider) — `anstellungsart='angehoerig'`, nicht in Touren
+- 1 Buchhaltung (Lisa Bauer)
+- 5 Ärzte (Müller/Allgemein, Weber/Neurologie, Fischer/Kardiologie, Huber/Geriatrie, Meier/Onkologie)
+- 20 Klienten mit vollen Details
+- 383 Einsätze, 88 Rapporte, 6 Touren, 5 Rechnungen, 8 Verordnungen
+- Alle Passwörter: `test1234`
+
+### AuthController — Email trim()
+- `Auth::attempt()` ruft jetzt `trim($request->email)` auf → verhindert Login-Fehler bei versehentlichen Leerzeichen
+
+### Passkeys / Face ID — Testworkflow
+- Lokal (`http://spitex.test`) **nicht testbar** — kein HTTPS, Browser blockiert WebAuthn
+- **Demo-Server** (`https://www.curasoft.ch`) hat HTTPS → Passkeys dort testen
+- Workflow: lokal entwickeln → auf Demo deployen → Passkeys auf Demo testen
 
 ---
 
