@@ -316,6 +316,23 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 
 ---
 
+## Neu in Session 14 (2026-02-25)
+
+### Swiss QR-Rechnung (Seite 2) im PDF
+- `sprain/swiss-qr-bill` v5.3 installiert
+- `PdfExportService` generiert QR-Code als PNG (base64) wenn IBAN in Regionsdaten vorhanden
+- `pdfs/rechnung.blade.php` Seite 2: vollständiger Zahlteil + Empfangsschein (Swiss QR Standard)
+  - 62mm Empfangsschein links (Trennlinie), 148mm Zahlteil rechts mit QR-Code
+  - Wenn kein QR: Zahlungsinfo-Block mit IBAN-Text (wie bisher)
+- `logo_ausrichtung` aus Org-Settings wird respektiert (3 Varianten):
+  - `links_anschrift_rechts` (Standard): Logo links, Org-Details rechts
+  - `rechts_anschrift_links`: Org-Details links, Logo rechts
+  - `mitte_anschrift_fusszeile`: Logo zentriert
+- Spalten der Positionstabelle je Rechnungstyp: nur KK / nur Patient / beide
+- Deploy: `git pull && composer install --no-dev` auf Demo-Server erforderlich (neues Paket)
+
+---
+
 ## Neu in Session 13 (2026-02-25)
 
 ### PDF-Export für Rechnungen
