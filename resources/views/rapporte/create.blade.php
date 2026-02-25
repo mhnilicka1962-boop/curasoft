@@ -91,6 +91,12 @@
                     </div>
                 </div>
 
+                {{-- Diktat: Browser-Hinweis (wird via JS eingeblendet wenn kein Speech-Support) --}}
+                <div id="diktat-browser-hinweis" style="display:none; background:#fef9c3; border:1px solid #fde047; border-radius:0.5rem; padding:0.5rem 0.75rem; font-size:0.8125rem; color:#713f12; margin-bottom:0.5rem;">
+                    🎙 Diktat funktioniert nur in <strong>Chrome, Edge oder Safari</strong> — nicht in Firefox.<br>
+                    <span style="opacity:0.8;">Der KI-Rapport (✨) funktioniert in allen Browsern.</span>
+                </div>
+
                 {{-- Buttons: Mikrofon + KI --}}
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                     <button type="button" id="btn-mikro" onclick="toggleDiktat()"
@@ -275,7 +281,7 @@ let diktatAktiv = false;
 
 function toggleDiktat() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        alert('Spracherkennung wird von diesem Browser nicht unterstützt.\nBitte Chrome oder Edge verwenden.');
+        document.getElementById('diktat-browser-hinweis').style.display = 'block';
         return;
     }
 
@@ -324,7 +330,7 @@ let diktatHauptAktiv = false;
 
 function toggleDiktatHaupt() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        alert('Spracherkennung wird von diesem Browser nicht unterstützt.\nBitte Chrome oder Edge verwenden.');
+        document.getElementById('diktat-browser-hinweis').style.display = 'block';
         return;
     }
 

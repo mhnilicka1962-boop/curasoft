@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-24 (Session 11)
+## Stand: 2026-02-25 (Session 12)
 
 ---
 
@@ -81,6 +81,81 @@
 
 ### DB-Inhalt (Testdaten)
 - Region AG (Aargau) mit 5 Leistungsregionen (Auto-Copy beim Anlegen)
+
+---
+
+## Multi-Tenant Architektur (Entscheid Session 12 — 2026-02-25)
+
+### Entscheid: Subdomain + separate DB pro Organisation
+
+**Gewählt:** `kundenname.curasoft.ch` → eigene PostgreSQL-DB pro Kunde
+**Verworfen:** Shared DB mit `organisation_id` (Datenleck-Risiko bei Gesundheitsdaten, nDSG)
+**Verworfen:** Separate Code-Instanz pro Kunde (zu aufwändig im Betrieb)
+
+### Konzept
+
+```
+*.curasoft.ch  →  Wildcard DNS  →  gleicher Server / gleiche Laravel-App
+                                         ↓
+                               TenantMiddleware liest Subdomain
+                                         ↓
+                               Master-DB: subdomains-Tabelle
+                               subdomain → db_name, db_user, db_password
+                                         ↓
+                               config()->set('database.connections.tenant', ...)
+                               DB::setDefaultConnection('tenant')
+```
+
+### Master-DB (`curasoft_master`)
+- Tabelle `tenants`: `subdomain`, `db_name`, `db_user`, `db_password`, `aktiv`, `erstellt_am`
+- Einzige zentrale DB — enthält nur Routing-Infos, keine Patientendaten
+- Lokal und auf Demo-Server je eine Master-DB einrichten
+
+### Tenant-DB (z.B. `curasoft_aarau`)
+- Komplette Migrations-Struktur wie jetzt
+- Seeders: LeistungsartenSeeder, EinsatzartenSeeder, KrankenkassenSeeder
+- Eine Organisation, ein Admin-Benutzer (per Provisioning-Script anlegen)
+
+### Provisioning — neuer Kunde
+```bash
+# 1. DB anlegen
+createdb curasoft_aarau
+
+# 2. Migrations + Basis-Seeders
+php artisan migrate --database=tenant_aarau
+php artisan db:seed --class=LeistungsartenSeeder --database=tenant_aarau
+# etc.
+
+# 3. Master-DB Eintrag
+INSERT INTO tenants (subdomain, db_name, ...) VALUES ('spitex-aarau', 'curasoft_aarau', ...)
+
+# 4. DNS: spitex-aarau.curasoft.ch → Server (Wildcard deckt das ab)
+```
+→ Wird zu einem einzigen Artisan-Command (`tenant:create spitex-aarau "Spitex Aarau"`)
+
+### Migrations über alle Tenants
+```bash
+# Bei Schema-Änderung: Loop über alle aktiven Tenants
+php artisan tenant:migrate  # custom Command, iteriert tenants-Tabelle
+```
+
+### Demo-Server — aktueller Stand (single-tenant)
+- `www.curasoft.ch` läuft als **single-tenant Demo** (DB: `devitjob_curasoft`)
+- Bleibt vorerst so — dient als Vorführ-Instanz für Interessenten
+- Wenn Multi-Tenant live geht: `demo.curasoft.ch` → eigene Demo-DB, `www.curasoft.ch` → Landing Page
+
+### Hosting
+- Provider: devitjob.ch (cPanel)
+- Wildcard-Subdomain `*.curasoft.ch` → beim Provider anfragen / konfigurieren
+- Max. ~50 Subdomains laut Provider — ausreichend für Pilotphase
+
+### Noch zu implementieren
+- [ ] `TenantMiddleware` (Subdomain → DB-Connection)
+- [ ] Master-DB Migration + Model `Tenant`
+- [ ] `tenant:create` Artisan-Command
+- [ ] `tenant:migrate` Artisan-Command (alle DBs migrieren)
+- [ ] Login-Seite pro Subdomain (Firmenname/Logo aus Org-DB)
+- [ ] `www.curasoft.ch` umbauen auf Landing Page (kein Login mehr direkt auf Root)
 
 ---
 
@@ -238,6 +313,18 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 12 (2026-02-25)
+
+### Architektur-Entscheid: Multi-Tenant via Subdomain + separate DB
+
+- **Entscheid getroffen:** `kundenname.curasoft.ch` + eigene PostgreSQL-DB pro Organisation
+- Wildcard DNS `*.curasoft.ch` beim Provider konfigurieren (max. 50 Subdomains — ausreichend)
+- Keine Shared-DB mit `org_id` (Datenleck-Risiko für Gesundheitsdaten unakzeptabel)
+- Demo unter `www.curasoft.ch` bleibt vorerst single-tenant, wird später `demo.curasoft.ch`
+- Vollständiges Konzept siehe Abschnitt **"Multi-Tenant Architektur"** weiter oben
 
 ---
 

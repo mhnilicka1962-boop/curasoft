@@ -11,7 +11,7 @@ class Organisation extends Model
     protected $fillable = [
         'name', 'adresse', 'postfach', 'adresszusatz', 'plz', 'ort', 'kanton',
         'telefon', 'fax', 'email', 'website',
-        'zsr_nr', 'mwst_nr', 'abrechnungsnummer',
+        'zsr_nr', 'gln', 'mwst_nr', 'abrechnungsnummer',
         'bank', 'bankadresse', 'iban', 'postcheckkonto',
         'logo_pfad', 'theme_layout', 'theme_farbe_primaer',
         'druck_mit_firmendaten', 'rechnungsadresse_position', 'logo_ausrichtung',

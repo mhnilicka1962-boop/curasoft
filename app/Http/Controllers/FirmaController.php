@@ -31,6 +31,7 @@ class FirmaController extends Controller
         $request->validate([
             'name'                     => ['required', 'string', 'max:150'],
             'zsr_nr'                   => ['nullable', 'string', 'max:20'],
+            'gln'                      => ['nullable', 'digits:13'],
             'mwst_nr'                  => ['nullable', 'string', 'max:30'],
             'adresse'                  => ['nullable', 'string', 'max:200'],
             'postfach'                 => ['nullable', 'string', 'max:50'],
@@ -56,7 +57,7 @@ class FirmaController extends Controller
 
         $updates = array_merge(
             $request->only([
-                'name', 'zsr_nr', 'mwst_nr', 'adresse', 'postfach', 'adresszusatz',
+                'name', 'zsr_nr', 'gln', 'mwst_nr', 'adresse', 'postfach', 'adresszusatz',
                 'plz', 'ort', 'telefon', 'fax', 'email', 'website',
                 'bank', 'bankadresse', 'iban', 'postcheckkonto',
                 'rechnungsadresse_position', 'logo_ausrichtung',

@@ -24,6 +24,12 @@
                 <div>
                     <label class="feld-label">ZSR-Nr. (Spitex-Zulassung)</label>
                     <input type="text" name="zsr_nr" class="feld" value="{{ old('zsr_nr', $org->zsr_nr) }}" placeholder="M0842.03">
+                    <div class="text-mini text-hell" style="margin-top: 0.2rem;">Ausgestellt von SASIS AG — pro Kanton überschreibbar (Abschnitt Kantone)</div>
+                </div>
+                <div>
+                    <label class="feld-label">GLN (13-stellig, GS1)</label>
+                    <input type="text" name="gln" class="feld" value="{{ old('gln', $org->gln) }}" placeholder="7601003XXXXXX" maxlength="13" pattern="[0-9]{13}">
+                    <div class="text-mini text-hell" style="margin-top: 0.2rem;">Pflicht für XML 450.100 — beantragen bei <a href="https://www.gs1.ch" target="_blank" style="color:var(--cs-primaer);">gs1.ch</a></div>
                 </div>
                 <div>
                     <label class="feld-label">MWST-Nr.</label>

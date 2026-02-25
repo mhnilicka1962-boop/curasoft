@@ -123,6 +123,8 @@ class MitarbeiterController extends Controller
             'email'           => ['required', 'email', 'unique:benutzer,email,' . $mitarbeiter->id],
             'email_privat'    => ['nullable', 'email', 'max:100'],
             'ahv_nr'          => ['nullable', 'string', 'max:20'],
+            'gln'             => ['nullable', 'digits:13'],
+            'nareg_nr'        => ['nullable', 'string', 'max:20'],
             'iban'            => ['nullable', 'string', 'max:25'],
             'bank'            => ['nullable', 'string', 'max:100'],
             'pensum'          => ['nullable', 'integer', 'min:0', 'max:100'],

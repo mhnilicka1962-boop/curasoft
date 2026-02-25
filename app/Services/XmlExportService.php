@@ -34,6 +34,7 @@ class XmlExportService
             'klient.krankenkassen.krankenkasse',
             'positionen.einsatz.verordnung',
             'positionen.einsatz.leistungsart',
+            'positionen.einsatz.benutzer',  // GLN der Pflegefachperson pro Position
         ]);
 
         if (!$rechnung->klient) {
@@ -122,7 +123,7 @@ class XmlExportService
         // ── Biller (Rechnungssteller = Spitex-Org) ────────────────────────────
         $biller = $dom->createElement('biller');
         $biller->setAttribute('zsr', $zsrNr ?? '');
-        $biller->setAttribute('ean_party', $org->ean_nr ?? '');
+        $biller->setAttribute('ean_party', $org->gln ?? '');
         $tiersEl->appendChild($biller);
         $this->adresseAnhaengen($dom, $biller, $org->name, $org->adresse, $org->plz, $org->ort);
 
@@ -135,7 +136,7 @@ class XmlExportService
 
         $provider = $dom->createElement('provider');
         $provider->setAttribute('zsr', $zsrNr ?? '');
-        $provider->setAttribute('ean_party', $org->ean_nr ?? '');
+        $provider->setAttribute('ean_party', $org->gln ?? '');
         $provider->setAttribute('specialty', $specialty);
         $tiersEl->appendChild($provider);
         $this->adresseAnhaengen($dom, $provider, $org->name, $org->adresse, $org->plz, $org->ort);
@@ -224,8 +225,10 @@ class XmlExportService
             $service->setAttribute('unit_factor',    '1.00');
             $service->setAttribute('unit_price',     number_format($unitPrice, 4, '.', ''));
             $service->setAttribute('amount',         number_format((float) ($pos->betrag_kk ?? 0), 2, '.', ''));
-            $service->setAttribute('ean_responsible', $org->ean_nr ?? '');
-            $service->setAttribute('ean_provider',    $org->ean_nr ?? '');
+            // ean_responsible = GLN der Pflegefachperson (NAREG) — Fallback auf Org-GLN
+            $pflegeGln = $einsatz?->benutzer?->gln ?? $org->gln ?? '';
+            $service->setAttribute('ean_responsible', $pflegeGln);
+            $service->setAttribute('ean_provider',    $org->gln ?? '');
             if ($la) {
                 $service->setAttribute('name', $this->s($la->bezeichnung));
             }

@@ -19,7 +19,7 @@ class Benutzer extends Authenticatable
         'telefon', 'telefax',
         'email', 'email_privat',
         'password',
-        'ahv_nr', 'iban', 'bank',
+        'ahv_nr', 'gln', 'nareg_nr', 'iban', 'bank',
         'pensum', 'eintrittsdatum', 'austrittsdatum',
         'rolle', 'anstellungsart', 'aktiv',
         'notizen',

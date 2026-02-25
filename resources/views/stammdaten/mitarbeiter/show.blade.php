@@ -111,6 +111,16 @@
                 <label class="feld-label">AHV-Nr.</label>
                 <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr', $mitarbeiter->ahv_nr) }}" placeholder="756.XXXX.XXXX.XX">
             </div>
+            <div>
+                <label class="feld-label">GLN (NAREG, 13-stellig)</label>
+                <input type="text" name="gln" class="feld" value="{{ old('gln', $mitarbeiter->gln) }}" placeholder="7601003XXXXXX" maxlength="13" pattern="[0-9]{13}">
+                <div class="text-mini text-hell" style="margin-top: 0.2rem;">Aus NAREG-Register — Pflicht für XML-Abrechnung</div>
+            </div>
+            <div>
+                <label class="feld-label">NAREG-Nr.</label>
+                <input type="text" name="nareg_nr" class="feld" value="{{ old('nareg_nr', $mitarbeiter->nareg_nr) }}" placeholder="80012345">
+                <div class="text-mini text-hell" style="margin-top: 0.2rem;">Registernummer auf <a href="https://www.nareg.admin.ch" target="_blank" style="color:var(--cs-primaer);">nareg.admin.ch</a></div>
+            </div>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
