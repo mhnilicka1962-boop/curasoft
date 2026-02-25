@@ -105,7 +105,7 @@
                     </button>
                     <button type="button" id="btn-ki" onclick="kiVorschlag()"
                         style="flex: 1; min-width: 140px; background: #2563eb; color: #fff; border: 2px solid #2563eb; border-radius: 0.5rem; padding: 0.625rem 1rem; font-size: 0.9375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: background 0.15s;">
-                        <span id="ki-btn-text">✨ KI Rapport schreiben</span>
+                        <span id="ki-btn-text">✨ KI Bericht schreiben</span>
                     </button>
                 </div>
 
@@ -260,7 +260,7 @@ async function kiVorschlag() {
         alert('KI nicht erreichbar. Bitte manuell schreiben.');
     } finally {
         btn.disabled  = false;
-        btnTxt.textContent = '✨ KI Rapport schreiben';
+        btnTxt.textContent = '✨ KI Bericht schreiben';
     }
 }
 
@@ -312,7 +312,7 @@ function toggleDiktat() {
         el.value = (el.value + ' ' + transkript).trim();
     };
 
-    diktatRec.onend = () => {
+    const diktatReset = () => {
         diktatAktiv = false;
         document.getElementById('btn-mikro').style.background = '#fff';
         document.getElementById('btn-mikro').style.borderColor = '#2563eb';
@@ -320,6 +320,9 @@ function toggleDiktat() {
         document.getElementById('mikro-btn-text').textContent = '🎙 Diktieren';
         document.getElementById('diktat-status').style.display = 'none';
     };
+
+    diktatRec.onend  = diktatReset;
+    diktatRec.onerror = (e) => { diktatReset(); };
 
     diktatRec.start();
 }

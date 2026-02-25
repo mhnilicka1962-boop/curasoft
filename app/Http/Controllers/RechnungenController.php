@@ -9,6 +9,7 @@ use App\Models\Organisation;
 use App\Models\Rechnung;
 use App\Models\RechnungsPosition;
 use App\Services\BexioService;
+use App\Services\PdfExportService;
 use App\Services\XmlExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -174,6 +175,21 @@ class RechnungenController extends Controller
             return Storage::download($pfad, "rechnung_{$rechnung->rechnung_nr}.xml");
         } catch (\Exception $e) {
             return back()->with('fehler', 'XML-Export fehlgeschlagen: ' . $e->getMessage());
+        }
+    }
+
+    public function pdfExport(Rechnung $rechnung)
+    {
+        $this->autorisiereZugriff($rechnung);
+
+        $org     = Organisation::findOrFail($this->orgId());
+        $service = new PdfExportService($org);
+
+        try {
+            $pfad = $service->rechnungExportieren($rechnung);
+            return Storage::download($pfad, "rechnung_{$rechnung->rechnungsnummer}.pdf");
+        } catch (\Exception $e) {
+            return back()->with('fehler', 'PDF-Export fehlgeschlagen: ' . $e->getMessage());
         }
     }
 

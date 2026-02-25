@@ -16,8 +16,8 @@
                 </button>
             </form>
             @endif
-            {{-- PDF Placeholder --}}
-            <button class="btn btn-sekundaer" disabled title="Folgt bald">📄 PDF</button>
+            {{-- PDF Export --}}
+            <a href="{{ route('rechnungen.pdf', $rechnung) }}" class="btn btn-sekundaer" title="PDF herunterladen">📄 PDF</a>
         </div>
     </div>
 

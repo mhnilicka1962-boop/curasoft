@@ -250,6 +250,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/rechnungen/{rechnung}/status', [RechnungenController::class, 'statusUpdate'])->name('rechnungen.status');
         Route::patch('/rechnungen/positionen/{position}', [RechnungenController::class, 'positionUpdate'])->name('rechnungen.position.update');
         Route::get('/rechnungen/{rechnung}/xml',        [RechnungenController::class, 'xmlExport'])->name('rechnungen.xml');
+        Route::get('/rechnungen/{rechnung}/pdf',        [RechnungenController::class, 'pdfExport'])->name('rechnungen.pdf');
         Route::post('/rechnungen/{rechnung}/bexio/sync', [RechnungenController::class, 'bexioSync'])->name('rechnungen.bexio.sync');
     });
 
