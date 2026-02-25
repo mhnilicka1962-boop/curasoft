@@ -167,7 +167,7 @@ class RechnungenController extends Controller
     public function xmlExport(Rechnung $rechnung)
     {
         $this->autorisiereZugriff($rechnung);
-        $rechnung->loadMissing(['klient.region', 'klient.krankenkassen.krankenkasse', 'positionen.leistungsart']);
+        $rechnung->loadMissing(['klient.region', 'klient.krankenkassen.krankenkasse', 'positionen.leistungstyp.leistungsart']);
 
         $org     = Organisation::findOrFail($this->orgId());
         $service = new XmlExportService($org);

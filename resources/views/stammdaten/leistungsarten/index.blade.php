@@ -48,8 +48,11 @@
                         <span class="badge badge-fehler">Inaktiv</span>
                     @endif
                 </td>
-                <td class="text-rechts">
-                    <a href="{{ route('leistungsarten.edit', $la) }}" class="btn btn-sekundaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;">Bearbeiten</a>
+                <td class="text-rechts" style="white-space: nowrap;">
+                    <a href="{{ route('leistungsarten.show', $la) }}" class="btn btn-primaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;">
+                        Kantone ({{ $la->tarife_count }})
+                    </a>
+                    <a href="{{ route('leistungsarten.edit', $la) }}" class="btn btn-sekundaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;">✏</a>
                 </td>
             </tr>
             @empty

@@ -40,6 +40,11 @@
                         class="text-mittel link-primaer">
                         {{ $klient->nachname }} {{ $klient->vorname }}
                     </a>
+                    @if($klient->aktiv && $klient->beitraege_count === 0)
+                        <span class="badge" style="background:#fef2f2; color:#b91c1c; border:1px solid #fca5a5; font-size:0.7rem; margin-left:0.25rem;" title="Kein Beitrag erfasst — Abrechnung nicht möglich">
+                            Kein Beitrag
+                        </span>
+                    @endif
                     <span class="mobile-meta">
                         {{ $klient->ort ?? '' }}{{ $klient->geburtsdatum ? ' · ' . $klient->geburtsdatum->format('d.m.Y') : '' }}
                     </span>

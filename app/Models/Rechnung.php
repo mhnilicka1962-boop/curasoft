@@ -19,7 +19,8 @@ class Rechnung extends Model
         'organisation_id', 'klient_id', 'rechnungsnummer',
         'periode_von', 'periode_bis', 'rechnungsdatum',
         'betrag_patient', 'betrag_kk', 'betrag_total',
-        'status', 'rechnungstyp', 'pdf_pfad',
+        'status', 'rechnungstyp', 'rechnungslauf_id', 'pdf_pfad',
+        'email_versand_datum', 'email_versand_an', 'email_fehler',
     ];
 
     protected $casts = [
@@ -33,6 +34,7 @@ class Rechnung extends Model
 
     public function klient()     { return $this->belongsTo(Klient::class); }
     public function positionen() { return $this->hasMany(RechnungsPosition::class); }
+    public function lauf()       { return $this->belongsTo(Rechnungslauf::class, 'rechnungslauf_id'); }
 
     public function berechneTotale(): void
     {

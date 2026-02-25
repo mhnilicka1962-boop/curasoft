@@ -26,7 +26,10 @@
             <a href="{{ route('rechnungen.index') }}" class="btn btn-sekundaer">✕</a>
         @endif
     </form>
-    <a href="{{ route('rechnungen.create') }}" class="btn btn-primaer">+ Neue Rechnung</a>
+    <div style="display: flex; gap: 0.5rem;">
+        <a href="{{ route('rechnungslauf.index') }}" class="btn btn-sekundaer">Rechnungslaeufe</a>
+        <a href="{{ route('rechnungen.create') }}" class="btn btn-primaer">+ Neue Rechnung</a>
+    </div>
 </div>
 
 {{-- Tabelle --}}

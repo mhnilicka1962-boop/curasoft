@@ -25,6 +25,34 @@
         </div>
     </div>
 
+    {{-- Warnungen: fehlende Konfiguration --}}
+    @php
+        $warnungen = [];
+        if ($klient->aktiv) {
+            // Region ohne Tarife?
+            if ($klient->region_id && !\App\Models\Leistungsregion::where('region_id', $klient->region_id)->exists()) {
+                $regionKuerzel = $klient->region?->kuerzel ?? 'Kanton';
+                $warnungen[] = [
+                    'typ'  => 'tarif',
+                    'text' => "Kanton <strong>{$regionKuerzel}</strong> hat noch keine Tarife in den Leistungsarten. Abrechnung ergibt CHF 0. → <a href=\"" . route('leistungsarten.index') . "\" style=\"color:#92400e;font-weight:600;\">Leistungsarten konfigurieren</a>",
+                ];
+            }
+            // Keine Beiträge?
+            if ($klient->beitraege()->doesntExist()) {
+                $warnungen[] = [
+                    'typ'  => 'beitrag',
+                    'text' => 'Kein Beitrag erfasst — ohne Beitrag ist keine korrekte Abrechnung möglich.',
+                ];
+            }
+        }
+    @endphp
+    @foreach($warnungen as $w)
+    <div style="background:#fffbeb; border:2px solid #f59e0b; border-radius:6px; padding:0.75rem 1rem; margin-bottom:0.75rem; display:flex; gap:0.625rem; align-items:flex-start;">
+        <span style="font-size:1.1rem; line-height:1.3;">⚠</span>
+        <span style="font-size:0.875rem; color:#78350f;">{!! $w['text'] !!}</span>
+    </div>
+    @endforeach
+
     {{-- Name & Basis-Info --}}
     <div class="karte" style="margin-bottom: 1rem;">
         <div style="display: flex; align-items: flex-start; gap: 1.25rem;">
@@ -193,6 +221,49 @@
             </div>
             @endif
             @endforeach
+        </div>
+
+        {{-- Versandart / Abrechnung --}}
+        <div class="karte">
+            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Abrechnung & Versand</div>
+            <form method="POST" action="{{ route('klienten.update', $klient) }}">
+                @csrf
+                @method('PUT')
+                {{-- versteckte Pflichtfelder damit update() nicht scheitert --}}
+                <input type="hidden" name="vorname"   value="{{ $klient->vorname }}">
+                <input type="hidden" name="nachname"  value="{{ $klient->nachname }}">
+                <input type="hidden" name="aktiv"     value="{{ $klient->aktiv ? 1 : 0 }}">
+
+                <div style="display: flex; flex-direction: column; gap: 0.625rem;">
+                    <div>
+                        <label class="form-label" style="font-size: 0.8125rem;">Rechnungstyp</label>
+                        <select name="rechnungstyp" class="feld" style="font-size: 0.875rem;">
+                            @foreach(\App\Models\Rechnung::$typen as $val => $lab)
+                                <option value="{{ $val }}" {{ ($klient->rechnungstyp ?? 'kombiniert') === $val ? 'selected' : '' }}>{{ $lab }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.8125rem;">Versand Patient-Rechnung</label>
+                        <select name="versandart_patient" class="feld" style="font-size: 0.875rem;">
+                            <option value="post"    {{ ($klient->versandart_patient ?? 'post') === 'post'    ? 'selected' : '' }}>Post / Druck</option>
+                            <option value="email"   {{ ($klient->versandart_patient ?? 'post') === 'email'   ? 'selected' : '' }}>Email</option>
+                            <option value="manuell" {{ ($klient->versandart_patient ?? 'post') === 'manuell' ? 'selected' : '' }}>Manuell</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.8125rem;">Versand KVG / Krankenkasse</label>
+                        <select name="versandart_kvg" class="feld" style="font-size: 0.875rem;">
+                            <option value="manuell"  {{ ($klient->versandart_kvg ?? 'manuell') === 'manuell'  ? 'selected' : '' }}>Manuell</option>
+                            <option value="email"    {{ ($klient->versandart_kvg ?? 'manuell') === 'email'    ? 'selected' : '' }}>Email (KK)</option>
+                            <option value="healthnet"{{ ($klient->versandart_kvg ?? 'manuell') === 'healthnet'? 'selected' : '' }}>Healthnet (später)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
+                    </div>
+                </div>
+            </form>
         </div>
 
     </div>
@@ -559,10 +630,25 @@
             </tbody>
         </table>
         @else
-        <p class="text-klein text-hell" style="margin-bottom: 1rem;">Noch keine Beiträge erfasst.</p>
+        <div style="background: #fef2f2; border: 2px solid #fca5a5; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+            <span style="font-size: 1.25rem; line-height: 1;">⚠</span>
+            <div>
+                <div style="font-weight: 700; color: #b91c1c; margin-bottom: 0.25rem;">Kein Beitrag erfasst</div>
+                <div style="font-size: 0.875rem; color: #7f1d1d;">
+                    Für diesen Klienten wurde noch kein Beitrag (Ansatz Kunde / Spitex-Tarif) hinterlegt.
+                    Ohne Beitrag kann keine korrekte Abrechnung erstellt werden.
+                </div>
+                <div style="margin-top: 0.5rem;">
+                    <a href="#beitrag-erfassen" onclick="document.querySelector('details[data-beitrag]')?.setAttribute('open','true')"
+                        style="font-size: 0.875rem; font-weight: 600; color: #b91c1c; text-decoration: underline;">
+                        Jetzt Beitrag erfassen →
+                    </a>
+                </div>
+            </div>
+        </div>
         @endif
 
-        <details>
+        <details id="beitrag-erfassen" data-beitrag>
             <summary style="font-size: 0.8125rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; padding: 0.375rem 0; list-style: none; display: flex; align-items: center; gap: 0.375rem;">
                 + Beitrag erfassen
             </summary>

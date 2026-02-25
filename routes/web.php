@@ -10,6 +10,7 @@ use App\Http\Controllers\FirmaController;
 use App\Http\Controllers\NachrichtenController;
 use App\Http\Controllers\LeistungsartenController;
 use App\Http\Controllers\RechnungenController;
+use App\Http\Controllers\RechnungslaufController;
 use App\Http\Controllers\AerzteController;
 use App\Http\Controllers\DokumenteController;
 use App\Http\Controllers\KrankenkassenController;
@@ -246,6 +247,17 @@ Route::middleware('auth')->group(function () {
 
     // Abrechnung — Buchhaltung + Admin
     Route::middleware('rolle:admin,buchhaltung')->group(function () {
+        // Rechnungslauf — VOR resource(), damit /lauf/create nicht als {lauf}=create interpretiert wird
+        Route::get('/rechnungen/lauf',                      [RechnungslaufController::class, 'index'])->name('rechnungslauf.index');
+        Route::get('/rechnungen/lauf/create',               [RechnungslaufController::class, 'create'])->name('rechnungslauf.create');
+        Route::post('/rechnungen/lauf',                     [RechnungslaufController::class, 'store'])->name('rechnungslauf.store');
+        Route::get('/rechnungen/lauf/{lauf}',               [RechnungslaufController::class, 'show'])->name('rechnungslauf.show');
+        Route::post('/rechnungen/lauf/{lauf}/email',        [RechnungslaufController::class, 'emailVersand'])->name('rechnungslauf.email');
+        Route::get('/rechnungen/lauf/{lauf}/pdf-zip',       [RechnungslaufController::class, 'pdfZip'])->name('rechnungslauf.pdf-zip');
+        Route::get('/rechnungen/lauf/{lauf}/xml-zip',       [RechnungslaufController::class, 'xmlZip'])->name('rechnungslauf.xml-zip');
+        Route::delete('/rechnungen/lauf/{lauf}',             [RechnungslaufController::class, 'destroy'])->name('rechnungslauf.destroy');
+        Route::get('/rechnungen/lauf/{lauf}/sammel-pdf',    [RechnungslaufController::class, 'sammelPdf'])->name('rechnungslauf.sammel-pdf');
+
         Route::resource('/rechnungen', RechnungenController::class)->only(['index','create','store','show'])->parameters(['rechnungen' => 'rechnung']);
         Route::patch('/rechnungen/{rechnung}/status', [RechnungenController::class, 'statusUpdate'])->name('rechnungen.status');
         Route::patch('/rechnungen/positionen/{position}', [RechnungenController::class, 'positionUpdate'])->name('rechnungen.position.update');

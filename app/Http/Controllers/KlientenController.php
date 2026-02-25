@@ -46,7 +46,7 @@ class KlientenController extends Controller
             $query->where('aktiv', $status === 'aktiv');
         }
 
-        $klienten = $query->paginate(25)->withQueryString();
+        $klienten = $query->withCount('beitraege')->paginate(25)->withQueryString();
 
         return view('klienten.index', compact('klienten'));
     }
@@ -229,6 +229,9 @@ class KlientenController extends Controller
             'krankenkasse_name'   => ['nullable', 'string', 'max:255'],
             'krankenkasse_nr'     => ['nullable', 'string', 'max:50'],
             'zahlbar_tage'        => ['nullable', 'integer', 'min:1', 'max:365'],
+            'versandart_patient'  => ['nullable', 'in:post,email,manuell'],
+            'versandart_kvg'      => ['nullable', 'in:email,healthnet,manuell'],
+            'rechnungstyp'        => ['nullable', 'in:kombiniert,kvg,klient,gemeinde'],
             'aktiv'               => ['boolean'],
         ]);
 

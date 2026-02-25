@@ -22,6 +22,7 @@ class PdfExportService
     {
         $rechnung->loadMissing([
             'klient.region',
+            'klient.krankenkassen',
             'positionen.leistungstyp.leistungsart',
         ]);
 

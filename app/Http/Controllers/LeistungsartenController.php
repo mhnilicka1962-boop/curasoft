@@ -54,8 +54,9 @@ class LeistungsartenController extends Controller
 
     public function show(Leistungsart $leistungsart)
     {
-        $tarife = $leistungsart->tarife()->with('region')->orderBy('region_id')->get();
-        return view('stammdaten.leistungsarten.show', compact('leistungsart', 'tarife'));
+        $tarife   = $leistungsart->tarife()->with('region')->orderBy('region_id')->orderByDesc('gueltig_ab')->get();
+        $regionen = Region::orderBy('kuerzel')->get();
+        return view('stammdaten.leistungsarten.show', compact('leistungsart', 'tarife', 'regionen'));
     }
 
     public function tarifeBearbeiten(Leistungsart $leistungsart, Leistungsregion $tarif)
