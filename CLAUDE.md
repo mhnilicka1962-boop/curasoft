@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-25 (Session 12)
+## Stand: 2026-02-25 (Session 13)
 
 ---
 
@@ -313,6 +313,28 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 13 (2026-02-25)
+
+### PDF-Export für Rechnungen
+- `barryvdh/laravel-dompdf` (v3.1.1) installiert
+- `app/Services/PdfExportService.php` — generiert A4-PDF aus Rechnung-Model
+- `resources/views/pdfs/rechnung.blade.php` — professionelles Layout: Org-Kopf, Klient-Adresse, Positionstabelle, Totals, IBAN, Fusszeile
+- Logo wird als Base64 eingebettet (DomPDF lädt keine externen URLs)
+- Region-spezifische Bankdaten via `datenFuerRegion()`
+- Route: `GET /rechnungen/{rechnung}/pdf` → `rechnungen.pdf`
+- PDF-Button in `rechnungen/show.blade.php` aktiviert (war disabled "Folgt bald")
+- Tarife sind in `rechnungs_positionen` eingefroren → PDF jederzeit korrekt regenerierbar
+
+### Deploy-Workflow für Composer-Pakete (erkannt)
+- `vendor/` ist in `.gitignore` — wird nie per FTP/Git deployed
+- Korrekte Reihenfolge: lokal `composer require` → commit+push → Demo: `git pull && composer install --no-dev`
+- FTP-Deploy nur für einzelne PHP/Blade-Dateien ohne Pakete
+
+### Rapport: KI-Button-Text
+- "KI Rapport schreiben" → "KI Bericht schreiben" (klarer: KI schreibt den Bericht-Text)
 
 ---
 

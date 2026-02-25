@@ -3,7 +3,7 @@
 
     <div class="seiten-kopf">
         <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Hilfe & Betriebsanweisung</h1>
-        <span class="text-hell text-klein">Stand: 24.02.2026</span>
+        <span class="text-hell text-klein">Stand: 25.02.2026</span>
     </div>
 
     {{-- Navigation --}}
@@ -117,22 +117,79 @@
     {{-- Kapitel 5: Rapport --}}
     <div class="karte" id="kap5" style="margin-bottom: 1.25rem;">
         <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 5 — Rapport schreiben (Pflege)</div>
-        <ol style="margin: 0 0 0 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
+        <ol style="margin: 0 0 1rem 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
             <li>Rapporte → <strong>„+ Neuer Rapport"</strong></li>
-            <li>Klient wählen, Typ (Verlaufsbericht / Zwischenfall / Übergabe)</li>
-            <li>Text eingeben → speichern</li>
+            <li>Klient wählen, Typ (Verlaufsbericht / Zwischenfall / Medikament usw.)</li>
+            <li>Bericht schreiben — drei Möglichkeiten:</li>
+        </ol>
+
+        <table class="tabelle" style="margin-bottom: 1rem;">
+            <thead><tr><th>Methode</th><th>So geht's</th><th>Geeignet für</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><strong>Direkt tippen</strong></td>
+                    <td>Text im Bericht-Feld eingeben</td>
+                    <td>Kurze Einträge</td>
+                </tr>
+                <tr>
+                    <td><strong>Diktieren in Bericht</strong></td>
+                    <td>🎙 <strong>„Direkt in Bericht diktieren"</strong> antippen → sprechen → Stop</td>
+                    <td>Schnelle Bericht-Erfassung</td>
+                </tr>
+                <tr>
+                    <td><strong>KI Bericht schreiben</strong></td>
+                    <td>Stichworte oben diktieren oder tippen → <strong>„✨ KI Bericht schreiben"</strong> klicken → KI formuliert den Bericht</td>
+                    <td>Ausformulierter Bericht aus Stichworten</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="info-box" style="margin-bottom: 1rem;">
+            Das Diktat funktioniert nur in <strong>Chrome, Edge oder Safari</strong> — nicht in Firefox.
+        </div>
+
+        <ol start="4" style="margin: 0 0 0 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
+            <li>Vertraulich-Häkchen setzen wenn nötig → <strong>Speichern</strong></li>
         </ol>
     </div>
 
     {{-- Kapitel 6: Rechnung --}}
     <div class="karte" id="kap6" style="margin-bottom: 1.25rem;">
         <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 6 — Rechnung erstellen</div>
-        <ol style="margin: 0 0 0 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
+        <ol style="margin: 0 0 1rem 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
             <li>Rechnungen → <strong>„+ Neue Rechnung"</strong></li>
             <li>Klient wählen → Leistungsperiode (Von–Bis)</li>
             <li>Einsätze werden automatisch einbezogen</li>
-            <li>XML-Export: Rechnung öffnen → <strong>„XML exportieren"</strong></li>
+            <li>Tarife bei Bedarf anpassen (nur im Status „Entwurf")</li>
+            <li>Rechnung versenden → Status auf <strong>„Gesendet"</strong> setzen</li>
         </ol>
+
+        <div class="abschnitt-trenn"></div>
+        <div style="font-weight: 600; margin: 1rem 0 0.5rem;">Export-Optionen</div>
+        <table class="tabelle">
+            <thead><tr><th>Schaltfläche</th><th>Zweck</th><th>Format</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><strong>📋 XML</strong></td>
+                    <td>Elektronische Abrechnung an Krankenkasse (MediData)</td>
+                    <td>XML 450.100 (Schweizer Standard)</td>
+                </tr>
+                <tr>
+                    <td><strong>📄 PDF</strong></td>
+                    <td>Druckbare Rechnung für Klient oder Ablage</td>
+                    <td>PDF, A4</td>
+                </tr>
+                <tr>
+                    <td><strong>→ Bexio</strong></td>
+                    <td>Rechnung in Bexio-Buchhaltung übertragen</td>
+                    <td>Nur wenn Bexio konfiguriert</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="info-box" style="margin-top: 1rem;">
+            Die Tarife in der Rechnung sind <strong>eingefroren</strong> — Tarifänderungen betreffen nur neue Rechnungen. Das PDF kann jederzeit erneut heruntergeladen werden.
+        </div>
     </div>
 
     {{-- Kapitel 7: FAQ --}}

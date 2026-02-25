@@ -24,7 +24,7 @@ ngrok ist installiert, aber noch kein Auth-Token gesetzt.
 
 ### Offene Module (aus CLAUDE.md "Bekannte offene Punkte")
 
-- [ ] PDF-Druck Rechnungen (Button vorhanden, aber `disabled`)
+- [x] PDF-Druck Rechnungen — erledigt Session 13 (barryvdh/laravel-dompdf)
 - [ ] MediData-Schnittstelle (auf Landing Page als "in Entwicklung" markiert)
 - [ ] EPD Elektronisches Patientendossier (Pflicht ab 2026)
 - [ ] Security Paket B: Audit-Log (wer hat was wann geändert)
