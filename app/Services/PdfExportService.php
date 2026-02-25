@@ -6,6 +6,13 @@ use App\Models\Organisation;
 use App\Models\Rechnung;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use Sprain\SwissQrBill\QrBill;
+use Sprain\SwissQrBill\DataGroup\Element\CreditorInformation;
+use Sprain\SwissQrBill\DataGroup\Element\StructuredAddress;
+use Sprain\SwissQrBill\DataGroup\Element\PaymentAmountInformation;
+use Sprain\SwissQrBill\DataGroup\Element\PaymentReference;
+use Sprain\SwissQrBill\DataGroup\Element\AdditionalInformation;
+use Sprain\SwissQrBill\QrCode\QrCode as SwissQrCode;
 
 class PdfExportService
 {
@@ -40,11 +47,55 @@ class PdfExportService
             }
         }
 
+        // Swiss QR-Code generieren (für Seite 2)
+        $qrCodeDataUri    = null;
+        $qrIbanFormatiert = null;
+        $iban = $regionDaten['iban'];
+
+        if ($iban && (float) $rechnung->betrag_total > 0) {
+            try {
+                $creditorInfo = CreditorInformation::create($iban);
+
+                $qrBill = QrBill::create();
+                $qrBill->setCreditorInformation($creditorInfo);
+                $qrBill->setCreditor(
+                    StructuredAddress::createWithStreet(
+                        substr($this->org->name, 0, 70),
+                        $this->org->adresse ?? '',
+                        null,
+                        $this->org->plz ?? '0000',
+                        $this->org->ort ?? 'Ort',
+                        'CH'
+                    )
+                );
+                $qrBill->setPaymentAmountInformation(
+                    PaymentAmountInformation::create('CHF', round((float) $rechnung->betrag_total, 2))
+                );
+                $qrBill->setPaymentReference(
+                    PaymentReference::create(PaymentReference::TYPE_NON)
+                );
+                $qrBill->setAdditionalInformation(
+                    AdditionalInformation::create($rechnung->rechnungsnummer)
+                );
+
+                if ($qrBill->isValid()) {
+                    $qrCodeDataUri    = $qrBill->getQrCode(SwissQrCode::FILE_FORMAT_PNG)
+                        ->getDataUri(SwissQrCode::FILE_FORMAT_PNG);
+                    $qrIbanFormatiert = $creditorInfo->getFormattedIban();
+                }
+            } catch (\Exception $e) {
+                // QR-Code nicht kritisch — weiter ohne
+            }
+        }
+
         $html = view('pdfs.rechnung', [
-            'rechnung'    => $rechnung,
-            'org'         => $this->org,
-            'regionDaten' => $regionDaten,
-            'logoBase64'  => $logoBase64,
+            'rechnung'         => $rechnung,
+            'org'              => $this->org,
+            'regionDaten'      => $regionDaten,
+            'logoBase64'       => $logoBase64,
+            'logoAusrichtung'  => $this->org->logo_ausrichtung ?? 'links_anschrift_rechts',
+            'qrCodeDataUri'    => $qrCodeDataUri,
+            'qrIbanFormatiert' => $qrIbanFormatiert,
         ])->render();
 
         $pdf  = Pdf::loadHTML($html)->setPaper('A4', 'portrait');
