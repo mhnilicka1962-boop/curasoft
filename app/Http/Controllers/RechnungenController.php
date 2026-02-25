@@ -76,10 +76,11 @@ class RechnungenController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'klient_id'   => ['required', 'exists:klienten,id'],
-            'periode_von' => ['required', 'date'],
-            'periode_bis' => ['required', 'date', 'after_or_equal:periode_von'],
-            'einsatz_ids' => ['required', 'array', 'min:1'],
+            'klient_id'     => ['required', 'exists:klienten,id'],
+            'periode_von'   => ['required', 'date'],
+            'periode_bis'   => ['required', 'date', 'after_or_equal:periode_von'],
+            'rechnungstyp'  => ['required', 'in:kombiniert,kvg,klient,gemeinde'],
+            'einsatz_ids'   => ['required', 'array', 'min:1'],
             'einsatz_ids.*' => ['exists:einsaetze,id'],
         ]);
 
@@ -91,6 +92,7 @@ class RechnungenController extends Controller
             'periode_bis'     => $request->periode_bis,
             'rechnungsdatum'  => today(),
             'status'          => 'entwurf',
+            'rechnungstyp'    => $request->rechnungstyp,
         ]);
 
         foreach ($request->einsatz_ids as $einsatzId) {

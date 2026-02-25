@@ -6,6 +6,15 @@
     <div class="karte" style="margin-bottom: 1rem;">
         <div class="abschnitt-label" style="margin-bottom: 1rem;">1. Klient & Abrechnungsperiode</div>
         <form method="GET" action="{{ route('rechnungen.create') }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 1; min-width: 180px;">
+                <label class="feld-label">Rechnungstyp</label>
+                <select name="rechnungstyp" class="feld" required>
+                    <option value="kombiniert" {{ request('rechnungstyp', 'kombiniert') === 'kombiniert' ? 'selected' : '' }}>Kombiniert (KK + Patient)</option>
+                    <option value="kvg"        {{ request('rechnungstyp') === 'kvg'        ? 'selected' : '' }}>KVG → Krankenkasse</option>
+                    <option value="klient"     {{ request('rechnungstyp') === 'klient'     ? 'selected' : '' }}>Klient (Selbstbehalt)</option>
+                    <option value="gemeinde"   {{ request('rechnungstyp') === 'gemeinde'   ? 'selected' : '' }}>Gemeinde / Kanton</option>
+                </select>
+            </div>
             <div style="flex: 2; min-width: 180px;">
                 <label class="feld-label">Klient</label>
                 <select name="klient_id" class="feld" required>
@@ -36,6 +45,7 @@
         <input type="hidden" name="klient_id" value="{{ $klient->id }}">
         <input type="hidden" name="periode_von" value="{{ request('periode_von') }}">
         <input type="hidden" name="periode_bis" value="{{ request('periode_bis') }}">
+        <input type="hidden" name="rechnungstyp" value="{{ request('rechnungstyp', 'kombiniert') }}">
 
         <div class="karte-null" style="margin-bottom: 1rem;">
             <div style="padding: 1rem; border-bottom: 1px solid var(--cs-border); display: flex; justify-content: space-between; align-items: center;">

@@ -35,11 +35,10 @@
         <thead>
             <tr>
                 <th>Nummer</th>
+                <th>Typ</th>
                 <th>Klient</th>
                 <th>Periode</th>
                 <th>Datum</th>
-                <th class="text-rechts">Patient</th>
-                <th class="text-rechts">KK</th>
                 <th class="text-rechts">Total</th>
                 <th>Status</th>
                 <th></th>
@@ -53,13 +52,12 @@
                         {{ $r->rechnungsnummer }}
                     </a>
                 </td>
+                <td>{!! $r->typBadge() !!}</td>
                 <td>{{ $r->klient->nachname }} {{ $r->klient->vorname }}</td>
                 <td class="text-hell" style="font-size: 0.8125rem;">
                     {{ $r->periode_von->format('d.m.Y') }} – {{ $r->periode_bis->format('d.m.Y') }}
                 </td>
                 <td style="font-size: 0.8125rem;">{{ $r->rechnungsdatum->format('d.m.Y') }}</td>
-                <td class="text-rechts" style="font-size: 0.8125rem;">{{ number_format($r->betrag_patient, 2, '.', "'") }}</td>
-                <td class="text-rechts" style="font-size: 0.8125rem;">{{ number_format($r->betrag_kk, 2, '.', "'") }}</td>
                 <td class="text-rechts text-fett">CHF {{ number_format($r->betrag_total, 2, '.', "'") }}</td>
                 <td>{!! $r->statusBadge() !!}</td>
                 <td class="text-rechts">
@@ -68,7 +66,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="9" class="text-mitte text-hell" style="padding: 2.5rem;">
+                <td colspan="8" class="text-mitte text-hell" style="padding: 2.5rem;">
                     Keine Rechnungen gefunden.
                 </td>
             </tr>

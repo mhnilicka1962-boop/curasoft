@@ -8,11 +8,18 @@ class Rechnung extends Model
 {
     protected $table = 'rechnungen';
 
+    public static array $typen = [
+        'kombiniert' => 'Kombiniert (KK + Patient)',
+        'kvg'        => 'KVG → Krankenkasse',
+        'klient'     => 'Klient (Selbstbehalt)',
+        'gemeinde'   => 'Gemeinde / Kanton',
+    ];
+
     protected $fillable = [
         'organisation_id', 'klient_id', 'rechnungsnummer',
         'periode_von', 'periode_bis', 'rechnungsdatum',
         'betrag_patient', 'betrag_kk', 'betrag_total',
-        'status', 'pdf_pfad',
+        'status', 'rechnungstyp', 'pdf_pfad',
     ];
 
     protected $casts = [
@@ -58,6 +65,16 @@ class Rechnung extends Model
             'bezahlt'   => '<span class="badge badge-erfolg">Bezahlt</span>',
             'storniert' => '<span class="badge badge-fehler">Storniert</span>',
             default     => '',
+        };
+    }
+
+    public function typBadge(): string
+    {
+        return match($this->rechnungstyp ?? 'kombiniert') {
+            'kvg'        => '<span class="badge badge-info">KVG → KK</span>',
+            'klient'     => '<span class="badge badge-erfolg">Klient</span>',
+            'gemeinde'   => '<span class="badge" style="background:#fff3cd;color:#856404;">Gemeinde</span>',
+            default      => '<span class="badge badge-grau">Kombiniert</span>',
         };
     }
 }
