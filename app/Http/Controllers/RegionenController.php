@@ -94,6 +94,43 @@ class RegionenController extends Controller
         return back()->with('erfolg', 'Region wurde aktualisiert.');
     }
 
+    public function initialisieren(Region $region)
+    {
+        $leistungsarten = Leistungsart::where('aktiv', true)->get();
+        $neu = 0;
+
+        foreach ($leistungsarten as $la) {
+            $existiert = Leistungsregion::where('leistungsart_id', $la->id)
+                ->where('region_id', $region->id)
+                ->exists();
+
+            if (!$existiert) {
+                Leistungsregion::create([
+                    'leistungsart_id'  => $la->id,
+                    'region_id'        => $region->id,
+                    'ansatz'           => $la->ansatz_default,
+                    'kkasse'           => $la->kvg_default,
+                    'ansatz_akut'      => $la->ansatz_akut_default,
+                    'kkasse_akut'      => $la->kvg_akut_default,
+                    'kassenpflichtig'  => $la->kassenpflichtig,
+                    'gueltig_ab'       => today(),
+                    'verrechnung'      => true,
+                    'einsatz_minuten'  => false,
+                    'einsatz_stunden'  => true,
+                    'einsatz_tage'     => false,
+                    'mwst'             => false,
+                ]);
+                $neu++;
+            }
+        }
+
+        $msg = $neu > 0
+            ? "{$neu} Leistungsart(en) mit Standard-Tarifen initialisiert."
+            : "Alle Leistungsarten bereits konfiguriert — nichts geändert.";
+
+        return back()->with('erfolg', $msg);
+    }
+
     public function destroy(Region $region)
     {
         if ($region->tarife()->exists()) {

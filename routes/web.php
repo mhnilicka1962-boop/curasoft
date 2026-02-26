@@ -305,6 +305,7 @@ Route::middleware('auth')->group(function () {
             ->only(['index', 'store', 'show', 'update', 'destroy'])
             ->parameters(['regionen' => 'region']);
         Route::post('/regionen/{region}/tarife', [RegionenController::class, 'tarifSpeichern'])->name('regionen.tarif.speichern');
+        Route::post('/regionen/{region}/initialisieren', [RegionenController::class, 'initialisieren'])->name('regionen.initialisieren');
 
         // Ärzte
         Route::resource('/aerzte', AerzteController::class)

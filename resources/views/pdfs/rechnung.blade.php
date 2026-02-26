@@ -6,88 +6,87 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: DejaVu Sans, Arial, sans-serif;
-    font-size: 9pt;
+    font-size: 8pt;
     color: #1a1a1a;
-    line-height: 1.5;
+    line-height: 1.4;
 }
-.seite { padding: 15mm 20mm 25mm 20mm; }
+.seite { padding: 12mm 20mm 22mm 20mm; }
 
 /* ── Kopfzeile ───────────────────────────────────────────── */
-.kopf { display: table; width: 100%; margin-bottom: 6mm; }
+.kopf { display: table; width: 100%; margin-bottom: 5mm; }
 .kopf-links { display: table-cell; vertical-align: middle; width: 50%; }
 .kopf-rechts {
     display: table-cell; vertical-align: middle; width: 50%;
-    text-align: right; font-size: 7pt; line-height: 1.5; color: #555;
+    text-align: right; font-size: 6.5pt; line-height: 1.4; color: #555;
 }
-.kopf-logo { max-height: 12mm; max-width: 50mm; display: block; }
-.kopf-firma { font-size: 8pt; font-weight: bold; color: #1a1a1a; }
+.kopf-logo { max-height: 10mm; max-width: 45mm; display: block; }
+.kopf-firma { font-size: 7.5pt; font-weight: bold; color: #1a1a1a; }
 
 /* ── Anschrift ───────────────────────────────────────────── */
-/* margin-top positioniert Anschrift ins Couvert-Fenster (ca. 50mm ab Seitenrand) */
-.anschrift { font-size: 8.5pt; line-height: 1.5; margin-top: 10mm; margin-bottom: 14mm; min-height: 16mm; }
+.anschrift { font-size: 7.5pt; line-height: 1.4; margin-top: 7mm; margin-bottom: 8mm; min-height: 14mm; }
 
 /* ── Rechnung-Titel ──────────────────────────────────────── */
-.rechnung-nr { font-size: 9.5pt; font-weight: bold; margin-bottom: 3mm; }
+.rechnung-nr { font-size: 8.5pt; font-weight: bold; margin-bottom: 2mm; }
 
 /* ── Info-Block ──────────────────────────────────────────── */
-table.info { font-size: 7pt; border-collapse: collapse; margin-bottom: 4mm; line-height: 1.2; }
+table.info { font-size: 6.5pt; border-collapse: collapse; margin-bottom: 3mm; line-height: 1.2; }
 table.info td.lbl {
-    color: #555; padding-right: 6mm; padding-bottom: 0;
-    white-space: nowrap; min-width: 26mm; vertical-align: top;
+    color: #555; padding-right: 5mm; padding-bottom: 0;
+    white-space: nowrap; min-width: 24mm; vertical-align: top;
 }
 table.info td.val { padding-bottom: 0; vertical-align: top; }
 
 /* ── Abschnitt ───────────────────────────────────────────── */
-.abschnitt { margin-bottom: 4mm; }
+.abschnitt { margin-bottom: 3mm; }
 .abschnitt-kopf {
-    font-size: 6.5pt; font-weight: bold; text-transform: uppercase;
+    font-size: 6pt; font-weight: bold; text-transform: uppercase;
     color: #999; letter-spacing: 0.5pt;
-    border-top: 0.4pt solid #ccc; padding-top: 1.5mm; margin-bottom: 2mm;
+    border-top: 0.4pt solid #ccc; padding-top: 1mm; margin-bottom: 1.5mm;
 }
-table.abschnitt-info { font-size: 8pt; border-collapse: collapse; }
+table.abschnitt-info { font-size: 7.5pt; border-collapse: collapse; }
 table.abschnitt-info td.lbl {
-    color: #555; padding-right: 8mm; padding-bottom: 0.75mm;
-    min-width: 34mm; vertical-align: top;
+    color: #555; padding-right: 6mm; padding-bottom: 0.5mm;
+    min-width: 30mm; vertical-align: top;
 }
-table.abschnitt-info td.val { padding-bottom: 0.75mm; }
+table.abschnitt-info td.val { padding-bottom: 0.5mm; }
 
 /* ── Positionen ──────────────────────────────────────────── */
-table.positionen { width: 100%; border-collapse: collapse; margin-bottom: 5mm; font-size: 8pt; }
+table.positionen { width: 100%; border-collapse: collapse; margin-bottom: 3mm; font-size: 7pt; }
 table.positionen thead tr { border-bottom: 0.75pt solid #333; }
 table.positionen thead th {
-    padding: 2mm 2.5mm; text-align: left;
-    font-weight: bold; font-size: 7.5pt; color: #333;
+    padding: 1.5mm 2mm; text-align: left;
+    font-weight: bold; font-size: 6.5pt; color: #333;
 }
 table.positionen thead th.r { text-align: right; }
 table.positionen tbody tr { border-bottom: 0.3pt solid #eee; }
 table.positionen tbody tr:nth-child(even) { background: #fafafa; }
-table.positionen tbody td { padding: 1.5mm 2.5mm; vertical-align: middle; }
+table.positionen tbody td { padding: 1mm 2mm; vertical-align: middle; }
 table.positionen tbody td.r {
     text-align: right;
     font-family: DejaVu Sans Mono, monospace;
-    font-size: 7.5pt;
+    font-size: 6.5pt;
 }
 
 /* ── Totals ──────────────────────────────────────────────── */
-.totals-block { margin-left: 55%; margin-bottom: 6mm; }
-table.totals { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
-table.totals td { padding: 1.5mm 2.5mm; }
+.totals-block { margin-left: 55%; margin-bottom: 4mm; }
+table.totals { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+table.totals td { padding: 1mm 2mm; }
 table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace; }
 .total-zeile { font-weight: bold; border-top: 1pt solid #333; }
-.total-zeile td { padding-top: 2mm; font-size: 10pt; }
+.total-zeile td { padding-top: 1.5mm; font-size: 9pt; }
 .zahlbar-zeile td {
-    border-top: 0.5pt solid #bbb; padding-top: 2mm;
-    font-size: 8.5pt; font-weight: bold;
+    border-top: 0.5pt solid #bbb; padding-top: 1.5mm;
+    font-size: 7.5pt; font-weight: bold;
 }
 
 /* ── Zahlungsinfo ────────────────────────────────────────── */
-.zahlung-block { margin-top: 3mm; font-size: 8pt; line-height: 1.7; color: #333; }
+.zahlung-block { margin-top: 2mm; font-size: 7pt; line-height: 1.5; color: #333; }
 
 /* ── Fusszeile ───────────────────────────────────────────── */
 .fusszeile {
-    position: fixed; bottom: 8mm; left: 20mm; right: 20mm;
-    border-top: 0.3pt solid #d1d5db; padding-top: 2mm;
-    font-size: 7pt; color: #9ca3af; text-align: center;
+    position: fixed; bottom: 6mm; left: 20mm; right: 20mm;
+    border-top: 0.3pt solid #d1d5db; padding-top: 1.5mm;
+    font-size: 6.5pt; color: #9ca3af; text-align: center;
 }
 
 /* ── QR-Zahlteil (Seite 2) ───────────────────────────────── */

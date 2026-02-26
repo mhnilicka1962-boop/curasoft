@@ -24,12 +24,13 @@ class Rechnung extends Model
     ];
 
     protected $casts = [
-        'periode_von'    => 'date',
-        'periode_bis'    => 'date',
-        'rechnungsdatum' => 'date',
-        'betrag_patient' => 'decimal:2',
-        'betrag_kk'      => 'decimal:2',
-        'betrag_total'   => 'decimal:2',
+        'periode_von'         => 'date',
+        'periode_bis'         => 'date',
+        'rechnungsdatum'      => 'date',
+        'email_versand_datum' => 'datetime',
+        'betrag_patient'      => 'decimal:2',
+        'betrag_kk'           => 'decimal:2',
+        'betrag_total'        => 'decimal:2',
     ];
 
     public function klient()     { return $this->belongsTo(Klient::class); }

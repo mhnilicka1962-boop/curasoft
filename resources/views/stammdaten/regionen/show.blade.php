@@ -18,7 +18,23 @@
 @php
     $grouped = $tarife->groupBy('leistungsart_id');
     $alleLeistungsarten = \App\Models\Leistungsart::where('aktiv', true)->orderBy('bezeichnung')->get();
+    $fehlendeLa = $alleLeistungsarten->filter(fn($la) => !$grouped->has($la->id));
 @endphp
+
+@if($fehlendeLa->isNotEmpty())
+<div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:var(--cs-radius); padding:0.625rem 0.875rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <span style="font-size:0.875rem; color:#92400e;">
+        ⚠ <strong>{{ $fehlendeLa->count() }} Leistungsart(en) ohne Tarif</strong> —
+        dieser Kanton erscheint als «nicht konfiguriert» im Rechnungslauf.
+    </span>
+    <form method="POST" action="{{ route('regionen.initialisieren', $region) }}" style="margin:0;">
+        @csrf
+        <button type="submit" class="btn btn-sekundaer" style="font-size:0.8125rem; padding:0.25rem 0.75rem;">
+            Standard-Tarife anlegen
+        </button>
+    </form>
+</div>
+@endif
 
 @foreach($alleLeistungsarten as $la)
 @php
