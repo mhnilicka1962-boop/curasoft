@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-25 (Session 13)
+## Stand: 2026-02-26 (Session 15)
 
 ---
 
@@ -73,6 +73,9 @@
 | `2026_02_23_150000` | klienten: klient_typ; klient_benutzer: beziehungstyp; benutzer: anstellungsart; einsaetze: leistungserbringer_typ |
 | `2026_02_23_125201` | benutzer_leistungsarten (Pivot: erlaubte Leistungsarten pro Mitarbeiter) |
 | `2026_02_24_215401` | nachrichten: parent_id (nullable FK Self-Reference → Threading) |
+| `2026_02_26_200000` | tagespauschalen: id, organisation_id, klient_id, rechnungstyp, datum_von, datum_bis, ansatz (decimal 10,4), text, erstellt_von |
+| `2026_02_26_210000` | einsaetze: tagespauschale_id (nullable FK → tagespauschalen, nullOnDelete) |
+| `2026_02_26_220000` | rechnungs_positionen: beschreibung (TEXT nullable); leistungstyp_id nullable |
 
 ### Seeders (bereits eingespielt)
 - `LeistungsartenSeeder` — 5 Leistungsarten mit Default-Ansätzen
@@ -171,6 +174,8 @@ php artisan tenant:migrate  # custom Command, iteriert tenants-Tabelle
 | Rapporte | `/rapporte` | RapporteController | admin, pflege |
 | Tourenplanung | `/touren` | TourenController | admin, pflege |
 | Rechnungen | `/rechnungen` | RechnungenController | admin, buchhaltung |
+| Rechnungsläufe | `/rechnungslaeufe` | RechnungslaufController | admin, buchhaltung |
+| Tagespauschalen | `/tagespauschalen` | TagespauschaleController | admin, buchhaltung |
 | XML-Export 450.100 | `GET /rechnungen/{id}/xml` | RechnungenController | admin, buchhaltung |
 | Rechnung Bexio-Sync | `POST /rechnungen/{id}/bexio/sync` | RechnungenController | admin, buchhaltung |
 | Firma | `/firma` | FirmaController | admin |
@@ -313,6 +318,45 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 15 (2026-02-26)
+
+### Tagespauschalen — Neues Abrechnungsmodul
+
+**Konzept:** 1 Einsatz pro Tag wird sofort generiert wenn eine Tagespauschale angelegt wird. Rechnungslauf verrechnet diese Einsätze wie normale Einsätze — kein Spezialcode nötig.
+
+**Neue Dateien:**
+- `app/Models/Tagespauschale.php` — `generiereEinsaetze()`, `loescheZukuenftigeEinsaetze()`, `hatUeberlappung()`, `anzahlTage()`, `anzahlVerrechnet()`
+- `app/Http/Controllers/TagespauschaleController.php` — index, create, store, show, update (kein separates mutieren)
+- `resources/views/tagespauschalen/` — index, create, show (show = Detail + Inline-Edit + Monatsübersicht)
+
+**Geänderte Dateien:**
+- `app/Models/Einsatz.php` — `tagespauschale_id` in fillable + `tagespauschale()` Beziehung
+- `app/Models/RechnungsPosition.php` — `beschreibung` in fillable
+- `app/Http/Controllers/RechnungslaufController.php`:
+  - Filter: `orWhereNotNull('tagespauschale_id')` statt Leistungsart-Einheit-Check
+  - Tarif für Tagespauschale: direkt aus `tagespauschale.ansatz`, rechnungstyp bestimmt Patient/KK-Aufteilung
+  - Validation: `periode_von` + `periode_bis` müssen `before_or_equal:today` sein
+- `resources/views/rechnungen/lauf/create.blade.php` — `max="{{ today()->format('Y-m-d') }}"` auf Date-Inputs + rote Warnung bei Zukunftsdatum
+
+**UX-Regeln Tagespauschalen:**
+- Nur vom Klienten-Detail aus erreichbar (kein eigener Hauptnav-Eintrag, ausser admin)
+- Klienten-Detail: `<details>`-Sektion "Tagespauschalen" ganz unten, zeigt aktive TP als grünes Info-Badge
+- Edit = direkt auf show-Seite (kein separates "mutieren")
+- Speichern bleibt auf show, Zurück geht zu Klient
+- Überlappungsschutz: kann nicht zwei TPs mit gleicher Periode für denselben Klienten geben
+- Update-Logik: periode_von/bis Änderungen generieren neue Einsätze (Anfang/Ende) oder löschen unverrechnete
+
+### Navigation: Rechnungsläufe eigenständig
+- "Rechnungsläufe" neu als eigener Nav-Link unter "Abrechnung"
+- Aktiv-State: `rechnungslauf.*` (getrennt von `rechnungen.*`)
+- Redundanter "Rechnungslaeufe"-Button aus `rechnungen/index.blade.php` entfernt
+
+### Klienten-Detail: Rechnungen-Sektion
+- Letzte 15 Rechnungen (statt limit(20)), aktuellste zuerst
+- Separater COUNT für Total → "→ Alle X Rechnungen" Link wenn >15
 
 ---
 
