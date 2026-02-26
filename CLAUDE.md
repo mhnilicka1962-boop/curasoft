@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-26 (Session 15 — Nachmittag)
+## Stand: 2026-02-26 (Session 15 — Abend / Deploy)
 
 ---
 
@@ -73,6 +73,9 @@
 | `2026_02_23_150000` | klienten: klient_typ; klient_benutzer: beziehungstyp; benutzer: anstellungsart; einsaetze: leistungserbringer_typ |
 | `2026_02_23_125201` | benutzer_leistungsarten (Pivot: erlaubte Leistungsarten pro Mitarbeiter) |
 | `2026_02_24_215401` | nachrichten: parent_id (nullable FK Self-Reference → Threading) |
+| `2026_02_25_300000` | klienten: versandart_patient, versandart_kk (varchar nullable) |
+| `2026_02_26_100000` | rechnungen: email_versand_datum (timestamp nullable), email_versand_an (varchar nullable) |
+| `2026_02_26_110000` | rechnungen: email_fehler (text nullable) |
 | `2026_02_26_200000` | tagespauschalen: id, organisation_id, klient_id, rechnungstyp, datum_von, datum_bis, ansatz (decimal 10,4), text, erstellt_von |
 | `2026_02_26_210000` | einsaetze: tagespauschale_id (nullable FK → tagespauschalen, nullOnDelete) |
 | `2026_02_26_220000` | rechnungs_positionen: beschreibung (TEXT nullable); leistungstyp_id nullable |
@@ -82,8 +85,24 @@
 - `EinsatzartenSeeder` — 30 Einsatzarten, je einer Leistungsart zugeordnet
 - `KrankenkassenSeeder` — 39 Schweizer KVG-Krankenkassen (BAG-Nr + EAN) — per Tinker eingespielt
 
-### DB-Inhalt (Testdaten)
-- Region AG (Aargau) mit 5 Leistungsregionen (Auto-Copy beim Anlegen)
+### DB-Inhalt (Testdaten — lokal + Demo identisch, Stand 2026-02-26)
+
+| Tabelle | Anzahl |
+|---------|--------|
+| klienten | 50 |
+| einsaetze | 1297 |
+| tagespauschalen | 1 |
+| rechnungslaeufe | 1 |
+| rechnungen | 55 |
+| rechnungs_positionen | 368 |
+| regionen | 4 (AG, BE, SG, ZH) |
+| leistungsregionen | 19 |
+| benutzer | ~16 |
+| krankenkassen | 5 |
+| touren | 8 |
+| rapporte | 90 |
+
+Demo-DB: `devitjob_curasoft` — wurde 2026-02-26 vollständig mit lokalen Testdaten synchronisiert.
 
 ---
 
@@ -318,6 +337,38 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 15 — Abend / Deploy (2026-02-26)
+
+### Deploy-Lektion: falscher FTP-Pfad
+
+**Was passierte:** Stundenlang wurden Spitex-Dateien nach `/public_html/itjob/` deployt statt `/public_html/spitex/`. Ursache: die itjob-CLAUDE.md war im Kontext geladen und enthielt den itjob-Pfad.
+
+**Massnahmen nach Korrektur:**
+1. Alle Dateien nochmals korrekt nach `/public_html/spitex/` deployt
+2. `composer dump-autoload` via `ca.php` (HOME=/tmp nötig da kein Superuser)
+3. `route:clear` + `view:clear` + `config:clear` via `cc.php`
+4. Fehlende Migrationen identifiziert und nachgeholt
+
+**Fehlende Migrationen auf Demo (wurden nachgeholt):**
+- `2026_02_25_300000_add_versandart_to_klienten`
+- `2026_02_26_100000_add_email_versand_to_rechnungen`
+- `2026_02_26_110000_add_email_fehler_to_rechnungen`
+
+**Für künftige Deploys: immer ALLE Migrations-Dateien deployen** — `artisan migrate` läuft nur die fehlenden, schadet nicht.
+
+### Testdaten-Sync Demo ↔ Lokal
+
+Vollständige Synchronisation der Demo-DB mit lokalen Testdaten via PHP-Export/Import-Script:
+- Export: `PDO::fetchAll()` mit Boolean-Handling (INFO-Schema) + FK-Reihenfolge
+- Lernpunkte: `session_replication_role` braucht Superuser; TRUNCATE-Reihenfolge muss FK-Abhängigkeiten respektieren; benutzer vor touren
+- Ergebnis: 1938 Rows, 0 Fehler
+
+### itjob-Aufräumen
+
+Falsch deployten Spitex-Dateien in `/public_html/itjob/` haben itjob **nicht beschädigt** (keine Pfad-Überschneidungen). Diagnostic-Scripts in `/public_html/itjob/public/` waren nicht vorhanden (FTP 550).
 
 ---
 
