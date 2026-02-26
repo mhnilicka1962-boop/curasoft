@@ -1,6 +1,6 @@
 # CLAUDE.md — Spitex Projektkontext
 
-## Stand: 2026-02-26 (Session 15)
+## Stand: 2026-02-26 (Session 15 — Nachmittag)
 
 ---
 
@@ -318,6 +318,34 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 15 — Nachmittag (2026-02-26)
+
+### PDF-Rechnung: Kompakteres Layout (2 Seiten)
+- Schrift 9pt → 8pt, Abstände/Padding überall reduziert
+- Anschrift: 8.5pt → 7.5pt, margin-top 10mm → 7mm, margin-bottom 14mm → 8mm
+- Positionen: 8pt → 7pt, Padding 1.5mm → 1mm
+- Ziel: Seite 1 = Rechnungsinhalt kompakt, Seite 2 = QR-Zahlteil (immer 2 Seiten)
+
+### Rechnungslauf: Zukunftsdaten blockiert
+- Validierung `before_or_equal:today` auf `periode_von` und `periode_bis` in `store()`
+- `max="{{ today()->format('Y-m-d') }}"` auf Date-Inputs in `create.blade.php`
+- Roter Warn-Banner im View wenn Zukunftsdatum für Vorschau eingegeben
+
+### Regionen: Standard-Tarife auto-initialisieren
+- `RegionenController::initialisieren()` — kopiert Default-Ansätze aus Leistungsarten für fehlende Einträge
+- Route: `POST /regionen/{region}/initialisieren` → `regionen.initialisieren`
+- View `stammdaten/regionen/show.blade.php`: gelber Warn-Banner wenn Leistungsart ohne Tarif + Button «Standard-Tarife anlegen»
+- Nützlich wenn Region vor Auto-Copy-Feature angelegt wurde oder auf Demo-Server fehlt
+
+### Rechnung Model: email_versand_datum Cast
+- `'email_versand_datum' => 'datetime'` in `$casts` hinzugefügt
+- Fix: `->format('d.m.Y H:i')` in `rechnungen/lauf/show.blade.php` warf 500er (Call on string)
+
+### Navigation
+- "Rechnungsläufe" als eigener Nav-Link unter "Abrechnung" (getrennt von "Rechnungen")
 
 ---
 
