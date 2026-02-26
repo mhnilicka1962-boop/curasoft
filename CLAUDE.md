@@ -1,4 +1,7 @@
-# CLAUDE.md — Spitex Projektkontext
+# CLAUDE.md — ✅ PROJEKT: CURASOFT / SPITEX (Laravel)
+# DEPLOY-PFAD: ftp://ftp.devitjob.ch/public_html/spitex/
+# NIEMALS /public_html/itjob/ verwenden — das ist ein anderes Projekt!
+# Lokales Verzeichnis: C:\laragon\www\spitex
 
 ## Stand: 2026-02-26 (Session 15 — Abend / Deploy)
 
