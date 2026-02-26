@@ -610,7 +610,10 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 - **Lokal entwickeln** → testen → commit+push → Demo-Server `git pull`
 - Demo-Server hat manchmal lokale Konflikte → `git reset --hard origin/master` löst es
 - Vite-Assets werden lokal gebaut und per FTP hochgeladen (kein Node.js auf Server)
-- FTP: `curl -T datei ftp://ftp.devitjob.ch/public_html/spitex/public/build/... --user "vscode@devitjob.ch:VsCode2026!Ftp"`
+- FTP: `curl -T "lokaler/pfad/datei.php" "ftp://ftp.devitjob.ch/public_html/spitex/pfad/datei.php" --user "vscode@devitjob.ch:VsCode2026!Ftp" --ftp-create-dirs`
+- **WICHTIG:** Voller Pfad auf beiden Seiten angeben. Trailing-slash-only → Datei landet im Root!
+- Neue Verzeichnisse: `--ftp-create-dirs` Flag nötig
+- Nach neuen Routen auf Demo: `https://www.curasoft.ch/cc.php` aufrufen (Einmal-Script deployen + aufrufen + löschen)
 
 ---
 
