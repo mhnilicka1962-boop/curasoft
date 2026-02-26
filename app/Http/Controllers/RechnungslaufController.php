@@ -54,8 +54,8 @@ class RechnungslaufController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'periode_von' => ['required', 'date'],
-            'periode_bis' => ['required', 'date', 'after_or_equal:periode_von'],
+            'periode_von' => ['required', 'date', 'before_or_equal:today'],
+            'periode_bis' => ['required', 'date', 'after_or_equal:periode_von', 'before_or_equal:today'],
             'klienten'    => ['required', 'array', 'min:1'],
             'klienten.*'  => ['integer'],
         ]);
@@ -65,7 +65,10 @@ class RechnungslaufController extends Controller
         // Prüfen ob überhaupt verrechenbare Einsätze vorhanden — verhindert leere Läufe
         $hatEinsaetze = Einsatz::whereIn('klient_id', $selectedIds)
             ->where('verrechnet', false)
-            ->whereNotNull('checkout_zeit')
+            ->where(function ($q) {
+                $q->whereNotNull('checkout_zeit')
+                  ->orWhereNotNull('tagespauschale_id');
+            })
             ->whereBetween('datum', [$request->periode_von, $request->periode_bis])
             ->exists();
 
@@ -98,8 +101,12 @@ class RechnungslaufController extends Controller
         foreach ($klienten as $klient) {
             $einsaetze = Einsatz::where('klient_id', $klient->id)
                 ->where('verrechnet', false)
-                ->whereNotNull('checkout_zeit')
+                ->where(function ($q) {
+                    $q->whereNotNull('checkout_zeit')
+                      ->orWhereNotNull('tagespauschale_id');
+                })
                 ->whereBetween('datum', [$request->periode_von, $request->periode_bis])
+                ->with('leistungsart', 'tagespauschale')
                 ->orderBy('datum')
                 ->get();
 
@@ -123,22 +130,49 @@ class RechnungslaufController extends Controller
             ]);
 
             foreach ($einsaetze as $einsatz) {
-                $menge = $einsatz->minuten ?? 0;
-
-                [$tarifPat, $tarifKk] = $this->tarifeFuerEinsatz(
-                    $einsatz, $klient, $rechnungstyp, $tarifCache
-                );
+                if ($einsatz->tagespauschale_id) {
+                    // Tagespauschale: Tarif direkt vom Pauschale-Record
+                    $tp        = $einsatz->tagespauschale;
+                    $ansatz    = (float) $tp->ansatz;
+                    [$tarifPat, $tarifKk] = match($tp->rechnungstyp) {
+                        'kvg'  => [0.0, $ansatz],
+                        default=> [$ansatz, 0.0],
+                    };
+                    $menge       = 1;
+                    $einheit     = 'tage';
+                    $betragPat   = round($tarifPat, 2);
+                    $betragKk    = round($tarifKk, 2);
+                    $beschreibung= $tp->text;
+                } else {
+                    $istTage = $einsatz->leistungsart?->einheit === 'tage';
+                    [$tarifPat, $tarifKk] = $this->tarifeFuerEinsatz(
+                        $einsatz, $klient, $rechnungstyp, $tarifCache
+                    );
+                    if ($istTage) {
+                        $menge     = $einsatz->anzahlTage() ?? 1;
+                        $einheit   = 'tage';
+                        $betragPat = round($menge * $tarifPat, 2);
+                        $betragKk  = round($menge * $tarifKk, 2);
+                    } else {
+                        $menge     = $einsatz->minuten ?? 0;
+                        $einheit   = 'minuten';
+                        $betragPat = round($menge / 60 * $tarifPat, 2);
+                        $betragKk  = round($menge / 60 * $tarifKk, 2);
+                    }
+                    $beschreibung = null;
+                }
 
                 RechnungsPosition::create([
                     'rechnung_id'    => $rechnung->id,
                     'einsatz_id'     => $einsatz->id,
                     'datum'          => $einsatz->datum,
                     'menge'          => $menge,
-                    'einheit'        => 'minuten',
+                    'einheit'        => $einheit,
+                    'beschreibung'   => $beschreibung,
                     'tarif_patient'  => $tarifPat,
                     'tarif_kk'       => $tarifKk,
-                    'betrag_patient' => round($menge / 60 * $tarifPat, 2),
-                    'betrag_kk'      => round($menge / 60 * $tarifKk, 2),
+                    'betrag_patient' => $betragPat,
+                    'betrag_kk'      => $betragKk,
                 ]);
 
                 $einsatz->update(['verrechnet' => true]);
@@ -382,8 +416,12 @@ class RechnungslaufController extends Controller
         foreach ($klienten as $klient) {
             $einsaetze = Einsatz::where('klient_id', $klient->id)
                 ->where('verrechnet', false)
-                ->whereNotNull('checkout_zeit')
+                ->where(function ($q) {
+                    $q->whereNotNull('checkout_zeit')
+                      ->orWhereNotNull('tagespauschale_id');
+                })
                 ->whereBetween('datum', [$von, $bis])
+                ->with('leistungsart', 'tagespauschale')
                 ->get();
 
             if ($einsaetze->isEmpty()) {
@@ -411,12 +449,30 @@ class RechnungslaufController extends Controller
             $ohneTypCount = 0;
 
             foreach ($einsaetze as $einsatz) {
-                $m = $einsatz->minuten ?? 0;
-                [$tp, $tk] = $this->tarifeFuerEinsatz($einsatz, $klient, $rechnungstyp, $tarifCache);
-                $betragPat += round($m / 60 * $tp, 2);
-                $betragKk  += round($m / 60 * $tk, 2);
-                $minuten   += $m;
-                if (!$einsatz->leistungsart_id) $ohneTypCount++;
+                if ($einsatz->tagespauschale_id) {
+                    $pauschale  = $einsatz->tagespauschale;
+                    $ansatz     = (float) $pauschale->ansatz;
+                    [$tp, $tk]  = match($pauschale->rechnungstyp) {
+                        'kvg'  => [0.0, $ansatz],
+                        default=> [$ansatz, 0.0],
+                    };
+                    $betragPat += $tp;
+                    $betragKk  += $tk;
+                } else {
+                    $istTage = $einsatz->leistungsart?->einheit === 'tage';
+                    [$tp, $tk] = $this->tarifeFuerEinsatz($einsatz, $klient, $rechnungstyp, $tarifCache);
+                    if ($istTage) {
+                        $tage       = $einsatz->anzahlTage() ?? 1;
+                        $betragPat += round($tage * $tp, 2);
+                        $betragKk  += round($tage * $tk, 2);
+                    } else {
+                        $m          = $einsatz->minuten ?? 0;
+                        $betragPat += round($m / 60 * $tp, 2);
+                        $betragKk  += round($m / 60 * $tk, 2);
+                        $minuten   += $m;
+                    }
+                    if (!$einsatz->leistungsart_id) $ohneTypCount++;
+                }
             }
 
             if ($ohneTypCount > 0) $ohneLeistungsart++;
@@ -565,7 +621,10 @@ class RechnungslaufController extends Controller
             return "{$bereitsVerrechnet} von {$total} Einsätzen bereits verrechnet";
         }
 
-        $ohneCheckout = (clone $basis)->whereNull('checkout_zeit')->count();
+        $ohneCheckout = (clone $basis)
+            ->whereNull('checkout_zeit')
+            ->whereNull('tagespauschale_id')
+            ->count();
         if ($ohneCheckout > 0) {
             $wort = $ohneCheckout === 1 ? 'Einsatz' : 'Einsätze';
             return "{$ohneCheckout} {$wort} ohne Checkout — noch nicht abgeschlossen";

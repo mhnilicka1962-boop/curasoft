@@ -1065,20 +1065,21 @@
     </details>
 
     {{-- Rechnungen --}}
-    @php $rechnungen = $klient->rechnungen()->with('lauf')->limit(20)->get(); @endphp
     @if(in_array(auth()->user()->rolle, ['admin', 'buchhaltung']))
+    @php
+        $rechnungenTotal = $klient->rechnungen()->count();
+        $rechnungen = $klient->rechnungen()
+            ->orderByDesc('rechnungsdatum')
+            ->orderByDesc('id')
+            ->limit(15)
+            ->get();
+    @endphp
     <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
         <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
             <span>Rechnungen</span>
-            <span class="text-hell" style="font-size: 0.75rem;">{{ $rechnungen->count() }} Rechnung/en</span>
+            <span class="text-hell" style="font-size: 0.75rem;">{{ $rechnungenTotal }} Rechnung/en</span>
         </summary>
         <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
-            <div style="margin-bottom: 0.875rem;">
-                <a href="{{ route('rechnungen.pauschale.create', ['klient_id' => $klient->id]) }}"
-                   class="btn btn-sekundaer btn-sm" style="font-size: 0.8125rem;">
-                   + Pauschalrechnung
-                </a>
-            </div>
             @forelse($rechnungen as $r)
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem; flex-wrap: wrap;">
                 <div style="display: flex; gap: 0.625rem; align-items: center; flex-wrap: wrap; flex: 1;">
@@ -1096,11 +1097,72 @@
             @empty
             <p class="text-klein text-hell" style="margin: 0;">Noch keine Rechnungen erstellt.</p>
             @endforelse
-            @if($rechnungen->count())
-            <div style="margin-top: 0.75rem;">
-                <a href="{{ route('rechnungslauf.index') }}" class="link-gedaempt text-klein">→ Alle Rechnungsläufe</a>
+            @if($rechnungenTotal > 0)
+            <div style="margin-top: 0.875rem; display: flex; gap: 1rem; font-size: 0.8125rem;">
+                <a href="{{ route('rechnungen.index') }}" class="link-primaer">→ Alle {{ $rechnungenTotal }} Rechnungen</a>
+                <a href="{{ route('rechnungslauf.index') }}" class="link-gedaempt">Rechnungsläufe</a>
             </div>
             @endif
+        </div>
+    </details>
+
+    {{-- Tagespauschalen --}}
+    @php
+        $tagespauschalen = \App\Models\Tagespauschale::where('klient_id', $klient->id)
+            ->where('organisation_id', auth()->user()->organisation_id)
+            ->orderByDesc('datum_von')
+            ->get();
+        $aktiveTagespauschale = $tagespauschalen->first(fn($tp) =>
+            $tp->datum_von <= today() && $tp->datum_bis >= today()
+        );
+    @endphp
+    <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
+        <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+            <span>Tagespauschalen</span>
+            <span style="display: flex; align-items: center; gap: 0.5rem;">
+                @if($aktiveTagespauschale)
+                    <span class="badge badge-erfolg" style="font-size: 0.7rem;">
+                        Aktiv · CHF {{ number_format($aktiveTagespauschale->ansatz, 2, '.', "'") }}/Tag
+                    </span>
+                @endif
+                <span class="text-hell" style="font-size: 0.75rem;">{{ $tagespauschalen->count() }} Einträge</span>
+            </span>
+        </summary>
+        <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
+            @if($aktiveTagespauschale)
+            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: var(--cs-radius); padding: 0.625rem 0.875rem; margin-bottom: 0.875rem; font-size: 0.875rem;">
+                <div style="font-weight: 600; color: #15803d;">Aktive Tagespauschale</div>
+                <div class="text-hell">
+                    {{ $aktiveTagespauschale->datum_von->format('d.m.Y') }} – {{ $aktiveTagespauschale->datum_bis->format('d.m.Y') }}
+                    · CHF {{ number_format($aktiveTagespauschale->ansatz, 2, '.', "'") }}/Tag
+                    · {{ $aktiveTagespauschale->rechnungstypLabel() }}
+                    @if($aktiveTagespauschale->text) · {{ $aktiveTagespauschale->text }} @endif
+                </div>
+            </div>
+            @endif
+
+            @forelse($tagespauschalen as $tp)
+            @php $aktiv = $tp->datum_von <= today() && $tp->datum_bis >= today(); @endphp
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem; flex-wrap: wrap;">
+                <div style="display: flex; gap: 0.625rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                    <span class="text-hell" style="white-space: nowrap;">
+                        {{ $tp->datum_von->format('d.m.Y') }} – {{ $tp->datum_bis->format('d.m.Y') }}
+                    </span>
+                    <span class="text-fett">CHF {{ number_format($tp->ansatz, 2, '.', "'") }}/Tag</span>
+                    <span class="badge badge-grau" style="font-size: 0.7rem;">{{ $tp->rechnungstypLabel() }}</span>
+                    @if($aktiv)<span class="badge badge-erfolg" style="font-size: 0.7rem;">Aktiv</span>@endif
+                    @if($tp->text)<span class="text-hell" style="font-size: 0.8rem;">{{ $tp->text }}</span>@endif
+                </div>
+                <a href="{{ route('tagespauschalen.show', $tp) }}" class="text-mini link-primaer" style="flex-shrink: 0;">Detail →</a>
+            </div>
+            @empty
+            <p class="text-klein text-hell" style="margin: 0 0 0.75rem;">Keine Tagespauschalen erfasst.</p>
+            @endforelse
+
+            <div style="margin-top: 0.875rem;">
+                <a href="{{ route('tagespauschalen.create', ['klient_id' => $klient->id]) }}"
+                   class="btn btn-sekundaer btn-sm" style="font-size: 0.8125rem;">+ Tagespauschale erfassen</a>
+            </div>
         </div>
     </details>
     @endif

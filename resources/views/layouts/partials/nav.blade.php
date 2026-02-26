@@ -33,6 +33,9 @@
 <a href="{{ route('rechnungen.index') }}" class="nav-link {{ request()->routeIs('rechnungen.*') ? 'aktiv' : '' }}">
     Rechnungen
 </a>
+<a href="{{ route('rechnungslauf.index') }}" class="nav-link {{ request()->routeIs('rechnungslauf.*') ? 'aktiv' : '' }}">
+    Rechnungsläufe
+</a>
 @endif
 
 @if(auth()->user()?->rolle === 'admin')

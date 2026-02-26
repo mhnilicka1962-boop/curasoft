@@ -11,6 +11,7 @@ use App\Http\Controllers\NachrichtenController;
 use App\Http\Controllers\LeistungsartenController;
 use App\Http\Controllers\RechnungenController;
 use App\Http\Controllers\RechnungslaufController;
+use App\Http\Controllers\TagespauschaleController;
 use App\Http\Controllers\AerzteController;
 use App\Http\Controllers\DokumenteController;
 use App\Http\Controllers\KrankenkassenController;
@@ -261,8 +262,12 @@ Route::middleware('auth')->group(function () {
         Route::delete('/rechnungen/lauf/{lauf}',             [RechnungslaufController::class, 'destroy'])->name('rechnungslauf.destroy');
         Route::get('/rechnungen/lauf/{lauf}/sammel-pdf',    [RechnungslaufController::class, 'sammelPdf'])->name('rechnungslauf.sammel-pdf');
 
-        Route::get('/rechnungen/pauschale/erstellen', [RechnungenController::class, 'createPauschale'])->name('rechnungen.pauschale.create');
-        Route::post('/rechnungen/pauschale', [RechnungenController::class, 'storePauschale'])->name('rechnungen.pauschale.store');
+        // Tagespauschalen
+        Route::get('/tagespauschalen',                    [TagespauschaleController::class, 'index'])->name('tagespauschalen.index');
+        Route::get('/tagespauschalen/create',             [TagespauschaleController::class, 'create'])->name('tagespauschalen.create');
+        Route::post('/tagespauschalen',                   [TagespauschaleController::class, 'store'])->name('tagespauschalen.store');
+        Route::get('/tagespauschalen/{tagespauschale}',   [TagespauschaleController::class, 'show'])->name('tagespauschalen.show');
+        Route::patch('/tagespauschalen/{tagespauschale}', [TagespauschaleController::class, 'update'])->name('tagespauschalen.update');
 
         Route::resource('/rechnungen', RechnungenController::class)->only(['index','create','store','show'])->parameters(['rechnungen' => 'rechnung']);
         Route::patch('/rechnungen/{rechnung}/status', [RechnungenController::class, 'statusUpdate'])->name('rechnungen.status');

@@ -81,6 +81,7 @@ class Klient extends Model
     public function beitraege()      { return $this->hasMany(KlientBeitrag::class)->orderByDesc('gueltig_ab'); }
     public function aktBeitrag()     { return $this->hasOne(KlientBeitrag::class)->latestOfMany('gueltig_ab'); }
     public function verordnungen()   { return $this->hasMany(KlientVerordnung::class)->orderByDesc('ausgestellt_am'); }
+    public function rechnungen()       { return $this->hasMany(Rechnung::class)->orderByDesc('rechnungsdatum'); }
     public function rapporte()         { return $this->hasMany(Rapport::class)->orderByDesc('datum'); }
     public function dokumente()        { return $this->hasMany(Dokument::class)->orderByDesc('created_at'); }
     public function betreuungspersonen() { return $this->hasMany(KlientBenutzer::class)->with('benutzer')->orderBy('rolle'); }

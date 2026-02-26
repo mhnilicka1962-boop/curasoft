@@ -11,7 +11,7 @@ class Einsatz extends Model
     protected $fillable = [
         'organisation_id', 'klient_id', 'benutzer_id',
         'leistungsart_id', 'verordnung_id', 'leistungserbringer_typ', 'region_id', 'status',
-        'datum', 'datum_bis', 'zeit_von', 'zeit_bis', 'minuten', 'bemerkung', 'verrechnet',
+        'datum', 'datum_bis', 'tagespauschale_id', 'zeit_von', 'zeit_bis', 'minuten', 'bemerkung', 'verrechnet',
         'checkin_zeit', 'checkin_lat', 'checkin_lng', 'checkin_methode', 'checkin_distanz_meter',
         'checkout_zeit', 'checkout_lat', 'checkout_lng', 'checkout_methode', 'checkout_distanz_meter',
     ];
@@ -24,7 +24,8 @@ class Einsatz extends Model
         'verrechnet'   => 'boolean',
     ];
 
-    public function klient()        { return $this->belongsTo(Klient::class); }
+    public function klient()          { return $this->belongsTo(Klient::class); }
+    public function tagespauschale()  { return $this->belongsTo(Tagespauschale::class); }
     public function benutzer()      { return $this->belongsTo(Benutzer::class); }
     public function leistungsart()  { return $this->belongsTo(Leistungsart::class); }
     public function verordnung()    { return $this->belongsTo(KlientVerordnung::class, 'verordnung_id'); }

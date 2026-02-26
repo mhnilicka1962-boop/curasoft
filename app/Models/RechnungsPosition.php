@@ -10,7 +10,7 @@ class RechnungsPosition extends Model
 
     protected $fillable = [
         'rechnung_id', 'einsatz_id', 'leistungstyp_id',
-        'datum', 'menge', 'einheit',
+        'datum', 'menge', 'einheit', 'beschreibung',
         'tarif_patient', 'tarif_kk',
         'betrag_patient', 'betrag_kk',
     ];

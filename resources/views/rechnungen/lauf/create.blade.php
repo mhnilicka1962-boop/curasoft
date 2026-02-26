@@ -20,11 +20,13 @@
         <div class="form-grid">
             <div class="form-feld">
                 <label class="form-label">Periode von</label>
-                <input type="date" name="periode_von" class="feld" value="{{ request('periode_von') }}" required>
+                <input type="date" name="periode_von" class="feld" value="{{ request('periode_von') }}"
+                    max="{{ today()->format('Y-m-d') }}" required>
             </div>
             <div class="form-feld">
                 <label class="form-label">Periode bis</label>
-                <input type="date" name="periode_bis" class="feld" value="{{ request('periode_bis') }}" required>
+                <input type="date" name="periode_bis" class="feld" value="{{ request('periode_bis') }}"
+                    max="{{ today()->format('Y-m-d') }}" required>
             </div>
             <div class="form-feld" style="display: flex; align-items: flex-end;">
                 <button type="submit" class="btn btn-sekundaer" style="width: 100%;">Vorschau laden</button>
@@ -35,6 +37,11 @@
         Rechnungstyp und Tarife werden pro Klient aus den Stammdaten übernommen
         (Rechnungstyp unter Klient → Abrechnung, Tarife aus Leistungsarten → Regionen).
     </div>
+    @if(request('periode_bis') && request('periode_bis') > today()->format('Y-m-d'))
+    <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:var(--cs-radius); padding:0.5rem 0.75rem; margin-top:0.625rem; font-size:0.875rem; color:#dc2626; font-weight:600;">
+        Periode bis liegt in der Zukunft — Rechnungsläufe dürfen nur bis heute ({{ today()->format('d.m.Y') }}) erstellt werden.
+    </div>
+    @endif
 </div>
 
 {{-- Vorschau --}}
