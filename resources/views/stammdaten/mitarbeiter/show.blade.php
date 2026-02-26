@@ -157,12 +157,15 @@
             </div>
             <div>
                 <label class="feld-label">Anstellungsart</label>
-                <select name="anstellungsart" class="feld">
+                <select id="anstellungsart" name="anstellungsart" class="feld">
                     <option value="fachperson"  {{ ($mitarbeiter->anstellungsart ?? 'fachperson') === 'fachperson'  ? 'selected' : '' }}>Fachperson</option>
                     <option value="angehoerig"  {{ ($mitarbeiter->anstellungsart ?? '') === 'angehoerig'  ? 'selected' : '' }}>Pflegender Angehöriger</option>
                     <option value="freiwillig"  {{ ($mitarbeiter->anstellungsart ?? '') === 'freiwillig'  ? 'selected' : '' }}>Freiwillig</option>
                     <option value="praktikum"   {{ ($mitarbeiter->anstellungsart ?? '') === 'praktikum'   ? 'selected' : '' }}>Praktikum</option>
                 </select>
+                <div id="hinweis-angehoerig" style="display: {{ ($mitarbeiter->anstellungsart ?? '') === 'angehoerig' ? 'block' : 'none' }}; margin-top: 0.5rem; background: #fffbeb; border: 1px solid #f59e0b; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.8125rem; color: #92400e;">
+                    ↓ Bitte unten unter <strong>«Zugewiesene Klienten»</strong> den gepflegten Klienten zuweisen.
+                </div>
             </div>
         </div>
 
@@ -211,17 +214,31 @@
 </div>
 
 {{-- ═══ 3. ERLAUBTE LEISTUNGSARTEN ═══ --}}
+@php
+$klvGesperrt = ['Untersuchung Behandlung', 'Abklärung/Beratung'];
+$istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
+@endphp
 <div class="karte" style="margin-bottom: 1.25rem;">
     <div class="abschnitt-label">Erlaubte Leistungsarten</div>
-    <p class="text-klein text-hell" style="margin: 0 0 0.875rem;">Welche Leistungsarten darf diese Person erbringen? Leer = alle erlaubt.</p>
+    <p class="text-klein text-hell" style="margin: 0 0 0.5rem;">Welche Leistungsarten darf diese Person erbringen? Leer = alle erlaubt.</p>
+    <div id="hinweis-klv" style="display: {{ $istAngehoerig ? 'block' : 'none' }}; margin-bottom: 0.75rem; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.8125rem; color: #92400e;">
+        <strong>KLV-Einschränkung:</strong> Pflegende Angehörige dürfen keine medizinischen Leistungen erbringen (Untersuchung/Behandlung, Abklärung/Beratung).
+    </div>
     <form method="POST" action="{{ route('mitarbeiter.leistungsarten', $mitarbeiter) }}">
         @csrf
-        <div style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 1rem;">
+        <div id="leistungsarten-grid" style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 1rem;">
             @foreach($leistungsarten as $la)
-            @php $erlaubt = $mitarbeiter->erlaubteLeistungsarten->contains($la->id); @endphp
-            <label id="la-label-{{ $la->id }}" style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.875rem; cursor: pointer; background: {{ $erlaubt ? 'var(--cs-primaer)' : 'var(--cs-hintergrund)' }}; color: {{ $erlaubt ? '#fff' : 'var(--cs-text)' }}; border: 1px solid {{ $erlaubt ? 'var(--cs-primaer)' : 'var(--cs-border)' }}; padding: 0.3rem 0.65rem; border-radius: 999px; transition: all 0.1s;">
+            @php
+                $erlaubt = $mitarbeiter->erlaubteLeistungsarten->contains($la->id);
+                $gesperrt = $istAngehoerig && in_array($la->bezeichnung, $klvGesperrt);
+            @endphp
+            <label id="la-label-{{ $la->id }}"
+                data-bezeichnung="{{ $la->bezeichnung }}"
+                data-klv-gesperrt="{{ in_array($la->bezeichnung, $klvGesperrt) ? 'true' : 'false' }}"
+                style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.875rem; cursor: {{ $gesperrt ? 'not-allowed' : 'pointer' }}; opacity: {{ $gesperrt ? '0.45' : '1' }}; background: {{ $erlaubt && !$gesperrt ? 'var(--cs-primaer)' : 'var(--cs-hintergrund)' }}; color: {{ $erlaubt && !$gesperrt ? '#fff' : 'var(--cs-text)' }}; border: 1px solid {{ $erlaubt && !$gesperrt ? 'var(--cs-primaer)' : 'var(--cs-border)' }}; padding: 0.3rem 0.65rem; border-radius: 999px; transition: all 0.1s;">
                 <input type="checkbox" name="leistungsart_ids[]" value="{{ $la->id }}"
-                    {{ $erlaubt ? 'checked' : '' }}
+                    {{ ($erlaubt && !$gesperrt) ? 'checked' : '' }}
+                    {{ $gesperrt ? 'disabled' : '' }}
                     style="display: none;"
                     onchange="
                         this.closest('label').style.background = this.checked ? 'var(--cs-primaer)' : 'var(--cs-hintergrund)';
@@ -229,6 +246,7 @@
                         this.closest('label').style.borderColor = this.checked ? 'var(--cs-primaer)' : 'var(--cs-border)';
                     ">
                 {{ $la->bezeichnung }}
+                @if($gesperrt)<span style="font-size: 0.7rem; margin-left: 0.2rem;">🚫</span>@endif
             </label>
             @endforeach
         </div>
@@ -308,14 +326,53 @@
         </div>
         <div>
             <label class="feld-label">Beziehungstyp</label>
-            <select name="beziehungstyp" class="feld">
-                <option value="fachperson">Fachperson</option>
-                <option value="angehoerig_pflegend">Pflegender Angehöriger</option>
+            <select id="beziehungstyp" name="beziehungstyp" class="feld">
+                <option value="fachperson" {{ ($mitarbeiter->anstellungsart ?? '') !== 'angehoerig' ? 'selected' : '' }}>Fachperson</option>
+                <option value="angehoerig_pflegend" {{ ($mitarbeiter->anstellungsart ?? '') === 'angehoerig' ? 'selected' : '' }}>Pflegender Angehöriger</option>
                 <option value="freiwillig">Freiwillig</option>
             </select>
         </div>
         <button type="submit" class="btn btn-sekundaer">Zuweisen</button>
     </form>
 </div>
+
+<script>
+document.getElementById('anstellungsart')?.addEventListener('change', function() {
+    const istAngehoerig = this.value === 'angehoerig';
+
+    // Hinweis ein/ausblenden
+    document.getElementById('hinweis-angehoerig').style.display = istAngehoerig ? 'block' : 'none';
+    document.getElementById('hinweis-klv').style.display = istAngehoerig ? 'block' : 'none';
+
+    // Beziehungstyp auto-setzen
+    if (istAngehoerig) {
+        document.getElementById('beziehungstyp').value = 'angehoerig_pflegend';
+    }
+
+    // Leistungsarten-Checkboxen einschränken
+    document.querySelectorAll('#leistungsarten-grid label').forEach(label => {
+        const cb = label.querySelector('input[type=checkbox]');
+        const gesperrt = label.dataset.klvGesperrt === 'true';
+
+        if (istAngehoerig && gesperrt) {
+            cb.checked = false;
+            cb.disabled = true;
+            label.style.opacity = '0.45';
+            label.style.cursor = 'not-allowed';
+            label.style.background = 'var(--cs-hintergrund)';
+            label.style.color = 'var(--cs-text)';
+            label.style.borderColor = 'var(--cs-border)';
+        } else {
+            cb.disabled = false;
+            label.style.opacity = '1';
+            label.style.cursor = 'pointer';
+        }
+    });
+
+    if (istAngehoerig) {
+        document.getElementById('hinweis-klv').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+</script>
 
 </x-layouts.app>

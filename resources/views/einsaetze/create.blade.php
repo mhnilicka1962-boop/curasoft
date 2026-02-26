@@ -3,6 +3,12 @@
     @if(request('_nach_touren'))
     <a href="{{ route('touren.create', ['benutzer_id' => request('benutzer_id'), 'datum' => request('datum')]) }}"
        class="link-gedaempt" style="font-size: 0.875rem; display: inline-block; margin-bottom: 1.25rem;">← Zurück zur Tour</a>
+    @elseif(request('klient_id'))
+    @php $klientZurueck = \App\Models\Klient::find(request('klient_id')); @endphp
+    <a href="{{ route('klienten.show', request('klient_id')) }}"
+       class="link-gedaempt" style="font-size: 0.875rem; display: inline-block; margin-bottom: 1.25rem;">
+        ← {{ $klientZurueck?->nachname }} {{ $klientZurueck?->vorname }}
+    </a>
     @else
     <a href="{{ route('einsaetze.index') }}" class="link-gedaempt" style="font-size: 0.875rem; display: inline-block; margin-bottom: 1.25rem;">← Einsätze</a>
     @endif
@@ -20,6 +26,8 @@
             @csrf
             @if(request('_nach_touren'))
                 <input type="hidden" name="_nach_touren" value="1">
+            @elseif(request('klient_id'))
+                <input type="hidden" name="_klient_redirect" value="1">
             @endif
 
             {{-- Klient --}}
@@ -93,8 +101,10 @@
                 <select id="benutzer_id" name="benutzer_id" class="feld">
                     <option value="">— Eigener Account —</option>
                     @foreach($mitarbeiter as $m)
-                        <option value="{{ $m->id }}" {{ (old('benutzer_id', request('benutzer_id')) == $m->id) ? 'selected' : '' }}>
-                            {{ $m->nachname }} {{ $m->vorname }} ({{ $m->rolle }})
+                        <option value="{{ $m->id }}"
+                            data-anstellungsart="{{ $m->anstellungsart ?? 'fachperson' }}"
+                            {{ (old('benutzer_id', request('benutzer_id')) == $m->id) ? 'selected' : '' }}>
+                            {{ $m->nachname }} {{ $m->vorname }} ({{ $m->rolle }}){{ ($m->anstellungsart === 'angehoerig') ? ' — Pfl. Angeh.' : '' }}
                         </option>
                     @endforeach
                 </select>
@@ -287,6 +297,39 @@ document.querySelectorAll('.wochentag-cb').forEach(cb => {
 });
 
 zeigeWiederholung();
+
+// ── Angehörigen-Auto-Detect (via Klient-Beziehung) ────────
+const angehoerigeMap = @json($angehoerigeMap);
+const benutzerSelect  = document.getElementById('benutzer_id');
+const erbringerSelect = document.getElementById('leistungserbringer_typ');
+
+function pruefeAngehoerig() {
+    if (!benutzerSelect || !erbringerSelect) return;
+    const klientId   = klientSelect.value;
+    const benutzerId = benutzerSelect.value;
+    if (!klientId || !benutzerId) return;
+
+    const angehoerige = angehoerigeMap[klientId] ?? [];
+    const istAngehoerig = angehoerige.includes(parseInt(benutzerId));
+    erbringerSelect.value = istAngehoerig ? 'angehoerig' : 'fachperson';
+
+    // Hinweis anzeigen
+    let hinweis = document.getElementById('hinweis-angehoerig-einsatz');
+    if (istAngehoerig) {
+        if (!hinweis) {
+            hinweis = document.createElement('div');
+            hinweis.id = 'hinweis-angehoerig-einsatz';
+            hinweis.style.cssText = 'margin-top:0.4rem; font-size:0.8rem; color:#92400e; background:#fffbeb; border:1px solid #f59e0b; border-radius:5px; padding:0.35rem 0.6rem;';
+            erbringerSelect.parentNode.appendChild(hinweis);
+        }
+        hinweis.textContent = '↑ Automatisch erkannt: pflegender Angehöriger dieses Klienten.';
+    } else if (hinweis) {
+        hinweis.remove();
+    }
+}
+
+if (benutzerSelect) benutzerSelect.addEventListener('change', pruefeAngehoerig);
+klientSelect.addEventListener('change', pruefeAngehoerig);
 </script>
 @endpush
 </x-layouts.app>

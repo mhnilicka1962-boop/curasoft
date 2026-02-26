@@ -211,12 +211,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/klienten/{klient}/verordnungen',                [KlientenController::class, 'verordnungSpeichern'])->name('klienten.verordnung.speichern');
         Route::delete('/klienten/{klient}/verordnungen/{verordnung}', [KlientenController::class, 'verordnungEntfernen'])->name('klienten.verordnung.entfernen');
         Route::post('/klienten/{klient}/bexio/sync',                  [KlientenController::class, 'bexioSync'])->name('klienten.bexio.sync');
+        Route::post('/klienten/{klient}/angehoerige',                 [KlientenController::class, 'angehoerigZuweisen'])->name('klienten.angehoerig.zuweisen');
+        Route::delete('/klienten/{klient}/angehoerige/{zuweisung}',   [KlientenController::class, 'angehoerigEntfernen'])->name('klienten.angehoerig.entfernen');
         Route::get('/schnellerfassung',  [KlientenController::class, 'schnellerfassung'])->name('schnellerfassung');
         Route::post('/schnellerfassung', [KlientenController::class, 'schnellSpeichern'])->name('schnellerfassung.speichern');
         Route::resource('/einsaetze', EinsaetzeController::class)->only(['index','create','store','show','edit','update'])->parameters(['einsaetze' => 'einsatz']);
         Route::get('/einsaetze/{einsatz}/vor-ort', [EinsaetzeController::class, 'vorOrt'])->name('einsaetze.vor-ort');
         Route::post('/einsaetze/{einsatz}/aktivitaeten', [EinsaetzeController::class, 'aktivitaetenSpeichern'])->name('einsaetze.aktivitaeten.speichern');
         Route::delete('/einsaetze/serie/{serieId}', [EinsaetzeController::class, 'destroySerie'])->name('einsaetze.serie.loeschen');
+        Route::delete('/einsaetze/{einsatz}', [EinsaetzeController::class, 'destroy'])->name('einsaetze.destroy');
 
         // Rapporte
         Route::resource('/rapporte', RapporteController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update'])->parameters(['rapporte' => 'rapport']);

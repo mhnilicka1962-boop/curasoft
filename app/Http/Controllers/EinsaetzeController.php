@@ -116,7 +116,14 @@ class EinsaetzeController extends Controller
                 ->get()
             : collect();
 
-        return view('einsaetze.create', compact('klienten', 'leistungsarten', 'mitarbeiter'));
+        // Map: klient_id => [benutzer_id, ...] für pflegende Angehörige (für JS auto-detect)
+        $angehoerigeMap = \App\Models\KlientBenutzer::where('beziehungstyp', 'angehoerig_pflegend')
+            ->where('aktiv', true)
+            ->get()
+            ->groupBy('klient_id')
+            ->map(fn($gruppe) => $gruppe->pluck('benutzer_id')->values());
+
+        return view('einsaetze.create', compact('klienten', 'leistungsarten', 'mitarbeiter', 'angehoerigeMap'));
     }
 
     public function store(Request $request)
@@ -361,6 +368,24 @@ class EinsaetzeController extends Controller
 
         return redirect()->route('einsaetze.show', $einsatz)
             ->with('erfolg', 'Einsatz wurde gespeichert.');
+    }
+
+    public function destroy(Einsatz $einsatz)
+    {
+        $this->autorisiereZugriff($einsatz);
+
+        if ($einsatz->status !== 'geplant') {
+            return back()->with('fehler', 'Nur geplante Einsätze können gelöscht werden.');
+        }
+        if ($einsatz->tour_id) {
+            return back()->with('fehler', 'Einsatz ist einer Tour zugewiesen — zuerst aus der Tour entfernen.');
+        }
+
+        $klientId = $einsatz->klient_id;
+        $einsatz->delete();
+
+        return redirect()->route('klienten.show', $klientId)
+            ->with('erfolg', 'Einsatz wurde gelöscht.');
     }
 
     public function destroySerie(Request $request, string $serieId)

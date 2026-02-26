@@ -143,7 +143,15 @@ class MitarbeiterController extends Controller
             $daten['password'] = Hash::make($request->password);
         }
 
+        $alteAnstellungsart = $mitarbeiter->anstellungsart;
         $mitarbeiter->update($daten);
+
+        // Wenn neu auf "angehoerig" gesetzt → Leistungsarten automatisch einschränken (KLV)
+        if (($daten['anstellungsart'] ?? null) === 'angehoerig' && $alteAnstellungsart !== 'angehoerig') {
+            $erlaubteIds = Leistungsart::whereIn('bezeichnung', ['Hauswirtschaft', 'Grundpflege', 'Pauschale'])
+                ->pluck('id');
+            $mitarbeiter->erlaubteLeistungsarten()->sync($erlaubteIds);
+        }
 
         return back()->with('erfolg', 'Mitarbeiter wurde aktualisiert.');
     }

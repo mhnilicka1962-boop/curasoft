@@ -1,12 +1,25 @@
 <x-layouts.app :titel="'Einsatz — ' . $einsatz->klient->nachname . ' ' . $einsatz->klient->vorname">
 <div style="max-width: 600px;">
     <div class="seiten-kopf" style="margin-bottom: 1.25rem;">
-        <a href="{{ route('einsaetze.index') }}" class="link-gedaempt" style="font-size: 0.875rem;">← Einsätze</a>
-        @if($einsatz->status !== 'storniert')
-        <a href="{{ route('einsaetze.edit', $einsatz) }}" class="btn btn-sekundaer" style="font-size: 0.8125rem;">
-            Bearbeiten
+        <a href="{{ route('klienten.show', $einsatz->klient) }}" class="link-gedaempt" style="font-size: 0.875rem;">
+            ← {{ $einsatz->klient->nachname }} {{ $einsatz->klient->vorname }}
         </a>
-        @endif
+        <div style="display: flex; gap: 0.5rem;">
+            @if($einsatz->status === 'geplant' && !$einsatz->tour_id)
+            <form method="POST" action="{{ route('einsaetze.destroy', $einsatz) }}"
+                onsubmit="return confirm('Einsatz wirklich löschen?')">
+                @csrf @method('DELETE')
+                <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; color: var(--cs-fehler); border-color: var(--cs-fehler);">
+                    Löschen
+                </button>
+            </form>
+            @endif
+            @if($einsatz->status !== 'storniert')
+            <a href="{{ route('einsaetze.edit', $einsatz) }}" class="btn btn-sekundaer" style="font-size: 0.8125rem;">
+                Bearbeiten
+            </a>
+            @endif
+        </div>
     </div>
 
     {{-- Einsatz-Info --}}

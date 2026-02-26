@@ -177,6 +177,9 @@
                     </td>
                     <td class="col-desktop text-hell" style="padding: 0.625rem 1rem;">
                         {{ $einsatz->benutzer?->vorname ?? '—' }} {{ $einsatz->benutzer?->nachname ?? '' }}
+                        @if($einsatz->leistungserbringer_typ === 'angehoerig')
+                            <span class="badge badge-info" style="font-size: 0.7rem; margin-left: 0.25rem;">Pfl. Angeh.</span>
+                        @endif
                     </td>
                     <td style="padding: 0.625rem 1rem;">
                         <span class="badge {{ $einsatz->statusBadgeKlasse() }}">{{ $einsatz->statusLabel() }}</span>

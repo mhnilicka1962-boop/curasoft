@@ -9,6 +9,7 @@ use App\Models\Klient;
 use App\Models\KlientAdresse;
 use App\Models\KlientArzt;
 use App\Models\KlientDiagnose;
+use App\Models\KlientBenutzer;
 use App\Models\KlientKontakt;
 use App\Models\KlientKrankenkasse;
 use App\Models\KlientBeitrag;
@@ -190,7 +191,13 @@ class KlientenController extends Controller
                 ->get()
             : collect();
 
-        return view('klienten.show', compact('klient', 'leistungsarten', 'mitarbeiter'));
+        $pflegendeAngehoerige = KlientBenutzer::with('benutzer')
+            ->where('klient_id', $klient->id)
+            ->where('beziehungstyp', 'angehoerig_pflegend')
+            ->where('aktiv', true)
+            ->get();
+
+        return view('klienten.show', compact('klient', 'leistungsarten', 'mitarbeiter', 'pflegendeAngehoerige'));
     }
 
     public function edit(Klient $klient)
@@ -263,27 +270,30 @@ class KlientenController extends Controller
         $this->autorisiereZugriff($klient);
 
         $daten = $request->validate([
-            'adressart'   => ['required', 'in:einsatzort,rechnung,notfall,korrespondenz'],
-            'gueltig_ab'  => ['nullable', 'date'],
-            'gueltig_bis' => ['nullable', 'date'],
-            'firma'       => ['nullable', 'string', 'max:100'],
-            'anrede'      => ['nullable', 'string', 'max:20'],
-            'vorname'     => ['nullable', 'string', 'max:100'],
-            'nachname'    => ['nullable', 'string', 'max:100'],
-            'strasse'     => ['nullable', 'string', 'max:255'],
-            'postfach'    => ['nullable', 'string', 'max:50'],
-            'plz'         => ['nullable', 'string', 'max:10'],
-            'ort'         => ['nullable', 'string', 'max:100'],
-            'region_id'   => ['nullable', 'exists:regionen,id'],
-            'telefon'     => ['nullable', 'string', 'max:50'],
-            'telefax'     => ['nullable', 'string', 'max:50'],
-            'email'       => ['nullable', 'email', 'max:255'],
+            'adressart' => ['required', 'in:rechnung,notfall'],
+            'name'      => ['nullable', 'string', 'max:200'],
+            'strasse'   => ['nullable', 'string', 'max:255'],
+            'plz'       => ['nullable', 'string', 'max:10'],
+            'ort'       => ['nullable', 'string', 'max:100'],
+            'telefon'   => ['nullable', 'string', 'max:50'],
+            'email'     => ['nullable', 'email', 'max:255'],
         ]);
 
-        $klient->adressen()->create($daten);
+        $klient->adressen()->updateOrCreate(
+            ['adressart' => $daten['adressart']],
+            [
+                'nachname' => $daten['name'] ?? null,
+                'strasse'  => $daten['strasse'] ?? null,
+                'plz'      => $daten['plz'] ?? null,
+                'ort'      => $daten['ort'] ?? null,
+                'telefon'  => $daten['telefon'] ?? null,
+                'email'    => $daten['email'] ?? null,
+                'aktiv'    => true,
+            ]
+        );
 
         return redirect()->route('klienten.show', $klient)
-            ->with('erfolg', 'Adresse wurde hinzugefügt.');
+            ->with('erfolg', 'Adresse gespeichert.');
     }
 
     public function adresseLoeschen(Klient $klient, KlientAdresse $adresse)
@@ -473,6 +483,29 @@ class KlientenController extends Controller
         if ($diagnose->klient_id !== $klient->id) abort(403);
         $diagnose->update(['aktiv' => false]);
         return back()->with('erfolg', 'Diagnose wurde deaktiviert.');
+    }
+
+    public function angehoerigZuweisen(Request $request, Klient $klient)
+    {
+        $this->autorisiereZugriff($klient);
+
+        $request->validate([
+            'benutzer_id' => ['required', 'exists:benutzer,id'],
+        ]);
+
+        KlientBenutzer::updateOrCreate(
+            ['klient_id' => $klient->id, 'benutzer_id' => $request->benutzer_id],
+            ['rolle' => 'betreuer', 'beziehungstyp' => 'angehoerig_pflegend', 'aktiv' => true]
+        );
+
+        return back()->with('erfolg', 'Pflegender Angehöriger zugewiesen.');
+    }
+
+    public function angehoerigEntfernen(Klient $klient, KlientBenutzer $zuweisung)
+    {
+        $this->autorisiereZugriff($klient);
+        $zuweisung->delete();
+        return back()->with('erfolg', 'Zuweisung entfernt.');
     }
 
     public function bexioSync(Klient $klient)
