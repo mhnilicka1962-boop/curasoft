@@ -1064,6 +1064,47 @@
         </div>
     </details>
 
+    {{-- Rechnungen --}}
+    @php $rechnungen = $klient->rechnungen()->with('lauf')->limit(20)->get(); @endphp
+    @if(in_array(auth()->user()->rolle, ['admin', 'buchhaltung']))
+    <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
+        <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+            <span>Rechnungen</span>
+            <span class="text-hell" style="font-size: 0.75rem;">{{ $rechnungen->count() }} Rechnung/en</span>
+        </summary>
+        <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
+            <div style="margin-bottom: 0.875rem;">
+                <a href="{{ route('rechnungen.pauschale.create', ['klient_id' => $klient->id]) }}"
+                   class="btn btn-sekundaer btn-sm" style="font-size: 0.8125rem;">
+                   + Pauschalrechnung
+                </a>
+            </div>
+            @forelse($rechnungen as $r)
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem; flex-wrap: wrap;">
+                <div style="display: flex; gap: 0.625rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                    <span class="text-hell" style="min-width: 90px; white-space: nowrap;">{{ $r->rechnungsdatum->format('d.m.Y') }}</span>
+                    <span class="text-fett" style="font-family: monospace; font-size: 0.8rem;">{{ $r->rechnungsnummer }}</span>
+                    {!! $r->typBadge() !!}
+                    {!! $r->statusBadge() !!}
+                    <span style="color: var(--cs-primaer); font-weight: 600;">CHF {{ number_format($r->betrag_total, 2, '.', "'") }}</span>
+                    @if($r->betrag_kk > 0)
+                        <span class="text-hell" style="font-size: 0.8rem;">KK: {{ number_format($r->betrag_kk, 2, '.', "'") }}</span>
+                    @endif
+                </div>
+                <a href="{{ route('rechnungen.show', $r) }}" class="text-mini link-primaer" style="flex-shrink: 0;">Detail →</a>
+            </div>
+            @empty
+            <p class="text-klein text-hell" style="margin: 0;">Noch keine Rechnungen erstellt.</p>
+            @endforelse
+            @if($rechnungen->count())
+            <div style="margin-top: 0.75rem;">
+                <a href="{{ route('rechnungslauf.index') }}" class="link-gedaempt text-klein">→ Alle Rechnungsläufe</a>
+            </div>
+            @endif
+        </div>
+    </details>
+    @endif
+
     {{-- Dokumente --}}
     @php $dokumente = $klient->dokumente()->with('hochgeladenVon')->orderByDesc('created_at')->get(); @endphp
     <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">

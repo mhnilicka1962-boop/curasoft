@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use App\Models\Einsatz;
 use App\Models\Klient;
+use App\Models\KlientBeitrag;
 use App\Models\Organisation;
 use App\Models\Rechnung;
 use App\Models\RechnungsPosition;
@@ -213,6 +214,91 @@ class RechnungenController extends Controller
             $ok ? 'erfolg' : 'fehler',
             $ok ? 'Rechnung wurde mit Bexio synchronisiert.' : 'Bexio-Sync fehlgeschlagen. Bitte Verbindung unter Firma prüfen.'
         );
+    }
+
+    public function createPauschale(\Illuminate\Http\Request $request)
+    {
+        $klienten = Klient::where('organisation_id', $this->orgId())
+            ->where('aktiv', true)
+            ->orderBy('nachname')
+            ->with('beitraege')
+            ->get();
+
+        $klientenBeitraege = [];
+        foreach ($klienten as $k) {
+            $b = $k->beitraege->sortByDesc('gueltig_ab')->first();
+            if ($b) {
+                $klientenBeitraege[$k->id] = [
+                    'ansatz_kunde'  => (float) $b->ansatz_kunde,
+                    'ansatz_spitex' => (float) $b->ansatz_spitex,
+                ];
+            }
+        }
+
+        $selectedKlientId = $request->get('klient_id');
+
+        return view('rechnungen.pauschale_erstellen', compact('klienten', 'klientenBeitraege', 'selectedKlientId'));
+    }
+
+    public function storePauschale(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'klient_id'    => ['required', 'exists:klienten,id'],
+            'periode_von'  => ['required', 'date'],
+            'periode_bis'  => ['required', 'date', 'after_or_equal:periode_von'],
+            'rechnungstyp' => ['required', 'in:kombiniert,kvg,klient,gemeinde'],
+        ]);
+
+        $beitrag = KlientBeitrag::where('klient_id', $request->klient_id)
+            ->where('gueltig_ab', '<=', $request->periode_von)
+            ->orderByDesc('gueltig_ab')
+            ->first();
+
+        if (!$beitrag) {
+            return back()->withInput()->with('fehler', 'Kein gültiger Beitrag für diesen Klienten in diesem Zeitraum erfasst.');
+        }
+
+        $menge = \Carbon\Carbon::parse($request->periode_von)
+            ->diffInDays(\Carbon\Carbon::parse($request->periode_bis)) + 1;
+
+        [$tarifPat, $tarifKk] = match($request->rechnungstyp) {
+            'kvg'               => [0.0, (float)$beitrag->ansatz_kunde + (float)$beitrag->ansatz_spitex],
+            'klient', 'gemeinde'=> [(float)$beitrag->ansatz_kunde + (float)$beitrag->ansatz_spitex, 0.0],
+            default             => [(float)$beitrag->ansatz_kunde, (float)$beitrag->ansatz_spitex],
+        };
+
+        $rechnung = Rechnung::create([
+            'organisation_id' => $this->orgId(),
+            'klient_id'       => $request->klient_id,
+            'rechnungsnummer' => Rechnung::naechsteNummer($this->orgId()),
+            'periode_von'     => $request->periode_von,
+            'periode_bis'     => $request->periode_bis,
+            'rechnungsdatum'  => today(),
+            'status'          => 'entwurf',
+            'rechnungstyp'    => $request->rechnungstyp,
+        ]);
+
+        RechnungsPosition::create([
+            'rechnung_id'     => $rechnung->id,
+            'einsatz_id'      => null,
+            'leistungstyp_id' => null,
+            'datum'           => $request->periode_von,
+            'menge'           => $menge,
+            'einheit'         => 'tage',
+            'tarif_patient'   => $tarifPat,
+            'tarif_kk'        => $tarifKk,
+            'betrag_patient'  => round($menge * $tarifPat, 2),
+            'betrag_kk'       => round($menge * $tarifKk, 2),
+        ]);
+
+        $rechnung->load('positionen');
+        $rechnung->berechneTotale();
+
+        AuditLog::schreiben('erstellt', 'Rechnung', $rechnung->id,
+            "Pauschalrechnung {$rechnung->rechnungsnummer} erstellt");
+
+        return redirect()->route('rechnungen.show', $rechnung)
+            ->with('erfolg', "Pauschalrechnung {$rechnung->rechnungsnummer} wurde erstellt.");
     }
 
     private function autorisiereZugriff(Rechnung $rechnung): void

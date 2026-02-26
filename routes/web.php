@@ -261,6 +261,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('/rechnungen/lauf/{lauf}',             [RechnungslaufController::class, 'destroy'])->name('rechnungslauf.destroy');
         Route::get('/rechnungen/lauf/{lauf}/sammel-pdf',    [RechnungslaufController::class, 'sammelPdf'])->name('rechnungslauf.sammel-pdf');
 
+        Route::get('/rechnungen/pauschale/erstellen', [RechnungenController::class, 'createPauschale'])->name('rechnungen.pauschale.create');
+        Route::post('/rechnungen/pauschale', [RechnungenController::class, 'storePauschale'])->name('rechnungen.pauschale.store');
+
         Route::resource('/rechnungen', RechnungenController::class)->only(['index','create','store','show'])->parameters(['rechnungen' => 'rechnung']);
         Route::patch('/rechnungen/{rechnung}/status', [RechnungenController::class, 'statusUpdate'])->name('rechnungen.status');
         Route::patch('/rechnungen/positionen/{position}', [RechnungenController::class, 'positionUpdate'])->name('rechnungen.position.update');
