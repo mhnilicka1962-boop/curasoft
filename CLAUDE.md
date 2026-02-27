@@ -3,7 +3,7 @@
 # NIEMALS /public_html/itjob/ verwenden — das ist ein anderes Projekt!
 # Lokales Verzeichnis: C:\laragon\www\spitex
 
-## Stand: 2026-02-26 (Session 15 — Abend / Deploy)
+## Stand: 2026-02-27 (Session 16 — Deploy-Automatisierung)
 
 ---
 
@@ -660,14 +660,46 @@ Falsch deployten Spitex-Dateien in `/public_html/itjob/` haben itjob **nicht bes
 - Abgeleitete Farben (hell/dunkel) werden automatisch aus Primärfarbe berechnet
 - App-Name im Titel kommt aus `organisation.name` (DB)
 
-### Deploy-Workflow (etabliert)
-- **Lokal entwickeln** → testen → commit+push → Demo-Server `git pull`
-- Demo-Server hat manchmal lokale Konflikte → `git reset --hard origin/master` löst es
-- Vite-Assets werden lokal gebaut und per FTP hochgeladen (kein Node.js auf Server)
-- FTP: `curl -T "lokaler/pfad/datei.php" "ftp://ftp.devitjob.ch/public_html/spitex/pfad/datei.php" --user "vscode@devitjob.ch:VsCode2026!Ftp" --ftp-create-dirs`
-- **WICHTIG:** Voller Pfad auf beiden Seiten angeben. Trailing-slash-only → Datei landet im Root!
-- Neue Verzeichnisse: `--ftp-create-dirs` Flag nötig
-- Nach neuen Routen auf Demo: `https://www.curasoft.ch/cc.php` aufrufen (Einmal-Script deployen + aufrufen + löschen)
+### Deploy-Workflow — AKTUELL (ab Session 16, 2026-02-27)
+
+#### Ein Befehl für alles:
+```bash
+./deploy.sh        # Code + CSS/JS + Server-Deploy
+./deploy.sh db     # Wie oben + DB-Daten syncen (Testdaten + Organisation)
+```
+
+#### Was deploy.sh macht:
+| Schritt | Was | Wie |
+|---------|-----|-----|
+| 1 | `npm run build` | Vite Assets lokal bauen |
+| 2 | `git push` | Code auf GitHub |
+| 3 | FTP | CSS + JS nach `public/build/` |
+| 4 | FTP + HTTP | `deploy/server.php` → `public/srv_XYZ.php` → aufrufen → leeren |
+| 5 | (nur `db`) | `deploy/db_sync.php` → `db_import.php` → FTP → aufrufen → löschen |
+
+#### Server-Deploy macht intern:
+```
+git reset --hard origin/master   ← IMMER reset, nie pull (vermeidet Konflikte)
+composer install --no-dev        ← Alle PHP-Pakete
+php artisan migrate --force      ← Neue Migrationen
+php artisan optimize:clear       ← Cache flush
+```
+
+#### DB Sync (wann nötig):
+- `./deploy.sh db` — bei Testdaten-Änderungen oder Firma-Daten-Änderungen
+- **NICHT** bei reinen Code-Änderungen
+- Synct: alle Tabellen + `organisationen` (Firma-Name, Adresse, IBAN usw.)
+- Überschreibt Demo-DB vollständig mit lokalen Daten
+
+#### Dateien im deploy/-Verzeichnis:
+| Datei | Zweck | In git? |
+|-------|-------|---------|
+| `deploy/server.php` | Server-seitiges Deploy-Script | ✅ ja |
+| `deploy/db_sync.php` | DB-Export-Generator | ✅ ja |
+| `deploy/db_import.php` | Generiert, temporär | ❌ gitignored |
+
+#### NIEMALS mehr manuell per FTP einzelne PHP-Dateien hochladen!
+Alles geht über git → deploy.sh. Keine Ausnahmen.
 
 ---
 

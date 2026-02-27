@@ -23,3 +23,5 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/deploy/db_import.php
+spitexaktuell.code-workspace
