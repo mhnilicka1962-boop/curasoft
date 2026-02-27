@@ -63,6 +63,7 @@
 
 html {
     font-size: var(--cs-schrift-groesse);
+    overflow-x: hidden;
 }
 
 body {
@@ -71,6 +72,7 @@ body {
     background-color: var(--cs-hintergrund);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
 }
 
 /* ============================================================
