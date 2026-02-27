@@ -25,7 +25,8 @@
     <div class="karte" id="kap1" style="margin-bottom: 1.25rem;">
         <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 1 — Einloggen</div>
 
-        <table class="tabelle" style="margin-bottom: 1.25rem;">
+        <div class="tabelle-wrapper" style="margin-bottom: 1.25rem;">
+        <table class="tabelle">
             <thead><tr><th>Methode</th><th>Für wen</th><th>Aufwand</th></tr></thead>
             <tbody>
                 <tr><td><strong>Link per E-Mail</strong></td><td>Alle</td><td>Kein Passwort — empfohlen</td></tr>
@@ -33,6 +34,7 @@
                 <tr><td><strong>Passwort</strong></td><td>Alle</td><td>Klassisch</td></tr>
             </tbody>
         </table>
+        </div>
 
         <div class="abschnitt-trenn"></div>
         <div style="font-weight: 600; margin: 1rem 0 0.5rem;">1.1 Link per E-Mail (empfohlen)</div>
@@ -62,6 +64,7 @@
 
         <div class="abschnitt-trenn"></div>
         <div style="font-weight: 600; margin: 1rem 0 0.5rem;">1.4 Probleme</div>
+        <div class="tabelle-wrapper">
         <table class="tabelle">
             <thead><tr><th>Problem</th><th>Lösung</th></tr></thead>
             <tbody>
@@ -71,6 +74,7 @@
                 <tr><td>Passwort vergessen</td><td>Magic Link verwenden — kein Passwort nötig</td></tr>
             </tbody>
         </table>
+        </div>
     </div>
 
     {{-- Kapitel 2: Tagesablauf --}}
@@ -124,7 +128,8 @@
             <li>Bericht schreiben — drei Möglichkeiten:</li>
         </ol>
 
-        <table class="tabelle" style="margin-bottom: 1rem;">
+        <div class="tabelle-wrapper" style="margin-bottom: 1rem;">
+        <table class="tabelle">
             <thead><tr><th>Methode</th><th>So geht's</th><th>Geeignet für</th></tr></thead>
             <tbody>
                 <tr>
@@ -144,6 +149,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <div class="info-box" style="margin-bottom: 1rem;">
             Das Diktat funktioniert nur in <strong>Chrome, Edge oder Safari</strong> — nicht in Firefox.
@@ -167,6 +173,7 @@
 
         <div class="abschnitt-trenn"></div>
         <div style="font-weight: 600; margin: 1rem 0 0.5rem;">Export-Optionen</div>
+        <div class="tabelle-wrapper">
         <table class="tabelle">
             <thead><tr><th>Schaltfläche</th><th>Zweck</th><th>Format</th></tr></thead>
             <tbody>
@@ -192,6 +199,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <div class="info-box" style="margin-top: 1rem;">
             Die Tarife in der Rechnung sind <strong>eingefroren</strong> — Tarifänderungen betreffen nur neue Rechnungen. Das PDF kann jederzeit erneut heruntergeladen werden.
@@ -212,7 +220,8 @@
 
         <div class="abschnitt-trenn"></div>
         <div style="font-weight: 600; margin: 1rem 0 0.5rem;">Versandwege</div>
-        <table class="tabelle" style="margin-bottom: 1rem;">
+        <div class="tabelle-wrapper" style="margin-bottom: 1rem;">
+        <table class="tabelle">
             <thead><tr><th>Schaltfläche</th><th>Was passiert</th></tr></thead>
             <tbody>
                 <tr><td><strong>Email versenden</strong></td><td>PDF-Rechnung per Mail an Klient (wenn E-Mail hinterlegt)</td></tr>
@@ -221,6 +230,7 @@
                 <tr><td><strong>✓ Bexio Zahlungsabgleich</strong></td><td>Prüft alle Rechnungen des Laufs in Bexio auf Zahlungseingang</td></tr>
             </tbody>
         </table>
+        </div>
 
         <div class="info-box">
             Solange keine Rechnung im Status «Gesendet» oder «Bezahlt» ist, kann der ganze Lauf storniert werden — alle Einsätze werden dabei zurückgesetzt.
