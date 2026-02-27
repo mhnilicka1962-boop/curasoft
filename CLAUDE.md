@@ -343,6 +343,33 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 
 ---
 
+## Neu in Session 16 (2026-02-27) — Deploy-Automatisierung
+
+### Problem: Code/DB-Drift zwischen lokal und Demo
+- Demo-Server hatte lokale FTP-Änderungen die nicht in git waren → `git pull` schlug fehl
+- `git reset --hard origin/master` als Standard statt `git pull` — vermeidet Konflikte immer
+- `organisationen`-Tabelle war nie Teil des DB-Syncs → Firma-Daten auf Demo fehlten
+- `maennchen/zipstream-php` v3.2.1 erfordert PHP 8.3 — Demo läuft auf 8.2.29 → downgrade auf ^2.4
+
+### Lösung: deploy.sh — Ein Befehl für alles
+```bash
+./deploy.sh        # Code + Assets (bei jeder Code-Änderung)
+./deploy.sh db     # + vollständiger DB-Sync (Testdaten + Organisation)
+```
+
+### Neue Dateien:
+| Datei | Zweck |
+|-------|-------|
+| `deploy.sh` | Haupt-Deploy-Script (ausführbar) |
+| `deploy/server.php` | Server-seitiges Script: git reset + composer + migrate + cache |
+| `deploy/db_sync.php` | Exportiert lokale DB → generiert `deploy/db_import.php` |
+| `deploy/db_import.php` | Temporär generiert, gitignored, wird nach Sync gelöscht |
+
+### Regel ab sofort: NIEMALS einzelne Dateien per FTP hochladen
+Alles über git + `./deploy.sh`. Keine Ausnahmen.
+
+---
+
 ## Neu in Session 15 — Abend / Deploy (2026-02-26)
 
 ### Deploy-Lektion: falscher FTP-Pfad
