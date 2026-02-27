@@ -63,12 +63,30 @@
     <a href="{{ route('rechnungslauf.pdf-zip', $lauf) }}" class="btn btn-sekundaer">
         PDF-ZIP ({{ $postAnzahl }})
     </a>
+    @if($postEntwurfAnzahl > 0)
+    <form method="POST" action="{{ route('rechnungslauf.post-abschliessen', $lauf) }}"
+        onsubmit="return confirm('{{ $postEntwurfAnzahl }} Post/Manuell-Rechnung(en) als versendet markieren?')">
+        @csrf
+        <button type="submit" class="btn btn-sekundaer" style="color: #15803d; border-color: #86efac;">
+            ✓ Post/Manuell versendet ({{ $postEntwurfAnzahl }})
+        </button>
+    </form>
+    @endif
     @endif
 
     @if($kvgAnzahl > 0)
     <a href="{{ route('rechnungslauf.xml-zip', $lauf) }}" class="btn btn-sekundaer">
         XML-ZIP KVG ({{ $kvgAnzahl }})
     </a>
+    @if($xmlEntwurfAnzahl > 0)
+    <form method="POST" action="{{ route('rechnungslauf.xml-abschliessen', $lauf) }}"
+        onsubmit="return confirm('{{ $xmlEntwurfAnzahl }} KVG/XML-Rechnung(en) als versendet markieren?')">
+        @csrf
+        <button type="submit" class="btn btn-sekundaer" style="color: #15803d; border-color: #86efac;">
+            ✓ XML versendet ({{ $xmlEntwurfAnzahl }})
+        </button>
+    </form>
+    @endif
     @endif
 
     <a href="{{ route('rechnungen.index') }}" class="btn btn-sekundaer" style="margin-left: auto;">

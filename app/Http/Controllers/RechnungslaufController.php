@@ -211,7 +211,16 @@ class RechnungslaufController extends Controller
 
         $kvgAnzahl = $lauf->rechnungen->whereIn('rechnungstyp', ['kvg', 'kombiniert'])->count();
 
-        return view('rechnungen.lauf.show', compact('lauf', 'emailAnzahl', 'postAnzahl', 'kvgAnzahl'));
+        $postEntwurfAnzahl = $lauf->rechnungen->filter(
+            fn($r) => $r->klient->versandart_patient !== 'email' && $r->status === 'entwurf'
+        )->count();
+
+        $xmlEntwurfAnzahl = $lauf->rechnungen
+            ->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+            ->where('status', 'entwurf')
+            ->count();
+
+        return view('rechnungen.lauf.show', compact('lauf', 'emailAnzahl', 'postAnzahl', 'kvgAnzahl', 'postEntwurfAnzahl', 'xmlEntwurfAnzahl'));
     }
 
     public function emailVersand(Rechnungslauf $lauf)
@@ -570,6 +579,30 @@ class RechnungslaufController extends Controller
             'Content-Type'        => 'application/pdf',
             'Content-Disposition' => "inline; filename=\"{$dateiname}\"",
         ]);
+    }
+
+    public function postAbschliessen(Rechnungslauf $lauf)
+    {
+        $this->autorisiereZugriff($lauf);
+
+        $anzahl = $lauf->rechnungen()
+            ->whereHas('klient', fn($q) => $q->where('versandart_patient', '!=', 'email'))
+            ->where('status', 'entwurf')
+            ->update(['status' => 'gesendet', 'updated_at' => now()]);
+
+        return back()->with('erfolg', "{$anzahl} Post/Manuell-Rechnung(en) als versendet markiert.");
+    }
+
+    public function xmlAbschliessen(Rechnungslauf $lauf)
+    {
+        $this->autorisiereZugriff($lauf);
+
+        $anzahl = $lauf->rechnungen()
+            ->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+            ->where('status', 'entwurf')
+            ->update(['status' => 'gesendet', 'updated_at' => now()]);
+
+        return back()->with('erfolg', "{$anzahl} KVG/XML-Rechnung(en) als versendet markiert.");
     }
 
     public function destroy(Rechnungslauf $lauf)

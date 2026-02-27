@@ -260,7 +260,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/rechnungen/lauf/{lauf}/pdf-zip',       [RechnungslaufController::class, 'pdfZip'])->name('rechnungslauf.pdf-zip');
         Route::get('/rechnungen/lauf/{lauf}/xml-zip',       [RechnungslaufController::class, 'xmlZip'])->name('rechnungslauf.xml-zip');
         Route::delete('/rechnungen/lauf/{lauf}',             [RechnungslaufController::class, 'destroy'])->name('rechnungslauf.destroy');
-        Route::get('/rechnungen/lauf/{lauf}/sammel-pdf',    [RechnungslaufController::class, 'sammelPdf'])->name('rechnungslauf.sammel-pdf');
+        Route::get('/rechnungen/lauf/{lauf}/sammel-pdf',         [RechnungslaufController::class, 'sammelPdf'])->name('rechnungslauf.sammel-pdf');
+        Route::post('/rechnungen/lauf/{lauf}/post-abschliessen', [RechnungslaufController::class, 'postAbschliessen'])->name('rechnungslauf.post-abschliessen');
+        Route::post('/rechnungen/lauf/{lauf}/xml-abschliessen',  [RechnungslaufController::class, 'xmlAbschliessen'])->name('rechnungslauf.xml-abschliessen');
 
         // Tagespauschalen
         Route::get('/tagespauschalen',                    [TagespauschaleController::class, 'index'])->name('tagespauschalen.index');
