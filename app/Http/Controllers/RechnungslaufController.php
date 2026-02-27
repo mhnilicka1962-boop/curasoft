@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use ZipStream\ZipStream;
+use ZipStream\Option\Archive as ZipArchiveOptions;
 
 class RechnungslaufController extends Controller
 {
@@ -285,7 +286,8 @@ class RechnungslaufController extends Controller
         $dateiname  = "rechnungslauf_{$lauf->periode_von->format('Y-m')}.zip";
 
         return response()->stream(function () use ($rechnungen, $pdfService) {
-            $zip = new ZipStream(sendHttpHeaders: false);
+            $zipOpt = new ZipArchiveOptions(); $zipOpt->setSendHttpHeaders(false);
+            $zip = new ZipStream(null, $zipOpt);
             foreach ($rechnungen as $rechnung) {
                 try {
                     if (!$rechnung->pdf_pfad || !Storage::exists($rechnung->pdf_pfad)) {
@@ -294,8 +296,8 @@ class RechnungslaufController extends Controller
                     }
                     if ($rechnung->pdf_pfad && Storage::exists($rechnung->pdf_pfad)) {
                         $zip->addFileFromPath(
-                            fileName: $rechnung->rechnungsnummer . '.pdf',
-                            path: Storage::path($rechnung->pdf_pfad),
+                            $rechnung->rechnungsnummer . '.pdf',
+                            Storage::path($rechnung->pdf_pfad),
                         );
                     }
                 } catch (\Exception $e) {
@@ -324,13 +326,14 @@ class RechnungslaufController extends Controller
         $dateiname = "xml_lauf_{$lauf->periode_von->format('Y-m')}.zip";
 
         return response()->stream(function () use ($rechnungen, $xmlService) {
-            $zip = new ZipStream(sendHttpHeaders: false);
+            $zipOpt = new ZipArchiveOptions(); $zipOpt->setSendHttpHeaders(false);
+            $zip = new ZipStream(null, $zipOpt);
             foreach ($rechnungen as $rechnung) {
                 try {
                     $pfad = $xmlService->rechnungExportieren($rechnung);
                     $zip->addFileFromPath(
-                        fileName: $rechnung->rechnungsnummer . '.xml',
-                        path: Storage::path($pfad),
+                        $rechnung->rechnungsnummer . '.xml',
+                        Storage::path($pfad),
                     );
                 } catch (\Exception $e) {
                     // Einzelfehler überspringen
