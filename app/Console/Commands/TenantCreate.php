@@ -1,0 +1,140 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
+/**
+ * tenant:create — Neuen Kunden anlegen (DB + Seeders + Master-Eintrag)
+ *
+ * Beispiel:
+ *   php artisan tenant:create spitex-aarau "Spitex Aarau" admin@spitex-aarau.ch
+ *
+ * Was es macht:
+ *   1. DB anlegen (curasoft_<subdomain_slug>)
+ *   2. Migrations ausführen
+ *   3. Basis-Seeders einspielen (Leistungsarten, Einsatzarten, Krankenkassen)
+ *   4. Organisation + Admin-Benutzer anlegen
+ *   5. Eintrag in Master-DB (tenants-Tabelle)
+ *
+ * Noch nicht aktiv — wird fertiggestellt wenn Multi-Tenant live geht.
+ */
+class TenantCreate extends Command
+{
+    protected $signature = 'tenant:create
+                            {subdomain : Subdomain z.B. spitex-aarau}
+                            {name : Organisationsname z.B. "Spitex Aarau AG"}
+                            {email : E-Mail des ersten Admin-Benutzers}
+                            {--password= : Passwort (Standard: zufällig generiert)}';
+
+    protected $description = 'Neuen Tenant (Kunden) anlegen: DB + Seeders + Admin-User';
+
+    public function handle(): int
+    {
+        $subdomain = strtolower($this->argument('subdomain'));
+        $name      = $this->argument('name');
+        $email     = $this->argument('email');
+        $password  = $this->option('password') ?? $this->generatePassword();
+        $dbName    = 'curasoft_' . preg_replace('/[^a-z0-9]/', '_', $subdomain);
+        $dbUser    = env('DB_USERNAME', 'postgres');
+        $dbPass    = env('DB_PASSWORD', '');
+
+        $this->info("Neuer Tenant: $name ($subdomain.curasoft.ch)");
+        $this->line("DB: $dbName");
+        $this->newLine();
+
+        // 1. DB anlegen
+        $this->line('1/5  Datenbank anlegen...');
+        try {
+            DB::statement("CREATE DATABASE $dbName");
+            $this->line("     ✓ $dbName erstellt");
+        } catch (\Exception $e) {
+            if (str_contains($e->getMessage(), 'already exists')) {
+                $this->warn("     DB $dbName existiert bereits — übersprungen");
+            } else {
+                $this->error('     Fehler: ' . $e->getMessage());
+                return self::FAILURE;
+            }
+        }
+
+        // 2. Tenant-Connection setzen
+        Config::set("database.connections.tenant_new", [
+            'driver'   => 'pgsql',
+            'host'     => env('DB_HOST', 'localhost'),
+            'port'     => env('DB_PORT', '5432'),
+            'database' => $dbName,
+            'username' => $dbUser,
+            'password' => $dbPass,
+            'charset'  => 'utf8',
+            'schema'   => 'public',
+        ]);
+        DB::purge('tenant_new');
+
+        // 3. Migrationen
+        $this->line('2/5  Migrationen ausführen...');
+        $this->call('migrate', ['--database' => 'tenant_new', '--force' => true]);
+
+        // 4. Basis-Seeders
+        $this->line('3/5  Seeders einspielen...');
+        // TODO: Seeders müssen connection-aware werden (--database Parameter)
+        // Vorerst manuell ausführen:
+        $this->warn('     HINWEIS: Seeders müssen noch manuell für Tenant-DB angepasst werden.');
+        $this->warn('     php artisan db:seed --class=LeistungsartenSeeder --database=tenant_new');
+        $this->warn('     php artisan db:seed --class=EinsatzartenSeeder   --database=tenant_new');
+        $this->warn('     php artisan db:seed --class=KrankenkassenSeeder  --database=tenant_new');
+
+        // 5. Organisation anlegen
+        $this->line('4/5  Organisation + Admin anlegen...');
+        $orgId = DB::connection('tenant_new')->table('organisationen')->insertGetId([
+            'name'       => $name,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::connection('tenant_new')->table('benutzer')->insert([
+            'organisation_id' => $orgId,
+            'vorname'         => 'Admin',
+            'nachname'        => $name,
+            'email'           => $email,
+            'password'        => Hash::make($password),
+            'rolle'           => 'admin',
+            'aktiv'           => true,
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+        $this->line("     ✓ Admin: $email / $password");
+
+        // 6. Master-DB Eintrag
+        $this->line('5/5  Master-DB Eintrag...');
+        try {
+            DB::connection('master')->table('tenants')->insert([
+                'subdomain'   => $subdomain,
+                'db_name'     => $dbName,
+                'db_user'     => $dbUser,
+                'db_password' => $dbPass,
+                'aktiv'       => true,
+                'erstellt_am' => now(),
+            ]);
+            $this->line("     ✓ tenants-Eintrag gesetzt");
+        } catch (\Exception $e) {
+            $this->warn('     Master-DB nicht verfügbar: ' . $e->getMessage());
+            $this->warn('     Manuell eintragen: INSERT INTO tenants ...');
+        }
+
+        $this->newLine();
+        $this->info("✅ Tenant '$name' bereit:");
+        $this->line("   URL:      https://{$subdomain}.curasoft.ch");
+        $this->line("   Login:    $email");
+        $this->line("   Passwort: $password");
+
+        return self::SUCCESS;
+    }
+
+    private function generatePassword(): string
+    {
+        $chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#';
+        return substr(str_shuffle(str_repeat($chars, 3)), 0, 12);
+    }
+}

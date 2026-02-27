@@ -13,8 +13,13 @@ echo htmlspecialchars(shell_exec("cd $base && git fetch origin 2>&1 && git reset
 echo "=== composer install --no-dev ===\n";
 echo htmlspecialchars(shell_exec("cd $base && HOME=/tmp composer install --no-dev --optimize-autoloader 2>&1")) . "\n";
 
+// SINGLE-TENANT (aktuell):
 echo "=== php artisan migrate --force ===\n";
 echo htmlspecialchars(shell_exec("cd $base && php artisan migrate --force 2>&1")) . "\n";
+
+// MULTI-TENANT (wenn live): Zeile oben ersetzen durch:
+// echo "=== php artisan tenant:migrate --force ===\n";
+// echo htmlspecialchars(shell_exec("cd $base && php artisan tenant:migrate --force 2>&1")) . "\n";
 
 echo "=== php artisan optimize:clear ===\n";
 echo htmlspecialchars(shell_exec("cd $base && php artisan optimize:clear 2>&1")) . "\n";
