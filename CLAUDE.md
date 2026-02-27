@@ -725,8 +725,14 @@ php artisan optimize:clear       ← Cache flush
 | `deploy/db_sync.php` | DB-Export-Generator | ✅ ja |
 | `deploy/db_import.php` | Generiert, temporär | ❌ gitignored |
 
+#### Produktiv vs. Demo:
+| Befehl | Demo | Produktiv |
+|--------|------|-----------|
+| `./deploy.sh` | ✅ | ✅ sicher — nur Code + Migrationen |
+| `./deploy.sh db` | ✅ | ❌ NIE — überschreibt alle Produktivdaten |
+
 #### NIEMALS mehr manuell per FTP einzelne PHP-Dateien hochladen!
-Alles geht über git → deploy.sh. Keine Ausnahmen.
+Manuelles FTP = Tod für die Entwicklung. Alles über git → deploy.sh. Keine Ausnahmen, nie wieder.
 
 ---
 
