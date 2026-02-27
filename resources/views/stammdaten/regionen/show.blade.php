@@ -55,7 +55,8 @@
 
     {{-- Bestehende Einträge --}}
     @if($gruppe->isNotEmpty())
-    <table class="tabelle" style="min-width: 640px;">
+    <div class="tabelle-wrapper">
+    <table class="tabelle">
         <thead>
             <tr>
                 <th style="width: 50px;">ID</th>
@@ -102,6 +103,7 @@
             @endforeach
         </tbody>
     </table>
+    </div>{{-- tabelle-wrapper --}}
     @else
     <div class="text-klein text-hell" style="padding: 1rem 1.25rem;">Noch kein Tarif erfasst.</div>
     @endif

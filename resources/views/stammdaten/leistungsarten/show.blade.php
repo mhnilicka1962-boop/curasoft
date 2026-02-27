@@ -79,7 +79,8 @@
         </div>
     </div>
 
-    <table class="tabelle" style="min-width: 700px;">
+    <div class="tabelle-wrapper">
+    <table class="tabelle">
         <thead>
             <tr>
                 <th>Gültig ab</th>
@@ -126,6 +127,7 @@
             @endforeach
         </tbody>
     </table>
+    </div>{{-- tabelle-wrapper --}}
 </div>
 @endforeach
 @endif
