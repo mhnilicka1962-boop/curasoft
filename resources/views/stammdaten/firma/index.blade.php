@@ -250,6 +250,7 @@
         </div>
 
         @if($orgRegionenMap->isNotEmpty())
+        <div class="tabelle-wrapper">
         <table class="tabelle">
             <thead>
                 <tr>
@@ -302,6 +303,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>{{-- tabelle-wrapper --}}
         @else
         <div style="padding: 1.5rem; text-align: center;" class="text-hell">
             Noch keine Kantone konfiguriert.
