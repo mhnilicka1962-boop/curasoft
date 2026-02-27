@@ -3,7 +3,7 @@
 
     <div class="seiten-kopf">
         <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Hilfe & Betriebsanweisung</h1>
-        <span class="text-hell text-klein">Stand: 25.02.2026</span>
+        <span class="text-hell text-klein">Stand: 27.02.2026</span>
     </div>
 
     {{-- Navigation --}}
@@ -16,6 +16,7 @@
             <a href="#kap4" class="badge badge-grau" style="text-decoration: none;">4 — Neuer Mitarbeiter</a>
             <a href="#kap5" class="badge badge-grau" style="text-decoration: none;">5 — Rapport</a>
             <a href="#kap6" class="badge badge-grau" style="text-decoration: none;">6 — Rechnung</a>
+            <a href="#kap6b" class="badge badge-grau" style="text-decoration: none;">6b — Rechnungslauf</a>
             <a href="#kap7" class="badge badge-grau" style="text-decoration: none;">7 — FAQ</a>
         </div>
     </div>
@@ -181,14 +182,48 @@
                 </tr>
                 <tr>
                     <td><strong>→ Bexio</strong></td>
-                    <td>Rechnung in Bexio-Buchhaltung übertragen</td>
+                    <td>Rechnung in Bexio-Buchhaltung übertragen (Erstsync)</td>
                     <td>Nur wenn Bexio konfiguriert</td>
+                </tr>
+                <tr>
+                    <td><strong>✓ Bexio bezahlt?</strong></td>
+                    <td>Zahlungsstatus von Bexio abrufen — setzt Status automatisch auf «Bezahlt»</td>
+                    <td>Erscheint nach Bexio-Sync</td>
                 </tr>
             </tbody>
         </table>
 
         <div class="info-box" style="margin-top: 1rem;">
             Die Tarife in der Rechnung sind <strong>eingefroren</strong> — Tarifänderungen betreffen nur neue Rechnungen. Das PDF kann jederzeit erneut heruntergeladen werden.
+        </div>
+    </div>
+
+    {{-- Kapitel 6b: Rechnungslauf --}}
+    <div class="karte" id="kap6b" style="margin-bottom: 1.25rem;">
+        <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 6b — Rechnungslauf (Monatliche Sammelabrechnung)</div>
+        <p style="font-size: 0.9375rem; margin-bottom: 1rem;">Mit dem Rechnungslauf werden alle Klienten einer Periode auf einmal abgerechnet — statt einzeln.</p>
+
+        <ol style="margin: 0 0 1rem 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
+            <li>Rechnungsläufe → <strong>„+ Neuer Lauf"</strong></li>
+            <li>Periode wählen (Von–Bis) → Vorschau zeigt alle Klienten mit Einsätzen</li>
+            <li>Klienten abwählen die nicht abgerechnet werden sollen → <strong>„Lauf erstellen"</strong></li>
+            <li>Im Lauf-Detail: Rechnungen versenden (Email / Post / XML an KK)</li>
+        </ol>
+
+        <div class="abschnitt-trenn"></div>
+        <div style="font-weight: 600; margin: 1rem 0 0.5rem;">Versandwege</div>
+        <table class="tabelle" style="margin-bottom: 1rem;">
+            <thead><tr><th>Schaltfläche</th><th>Was passiert</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Email versenden</strong></td><td>PDF-Rechnung per Mail an Klient (wenn E-Mail hinterlegt)</td></tr>
+                <tr><td><strong>Sammel-PDF drucken</strong></td><td>Alle Post-Rechnungen zusammen → Druckdialog öffnet sich</td></tr>
+                <tr><td><strong>XML-ZIP KVG</strong></td><td>Alle XML 450.100-Dateien als ZIP für MediData-Upload</td></tr>
+                <tr><td><strong>✓ Bexio Zahlungsabgleich</strong></td><td>Prüft alle Rechnungen des Laufs in Bexio auf Zahlungseingang</td></tr>
+            </tbody>
+        </table>
+
+        <div class="info-box">
+            Solange keine Rechnung im Status «Gesendet» oder «Bezahlt» ist, kann der ganze Lauf storniert werden — alle Einsätze werden dabei zurückgesetzt.
         </div>
     </div>
 
@@ -201,6 +236,12 @@
             <div><strong>Tour-Einsatz entfernen?</strong><br>Touren → Tour-Detail → × beim Einsatz klicken</div>
             <div class="abschnitt-trenn"></div>
             <div><strong>Klient abwesend (Spital)?</strong><br>Einsätze für diesen Zeitraum stornieren oder nicht anlegen</div>
+            <div class="abschnitt-trenn"></div>
+            <div><strong>Rechnung ist in Bexio bezahlt, aber in Spitex noch «Gesendet»?</strong><br>Rechnung öffnen → <strong>„✓ Bexio bezahlt?"</strong> klicken — oder im Rechnungslauf auf <strong>„✓ Bexio Zahlungsabgleich"</strong></div>
+            <div class="abschnitt-trenn"></div>
+            <div><strong>Rechnung wurde doppelt erstellt?</strong><br>Den neueren Eintrag öffnen → «Stornieren» — die Einsätze werden dabei nicht zurückgesetzt (nur beim Lauf-Storno)</div>
+            <div class="abschnitt-trenn"></div>
+            <div><strong>Rechnungslauf zeigt Klient nicht in der Vorschau?</strong><br>Mögliche Gründe: keine abgeschlossenen Einsätze (kein Check-out), alle Einsätze bereits verrechnet, oder der Klient ist inaktiv</div>
         </div>
     </div>
 
