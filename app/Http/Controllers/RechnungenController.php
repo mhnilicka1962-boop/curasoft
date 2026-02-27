@@ -195,6 +195,31 @@ class RechnungenController extends Controller
         }
     }
 
+    public function bexioStatusPruefen(Rechnung $rechnung)
+    {
+        $this->autorisiereZugriff($rechnung);
+
+        $org = Organisation::findOrFail($this->orgId());
+        if (empty($org->bexio_api_key)) {
+            return back()->with('fehler', 'Kein Bexio API-Key konfiguriert.');
+        }
+
+        $service  = new BexioService($org);
+        $ergebnis = $service->zahlungsstatusAktualisieren($rechnung);
+
+        if (isset($ergebnis['fehler'])) {
+            return back()->with('fehler', 'Bexio-Abfrage fehlgeschlagen: ' . $ergebnis['fehler']);
+        }
+
+        if ($ergebnis['aktualisiert']) {
+            AuditLog::schreiben('geaendert', 'Rechnung', $rechnung->id,
+                'Status via Bexio-Abgleich auf "bezahlt" gesetzt');
+            return back()->with('erfolg', 'Rechnung wurde in Bexio als bezahlt erkannt und aktualisiert.');
+        }
+
+        return back()->with('erfolg', 'Bexio-Status: ' . ($ergebnis['status'] ?? '—') . ' — keine Änderung nötig.');
+    }
+
     public function bexioSync(Rechnung $rechnung)
     {
         $this->autorisiereZugriff($rechnung);

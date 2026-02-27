@@ -89,6 +89,15 @@
     @endif
     @endif
 
+    @if(auth()->user()->organisation->bexio_api_key)
+    <form method="POST" action="{{ route('rechnungslauf.bexio-abgleich', $lauf) }}" style="margin: 0;">
+        @csrf
+        <button type="submit" class="btn btn-sekundaer" title="Zahlungsstatus aller Rechnungen dieses Laufs von Bexio abrufen">
+            ✓ Bexio Zahlungsabgleich
+        </button>
+    </form>
+    @endif
+
     <a href="{{ route('rechnungen.index') }}" class="btn btn-sekundaer" style="margin-left: auto;">
         Alle Rechnungen ansehen
     </a>

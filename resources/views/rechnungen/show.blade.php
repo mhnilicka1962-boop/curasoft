@@ -8,7 +8,7 @@
             {!! $rechnung->statusBadge() !!}
             {{-- XML 450.100 Export --}}
             <a href="{{ route('rechnungen.xml', $rechnung) }}" class="btn btn-sekundaer" title="XML 450.100 exportieren">📋 XML</a>
-            {{-- Bexio Sync --}}
+            {{-- Bexio Sync + Status --}}
             @if(auth()->user()->organisation->bexio_api_key)
             <form method="POST" action="{{ route('rechnungen.bexio.sync', $rechnung) }}" style="display:inline;">
                 @csrf
@@ -16,6 +16,19 @@
                     {{ $rechnung->bexio_rechnung_id ? '↻ Bexio' : '→ Bexio' }}
                 </button>
             </form>
+            @if($rechnung->bexio_rechnung_id && $rechnung->status !== 'bezahlt')
+            <form method="POST" action="{{ route('rechnungen.bexio.status', $rechnung) }}" style="display:inline;">
+                @csrf
+                <button type="submit" class="btn btn-sekundaer" title="Zahlungsstatus von Bexio abrufen">
+                    ✓ Bexio bezahlt?
+                </button>
+            </form>
+            @endif
+            @if($rechnung->bexio_bezahlt_am)
+            <span class="badge badge-erfolg" title="Von Bexio als bezahlt gemeldet am {{ $rechnung->bexio_bezahlt_am->format('d.m.Y H:i') }}">
+                Bexio ✓ {{ $rechnung->bexio_bezahlt_am->format('d.m.Y') }}
+            </span>
+            @endif
             @endif
             {{-- PDF Export --}}
             <a href="{{ route('rechnungen.pdf', $rechnung) }}" class="btn btn-sekundaer" title="PDF herunterladen">📄 PDF</a>

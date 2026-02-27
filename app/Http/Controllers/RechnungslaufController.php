@@ -12,6 +12,7 @@ use App\Models\Region;
 use App\Models\Rechnung;
 use App\Models\RechnungsPosition;
 use App\Models\Rechnungslauf;
+use App\Services\BexioService;
 use App\Services\PdfExportService;
 use App\Services\XmlExportService;
 use Illuminate\Http\Request;
@@ -606,6 +607,38 @@ class RechnungslaufController extends Controller
             ->update(['status' => 'gesendet', 'updated_at' => now()]);
 
         return back()->with('erfolg', "{$anzahl} KVG/XML-Rechnung(en) als versendet markiert.");
+    }
+
+    public function bexioAbgleich(Rechnungslauf $lauf)
+    {
+        $this->autorisiereZugriff($lauf);
+
+        $org = Organisation::findOrFail(auth()->user()->organisation_id);
+        if (empty($org->bexio_api_key)) {
+            return back()->with('fehler', 'Kein Bexio API-Key konfiguriert.');
+        }
+
+        $rechnungen = $lauf->rechnungen()
+            ->whereNotNull('bexio_rechnung_id')
+            ->whereNotIn('status', ['bezahlt', 'storniert'])
+            ->get();
+
+        if ($rechnungen->isEmpty()) {
+            return back()->with('erfolg', 'Keine offenen Bexio-Rechnungen zum Abgleichen vorhanden.');
+        }
+
+        $service  = new BexioService($org);
+        $ergebnis = $service->sammelstatusAktualisieren($rechnungen);
+
+        AuditLog::schreiben('geaendert', 'Rechnungslauf', $lauf->id,
+            "Bexio-Abgleich: {$ergebnis['aktualisiert']} aktualisiert, {$ergebnis['fehler']} Fehler");
+
+        $meldung = "{$ergebnis['aktualisiert']} Rechnung(en) als bezahlt aktualisiert.";
+        if ($ergebnis['fehler'] > 0) {
+            $meldung .= " ({$ergebnis['fehler']} Fehler bei der Abfrage.)";
+        }
+
+        return back()->with('erfolg', $meldung);
     }
 
     public function destroy(Rechnungslauf $lauf)

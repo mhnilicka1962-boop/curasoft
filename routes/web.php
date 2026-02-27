@@ -263,6 +263,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/rechnungen/lauf/{lauf}/sammel-pdf',         [RechnungslaufController::class, 'sammelPdf'])->name('rechnungslauf.sammel-pdf');
         Route::post('/rechnungen/lauf/{lauf}/post-abschliessen', [RechnungslaufController::class, 'postAbschliessen'])->name('rechnungslauf.post-abschliessen');
         Route::post('/rechnungen/lauf/{lauf}/xml-abschliessen',  [RechnungslaufController::class, 'xmlAbschliessen'])->name('rechnungslauf.xml-abschliessen');
+        Route::post('/rechnungen/lauf/{lauf}/bexio-abgleich',    [RechnungslaufController::class, 'bexioAbgleich'])->name('rechnungslauf.bexio-abgleich');
 
         // Tagespauschalen
         Route::get('/tagespauschalen',                    [TagespauschaleController::class, 'index'])->name('tagespauschalen.index');
@@ -276,7 +277,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('/rechnungen/positionen/{position}', [RechnungenController::class, 'positionUpdate'])->name('rechnungen.position.update');
         Route::get('/rechnungen/{rechnung}/xml',        [RechnungenController::class, 'xmlExport'])->name('rechnungen.xml');
         Route::get('/rechnungen/{rechnung}/pdf',        [RechnungenController::class, 'pdfExport'])->name('rechnungen.pdf');
-        Route::post('/rechnungen/{rechnung}/bexio/sync', [RechnungenController::class, 'bexioSync'])->name('rechnungen.bexio.sync');
+        Route::post('/rechnungen/{rechnung}/bexio/sync',   [RechnungenController::class, 'bexioSync'])->name('rechnungen.bexio.sync');
+        Route::post('/rechnungen/{rechnung}/bexio/status', [RechnungenController::class, 'bexioStatusPruefen'])->name('rechnungen.bexio.status');
     });
 
     // Stammdaten + Audit — nur Admin

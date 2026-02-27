@@ -159,6 +159,93 @@ class BexioService
     }
 
     // ----------------------------------------------------------------
+    // Zahlungsstatus-Abgleich (Bexio → Spitex)
+    // ----------------------------------------------------------------
+
+    /**
+     * Prüft den Zahlungsstatus einer einzelnen Rechnung in Bexio.
+     * Gibt Array zurück: ['aktualisiert' => bool, 'status' => string, 'fehler' => ?string]
+     */
+    public function zahlungsstatusAktualisieren(Rechnung $rechnung): array
+    {
+        if (empty($this->apiKey)) {
+            return ['aktualisiert' => false, 'fehler' => 'Kein API-Key konfiguriert.'];
+        }
+
+        if (!$rechnung->bexio_rechnung_id) {
+            return ['aktualisiert' => false, 'fehler' => 'Noch nicht mit Bexio synchronisiert.'];
+        }
+
+        try {
+            $response = Http::withToken($this->apiKey)
+                ->timeout(10)
+                ->get(self::API_BASE . '/kb_invoice/' . $rechnung->bexio_rechnung_id);
+
+            if (!$response->successful()) {
+                return ['aktualisiert' => false, 'fehler' => 'Bexio HTTP ' . $response->status()];
+            }
+
+            $daten = $response->json();
+            // Bexio kb_item_status_id: 19 = Bezahlt, 16 = Teilbezahlt, 7=Entwurf, 8=Ausstehend, 9=Offen
+            $bexioStatusId = $daten['kb_item_status_id'] ?? null;
+
+            if ($bexioStatusId === 19 && $rechnung->status !== 'bezahlt') {
+                $rechnung->update([
+                    'status'           => 'bezahlt',
+                    'bexio_bezahlt_am' => now(),
+                ]);
+                return ['aktualisiert' => true, 'status' => 'bezahlt'];
+            }
+
+            return ['aktualisiert' => false, 'status' => $this->bexioStatusLabel($bexioStatusId)];
+
+        } catch (\Exception $e) {
+            Log::error('Bexio Zahlungsstatus-Abfrage fehlgeschlagen', [
+                'rechnung_id' => $rechnung->id,
+                'error'       => $e->getMessage(),
+            ]);
+            return ['aktualisiert' => false, 'fehler' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Prüft den Zahlungsstatus aller Rechnungen einer Collection.
+     * Gibt Zusammenfassung zurück: ['aktualisiert' => int, 'fehler' => int]
+     */
+    public function sammelstatusAktualisieren(\Illuminate\Support\Collection $rechnungen): array
+    {
+        $aktualisiert = 0;
+        $fehler       = 0;
+
+        foreach ($rechnungen as $rechnung) {
+            if (!$rechnung->bexio_rechnung_id) continue;
+            if ($rechnung->status === 'bezahlt' || $rechnung->status === 'storniert') continue;
+
+            $ergebnis = $this->zahlungsstatusAktualisieren($rechnung);
+            if ($ergebnis['aktualisiert']) {
+                $aktualisiert++;
+            } elseif (isset($ergebnis['fehler'])) {
+                $fehler++;
+            }
+        }
+
+        return ['aktualisiert' => $aktualisiert, 'fehler' => $fehler];
+    }
+
+    private function bexioStatusLabel(?int $id): string
+    {
+        return match($id) {
+            7  => 'Entwurf',
+            8  => 'Ausstehend',
+            9  => 'Offen',
+            16 => 'Teilbezahlt',
+            19 => 'Bezahlt',
+            23 => 'Storniert',
+            default => 'Unbekannt (' . $id . ')',
+        };
+    }
+
+    // ----------------------------------------------------------------
     // Privat
     // ----------------------------------------------------------------
 
