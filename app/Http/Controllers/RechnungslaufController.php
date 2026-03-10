@@ -79,19 +79,13 @@ class RechnungslaufController extends Controller
                 'Keine verrechenbaren Einsätze gefunden — Einsätze möglicherweise bereits in einem früheren Lauf verrechnet.');
         }
 
-        $lauf = Rechnungslauf::create([
-            'organisation_id'     => $this->orgId(),
-            'periode_von'         => $request->periode_von,
-            'periode_bis'         => $request->periode_bis,
-            'anzahl_erstellt'     => 0,
-            'anzahl_uebersprungen'=> 0,
-            'status'              => 'abgeschlossen',
-            'erstellt_von'        => auth()->id(),
-        ]);
-
         [$lauf, $erstellt, $uebersprungen] = $this->erstelleLauf(
             $request->periode_von, $request->periode_bis, $selectedIds
         );
+
+        if (!$lauf) {
+            return back()->with('fehler', 'Keine verrechenbaren Einsätze gefunden.');
+        }
 
         return redirect()->route('rechnungslauf.show', $lauf)
             ->with('erfolg', "{$erstellt} Rechnungen erstellt, {$uebersprungen} Klienten ohne Einsätze übersprungen.");
@@ -628,16 +622,6 @@ class RechnungslaufController extends Controller
 
     private function erstelleLauf(string $periode_von, string $periode_bis, array $klientIds): array
     {
-        $lauf = Rechnungslauf::create([
-            'organisation_id'     => $this->orgId(),
-            'periode_von'         => $periode_von,
-            'periode_bis'         => $periode_bis,
-            'anzahl_erstellt'     => 0,
-            'anzahl_uebersprungen'=> 0,
-            'status'              => 'abgeschlossen',
-            'erstellt_von'        => auth()->id(),
-        ]);
-
         $klienten = Klient::where('organisation_id', $this->orgId())
             ->where('aktiv', true)
             ->whereIn('id', $klientIds)
@@ -647,8 +631,10 @@ class RechnungslaufController extends Controller
         $uebersprungen = 0;
         $tarifCache    = [];
 
+        // Schritt 1: Alle Einsätze sammeln — Lauf wird erst danach angelegt
+        $klientenDaten = [];
         foreach ($klienten as $klient) {
-            $einsaetze = Einsatz::where('klient_id', $klient->id)
+            $alleEinsaetze = Einsatz::where('klient_id', $klient->id)
                 ->where('verrechnet', false)
                 ->where(function ($q) {
                     $q->whereNotNull('checkout_zeit')
@@ -659,43 +645,56 @@ class RechnungslaufController extends Controller
                 ->orderBy('datum')
                 ->get();
 
-            if ($einsaetze->isEmpty()) {
+            if ($alleEinsaetze->isEmpty()) {
                 $uebersprungen++;
                 continue;
             }
 
+            $klientenDaten[] = [
+                'klient'         => $klient,
+                'normale'        => $alleEinsaetze->filter(fn($e) => !$e->tagespauschale_id)->values(),
+                'tagespauschalen'=> $alleEinsaetze->filter(fn($e) => $e->tagespauschale_id)->values(),
+            ];
+        }
+
+        // Keine Einsätze → kein Lauf
+        if (empty($klientenDaten)) {
+            return [null, 0, $uebersprungen];
+        }
+
+        // Schritt 2: Lauf anlegen
+        $lauf = Rechnungslauf::create([
+            'organisation_id'     => $this->orgId(),
+            'periode_von'         => $periode_von,
+            'periode_bis'         => $periode_bis,
+            'anzahl_erstellt'     => 0,
+            'anzahl_uebersprungen'=> 0,
+            'status'              => 'abgeschlossen',
+            'erstellt_von'        => auth()->id(),
+        ]);
+
+        // Schritt 3: Pro Klient — getrennte Rechnungen für normale Einsätze und Tagespauschalen
+        foreach ($klientenDaten as $daten) {
+            $klient       = $daten['klient'];
             $rechnungstyp = $klient->rechnungstyp ?? 'kombiniert';
 
-            $rechnung = Rechnung::create([
-                'organisation_id' => $this->orgId(),
-                'klient_id'       => $klient->id,
-                'rechnungsnummer' => Rechnung::naechsteNummer($this->orgId()),
-                'periode_von'     => $periode_von,
-                'periode_bis'     => $periode_bis,
-                'rechnungsdatum'  => today(),
-                'status'          => 'entwurf',
-                'rechnungstyp'    => $rechnungstyp,
-                'rechnungslauf_id'=> $lauf->id,
-            ]);
+            // Rechnung für normale Einsätze
+            if ($daten['normale']->isNotEmpty()) {
+                $rechnung = Rechnung::create([
+                    'organisation_id' => $this->orgId(),
+                    'klient_id'       => $klient->id,
+                    'rechnungsnummer' => Rechnung::naechsteNummer($this->orgId()),
+                    'periode_von'     => $periode_von,
+                    'periode_bis'     => $periode_bis,
+                    'rechnungsdatum'  => today(),
+                    'status'          => 'entwurf',
+                    'rechnungstyp'    => $rechnungstyp,
+                    'rechnungslauf_id'=> $lauf->id,
+                ]);
 
-            foreach ($einsaetze as $einsatz) {
-                if ($einsatz->tagespauschale_id) {
-                    $tp        = $einsatz->tagespauschale;
-                    $ansatz    = (float) $tp->ansatz;
-                    [$tarifPat, $tarifKk] = match($tp->rechnungstyp) {
-                        'kvg'  => [0.0, $ansatz],
-                        default=> [$ansatz, 0.0],
-                    };
-                    $menge        = 1;
-                    $einheit      = 'tage';
-                    $betragPat    = round($tarifPat, 2);
-                    $betragKk     = round($tarifKk, 2);
-                    $beschreibung = $tp->text;
-                } else {
+                foreach ($daten['normale'] as $einsatz) {
                     $istTage = $einsatz->leistungsart?->einheit === 'tage';
-                    [$tarifPat, $tarifKk] = $this->tarifeFuerEinsatz(
-                        $einsatz, $klient, $rechnungstyp, $tarifCache
-                    );
+                    [$tarifPat, $tarifKk] = $this->tarifeFuerEinsatz($einsatz, $klient, $rechnungstyp, $tarifCache);
                     if ($istTage) {
                         $menge     = $einsatz->anzahlTage() ?? 1;
                         $einheit   = 'tage';
@@ -707,32 +706,73 @@ class RechnungslaufController extends Controller
                         $betragPat = round($menge / 60 * $tarifPat, 2);
                         $betragKk  = round($menge / 60 * $tarifKk, 2);
                     }
-                    $beschreibung = null;
+                    RechnungsPosition::create([
+                        'rechnung_id'    => $rechnung->id,
+                        'einsatz_id'     => $einsatz->id,
+                        'datum'          => $einsatz->datum,
+                        'menge'          => $menge,
+                        'einheit'        => $einheit,
+                        'beschreibung'   => null,
+                        'tarif_patient'  => $tarifPat,
+                        'tarif_kk'       => $tarifKk,
+                        'betrag_patient' => $betragPat,
+                        'betrag_kk'      => $betragKk,
+                    ]);
+                    $einsatz->update(['verrechnet' => true]);
                 }
 
-                RechnungsPosition::create([
-                    'rechnung_id'    => $rechnung->id,
-                    'einsatz_id'     => $einsatz->id,
-                    'datum'          => $einsatz->datum,
-                    'menge'          => $menge,
-                    'einheit'        => $einheit,
-                    'beschreibung'   => $beschreibung,
-                    'tarif_patient'  => $tarifPat,
-                    'tarif_kk'       => $tarifKk,
-                    'betrag_patient' => $betragPat,
-                    'betrag_kk'      => $betragKk,
-                ]);
-
-                $einsatz->update(['verrechnet' => true]);
+                $rechnung->load('positionen');
+                $rechnung->berechneTotale();
+                AuditLog::schreiben('erstellt', 'Rechnung', $rechnung->id,
+                    "Rechnungslauf {$lauf->id}: Rechnung {$rechnung->rechnungsnummer} (Einsätze) für {$klient->nachname}");
+                $erstellt++;
             }
 
-            $rechnung->load('positionen');
-            $rechnung->berechneTotale();
+            // Rechnung für Tagespauschalen (getrennt)
+            if ($daten['tagespauschalen']->isNotEmpty()) {
+                // Rechnungstyp von der ersten Tagespauschale ableiten
+                $tpRechnungstyp = $daten['tagespauschalen']->first()->tagespauschale->rechnungstyp ?? $rechnungstyp;
 
-            AuditLog::schreiben('erstellt', 'Rechnung', $rechnung->id,
-                "Rechnungslauf {$lauf->id}: Rechnung {$rechnung->rechnungsnummer} für {$klient->nachname}");
+                $rechnung = Rechnung::create([
+                    'organisation_id' => $this->orgId(),
+                    'klient_id'       => $klient->id,
+                    'rechnungsnummer' => Rechnung::naechsteNummer($this->orgId()),
+                    'periode_von'     => $periode_von,
+                    'periode_bis'     => $periode_bis,
+                    'rechnungsdatum'  => today(),
+                    'status'          => 'entwurf',
+                    'rechnungstyp'    => $tpRechnungstyp,
+                    'rechnungslauf_id'=> $lauf->id,
+                ]);
 
-            $erstellt++;
+                foreach ($daten['tagespauschalen'] as $einsatz) {
+                    $tp     = $einsatz->tagespauschale;
+                    $ansatz = (float) $tp->ansatz;
+                    [$tarifPat, $tarifKk] = match($tp->rechnungstyp) {
+                        'kvg'  => [0.0, $ansatz],
+                        default=> [$ansatz, 0.0],
+                    };
+                    RechnungsPosition::create([
+                        'rechnung_id'    => $rechnung->id,
+                        'einsatz_id'     => $einsatz->id,
+                        'datum'          => $einsatz->datum,
+                        'menge'          => 1,
+                        'einheit'        => 'tage',
+                        'beschreibung'   => $tp->text,
+                        'tarif_patient'  => $tarifPat,
+                        'tarif_kk'       => $tarifKk,
+                        'betrag_patient' => round($tarifPat, 2),
+                        'betrag_kk'      => round($tarifKk, 2),
+                    ]);
+                    $einsatz->update(['verrechnet' => true]);
+                }
+
+                $rechnung->load('positionen');
+                $rechnung->berechneTotale();
+                AuditLog::schreiben('erstellt', 'Rechnung', $rechnung->id,
+                    "Rechnungslauf {$lauf->id}: Rechnung {$rechnung->rechnungsnummer} (Tagespauschalen) für {$klient->nachname}");
+                $erstellt++;
+            }
         }
 
         $lauf->update([
