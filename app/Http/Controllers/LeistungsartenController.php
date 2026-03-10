@@ -87,8 +87,7 @@ class LeistungsartenController extends Controller
             'mwst'             => $request->boolean('mwst'),
         ]);
 
-        return redirect()->route('leistungsarten.show', $leistungsart)
-            ->with('erfolg', "Tarif {$tarif->region->kuerzel} gespeichert.");
+        return back()->with('erfolg', "Tarif {$leistungsart->bezeichnung} ({$tarif->region->kuerzel}) gespeichert.");
     }
 
     public function edit(Leistungsart $leistungsart)

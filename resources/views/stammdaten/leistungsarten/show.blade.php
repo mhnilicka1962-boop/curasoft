@@ -2,7 +2,7 @@
 
 <div class="seiten-kopf">
     <div>
-        <a href="{{ route('leistungsarten.index') }}" class="link-gedaempt" style="font-size: 0.875rem;">← Leistungsarten</a>
+        <a href="javascript:history.back()" class="link-gedaempt" style="font-size: 0.875rem;">← Zurück</a>
         <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0.25rem 0 0;">{{ $leistungsart->bezeichnung }}</h1>
         <div class="text-klein text-hell" style="margin-top: 0.2rem;">
             {{ $leistungsart->einheitLabel() }} &nbsp;·&nbsp;
