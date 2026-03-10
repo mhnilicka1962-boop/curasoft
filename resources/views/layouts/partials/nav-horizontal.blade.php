@@ -5,7 +5,8 @@
 <a href="{{ route('touren.index') }}" class="topnav-link {{ request()->routeIs('touren.*') ? 'aktiv' : '' }}">Touren</a>
 <a href="{{ route('rapporte.index') }}" class="topnav-link {{ request()->routeIs('rapporte.*') ? 'aktiv' : '' }}">Rapporte</a>
 @if(in_array(auth()->user()?->rolle, ['admin', 'buchhaltung']))
-<a href="{{ route('rechnungen.index') }}" class="topnav-link {{ request()->routeIs('rechnungen.*') ? 'aktiv' : '' }}">Rechnungen</a>
+<a href="{{ route('rechnungen.index') }}" class="topnav-link {{ request()->routeIs('rechnungen.*') && !request()->routeIs('rechnungslauf.*') ? 'aktiv' : '' }}">Rechnungen</a>
+<a href="{{ route('rechnungslauf.index') }}" class="topnav-link {{ request()->routeIs('rechnungslauf.*') ? 'aktiv' : '' }}">Rechnungsläufe</a>
 @endif
 @if(auth()->user()?->rolle === 'admin')
 <div class="topnav-dropdown">
