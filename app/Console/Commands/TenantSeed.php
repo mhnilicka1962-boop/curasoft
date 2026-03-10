@@ -53,7 +53,7 @@ class TenantSeed extends Command
 
         $this->line('Starte Seeders...');
 
-        foreach (['LeistungsartenSeeder', 'EinsatzartenSeeder', 'KrankenkassenSeeder'] as $seeder) {
+        foreach (['LeistungsartenSeeder', 'EinsatzartenSeeder', 'KrankenkassenSeeder', 'QualifikationenSeeder'] as $seeder) {
             try {
                 $this->call('db:seed', ['--class' => $seeder, '--force' => true]);
                 $this->line("  ✓ $seeder");

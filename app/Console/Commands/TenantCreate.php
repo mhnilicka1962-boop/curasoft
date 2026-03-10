@@ -88,7 +88,7 @@ class TenantCreate extends Command
         $this->line('3/5  Seeders einspielen...');
         $prevConnection = DB::getDefaultConnection();
         DB::setDefaultConnection('tenant_new');
-        foreach (['LeistungsartenSeeder', 'EinsatzartenSeeder', 'KrankenkassenSeeder'] as $seeder) {
+        foreach (['LeistungsartenSeeder', 'EinsatzartenSeeder', 'KrankenkassenSeeder', 'QualifikationenSeeder'] as $seeder) {
             try {
                 $this->call('db:seed', ['--class' => $seeder, '--force' => true]);
                 $this->line("     ✓ $seeder");
