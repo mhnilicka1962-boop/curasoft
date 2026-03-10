@@ -102,6 +102,11 @@
         Alle Rechnungen ansehen
     </a>
 
+    <a href="{{ route('rechnungslauf.create', ['periode_von' => $lauf->periode_von->format('Y-m-d'), 'periode_bis' => $lauf->periode_bis->format('Y-m-d')]) }}"
+       class="btn btn-sekundaer" style="margin-left: 0.5rem;">
+        ↺ Lauf wiederholen
+    </a>
+
     <form method="POST" action="{{ route('rechnungslauf.destroy', $lauf) }}" style="margin: 0; margin-left: 0.5rem;">
         @csrf
         @method('DELETE')
