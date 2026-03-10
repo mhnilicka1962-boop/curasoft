@@ -269,7 +269,10 @@
         $vergangen  = $alleEinsaetze->filter(fn($e) => $e->datum < $heute || in_array($e->status, ['abgeschlossen','storniert']))->sortByDesc('datum')->values();
     @endphp
     <div class="karte" id="einsaetze-section" style="margin-bottom: 1rem;">
-        <div class="abschnitt-label" style="margin-bottom: 0.75rem;">Einsätze</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+            <div class="abschnitt-label" style="margin-bottom: 0;">Einsätze</div>
+            <a href="{{ route('klienten.qr', $klient) }}" target="_blank" class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">📱 QR Check-in</a>
+        </div>
 
         {{-- Tabs --}}
         <div style="display: flex; border-bottom: 2px solid var(--cs-border); margin-bottom: 0.75rem;">

@@ -3,7 +3,7 @@
 # NIEMALS /public_html/itjob/ verwenden — das ist ein anderes Projekt!
 # Lokales Verzeichnis: C:\laragon\www\spitex
 
-## Stand: 2026-02-27 (Session 16 — Deploy-Automatisierung)
+## Stand: 2026-03-10 (Session 17 — Multi-Tenant live)
 
 ---
 
@@ -16,19 +16,16 @@
 | **Admin Passwort** | `Admin2026!` |
 | **Rolle** | admin |
 | **Pflege (Test)** | `1234@itjob.ch` / `Sandra2026!` (Sandra Huber) |
-| **Organisation** | ID 1 (einzige — kein Multi-Tenant) |
+| **CuraPflege lokal** | `http://curapflege.spitex.test/login` — `mhn@itjob.ch` / `Admin2026!` |
 
-## Login-Daten (Demo-Server)
+## Login-Daten (Server)
 
-| | |
-|---|---|
-| **URL** | `https://www.curasoft.ch/login` |
-| **Admin E-Mail** | `mhn@itjob.ch` |
-| **Admin Passwort** | `Admin2026!` |
-| **Pflege E-Mail** | `1234@itjob.ch` (Sandra Huber) |
-| **Pflege Passwort** | `Sandra2026!` |
-| **Weitere Pflege** | `peter.keller@test.spitex` / `test1234` etc. |
-| **Buchhaltung** | `lisa.bauer@test.spitex` / `test1234` |
+| Instanz | URL | Email | Passwort |
+|---------|-----|-------|---------|
+| Demo | `https://curasoft.ch/login` | `mhn@itjob.ch` | `Admin2026!` |
+| CuraPflege | `https://curapflege.curasoft.ch/login` | `mhn@itjob.ch` | `Admin2026!` |
+| Pflege (Demo) | `https://curasoft.ch/login` | `1234@itjob.ch` | `Sandra2026!` |
+| Buchhaltung (Demo) | `https://curasoft.ch/login` | `lisa.bauer@test.spitex` | `test1234` |
 
 ---
 
@@ -174,13 +171,52 @@ php artisan tenant:migrate  # custom Command, iteriert tenants-Tabelle
 - Wildcard-Subdomain `*.curasoft.ch` → beim Provider anfragen / konfigurieren
 - Max. ~50 Subdomains laut Provider — ausreichend für Pilotphase
 
-### Noch zu implementieren
-- [ ] `TenantMiddleware` (Subdomain → DB-Connection)
-- [ ] Master-DB Migration + Model `Tenant`
-- [ ] `tenant:create` Artisan-Command
-- [ ] `tenant:migrate` Artisan-Command (alle DBs migrieren)
-- [ ] Login-Seite pro Subdomain (Firmenname/Logo aus Org-DB)
-- [ ] `www.curasoft.ch` umbauen auf Landing Page (kein Login mehr direkt auf Root)
+### Implementiert (Session 17 — 2026-03-10)
+- [x] `TenantMiddleware` ✅ — Subdomain → DB-Connection
+- [x] Master-DB (`tenants`-Tabelle in `devitjob_curasoft`) ✅
+- [x] `master:init` Artisan-Command ✅ — einmalig `tenants`-Tabelle anlegen
+- [x] `tenant:create` Artisan-Command ✅ — neue Tenant-Instanz komplett provisionieren
+- [x] `tenant:seed` Artisan-Command ✅ — Seeders nachträglich in Tenant-DB einspielen
+- [x] `tenant:migrate` Artisan-Command ✅ — alle Tenants migrieren
+- [x] Login-Seite pro Subdomain ✅ — Org-Name + Theme aus Tenant-DB
+- [x] `www.curasoft.ch` Landing Page ✅ — bleibt so, kein Login direkt auf Root
+- [x] Erste produktive Instanz: `curapflege.curasoft.ch` ✅
+
+### Artisan-Commands für Tenant-Verwaltung
+
+```bash
+# Neuen Tenant anlegen (cPanel: DB manuell erstellen, dann:)
+php artisan tenant:create curapflege "CuraPflege GmbH" admin@email.ch --skip-create-db --db=devitjob_curapflege
+
+# Seeders nachträglich einspielen (z.B. nach Erstanlage fehlende Daten)
+php artisan tenant:seed curapflege --db=devitjob_curapflege
+
+# Alle Tenants migrieren (nach Code-Deploy)
+php artisan tenant:migrate
+```
+
+### Seeders die bei jedem neuen Tenant automatisch laufen
+`tenant:create` und `tenant:seed` spielen folgende Daten ein — immer vollständig, keine manuelle Nacharbeit nötig:
+
+| Seeder | Inhalt |
+|--------|--------|
+| `LeistungsartenSeeder` | 5 Leistungsarten mit Default-Ansätzen |
+| `EinsatzartenSeeder` | 30 Einsatzarten |
+| `KrankenkassenSeeder` | 39 Schweizer KVG-Krankenkassen |
+| `QualifikationenSeeder` | Pflegequalifikationen (FaGe, HF, DN I/II usw.) |
+
+### cPanel Terminal — WICHTIG: Kein Copy-Paste mit Zeilenumbrüchen!
+- cPanel Terminal aktiviert "Bracketed Paste Mode" → Zeilenumbrüche im eingefügten Text werden als Befehlsende interpretiert
+- **Lange Befehle immer manuell tippen** (nicht aus diesem Dokument einfügen)
+- Beispiel Problem: `php artisan tenant:seed curapflege --db=...` → Terminal trennt bei Leerzeichen nach dem Zeilenumbruch
+- Lösung: Einzeiler eintippen, nicht einfügen
+
+### Bestehende Tenants (Server)
+
+| Subdomain | DB | Status |
+|-----------|-----|--------|
+| `www.curasoft.ch` | `devitjob_curasoft` | Demo — NICHT ANFASSEN |
+| `curapflege.curasoft.ch` | `devitjob_curapflege` | Produktiv |
 
 ---
 
@@ -340,6 +376,53 @@ Regelung CH: Seit 1.5.2023 können Angehörige pflegen, wenn mit SPITEX Zusammen
 | **Vor-Ort-Ansicht** | Tour-Detail → Klientenname klicken | Mobile Seite mit Adresse, Notfall, Check-in |
 | **Leistungsart-Freigabe** | `/mitarbeiter/{id}` → Checkboxen | Nur freigegebene wählen; Einsatz mit gesperrter → Warnung |
 | **Offene Vergangen.** | Als Sandra einloggen | Rote Karte wenn vergangene Einsätze offen |
+
+---
+
+## Neu in Session 17 (2026-03-10) — Multi-Tenant live
+
+### Multi-Tenant implementiert und produktiv
+
+**Architektur:** Ein Laravel-Code, separate PostgreSQL-DB pro Kunde, Subdomain-Routing.
+
+| Domain | DB | Status |
+|--------|-----|--------|
+| `curasoft.ch` | `devitjob_curasoft` | Demo ✅ |
+| `curapflege.curasoft.ch` | `devitjob_curapflege` | Tenant 1 ✅ |
+
+### Neue Dateien
+| Datei | Zweck |
+|-------|-------|
+| `app/Http/Middleware/TenantMiddleware.php` | Subdomain → DB-Switch + Theme laden |
+| `app/Console/Commands/MasterInit.php` | `tenants`-Tabelle einmalig anlegen |
+| `app/Console/Commands/TenantCreate.php` | erweitert: `--skip-create-db`, `--db=`, Seeders automatisch |
+| `app/Console/Commands/TenantMigrate.php` | Migrationen auf allen Tenant-DBs |
+| `database/migrations_telescope/` | Telescope-Migration SEPARAT (nicht für Tenants) |
+
+### Neuen Kunden einrichten (Server)
+```bash
+# 1. cPanel: Subdomain X.curasoft.ch → Document Root /home/devitjob/public_html/spitex/public
+#    cPanel erstellt falschen Pfad → Terminal:
+rm -rf ~/X.curasoft.ch && ln -s ~/public_html/spitex/public ~/X.curasoft.ch
+
+# 2. cPanel: DB devitjob_X anlegen, User devitjob_csapp berechtigen
+
+# 3. Terminal:
+php artisan tenant:create X "Name GmbH" admin@x.ch --skip-create-db --db=devitjob_X
+```
+
+### Einmalig auf Server (bereits ausgeführt)
+```bash
+php artisan master:init   # tenants-Tabelle in devitjob_curasoft angelegt
+```
+
+### Login-Seite pro Tenant
+- `TenantMiddleware` lädt Org-Name + Theme aus Tenant-DB → Login-Seite zeigt richtigen Namen
+- Tenant-Root-URL `/` → Redirect auf `/login` (kein Landing Page für Tenants)
+
+### Fixes
+- `AuthController`: Passwort beim Login trimmen (Leerzeichen am Ende)
+- Audit-Log: vollständig implementiert und getestet ✅
 
 ---
 
@@ -918,7 +1001,8 @@ Manuelles FTP = Tod für die Entwicklung. Alles über git → deploy.sh. Keine A
 - **MediData-Schnittstelle**: Auf Landing Page als "in Entwicklung" markiert — noch nicht gebaut.
 - **EPD** (Elektronisches Patientendossier): Pflicht ab 2026 — noch nicht geplant.
 - **Bexio**: Buttons gebaut. `bexio_api_key` muss in Firma → Bexio konfiguriert sein, sonst unsichtbar.
-- **Security Paket B**: Audit-Log (wer hat was wann geändert) — noch nicht gebaut.
+- **Security Paket B**: Audit-Log ✅ — vollständig implementiert und getestet (Login/Logout/erstellt/geändert, Filter nach Benutzer/Aktion/Modell/Datum).
+- **Multi-Tenant Basis**: ✅ TenantMiddleware, master:init, tenant:create, Login-Seite pro Tenant — produktiv live (curapflege.curasoft.ch).
 - **Security Paket C**: 2FA (TOTP) als zweiter Faktor — noch nicht gebaut. Passkey (WebAuthn) vorhanden als Alternative.
 - **Vor-Ort-Ansicht**: Check-in/out vollständig repariert — `checkin.in` / `checkin.out` Routen vorhanden.
 - **Leistungserfassung**: Checkliste auf Vor-Ort-Seite vorhanden. Noch nicht: Anbindung an Abrechnung (welche Minuten → welche Leistungsart → Rechnung).
