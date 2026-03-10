@@ -109,6 +109,8 @@ class KlientenController extends Controller
         $daten = $request->validate([
             'vorname'         => ['required', 'string', 'max:100'],
             'nachname'        => ['required', 'string', 'max:100'],
+            'geburtsdatum'    => ['nullable', 'date'],
+            'zivilstand'      => ['nullable', 'in:ledig,verheiratet,geschieden,verwitwet,eingetragen'],
             'telefon'         => ['nullable', 'string', 'max:50'],
             'adresse'         => ['nullable', 'string', 'max:200'],
             'plz'             => ['nullable', 'string', 'max:20'],
@@ -129,6 +131,8 @@ class KlientenController extends Controller
             'organisation_id' => $this->orgId(),
             'vorname'         => $daten['vorname'],
             'nachname'        => $daten['nachname'],
+            'geburtsdatum'    => $daten['geburtsdatum'] ?? null,
+            'zivilstand'      => $daten['zivilstand'] ?? null,
             'telefon'         => $daten['telefon'] ?? null,
             'adresse'         => $daten['adresse'] ?? null,
             'plz'             => $daten['plz'] ?? null,

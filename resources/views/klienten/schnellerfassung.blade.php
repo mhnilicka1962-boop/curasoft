@@ -34,6 +34,23 @@
             </div>
             <div class="form-grid-2" style="margin-bottom: 0.75rem;">
                 <div>
+                    <label class="feld-label">Geburtsdatum</label>
+                    <input type="date" name="geburtsdatum" class="feld" value="{{ old('geburtsdatum') }}">
+                </div>
+                <div>
+                    <label class="feld-label">Zivilstand</label>
+                    <select name="zivilstand" class="feld">
+                        <option value="">—</option>
+                        <option value="ledig"       {{ old('zivilstand') === 'ledig'       ? 'selected' : '' }}>Ledig</option>
+                        <option value="verheiratet" {{ old('zivilstand') === 'verheiratet' ? 'selected' : '' }}>Verheiratet</option>
+                        <option value="geschieden"  {{ old('zivilstand') === 'geschieden'  ? 'selected' : '' }}>Geschieden</option>
+                        <option value="verwitwet"   {{ old('zivilstand') === 'verwitwet'   ? 'selected' : '' }}>Verwitwet</option>
+                        <option value="eingetragen" {{ old('zivilstand') === 'eingetragen' ? 'selected' : '' }}>Eingetr. Partnerschaft</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid-2" style="margin-bottom: 0.75rem;">
+                <div>
                     <label class="feld-label">Telefon</label>
                     <input type="text" name="telefon" class="feld" value="{{ old('telefon') }}" placeholder="z.B. 079 123 45 67">
                 </div>
