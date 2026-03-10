@@ -264,7 +264,7 @@
     {{-- Einsätze (immer sichtbar) --}}
     @php
         $heute = today();
-        $alleEinsaetze = $klient->einsaetze()->with('leistungsart', 'benutzer')->orderBy('datum')->orderBy('zeit_von')->get();
+        $alleEinsaetze = $klient->einsaetze()->with('leistungsart', 'benutzer')->whereNull('tagespauschale_id')->orderBy('datum')->orderBy('zeit_von')->get();
         $anstehend = $alleEinsaetze->filter(fn($e) => $e->datum >= $heute && !in_array($e->status, ['abgeschlossen','storniert']))->values();
         $vergangen  = $alleEinsaetze->filter(fn($e) => $e->datum < $heute || in_array($e->status, ['abgeschlossen','storniert']))->sortByDesc('datum')->values();
     @endphp
@@ -1310,8 +1310,13 @@
             @endif
 
             @forelse($tagespauschalen as $tp)
-            @php $aktiv = $tp->datum_von <= today() && $tp->datum_bis >= today(); @endphp
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem; flex-wrap: wrap;">
+            @php
+                $aktiv       = $tp->datum_von <= today() && $tp->datum_bis >= today();
+                $anzahlTage  = $tp->anzahlTage();
+                $verrechnet  = $tp->anzahlVerrechnet();
+                $offen       = $anzahlTage - $verrechnet;
+            @endphp
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem; flex-wrap: wrap;">
                 <div style="display: flex; gap: 0.625rem; align-items: center; flex-wrap: wrap; flex: 1;">
                     <span class="text-hell" style="white-space: nowrap;">
                         {{ $tp->datum_von->format('d.m.Y') }} – {{ $tp->datum_bis->format('d.m.Y') }}
@@ -1319,6 +1324,13 @@
                     <span class="text-fett">CHF {{ number_format($tp->ansatz, 2, '.', "'") }}/Tag</span>
                     <span class="badge badge-grau" style="font-size: 0.7rem;">{{ $tp->rechnungstypLabel() }}</span>
                     @if($aktiv)<span class="badge badge-erfolg" style="font-size: 0.7rem;">Aktiv</span>@endif
+                    {{-- Verrechnet / Offen --}}
+                    @if($verrechnet > 0)
+                        <span class="badge badge-primaer" style="font-size: 0.7rem;">{{ $verrechnet }}/{{ $anzahlTage }} verrechnet</span>
+                    @endif
+                    @if($offen > 0)
+                        <span class="badge badge-warnung" style="font-size: 0.7rem;">{{ $offen }} offen</span>
+                    @endif
                     @if($tp->text)<span class="text-hell" style="font-size: 0.8rem;">{{ $tp->text }}</span>@endif
                 </div>
                 <a href="{{ route('tagespauschalen.show', $tp) }}" class="text-mini link-primaer" style="flex-shrink: 0;">Detail →</a>
