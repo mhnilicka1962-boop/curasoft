@@ -272,6 +272,10 @@ class KlientenController extends Controller
     public function qr(Klient $klient)
     {
         $this->autorisiereZugriff($klient);
+        // qr_token sicherstellen (falls bei alten Klienten nicht gesetzt)
+        if (!$klient->qr_token) {
+            $klient->update(['qr_token' => \Illuminate\Support\Str::random(32)]);
+        }
         return view('klienten.qr', compact('klient'));
     }
 

@@ -10,12 +10,20 @@ use Illuminate\Support\Carbon;
 
 class CheckInController extends Controller
 {
-    // QR-Code gescannt — zeigt heutige Einsätze für diesen Klienten
+    // QR-Code gescannt — öffentlich zugänglich, Login nur für Check-in-Aktion nötig
     public function scan(string $token)
     {
-        $klient = Klient::where('qr_token', $token)
-            ->where('organisation_id', auth()->user()->organisation_id)
-            ->firstOrFail();
+        $klient = Klient::where('qr_token', $token)->firstOrFail();
+
+        // Nicht eingeloggt → Login-Seite zeigen mit Redirect zurück zum Check-in
+        if (!auth()->check()) {
+            return view('checkin.login_prompt', compact('klient', 'token'));
+        }
+
+        // Org-Grenze prüfen (Multi-Tenant)
+        if ($klient->organisation_id !== auth()->user()->organisation_id) {
+            abort(403);
+        }
 
         $einsaetze = Einsatz::with('benutzer')
             ->where('klient_id', $klient->id)

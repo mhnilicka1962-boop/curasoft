@@ -96,6 +96,9 @@ Route::post('/einladung/{token}', [EinladungController::class, 'store'])->name('
 Route::get('/webauthn/authenticate-options', [WebAuthnController::class, 'authenticateOptions'])->name('webauthn.authenticate.options');
 Route::post('/webauthn/authenticate',        [WebAuthnController::class, 'authenticate'])->name('webauthn.authenticate');
 
+// QR Check-in — öffentlich (kein Login nötig zum Scannen, nur zum Check-in-Aktion)
+Route::get('/checkin/{token}', [CheckInController::class, 'scan'])->name('checkin.scan');
+
 // ----------------------------------------------------------------
 // Geschützte Routen — alle eingeloggten Benutzer
 // ----------------------------------------------------------------
@@ -242,7 +245,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/dokumente/{dokument}', [DokumenteController::class, 'destroy'])->name('dokumente.destroy');
 
         // Check-in / Check-out
-        Route::get('/checkin/{token}',               [CheckInController::class, 'scan'])->name('checkin.scan');
         Route::post('/checkin/{token}',              [CheckInController::class, 'checkinQr'])->name('checkin.qr');
         Route::post('/checkin/{einsatz}/gps',        [CheckInController::class, 'checkinGps'])->name('checkin.gps');
         Route::post('/checkin/{einsatz}/manuell',    [CheckInController::class, 'checkinManuell'])->name('checkin.manuell');

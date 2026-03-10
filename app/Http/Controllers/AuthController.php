@@ -16,10 +16,14 @@ class AuthController extends Controller
 {
     private const MAGIC_LINK_MINUTEN = 15;
 
-    public function loginForm()
+    public function loginForm(Request $request)
     {
         if (Auth::check()) {
             return redirect()->route('dashboard');
+        }
+        // QR Check-in: ?redirect=URL in Session als intended URL speichern
+        if ($request->has('redirect')) {
+            session()->put('url.intended', $request->get('redirect'));
         }
         return view('auth.login');
     }
