@@ -105,7 +105,11 @@ class RechnungslaufController extends Controller
     public function show(Rechnungslauf $lauf)
     {
         $this->autorisiereZugriff($lauf);
-        $lauf->load(['rechnungen.klient', 'ersteller']);
+        $lauf->load([
+            'rechnungen' => fn($q) => $q->with('klient')
+                ->withExists('positionen as hat_pauschale', fn($q) => $q->where('einheit', 'tage')),
+            'ersteller',
+        ]);
 
         $emailAnzahl = $lauf->rechnungen->filter(
             fn($r) => $r->klient->versandart_patient === 'email' && $r->klient->email

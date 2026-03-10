@@ -141,7 +141,12 @@
                 <td style="font-family: monospace; font-size: 0.8125rem; font-weight: 500;">
                     <a href="{{ route('rechnungen.show', $r) }}" class="link-primaer">{{ $r->rechnungsnummer }}</a>
                 </td>
-                <td>{{ $r->klient->nachname }} {{ $r->klient->vorname }}</td>
+                <td>
+                    {{ $r->klient->nachname }} {{ $r->klient->vorname }}
+                    @if($r->hat_pauschale)
+                        <span class="badge badge-info" style="font-size:0.7rem; margin-left:0.25rem;">Pauschale</span>
+                    @endif
+                </td>
                 <td class="text-rechts text-fett">{{ number_format($r->betrag_total, 2, '.', "'") }}</td>
                 <td>
                     @php
