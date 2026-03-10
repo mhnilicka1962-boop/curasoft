@@ -118,13 +118,13 @@
                                 style="cursor:pointer; width:15px; height:15px;">
                         </th>
                         <th>Klient</th>
-                        <th>Typ</th>
-                        <th class="text-rechts">Einsätze</th>
-                        <th class="text-rechts">Minuten</th>
-                        <th class="text-rechts">Betrag Pat.</th>
-                        <th class="text-rechts">Betrag KK</th>
-                        <th class="text-rechts">Total CHF</th>
-                        <th>Versand</th>
+                        <th class="text-mitte">Typ</th>
+                        <th class="text-mitte">Einsätze</th>
+                        <th class="text-mitte">Minuten</th>
+                        <th class="text-mitte">Betrag Pat.</th>
+                        <th class="text-mitte">Betrag KK</th>
+                        <th class="text-mitte">Total CHF</th>
+                        <th class="text-mitte">Versand</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -141,17 +141,17 @@
                             {{ $z['klient']->nachname }} {{ $z['klient']->vorname }}
                             @if($z['ohne_tarif'])<span title="Einsätze ohne Leistungsart/Tarif"> ⚠</span>@endif
                         </td>
-                        <td>
+                        <td class="text-mitte">
                             <span class="badge {{ $typenBadge[$z['rechnungstyp']] ?? 'badge-grau' }}">
                                 {{ $typen[$z['rechnungstyp']] ?? $z['rechnungstyp'] }}
                             </span>
                         </td>
-                        <td class="text-rechts">{{ $z['anzahl'] }}</td>
-                        <td class="text-rechts">{{ $z['minuten'] }}'</td>
-                        <td class="text-rechts">{{ number_format($z['betrag_patient'], 2, '.', "'") }}</td>
-                        <td class="text-rechts">{{ number_format($z['betrag_kk'], 2, '.', "'") }}</td>
-                        <td class="text-rechts text-fett">{{ number_format($z['betrag'], 2, '.', "'") }}</td>
-                        <td>
+                        <td class="text-mitte">{{ $z['anzahl'] }}</td>
+                        <td class="text-mitte">{{ $z['minuten'] }}'</td>
+                        <td class="text-mitte">{{ number_format($z['betrag_patient'], 2, '.', "'") }}</td>
+                        <td class="text-mitte">{{ number_format($z['betrag_kk'], 2, '.', "'") }}</td>
+                        <td class="text-mitte text-fett">{{ number_format($z['betrag'], 2, '.', "'") }}</td>
+                        <td class="text-mitte">
                             @php
                                 $va      = $z['versandart'];
                                 $vaLabel = match($va) { 'email' => 'Email', 'manuell' => 'Manuell', default => 'Post' };
@@ -174,17 +174,17 @@
                                 {{ $z['grund'] }}
                             </div>
                         </td>
-                        <td>
+                        <td class="text-mitte">
                             <span class="badge {{ $typenBadge[$z['rechnungstyp']] ?? 'badge-grau' }}" style="opacity:0.6;">
                                 {{ $typen[$z['rechnungstyp']] ?? $z['rechnungstyp'] }}
                             </span>
                         </td>
-                        <td class="text-rechts" style="color:#dc2626;">0</td>
-                        <td class="text-rechts text-hell">—</td>
-                        <td class="text-rechts text-hell">—</td>
-                        <td class="text-rechts text-hell">—</td>
-                        <td class="text-rechts text-hell">—</td>
-                        <td>
+                        <td class="text-mitte" style="color:#dc2626;">0</td>
+                        <td class="text-mitte text-hell">—</td>
+                        <td class="text-mitte text-hell">—</td>
+                        <td class="text-mitte text-hell">—</td>
+                        <td class="text-mitte text-hell">—</td>
+                        <td class="text-mitte">
                             @php
                                 $va      = $z['versandart'];
                                 $vaLabel = match($va) { 'email' => 'Email', 'manuell' => 'Manuell', default => 'Post' };
@@ -200,9 +200,9 @@
                     <tr style="font-weight: bold; background: var(--hintergrund-alt, #f8f9fa);">
                         <td></td>
                         <td colspan="4">Total ausgewählt</td>
-                        <td class="text-rechts">{{ number_format($mitEinsaetzen->sum('betrag_patient'), 2, '.', "'") }}</td>
-                        <td class="text-rechts">{{ number_format($mitEinsaetzen->sum('betrag_kk'), 2, '.', "'") }}</td>
-                        <td class="text-rechts text-fett">CHF {{ number_format($vorschau['total_betrag'], 2, '.', "'") }}</td>
+                        <td class="text-mitte">{{ number_format($mitEinsaetzen->sum('betrag_patient'), 2, '.', "'") }}</td>
+                        <td class="text-mitte">{{ number_format($mitEinsaetzen->sum('betrag_kk'), 2, '.', "'") }}</td>
+                        <td class="text-mitte text-fett">CHF {{ number_format($vorschau['total_betrag'], 2, '.', "'") }}</td>
                         <td></td>
                     </tr>
                 </tfoot>
