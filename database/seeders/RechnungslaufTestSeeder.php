@@ -149,7 +149,7 @@ class RechnungslaufTestSeeder extends Seeder
                 'rechnungstyp'    => 'klient',
                 'datum_von'       => '2026-02-01',
                 'datum_bis'       => '2026-02-28',
-                'ansatz'          => 45.00,
+                'ansatz'          => 98.00,
                 'text'            => 'Tagesbetreuung',
                 'erstellt_von'    => $benutzer->id,
             ]);
@@ -186,7 +186,7 @@ class RechnungslaufTestSeeder extends Seeder
                 'rechnungstyp'    => 'klient',
                 'datum_von'       => '2026-02-01',
                 'datum_bis'       => '2026-02-28',
-                'ansatz'          => 30.00,
+                'ansatz'          => 82.00,
                 'text'            => 'Betreuungspauschale',
                 'erstellt_von'    => $benutzer->id,
             ]);
