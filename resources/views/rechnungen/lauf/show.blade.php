@@ -116,9 +116,15 @@
     </form>
 </div>
 
+{{-- Suche --}}
+<div style="margin-bottom: 0.75rem;">
+    <input type="text" id="lauf-suche" class="feld" style="max-width: 300px;"
+        placeholder="Name oder Rechnungsnummer…" oninput="laufSuche(this.value)" autocomplete="off">
+</div>
+
 {{-- Tabelle aller Rechnungen --}}
 <div class="karte-null">
-    <table class="tabelle">
+    <table class="tabelle" id="lauf-tabelle">
         <thead>
             <tr>
                 <th>Nummer</th>
@@ -173,5 +179,15 @@
         </tbody>
     </table>
 </div>
+
+<script>
+function laufSuche(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#lauf-tabelle tbody tr').forEach(function(tr) {
+        const text = tr.textContent.toLowerCase();
+        tr.style.display = text.includes(q) ? '' : 'none';
+    });
+}
+</script>
 
 </x-layouts.app>
