@@ -205,7 +205,9 @@ class KlientenController extends Controller
             ->where('aktiv', true)
             ->get();
 
-        return view('klienten.show', compact('klient', 'leistungsarten', 'mitarbeiter', 'pflegendeAngehoerige'));
+        $regionen = Region::orderBy('kuerzel')->get();
+
+        return view('klienten.show', compact('klient', 'leistungsarten', 'mitarbeiter', 'pflegendeAngehoerige', 'regionen'));
     }
 
     public function edit(Klient $klient)

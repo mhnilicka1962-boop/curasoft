@@ -17,7 +17,7 @@
                 </button>
             </form>
             @endif
-            <a href="{{ route('klienten.edit', $klient) }}" class="btn btn-sekundaer">Bearbeiten</a>
+            <button type="button" onclick="toggleKlientEdit()" id="btn-klient-edit" class="btn btn-sekundaer">✏ Bearbeiten</button>
             <a href="{{ route('einsaetze.create', ['klient_id' => $klient->id]) }}" class="btn btn-primaer">+ Einsatz</a>
         </div>
     </div>
@@ -91,6 +91,174 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    {{-- Inline-Bearbeitungsformular (versteckt, ausser bei Validation-Fehler) --}}
+    <div id="klient-edit-form" style="display:{{ $errors->any() ? 'block' : 'none' }}; margin-bottom: 1rem;">
+    <form method="POST" action="{{ route('klienten.update', $klient) }}">
+        @csrf @method('PUT')
+        <div class="karte" style="margin-bottom: 0.75rem;">
+            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Persönliche Daten</div>
+            <div style="display: grid; grid-template-columns: 130px 1fr 1fr; gap: 0.625rem; margin-bottom: 0.625rem;">
+                <div>
+                    <label class="feld-label">Anrede</label>
+                    <select name="anrede" class="feld">
+                        <option value="">—</option>
+                        @foreach(['Herr','Frau','Dr. Herr','Dr. Frau'] as $a)
+                            <option value="{{ $a }}" {{ $klient->anrede === $a ? 'selected' : '' }}>{{ $a }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="feld-label">Vorname *</label>
+                    <input type="text" name="vorname" class="feld" required value="{{ old('vorname', $klient->vorname) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Nachname *</label>
+                    <input type="text" name="nachname" class="feld" required value="{{ old('nachname', $klient->nachname) }}">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 70px; gap: 0.625rem; margin-bottom: 0.625rem;">
+                <div>
+                    <label class="feld-label">Geburtsdatum</label>
+                    <input type="date" name="geburtsdatum" class="feld" value="{{ old('geburtsdatum', $klient->geburtsdatum?->format('Y-m-d')) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Geschlecht</label>
+                    <select name="geschlecht" class="feld">
+                        <option value="">—</option>
+                        <option value="m" {{ $klient->geschlecht === 'm' ? 'selected' : '' }}>Männlich</option>
+                        <option value="w" {{ $klient->geschlecht === 'w' ? 'selected' : '' }}>Weiblich</option>
+                        <option value="x" {{ $klient->geschlecht === 'x' ? 'selected' : '' }}>Divers</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="feld-label">Zivilstand</label>
+                    <select name="zivilstand" class="feld">
+                        <option value="">—</option>
+                        <option value="ledig"       {{ $klient->zivilstand === 'ledig'       ? 'selected' : '' }}>Ledig</option>
+                        <option value="verheiratet" {{ $klient->zivilstand === 'verheiratet' ? 'selected' : '' }}>Verheiratet</option>
+                        <option value="geschieden"  {{ $klient->zivilstand === 'geschieden'  ? 'selected' : '' }}>Geschieden</option>
+                        <option value="verwitwet"   {{ $klient->zivilstand === 'verwitwet'   ? 'selected' : '' }}>Verwitwet</option>
+                        <option value="eingetragen" {{ $klient->zivilstand === 'eingetragen' ? 'selected' : '' }}>Eingetr. Partnerschaft</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="feld-label">Kinder</label>
+                    <input type="number" name="anzahl_kinder" class="feld" min="0" value="{{ old('anzahl_kinder', $klient->anzahl_kinder) }}">
+                </div>
+            </div>
+            <div>
+                <label class="feld-label">Klient-Typ</label>
+                <select name="klient_typ" class="feld" style="max-width: 260px;">
+                    <option value="patient"          {{ ($klient->klient_typ ?? 'patient') === 'patient'          ? 'selected' : '' }}>Patient (Standard)</option>
+                    <option value="pflegebeduerftig" {{ ($klient->klient_typ ?? 'patient') === 'pflegebeduerftig' ? 'selected' : '' }}>Pflegebedürftig (KLV)</option>
+                    <option value="angehoerig"       {{ ($klient->klient_typ ?? 'patient') === 'angehoerig'       ? 'selected' : '' }}>Pflegender Angehöriger</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="karte" style="margin-bottom: 0.75rem;">
+            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Kontakt & Adresse</div>
+            <div style="margin-bottom: 0.625rem;">
+                <label class="feld-label">Strasse & Hausnummer</label>
+                <input type="text" name="adresse" class="feld" value="{{ old('adresse', $klient->adresse) }}" placeholder="Musterstrasse 12">
+            </div>
+            <div style="display: grid; grid-template-columns: 110px 1fr 90px; gap: 0.625rem; margin-bottom: 0.625rem;">
+                <div>
+                    <label class="feld-label">PLZ</label>
+                    <input type="text" name="plz" class="feld" value="{{ old('plz', $klient->plz) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Ort</label>
+                    <input type="text" name="ort" class="feld" value="{{ old('ort', $klient->ort) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Kanton</label>
+                    <select name="region_id" class="feld">
+                        <option value="">—</option>
+                        @foreach($regionen as $r)
+                            <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.625rem;">
+                <div>
+                    <label class="feld-label">Telefon</label>
+                    <input type="text" name="telefon" class="feld" value="{{ old('telefon', $klient->telefon) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Notfallnummer</label>
+                    <input type="text" name="notfallnummer" class="feld" value="{{ old('notfallnummer', $klient->notfallnummer) }}">
+                </div>
+                <div>
+                    <label class="feld-label">E-Mail</label>
+                    <input type="email" name="email" class="feld" value="{{ old('email', $klient->email) }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="karte" style="margin-bottom: 0.75rem;">
+            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">AHV & Abrechnung</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.625rem; margin-bottom: 0.625rem;">
+                <div>
+                    <label class="feld-label">AHV-Nummer</label>
+                    <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr', $klient->ahv_nr) }}" placeholder="756.XXXX.XXXX.XX">
+                </div>
+                <div>
+                    <label class="feld-label">Zahlbar (Tage)</label>
+                    <input type="number" name="zahlbar_tage" class="feld" min="1" value="{{ old('zahlbar_tage', $klient->zahlbar_tage ?? 30) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Rechnungstyp</label>
+                    <select name="rechnungstyp" class="feld">
+                        <option value="">—</option>
+                        <option value="kombiniert" {{ $klient->rechnungstyp === 'kombiniert' ? 'selected' : '' }}>Kombiniert</option>
+                        <option value="kvg"        {{ $klient->rechnungstyp === 'kvg'        ? 'selected' : '' }}>Nur KVG</option>
+                        <option value="klient"     {{ $klient->rechnungstyp === 'klient'     ? 'selected' : '' }}>Nur Patient</option>
+                        <option value="gemeinde"   {{ $klient->rechnungstyp === 'gemeinde'   ? 'selected' : '' }}>Gemeinde</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="feld-label">Zuständig</label>
+                    <select name="zustaendig_id" class="feld">
+                        <option value="">— keiner —</option>
+                        @foreach($mitarbeiter as $m)
+                            <option value="{{ $m->id }}" {{ $klient->zustaendig_id == $m->id ? 'selected' : '' }}>{{ $m->nachname }} {{ $m->vorname }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.625rem;">
+                <div>
+                    <label class="feld-label">Datum Erstkontakt</label>
+                    <input type="date" name="datum_erstkontakt" class="feld" value="{{ old('datum_erstkontakt', $klient->datum_erstkontakt?->format('Y-m-d')) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Einsatz geplant ab</label>
+                    <input type="date" name="einsatz_geplant_von" class="feld" value="{{ old('einsatz_geplant_von', $klient->einsatz_geplant_von?->format('Y-m-d')) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Einsatz geplant bis</label>
+                    <input type="date" name="einsatz_geplant_bis" class="feld" value="{{ old('einsatz_geplant_bis', $klient->einsatz_geplant_bis?->format('Y-m-d')) }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="karte" style="margin-bottom: 0.75rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
+                <input type="hidden" name="aktiv" value="0">
+                <input type="checkbox" name="aktiv" value="1" {{ $klient->aktiv ? 'checked' : '' }}>
+                Klient aktiv
+            </label>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem;">
+            <button type="submit" class="btn btn-primaer">Speichern</button>
+            <button type="button" onclick="toggleKlientEdit()" class="btn btn-sekundaer">Abbrechen</button>
+        </div>
+    </form>
     </div>
 
     {{-- Einsätze (immer sichtbar) --}}
@@ -1239,6 +1407,15 @@
 
 @push('scripts')
 <script>
+function toggleKlientEdit() {
+    const form = document.getElementById('klient-edit-form');
+    const btn  = document.getElementById('btn-klient-edit');
+    const open = form.style.display === 'none';
+    form.style.display = open ? 'block' : 'none';
+    btn.textContent    = open ? '✕ Schliessen' : '✏ Bearbeiten';
+    if (open) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function einsatzTab(tab) {
     document.getElementById('panel-anstehend').style.display = tab === 'anstehend' ? 'block' : 'none';
     document.getElementById('panel-vergangen').style.display  = tab === 'vergangen'  ? 'block' : 'none';
