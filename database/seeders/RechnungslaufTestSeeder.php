@@ -9,6 +9,7 @@ use App\Models\KlientBeitrag;
 use App\Models\Leistungsregion;
 use App\Models\Organisation;
 use App\Models\Region;
+use App\Models\Tagespauschale;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
@@ -122,6 +123,76 @@ class RechnungslaufTestSeeder extends Seeder
                 $erstellt++;
                 $idx++;
             }
+        }
+
+        // 4 Klienten mit nur Tagespauschalen
+        foreach (['Pausch-Müller','Pausch-Keller','Pausch-Weber','Pausch-Huber'] as $j => $nachname) {
+            $vorname = $this->vornamen[$j];
+            $klient  = Klient::create([
+                'organisation_id'    => $org->id,
+                'anrede'             => $j % 2 === 0 ? 'Herr' : 'Frau',
+                'vorname'            => $vorname,
+                'nachname'           => "TEST-{$nachname}",
+                'geburtsdatum'       => Carbon::now()->subYears(rand(72, 90))->startOfYear(),
+                'adresse'            => "Pauschalgasse " . ($j + 1),
+                'plz'                => '3000',
+                'ort'                => 'Bern',
+                'aktiv'              => true,
+                'region_id'          => $region?->id,
+                'versandart_patient' => 'post',
+                'zahlbar_tage'       => 30,
+            ]);
+            $this->beitragErstellen($klient, $benutzer->id, 'post');
+            $tp = Tagespauschale::create([
+                'organisation_id' => $org->id,
+                'klient_id'       => $klient->id,
+                'rechnungstyp'    => 'klient',
+                'datum_von'       => '2026-02-01',
+                'datum_bis'       => '2026-02-28',
+                'ansatz'          => 45.00,
+                'text'            => 'Tagesbetreuung',
+                'erstellt_von'    => $benutzer->id,
+            ]);
+            $tp->generiereEinsaetze();
+            $einsaetze += 28;
+            $erstellt++;
+        }
+
+        // 4 Klienten gemischt (normale Einsätze + Tagespauschale)
+        foreach (['Mix-Brunner','Mix-Fischer','Mix-Gerber','Mix-Schmid'] as $j => $nachname) {
+            $vorname = $this->vornamen[$j + 4];
+            $klient  = Klient::create([
+                'organisation_id'    => $org->id,
+                'anrede'             => $j % 2 === 0 ? 'Herr' : 'Frau',
+                'vorname'            => $vorname,
+                'nachname'           => "TEST-{$nachname}",
+                'geburtsdatum'       => Carbon::now()->subYears(rand(72, 90))->startOfYear(),
+                'adresse'            => "Gemischtweg " . ($j + 1),
+                'plz'                => '3000',
+                'ort'                => 'Bern',
+                'aktiv'              => true,
+                'region_id'          => $region?->id,
+                'versandart_patient' => 'email',
+                'email'              => "test.mix{$j}@example.ch",
+                'zahlbar_tage'       => 30,
+            ]);
+            $this->beitragErstellen($klient, $benutzer->id, 'email');
+            // Normale Einsätze Februar
+            $einsaetze += $this->einsaetzeErstellen($klient, $benutzer->id, $org->id, '2026-02-01', '2026-02-28', $j + 50);
+            // Zusätzlich Tagespauschale Februar
+            $tp = Tagespauschale::create([
+                'organisation_id' => $org->id,
+                'klient_id'       => $klient->id,
+                'rechnungstyp'    => 'klient',
+                'datum_von'       => '2026-02-01',
+                'datum_bis'       => '2026-02-28',
+                'ansatz'          => 30.00,
+                'text'            => 'Betreuungspauschale',
+                'erstellt_von'    => $benutzer->id,
+            ]);
+            $tp->generiereEinsaetze();
+            $einsaetze += 28;
+            $erstellt++;
         }
 
         $this->command->info("Fertig: {$erstellt} Klienten, {$einsaetze} Einsätze erstellt.");
