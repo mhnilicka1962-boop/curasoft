@@ -84,16 +84,19 @@ class TenantCreate extends Command
         $this->line('2/5  Migrationen ausführen...');
         $this->call('migrate', ['--database' => 'tenant_new', '--force' => true]);
 
-        // 4. Basis-Seeders
+        // 4. Basis-Seeders — Default-Connection auf tenant_new setzen damit Seeders korrekt schreiben
         $this->line('3/5  Seeders einspielen...');
+        $prevConnection = DB::getDefaultConnection();
+        DB::setDefaultConnection('tenant_new');
         foreach (['LeistungsartenSeeder', 'EinsatzartenSeeder', 'KrankenkassenSeeder'] as $seeder) {
             try {
-                $this->call('db:seed', ['--class' => $seeder, '--database' => 'tenant_new', '--force' => true]);
+                $this->call('db:seed', ['--class' => $seeder, '--force' => true]);
                 $this->line("     ✓ $seeder");
             } catch (\Exception $e) {
                 $this->warn("     ⚠ $seeder: " . $e->getMessage());
             }
         }
+        DB::setDefaultConnection($prevConnection);
 
         // 5. Organisation anlegen
         $this->line('4/5  Organisation + Admin anlegen...');
