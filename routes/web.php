@@ -32,6 +32,10 @@ Route::post('/setup', [SetupController::class, 'store'])->name('setup.store');
 
 // Startseite → Landing Page
 Route::get('/', function () {
+    // Tenant-Subdomain → direkt zum Login
+    if (app()->has('tenant')) {
+        return redirect()->route('login');
+    }
     return view('landing');
 })->name('home');
 
