@@ -9,6 +9,19 @@
     <div class="meldung meldung-erfolg" style="margin-bottom: 1rem;">{{ session('erfolg') }}</div>
 @endif
 
+{{-- Filter --}}
+<form method="GET" action="{{ route('rechnungslauf.index') }}" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
+    <select name="jahr" class="feld" style="width: 130px;" onchange="this.form.submit()">
+        <option value="">Alle Jahre</option>
+        @foreach($jahre as $j)
+            <option value="{{ $j }}" @selected($j == $jahr)>{{ $j }}</option>
+        @endforeach
+    </select>
+    @if($jahr)
+        <a href="{{ route('rechnungslauf.index') }}" class="btn btn-sekundaer">× Zurücksetzen</a>
+    @endif
+</form>
+
 <div class="karte-null">
     <table class="tabelle">
         <thead>

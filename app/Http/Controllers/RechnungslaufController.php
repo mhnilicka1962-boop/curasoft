@@ -28,15 +28,26 @@ class RechnungslaufController extends Controller
         return auth()->user()->organisation_id;
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $jahr = $request->input('jahr');
+
         $laeufe = Rechnungslauf::where('organisation_id', $this->orgId())
             ->with('ersteller')
             ->withSum('rechnungen', 'betrag_total')
+            ->when($jahr, fn($q) => $q->whereYear('periode_von', $jahr))
             ->orderByDesc('id')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('rechnungen.lauf.index', compact('laeufe'));
+        // Verfügbare Jahre für Dropdown
+        $jahre = Rechnungslauf::where('organisation_id', $this->orgId())
+            ->selectRaw('EXTRACT(YEAR FROM periode_von)::int AS jahr')
+            ->groupBy('jahr')
+            ->orderByDesc('jahr')
+            ->pluck('jahr');
+
+        return view('rechnungen.lauf.index', compact('laeufe', 'jahre', 'jahr'));
     }
 
     public function create(Request $request)
