@@ -8,7 +8,7 @@
 # Insbesondere: Deploy-Regeln, Arbeitsablauf, bekannte Fallstricke.
 # NIEMALS aus dem Gedächtnis arbeiten — immer zuerst hier nachschlagen.
 
-## Stand: 2026-03-10 (Session 17 — Multi-Tenant live)
+## Stand: 2026-03-10 (Session 18 — Rechnungslauf UX + Bugfixes)
 
 ---
 
@@ -90,16 +90,16 @@
 - `EinsatzartenSeeder` — 30 Einsatzarten, je einer Leistungsart zugeordnet
 - `KrankenkassenSeeder` — 39 Schweizer KVG-Krankenkassen (BAG-Nr + EAN) — per Tinker eingespielt
 
-### DB-Inhalt (Testdaten — lokal + Demo identisch, Stand 2026-02-26)
+### DB-Inhalt (Testdaten — lokal + Demo identisch, Stand 2026-03-10)
 
 | Tabelle | Anzahl |
 |---------|--------|
-| klienten | 50 |
-| einsaetze | 1297 |
-| tagespauschalen | 1 |
+| klienten | 58 (50 normal + 38 TEST, davon 4 Pausch + 4 Mix) |
+| einsaetze | ~1541 |
+| tagespauschalen | 8 (4 Pausch + 4 Mix, Feb 2026) |
 | rechnungslaeufe | 1 |
-| rechnungen | 55 |
-| rechnungs_positionen | 368 |
+| rechnungen | 24 |
+| rechnungs_positionen | 78 |
 | regionen | 4 (AG, BE, SG, ZH) |
 | leistungsregionen | 19 |
 | benutzer | ~16 |
@@ -107,7 +107,7 @@
 | touren | 8 |
 | rapporte | 90 |
 
-Demo-DB: `devitjob_curasoft` — wurde 2026-02-26 vollständig mit lokalen Testdaten synchronisiert.
+Demo-DB: `devitjob_curasoft` — zuletzt synchronisiert 2026-03-10 via `./deploy.sh db`.
 
 ---
 
@@ -175,6 +175,31 @@ php artisan tenant:migrate  # custom Command, iteriert tenants-Tabelle
 - Provider: devitjob.ch (cPanel)
 - Wildcard-Subdomain `*.curasoft.ch` → beim Provider anfragen / konfigurieren
 - Max. ~50 Subdomains laut Provider — ausreichend für Pilotphase
+
+## Neu in Session 18 (2026-03-10) — Rechnungslauf UX + Bugfixes
+
+### Rechnungslauf — Bugfixes
+- **Doppellauf-Bug behoben**: `store()` rief `Rechnungslauf::create()` UND `erstelleLauf()` auf → immer 2 Läufe. Fix: nur `erstelleLauf()` erstellt den Lauf.
+- **Leerer Lauf (CHF 0)**: `erstelleLauf()` erstellte Lauf-Record BEVOR Einsätze geprüft wurden. Fix: erst Einsätze sammeln, dann Lauf anlegen.
+- **Tagespauschalen getrennt**: Pro Klient mit Mischbetrieb (normale Einsätze + Tagespauschale) werden **2 separate Rechnungen** erstellt.
+- **Lauf wiederholen**: Storniert alten Lauf + sucht ALLE Klienten mit verrechenbaren Einsätzen (nicht nur Klienten des alten Laufs).
+
+### Rechnungslauf — UX-Verbesserungen
+- **Vorschau-Tabelle**: Alle Spalten ausser Klient zentriert (CSS-Fix: `.tabelle th.text-mitte` überschreibt Default `text-align: left`)
+- **Jahr-Filter**: Rechnungsläufe-Index hat Jahres-Dropdown → filtert nach `periode_von`
+- **Live-Suche**: Rechnungslauf-Detail hat Suchfeld → filtert Tabelle nach Name/Rechnungsnummer (JS, kein Reload)
+- **Pauschale-Badge**: Tagespauschalen-Rechnungen im Lauf-Detail haben hellblaues "Pauschale"-Badge
+- **Back-Link**: Rechnung-Detail zeigt "← Rechnungslauf #X" wenn Rechnung einem Lauf gehört
+- **"Alle Rechnungen ansehen"-Button** aus Lauf-Detail entfernt (war verwirrend)
+
+### Testdaten
+- `RechnungslaufTestSeeder`: 4 TEST-Pausch-* (CHF 98/Tag) + 4 TEST-Mix-* (CHF 82/Tag) — realistische Schweizer Spitex-Tagespauschalen-Ansätze
+- Cleanup: `DB::statement("DELETE FROM klienten WHERE nachname LIKE 'TEST-%'")`
+
+### CSS-Fix
+- `.tabelle th.text-mitte` + `.tabelle th.text-rechts` in `app.css` — `.tabelle th { text-align: left }` hatte höhere Spezifität
+
+---
 
 ### Implementiert (Session 17 — 2026-03-10)
 - [x] `TenantMiddleware` ✅ — Subdomain → DB-Connection

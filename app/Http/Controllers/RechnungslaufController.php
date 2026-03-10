@@ -105,11 +105,18 @@ class RechnungslaufController extends Controller
     public function show(Rechnungslauf $lauf)
     {
         $this->autorisiereZugriff($lauf);
-        $lauf->load([
-            'rechnungen' => fn($q) => $q->with('klient')
-                ->withExists('positionen as hat_pauschale', fn($q) => $q->where('einheit', 'tage')),
-            'ersteller',
-        ]);
+        $lauf->load(['rechnungen.klient', 'ersteller']);
+
+        // hat_pauschale Flag pro Rechnung setzen (ohne N+1)
+        $pauschaleIds = \DB::table('rechnungs_positionen')
+            ->whereIn('rechnung_id', $lauf->rechnungen->pluck('id'))
+            ->where('einheit', 'tage')
+            ->pluck('rechnung_id')
+            ->unique();
+
+        $lauf->rechnungen->each(function ($r) use ($pauschaleIds) {
+            $r->hat_pauschale = $pauschaleIds->contains($r->id);
+        });
 
         $emailAnzahl = $lauf->rechnungen->filter(
             fn($r) => $r->klient->versandart_patient === 'email' && $r->klient->email
