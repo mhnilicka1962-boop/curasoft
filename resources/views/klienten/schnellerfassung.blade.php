@@ -66,11 +66,17 @@
                     </select>
                 </div>
             </div>
-            <div style="margin-bottom: 0.75rem;">
-                <label class="feld-label">Adresse</label>
-                <input type="text" name="adresse" class="feld" value="{{ old('adresse') }}" placeholder="Strasse Nr.">
+            <div class="form-grid-2" style="margin-bottom: 0.75rem;">
+                <div>
+                    <label class="feld-label">AHV-Nummer</label>
+                    <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr') }}" placeholder="756.XXXX.XXXX.XX">
+                </div>
+                <div>
+                    <label class="feld-label">Adresse</label>
+                    <input type="text" name="adresse" class="feld" value="{{ old('adresse') }}" placeholder="Strasse Nr.">
+                </div>
             </div>
-            <div class="form-grid-2">
+            <div class="form-grid-2" style="margin-bottom: 0.75rem;">
                 <div>
                     <label class="feld-label">PLZ</label>
                     <input type="text" name="plz" class="feld" value="{{ old('plz') }}">
