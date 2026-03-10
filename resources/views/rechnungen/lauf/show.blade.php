@@ -98,10 +98,6 @@
     </form>
     @endif
 
-    <a href="{{ route('rechnungen.index') }}" class="btn btn-sekundaer" style="margin-left: auto;">
-        Alle Rechnungen ansehen
-    </a>
-
     <form method="POST" action="{{ route('rechnungslauf.wiederholen', $lauf) }}" style="margin: 0; margin-left: 0.5rem;">
         @csrf
         <button type="submit" class="btn btn-sekundaer"
