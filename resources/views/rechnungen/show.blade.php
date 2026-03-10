@@ -97,7 +97,12 @@
             <tbody>
                 @foreach($rechnung->positionen as $pos)
                 <tr>
-                    <td style="font-size: 0.8125rem;">{{ $pos->datum->format('d.m.Y') }}</td>
+                    <td style="font-size: 0.8125rem;">
+                        {{ $pos->datum->format('d.m.Y') }}
+                        @if($pos->beschreibung)
+                            <div style="font-size: 0.75rem; color: var(--cs-text-hell); margin-top: 0.1rem;">{{ $pos->beschreibung }}</div>
+                        @endif
+                    </td>
                     <td class="text-rechts">{{ $pos->menge }}</td>
                     @if($beide || $nurPatient)
                     <td class="text-rechts">
