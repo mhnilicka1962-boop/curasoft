@@ -194,8 +194,11 @@
 </div>
 
 {{-- ═══ 2. QUALIFIKATIONEN ═══ --}}
-<div class="karte" style="margin-bottom: 1.25rem;">
+<div class="karte" style="margin-bottom: 1.25rem;" id="qualifikationen">
     <div class="abschnitt-label">Ausbildung / Qualifikationen</div>
+    @if(session('erfolg_qual'))
+        <div class="meldung meldung-erfolg" style="margin-bottom: 0.75rem;">{{ session('erfolg_qual') }}</div>
+    @endif
     <form method="POST" action="{{ route('mitarbeiter.qualifikationen', $mitarbeiter) }}">
         @csrf
         <div style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 1rem;">

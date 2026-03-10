@@ -163,7 +163,8 @@ class MitarbeiterController extends Controller
         $ids = $request->input('qualifikation_ids', []);
         $mitarbeiter->qualifikationen()->sync($ids);
 
-        return back()->with('erfolg', 'Qualifikationen wurden gespeichert.');
+        return redirect(url()->previous() . '#qualifikationen')
+            ->with('erfolg_qual', 'Qualifikationen gespeichert.');
     }
 
     public function leistungsartenSpeichern(Request $request, Benutzer $mitarbeiter)
