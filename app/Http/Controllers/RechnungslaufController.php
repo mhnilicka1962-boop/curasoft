@@ -673,6 +673,41 @@ class RechnungslaufController extends Controller
             ->with('erfolg', "Lauf #{$lauf->id} storniert — {$anzahl} Rechnungen gelöscht, {$einsatzIds->count()} Einsätze wieder verrechenbar.");
     }
 
+    // Lauf stornieren + direkt neuen Lauf mit gleicher Periode vorbereiten
+    public function wiederholen(Rechnungslauf $lauf)
+    {
+        $this->autorisiereZugriff($lauf);
+
+        $blockiert = $lauf->rechnungen()->whereIn('status', ['gesendet', 'bezahlt'])->count();
+        if ($blockiert > 0) {
+            return back()->with('fehler',
+                "{$blockiert} Rechnung(en) bereits versendet/bezahlt — Lauf kann nicht storniert werden.");
+        }
+
+        $periode_von = $lauf->periode_von->format('Y-m-d');
+        $periode_bis = $lauf->periode_bis->format('Y-m-d');
+
+        $einsatzIds = \App\Models\RechnungsPosition::whereIn('rechnung_id', $lauf->rechnungen()->pluck('id'))
+            ->whereNotNull('einsatz_id')
+            ->pluck('einsatz_id')
+            ->unique();
+
+        Einsatz::whereIn('id', $einsatzIds)->update(['verrechnet' => false]);
+
+        $anzahl = $lauf->rechnungen()->count();
+        $lauf->rechnungen()->each(fn($r) => $r->delete());
+
+        AuditLog::schreiben('geloescht', 'Rechnungslauf', $lauf->id,
+            "Lauf #{$lauf->id} storniert (Wiederholen): {$anzahl} Rechnungen gelöscht, {$einsatzIds->count()} Einsätze zurückgesetzt");
+
+        $lauf->delete();
+
+        return redirect()->route('rechnungslauf.create', [
+            'periode_von' => $periode_von,
+            'periode_bis' => $periode_bis,
+        ])->with('erfolg', "Lauf storniert — {$einsatzIds->count()} Einsätze wieder verrechenbar. Bitte neuen Lauf erstellen.");
+    }
+
     private function grundErmitteln(int $klientId, string $von, string $bis): string
     {
         $basis = Einsatz::where('klient_id', $klientId)->whereBetween('datum', [$von, $bis]);
