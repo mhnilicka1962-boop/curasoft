@@ -72,9 +72,13 @@
                     <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr') }}" placeholder="756.XXXX.XXXX.XX">
                 </div>
                 <div>
-                    <label class="feld-label">Adresse</label>
-                    <input type="text" name="adresse" class="feld" value="{{ old('adresse') }}" placeholder="Strasse Nr.">
+                    <label class="feld-label">Zahlbar (Tage)</label>
+                    <input type="number" name="zahlbar_tage" class="feld" min="1" value="{{ old('zahlbar_tage', 30) }}">
                 </div>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <label class="feld-label">Adresse</label>
+                <input type="text" name="adresse" class="feld" value="{{ old('adresse') }}" placeholder="Strasse Nr.">
             </div>
             <div class="form-grid-2" style="margin-bottom: 0.75rem;">
                 <div>
