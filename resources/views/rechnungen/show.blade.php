@@ -2,7 +2,11 @@
 <div style="max-width: 820px;">
 
     <div class="seiten-kopf">
-        <a href="{{ route('rechnungen.index') }}" class="link-gedaempt" style="font-size: 0.875rem;">← Alle Rechnungen</a>
+        @if($rechnung->rechnungslauf_id)
+            <a href="{{ route('rechnungslauf.show', $rechnung->rechnungslauf_id) }}" class="link-gedaempt" style="font-size: 0.875rem;">← Rechnungslauf #{{ $rechnung->rechnungslauf_id }}</a>
+        @else
+            <a href="{{ route('rechnungen.index') }}" class="link-gedaempt" style="font-size: 0.875rem;">← Alle Rechnungen</a>
+        @endif
         <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
             {!! $rechnung->typBadge() !!}
             {!! $rechnung->statusBadge() !!}
