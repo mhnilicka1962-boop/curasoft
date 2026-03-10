@@ -282,6 +282,8 @@ body {
     border-bottom: 1px solid var(--cs-border);
 }
 .tabelle td { padding: 0.75rem; border-bottom: 1px solid var(--cs-border); }
+.tabelle th.text-mitte, .tabelle td.text-mitte { text-align: center; }
+.tabelle th.text-rechts, .tabelle td.text-rechts { text-align: right; }
 .tabelle tr:last-child td { border-bottom: none; }
 .tabelle tr:hover td { background-color: var(--cs-primaer-hell); }
 
