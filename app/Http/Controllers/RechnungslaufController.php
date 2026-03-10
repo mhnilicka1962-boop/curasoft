@@ -89,110 +89,9 @@ class RechnungslaufController extends Controller
             'erstellt_von'        => auth()->id(),
         ]);
 
-        $klienten = Klient::where('organisation_id', $this->orgId())
-            ->where('aktiv', true)
-            ->whereIn('id', $selectedIds)
-            ->get();
-
-        $erstellt     = 0;
-        $uebersprungen= 0;
-
-        // Tarif-Cache damit gleiche Leistungsart+Region nicht mehrfach abgefragt wird
-        $tarifCache = [];
-
-        foreach ($klienten as $klient) {
-            $einsaetze = Einsatz::where('klient_id', $klient->id)
-                ->where('verrechnet', false)
-                ->where(function ($q) {
-                    $q->whereNotNull('checkout_zeit')
-                      ->orWhereNotNull('tagespauschale_id');
-                })
-                ->whereBetween('datum', [$request->periode_von, $request->periode_bis])
-                ->with('leistungsart', 'tagespauschale')
-                ->orderBy('datum')
-                ->get();
-
-            if ($einsaetze->isEmpty()) {
-                $uebersprungen++;
-                continue;
-            }
-
-            $rechnungstyp = $klient->rechnungstyp ?? 'kombiniert';
-
-            $rechnung = Rechnung::create([
-                'organisation_id' => $this->orgId(),
-                'klient_id'       => $klient->id,
-                'rechnungsnummer' => Rechnung::naechsteNummer($this->orgId()),
-                'periode_von'     => $request->periode_von,
-                'periode_bis'     => $request->periode_bis,
-                'rechnungsdatum'  => today(),
-                'status'          => 'entwurf',
-                'rechnungstyp'    => $rechnungstyp,
-                'rechnungslauf_id'=> $lauf->id,
-            ]);
-
-            foreach ($einsaetze as $einsatz) {
-                if ($einsatz->tagespauschale_id) {
-                    // Tagespauschale: Tarif direkt vom Pauschale-Record
-                    $tp        = $einsatz->tagespauschale;
-                    $ansatz    = (float) $tp->ansatz;
-                    [$tarifPat, $tarifKk] = match($tp->rechnungstyp) {
-                        'kvg'  => [0.0, $ansatz],
-                        default=> [$ansatz, 0.0],
-                    };
-                    $menge       = 1;
-                    $einheit     = 'tage';
-                    $betragPat   = round($tarifPat, 2);
-                    $betragKk    = round($tarifKk, 2);
-                    $beschreibung= $tp->text;
-                } else {
-                    $istTage = $einsatz->leistungsart?->einheit === 'tage';
-                    [$tarifPat, $tarifKk] = $this->tarifeFuerEinsatz(
-                        $einsatz, $klient, $rechnungstyp, $tarifCache
-                    );
-                    if ($istTage) {
-                        $menge     = $einsatz->anzahlTage() ?? 1;
-                        $einheit   = 'tage';
-                        $betragPat = round($menge * $tarifPat, 2);
-                        $betragKk  = round($menge * $tarifKk, 2);
-                    } else {
-                        $menge     = $einsatz->minuten ?? 0;
-                        $einheit   = 'minuten';
-                        $betragPat = round($menge / 60 * $tarifPat, 2);
-                        $betragKk  = round($menge / 60 * $tarifKk, 2);
-                    }
-                    $beschreibung = null;
-                }
-
-                RechnungsPosition::create([
-                    'rechnung_id'    => $rechnung->id,
-                    'einsatz_id'     => $einsatz->id,
-                    'datum'          => $einsatz->datum,
-                    'menge'          => $menge,
-                    'einheit'        => $einheit,
-                    'beschreibung'   => $beschreibung,
-                    'tarif_patient'  => $tarifPat,
-                    'tarif_kk'       => $tarifKk,
-                    'betrag_patient' => $betragPat,
-                    'betrag_kk'      => $betragKk,
-                ]);
-
-                $einsatz->update(['verrechnet' => true]);
-            }
-
-            $rechnung->load('positionen');
-            $rechnung->berechneTotale();
-
-            AuditLog::schreiben('erstellt', 'Rechnung', $rechnung->id,
-                "Rechnungslauf {$lauf->id}: Rechnung {$rechnung->rechnungsnummer} für {$klient->nachname}");
-
-            $erstellt++;
-        }
-
-        $lauf->update([
-            'anzahl_erstellt'     => $erstellt,
-            'anzahl_uebersprungen'=> $uebersprungen,
-        ]);
+        [$lauf, $erstellt, $uebersprungen] = $this->erstelleLauf(
+            $request->periode_von, $request->periode_bis, $selectedIds
+        );
 
         return redirect()->route('rechnungslauf.show', $lauf)
             ->with('erfolg', "{$erstellt} Rechnungen erstellt, {$uebersprungen} Klienten ohne Einsätze übersprungen.");
@@ -673,7 +572,7 @@ class RechnungslaufController extends Controller
             ->with('erfolg', "Lauf #{$lauf->id} storniert — {$anzahl} Rechnungen gelöscht, {$einsatzIds->count()} Einsätze wieder verrechenbar.");
     }
 
-    // Lauf stornieren + direkt neuen Lauf mit gleicher Periode vorbereiten
+    // Lauf stornieren + sofort neuen Lauf mit gleicher Periode + gleichen Klienten erstellen
     public function wiederholen(Rechnungslauf $lauf)
     {
         $this->autorisiereZugriff($lauf);
@@ -687,25 +586,147 @@ class RechnungslaufController extends Controller
         $periode_von = $lauf->periode_von->format('Y-m-d');
         $periode_bis = $lauf->periode_bis->format('Y-m-d');
 
-        $einsatzIds = \App\Models\RechnungsPosition::whereIn('rechnung_id', $lauf->rechnungen()->pluck('id'))
+        // Klient-IDs aus dem alten Lauf merken
+        $klientIds = $lauf->rechnungen()->pluck('klient_id')->unique()->values()->all();
+
+        // Einsätze zurücksetzen
+        $einsatzIds = RechnungsPosition::whereIn('rechnung_id', $lauf->rechnungen()->pluck('id'))
             ->whereNotNull('einsatz_id')
             ->pluck('einsatz_id')
             ->unique();
-
         Einsatz::whereIn('id', $einsatzIds)->update(['verrechnet' => false]);
 
-        $anzahl = $lauf->rechnungen()->count();
+        $alteLaufId = $lauf->id;
         $lauf->rechnungen()->each(fn($r) => $r->delete());
-
-        AuditLog::schreiben('geloescht', 'Rechnungslauf', $lauf->id,
-            "Lauf #{$lauf->id} storniert (Wiederholen): {$anzahl} Rechnungen gelöscht, {$einsatzIds->count()} Einsätze zurückgesetzt");
-
         $lauf->delete();
 
-        return redirect()->route('rechnungslauf.create', [
-            'periode_von' => $periode_von,
-            'periode_bis' => $periode_bis,
-        ])->with('erfolg', "Lauf storniert — {$einsatzIds->count()} Einsätze wieder verrechenbar. Bitte neuen Lauf erstellen.");
+        AuditLog::schreiben('geloescht', 'Rechnungslauf', $alteLaufId,
+            "Lauf #{$alteLaufId} storniert (Wiederholen): {$einsatzIds->count()} Einsätze zurückgesetzt");
+
+        // Neuen Lauf sofort erstellen
+        [$neuerLauf, $erstellt, $uebersprungen] = $this->erstelleLauf(
+            $periode_von, $periode_bis, $klientIds
+        );
+
+        return redirect()->route('rechnungslauf.show', $neuerLauf)
+            ->with('erfolg', "Lauf wiederholt — {$erstellt} Rechnungen erstellt, {$uebersprungen} übersprungen.");
+    }
+
+    private function erstelleLauf(string $periode_von, string $periode_bis, array $klientIds): array
+    {
+        $lauf = Rechnungslauf::create([
+            'organisation_id'     => $this->orgId(),
+            'periode_von'         => $periode_von,
+            'periode_bis'         => $periode_bis,
+            'anzahl_erstellt'     => 0,
+            'anzahl_uebersprungen'=> 0,
+            'status'              => 'abgeschlossen',
+            'erstellt_von'        => auth()->id(),
+        ]);
+
+        $klienten = Klient::where('organisation_id', $this->orgId())
+            ->where('aktiv', true)
+            ->whereIn('id', $klientIds)
+            ->get();
+
+        $erstellt      = 0;
+        $uebersprungen = 0;
+        $tarifCache    = [];
+
+        foreach ($klienten as $klient) {
+            $einsaetze = Einsatz::where('klient_id', $klient->id)
+                ->where('verrechnet', false)
+                ->where(function ($q) {
+                    $q->whereNotNull('checkout_zeit')
+                      ->orWhereNotNull('tagespauschale_id');
+                })
+                ->whereBetween('datum', [$periode_von, $periode_bis])
+                ->with('leistungsart', 'tagespauschale')
+                ->orderBy('datum')
+                ->get();
+
+            if ($einsaetze->isEmpty()) {
+                $uebersprungen++;
+                continue;
+            }
+
+            $rechnungstyp = $klient->rechnungstyp ?? 'kombiniert';
+
+            $rechnung = Rechnung::create([
+                'organisation_id' => $this->orgId(),
+                'klient_id'       => $klient->id,
+                'rechnungsnummer' => Rechnung::naechsteNummer($this->orgId()),
+                'periode_von'     => $periode_von,
+                'periode_bis'     => $periode_bis,
+                'rechnungsdatum'  => today(),
+                'status'          => 'entwurf',
+                'rechnungstyp'    => $rechnungstyp,
+                'rechnungslauf_id'=> $lauf->id,
+            ]);
+
+            foreach ($einsaetze as $einsatz) {
+                if ($einsatz->tagespauschale_id) {
+                    $tp        = $einsatz->tagespauschale;
+                    $ansatz    = (float) $tp->ansatz;
+                    [$tarifPat, $tarifKk] = match($tp->rechnungstyp) {
+                        'kvg'  => [0.0, $ansatz],
+                        default=> [$ansatz, 0.0],
+                    };
+                    $menge        = 1;
+                    $einheit      = 'tage';
+                    $betragPat    = round($tarifPat, 2);
+                    $betragKk     = round($tarifKk, 2);
+                    $beschreibung = $tp->text;
+                } else {
+                    $istTage = $einsatz->leistungsart?->einheit === 'tage';
+                    [$tarifPat, $tarifKk] = $this->tarifeFuerEinsatz(
+                        $einsatz, $klient, $rechnungstyp, $tarifCache
+                    );
+                    if ($istTage) {
+                        $menge     = $einsatz->anzahlTage() ?? 1;
+                        $einheit   = 'tage';
+                        $betragPat = round($menge * $tarifPat, 2);
+                        $betragKk  = round($menge * $tarifKk, 2);
+                    } else {
+                        $menge     = $einsatz->minuten ?? 0;
+                        $einheit   = 'minuten';
+                        $betragPat = round($menge / 60 * $tarifPat, 2);
+                        $betragKk  = round($menge / 60 * $tarifKk, 2);
+                    }
+                    $beschreibung = null;
+                }
+
+                RechnungsPosition::create([
+                    'rechnung_id'    => $rechnung->id,
+                    'einsatz_id'     => $einsatz->id,
+                    'datum'          => $einsatz->datum,
+                    'menge'          => $menge,
+                    'einheit'        => $einheit,
+                    'beschreibung'   => $beschreibung,
+                    'tarif_patient'  => $tarifPat,
+                    'tarif_kk'       => $tarifKk,
+                    'betrag_patient' => $betragPat,
+                    'betrag_kk'      => $betragKk,
+                ]);
+
+                $einsatz->update(['verrechnet' => true]);
+            }
+
+            $rechnung->load('positionen');
+            $rechnung->berechneTotale();
+
+            AuditLog::schreiben('erstellt', 'Rechnung', $rechnung->id,
+                "Rechnungslauf {$lauf->id}: Rechnung {$rechnung->rechnungsnummer} für {$klient->nachname}");
+
+            $erstellt++;
+        }
+
+        $lauf->update([
+            'anzahl_erstellt'     => $erstellt,
+            'anzahl_uebersprungen'=> $uebersprungen,
+        ]);
+
+        return [$lauf, $erstellt, $uebersprungen];
     }
 
     private function grundErmitteln(int $klientId, string $von, string $bis): string
