@@ -586,10 +586,7 @@ class RechnungslaufController extends Controller
         $periode_von = $lauf->periode_von->format('Y-m-d');
         $periode_bis = $lauf->periode_bis->format('Y-m-d');
 
-        // Klient-IDs aus dem alten Lauf merken
-        $klientIds = $lauf->rechnungen()->pluck('klient_id')->unique()->values()->all();
-
-        // Einsätze zurücksetzen
+        // Schritt 1: Einsätze zurücksetzen + Lauf löschen
         $einsatzIds = RechnungsPosition::whereIn('rechnung_id', $lauf->rechnungen()->pluck('id'))
             ->whereNotNull('einsatz_id')
             ->pluck('einsatz_id')
@@ -603,9 +600,26 @@ class RechnungslaufController extends Controller
         AuditLog::schreiben('geloescht', 'Rechnungslauf', $alteLaufId,
             "Lauf #{$alteLaufId} storniert (Wiederholen): {$einsatzIds->count()} Einsätze zurückgesetzt");
 
-        // Neuen Lauf sofort erstellen
+        // Schritt 2: ALLE Klienten mit verrechenbaren Einsätzen in der Periode neu ermitteln
+        $alleKlientIds = Einsatz::where('organisation_id', $this->orgId())
+            ->where('verrechnet', false)
+            ->where(function ($q) {
+                $q->whereNotNull('checkout_zeit')
+                  ->orWhereNotNull('tagespauschale_id');
+            })
+            ->whereBetween('datum', [$periode_von, $periode_bis])
+            ->pluck('klient_id')
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($alleKlientIds)) {
+            return redirect()->route('rechnungslauf.index')
+                ->with('fehler', "Lauf storniert — keine verrechenbaren Einsätze für {$periode_von} bis {$periode_bis} gefunden.");
+        }
+
         [$neuerLauf, $erstellt, $uebersprungen] = $this->erstelleLauf(
-            $periode_von, $periode_bis, $klientIds
+            $periode_von, $periode_bis, $alleKlientIds
         );
 
         return redirect()->route('rechnungslauf.show', $neuerLauf)
