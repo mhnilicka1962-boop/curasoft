@@ -66,6 +66,25 @@ class TenantMiddleware
         $request->attributes->set('tenant', $tenant);
         app()->instance('tenant', $tenant);
 
+        // Organisation aus Tenant-DB laden → Theme-Config setzen (für Login-Seite)
+        try {
+            $org = DB::connection('tenant')->table('organisationen')->first();
+            if ($org) {
+                Config::set('theme.app_name', $org->name);
+                if (! empty($org->theme_farbe_primaer)) {
+                    Config::set('theme.farbe_primaer', $org->theme_farbe_primaer);
+                }
+                if (! empty($org->logo_pfad)) {
+                    Config::set('theme.logo', $org->logo_pfad);
+                }
+                if (! empty($org->theme_layout)) {
+                    Config::set('theme.layout', $org->theme_layout);
+                }
+            }
+        } catch (\Exception) {
+            // Kein Org-Eintrag → Default-Theme behalten
+        }
+
         return $next($request);
     }
 
