@@ -3,6 +3,11 @@
 # NIEMALS /public_html/itjob/ verwenden — das ist ein anderes Projekt!
 # Lokales Verzeichnis: C:\laragon\www\spitex
 
+## ⚠️ SESSION-START — ZWINGEND
+# Bei JEDEM Neustart diese Datei vollständig lesen BEVOR irgendeine Aktion ausgeführt wird.
+# Insbesondere: Deploy-Regeln, Arbeitsablauf, bekannte Fallstricke.
+# NIEMALS aus dem Gedächtnis arbeiten — immer zuerst hier nachschlagen.
+
 ## Stand: 2026-03-10 (Session 17 — Multi-Tenant live)
 
 ---
