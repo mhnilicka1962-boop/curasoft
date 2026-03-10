@@ -98,6 +98,21 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        // Master-DB: enthält nur die tenants-Tabelle (Subdomain → DB-Mapping)
+        // Zeigt auf dieselbe DB wie die Demo-Instanz (devitjob_curasoft / lokal: curasoft)
+        'master' => [
+            'driver'      => 'pgsql',
+            'host'        => env('MASTER_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port'        => env('MASTER_DB_PORT', env('DB_PORT', '5432')),
+            'database'    => env('MASTER_DB_DATABASE', env('DB_DATABASE', 'curasoft')),
+            'username'    => env('MASTER_DB_USERNAME', env('DB_USERNAME', 'postgres')),
+            'password'    => env('MASTER_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'charset'     => 'utf8',
+            'prefix'      => '',
+            'search_path' => 'public',
+            'sslmode'     => env('DB_SSLMODE', 'prefer'),
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->web(prepend: [
+            \App\Http\Middleware\TenantMiddleware::class,
+        ]);
         $middleware->web(append: [
             \App\Http\Middleware\CheckSetupComplete::class,
             \App\Http\Middleware\SecurityHeaders::class,

@@ -25,10 +25,12 @@ use Illuminate\Support\Facades\Hash;
 class TenantCreate extends Command
 {
     protected $signature = 'tenant:create
-                            {subdomain : Subdomain z.B. spitex-aarau}
-                            {name : Organisationsname z.B. "Spitex Aarau AG"}
+                            {subdomain : Subdomain z.B. curapflege}
+                            {name : Organisationsname z.B. "CuraPflege GmbH"}
                             {email : E-Mail des ersten Admin-Benutzers}
-                            {--password= : Passwort (Standard: zufällig generiert)}';
+                            {--password= : Passwort (Standard: zufällig generiert)}
+                            {--db= : DB-Name überschreiben (Standard: curasoft_<subdomain>)}
+                            {--skip-create-db : DB-Erstellung überspringen (z.B. auf cPanel)}';
 
     protected $description = 'Neuen Tenant (Kunden) anlegen: DB + Seeders + Admin-User';
 
@@ -38,7 +40,7 @@ class TenantCreate extends Command
         $name      = $this->argument('name');
         $email     = $this->argument('email');
         $password  = $this->option('password') ?? $this->generatePassword();
-        $dbName    = 'curasoft_' . preg_replace('/[^a-z0-9]/', '_', $subdomain);
+        $dbName    = $this->option('db') ?? ('curasoft_' . preg_replace('/[^a-z0-9]/', '_', $subdomain));
         $dbUser    = env('DB_USERNAME', 'postgres');
         $dbPass    = env('DB_PASSWORD', '');
 
@@ -46,17 +48,22 @@ class TenantCreate extends Command
         $this->line("DB: $dbName");
         $this->newLine();
 
-        // 1. DB anlegen
+        // 1. DB anlegen (lokal) oder überspringen (cPanel: DB manuell anlegen)
         $this->line('1/5  Datenbank anlegen...');
-        try {
-            DB::statement("CREATE DATABASE $dbName");
-            $this->line("     ✓ $dbName erstellt");
-        } catch (\Exception $e) {
-            if (str_contains($e->getMessage(), 'already exists')) {
-                $this->warn("     DB $dbName existiert bereits — übersprungen");
-            } else {
-                $this->error('     Fehler: ' . $e->getMessage());
-                return self::FAILURE;
+        if ($this->option('skip-create-db')) {
+            $this->warn("     --skip-create-db: DB $dbName muss bereits existieren");
+        } else {
+            try {
+                DB::statement("CREATE DATABASE \"$dbName\"");
+                $this->line("     ✓ $dbName erstellt");
+            } catch (\Exception $e) {
+                if (str_contains($e->getMessage(), 'already exists')) {
+                    $this->warn("     DB $dbName existiert bereits — OK");
+                } else {
+                    $this->error('     Fehler: ' . $e->getMessage());
+                    $this->error('     Tipp: DB manuell anlegen und --skip-create-db verwenden');
+                    return self::FAILURE;
+                }
             }
         }
 
@@ -79,12 +86,14 @@ class TenantCreate extends Command
 
         // 4. Basis-Seeders
         $this->line('3/5  Seeders einspielen...');
-        // TODO: Seeders müssen connection-aware werden (--database Parameter)
-        // Vorerst manuell ausführen:
-        $this->warn('     HINWEIS: Seeders müssen noch manuell für Tenant-DB angepasst werden.');
-        $this->warn('     php artisan db:seed --class=LeistungsartenSeeder --database=tenant_new');
-        $this->warn('     php artisan db:seed --class=EinsatzartenSeeder   --database=tenant_new');
-        $this->warn('     php artisan db:seed --class=KrankenkassenSeeder  --database=tenant_new');
+        foreach (['LeistungsartenSeeder', 'EinsatzartenSeeder', 'KrankenkassenSeeder'] as $seeder) {
+            try {
+                $this->call('db:seed', ['--class' => $seeder, '--database' => 'tenant_new', '--force' => true]);
+                $this->line("     ✓ $seeder");
+            } catch (\Exception $e) {
+                $this->warn("     ⚠ $seeder: " . $e->getMessage());
+            }
+        }
 
         // 5. Organisation anlegen
         $this->line('4/5  Organisation + Admin anlegen...');

@@ -13,9 +13,13 @@ echo htmlspecialchars(shell_exec("cd $base && git fetch origin 2>&1 && git reset
 echo "=== composer install --no-dev ===\n";
 echo htmlspecialchars(shell_exec("cd $base && HOME=/tmp composer install --no-dev --optimize-autoloader 2>&1")) . "\n";
 
-// SINGLE-TENANT (aktuell):
+// App-Migrationen (auch Tenant-DBs via tenant:migrate)
 echo "=== php artisan migrate --force ===\n";
 echo htmlspecialchars(shell_exec("cd $base && php artisan migrate --force 2>&1")) . "\n";
+
+// Telescope-Migration nur für Demo/Master-DB (separater Pfad, kein Tenant)
+echo "=== php artisan migrate --path=database/migrations_telescope --force ===\n";
+echo htmlspecialchars(shell_exec("cd $base && php artisan migrate --path=database/migrations_telescope --force 2>&1")) . "\n";
 
 // MULTI-TENANT (wenn live): Zeile oben ersetzen durch:
 // echo "=== php artisan tenant:migrate --force ===\n";
