@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Benutzer;
 use App\Models\Einsatz;
 use App\Models\Tour;
+use App\Services\GeocodingService;
 use Illuminate\Http\Request;
 
 class TourenController extends Controller
@@ -208,5 +209,36 @@ class TourenController extends Controller
 
         $einsatz->update(['tour_id' => null, 'tour_reihenfolge' => null]);
         return back()->with('erfolg', 'Einsatz wurde aus der Tour entfernt.');
+    }
+
+    // Route optimieren: Nearest-Neighbor nach GPS-Koordinaten
+    public function routeOptimieren(Tour $tour)
+    {
+        if ($tour->organisation_id !== $this->orgId()) abort(403);
+
+        $einsaetze = $tour->einsaetze()
+            ->with('klient')
+            ->orderBy('tour_reihenfolge')
+            ->get();
+
+        $punkte = $einsaetze
+            ->filter(fn($e) => $e->klient?->klient_lat && $e->klient?->klient_lng)
+            ->map(fn($e) => [
+                'id'  => $e->id,
+                'lat' => (float) $e->klient->klient_lat,
+                'lng' => (float) $e->klient->klient_lng,
+            ])->values()->toArray();
+
+        if (count($punkte) < 2) {
+            return back()->with('warnung', 'Zu wenige Einsätze mit Koordinaten für Optimierung (mind. 2 nötig).');
+        }
+
+        $optimiert = GeocodingService::optimiereReihenfolge($punkte);
+
+        foreach ($optimiert as $reihenfolge => $einsatzId) {
+            Einsatz::where('id', $einsatzId)->update(['tour_reihenfolge' => $reihenfolge + 1]);
+        }
+
+        return back()->with('erfolg', count($optimiert) . ' Einsätze nach kürzester Route sortiert.');
     }
 }

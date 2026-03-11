@@ -34,14 +34,25 @@
     {{-- Einsätze --}}
     <div class="karte" style="margin-bottom: 1rem; padding: 0;">
 
-        <div style="padding: 0.875rem 1rem; border-bottom: 1px solid var(--cs-border); display: flex; align-items: center; justify-content: space-between;">
+        <div style="padding: 0.875rem 1rem; border-bottom: 1px solid var(--cs-border); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
             <span class="abschnitt-label" style="margin: 0;">Einsätze ({{ $tour->einsaetze->count() }})</span>
             @php
-                $abgeschlossen = $tour->einsaetze->where('status', 'abgeschlossen')->count();
+                $abgeschlossen   = $tour->einsaetze->where('status', 'abgeschlossen')->count();
+                $mitKoordinaten  = $tour->einsaetze->filter(fn($e) => $e->klient?->klient_lat)->count();
             @endphp
-            @if($tour->einsaetze->count())
-                <span class="text-hell" style="font-size: 0.8125rem;">{{ $abgeschlossen }}/{{ $tour->einsaetze->count() }} abgeschlossen</span>
-            @endif
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                @if($tour->einsaetze->count())
+                    <span class="text-hell" style="font-size: 0.8125rem;">{{ $abgeschlossen }}/{{ $tour->einsaetze->count() }} abgeschlossen</span>
+                @endif
+                @if($mitKoordinaten >= 2 && auth()->user()->rolle === 'admin')
+                    <form method="POST" action="{{ route('touren.route.optimieren', $tour) }}" style="margin: 0;">
+                        @csrf
+                        <button type="submit" class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.25rem 0.625rem;" onclick="return confirm('Route nach kürzester Strecke optimieren?')">
+                            🗺 Route optimieren
+                        </button>
+                    </form>
+                @endif
+            </div>
         </div>
 
         @forelse($tour->einsaetze->sortBy('tour_reihenfolge') as $idx => $e)
@@ -208,6 +219,40 @@
             <button type="submit" class="btn btn-sekundaer" style="font-size: 0.875rem;">Speichern</button>
         </form>
     </div>
+
+    {{-- Karte --}}
+    @php
+        $kartenEinsaetze = $tour->einsaetze
+            ->sortBy('tour_reihenfolge')
+            ->filter(fn($e) => $e->klient?->klient_lat && $e->klient?->klient_lng)
+            ->values();
+    @endphp
+    @if($kartenEinsaetze->count() >= 1)
+    <div class="karte" style="margin-top: 1rem; padding: 0; overflow: hidden;">
+        <div style="padding: 0.875rem 1rem; border-bottom: 1px solid var(--cs-border);">
+            <span class="abschnitt-label" style="margin: 0;">Route ({{ $kartenEinsaetze->count() }} Stops)</span>
+        </div>
+        <div id="tourenkarte" style="height: 380px; width: 100%;"></div>
+    </div>
+
+    @push('scripts')
+    @vite('resources/js/tourenkarte.js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const punkte = @json($kartenEinsaetze->map(fn($e) => [
+                'lat'        => (float) $e->klient->klient_lat,
+                'lng'        => (float) $e->klient->klient_lng,
+                'klient_name'=> $e->klient->vorname . ' ' . $e->klient->nachname,
+                'adresse'    => $e->klient->adresse . ', ' . $e->klient->ort,
+                'zeit_von'   => $e->zeit_von ? substr($e->zeit_von, 0, 5) : null,
+                'zeit_bis'   => $e->zeit_bis ? substr($e->zeit_bis, 0, 5) : null,
+                'status'     => $e->status,
+            ]));
+            window.TourenkarteInit(punkte);
+        });
+    </script>
+    @endpush
+    @endif
 
 </div>
 </x-layouts.app>

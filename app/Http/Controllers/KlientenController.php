@@ -19,6 +19,7 @@ use App\Models\Leistungsart;
 use App\Models\Organisation;
 use App\Models\Region;
 use App\Services\BexioService;
+use App\Services\GeocodingService;
 use Illuminate\Http\Request;
 
 class KlientenController extends Controller
@@ -91,6 +92,12 @@ class KlientenController extends Controller
             'organisation_id' => $this->orgId(),
             'aktiv'           => true,
         ]));
+
+        // Koordinaten automatisch holen
+        if ($klient->adresse && $klient->plz && $klient->ort) {
+            $coords = app(GeocodingService::class)->geocode($klient->adresse, $klient->plz, $klient->ort);
+            if ($coords) $klient->update(['klient_lat' => $coords['lat'], 'klient_lng' => $coords['lng']]);
+        }
 
         return redirect()->route('klienten.show', $klient)
             ->with('erfolg', 'Klient wurde erfolgreich angelegt.');
@@ -252,7 +259,19 @@ class KlientenController extends Controller
             'aktiv'               => ['boolean'],
         ]);
 
+        $adresseGeaendert = isset($daten['adresse']) && (
+            $daten['adresse'] !== $klient->adresse ||
+            ($daten['plz'] ?? null) !== $klient->plz ||
+            ($daten['ort'] ?? null) !== $klient->ort
+        );
+
         $klient->update($daten);
+
+        // Koordinaten neu holen wenn Adresse geändert
+        if ($adresseGeaendert && $klient->adresse && $klient->plz && $klient->ort) {
+            $coords = app(GeocodingService::class)->geocode($klient->adresse, $klient->plz, $klient->ort);
+            if ($coords) $klient->update(['klient_lat' => $coords['lat'], 'klient_lng' => $coords['lng']]);
+        }
 
         return redirect()->route('klienten.show', $klient)
             ->with('erfolg', 'Klient wurde gespeichert.');

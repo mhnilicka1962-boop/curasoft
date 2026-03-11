@@ -239,6 +239,7 @@ Route::middleware('auth')->group(function () {
             ->parameters(['touren' => 'tour']);
         Route::post('/touren/{tour}/einsaetze',          [TourenController::class, 'einsatzZuweisen'])->name('touren.einsatz.zuweisen');
         Route::delete('/touren/{tour}/einsaetze/{einsatz}', [TourenController::class, 'einsatzEntfernen'])->name('touren.einsatz.entfernen');
+        Route::post('/touren/{tour}/route-optimieren',   [TourenController::class, 'routeOptimieren'])->name('touren.route.optimieren');
 
         // Dokumente
         Route::post('/dokumente',              [DokumenteController::class, 'store'])->name('dokumente.store');
