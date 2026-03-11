@@ -223,7 +223,7 @@ class AlltagsheldenDemoSeeder extends Seeder
                     'zeit_von'               => $start->format('H:i'),
                     'zeit_bis'               => $end->format('H:i'),
                     'minuten'                => 45,
-                    'status'                 => $datum->isFuture() ? 'geplant' : 'abgeschlossen',
+                    'status'                 => $datum->isToday() || $datum->isFuture() ? 'geplant' : 'abgeschlossen',
                     'verrechnet'             => false,
                     'leistungserbringer_typ' => 'fachperson',
                     'created_at'             => now(), 'updated_at' => now(),
