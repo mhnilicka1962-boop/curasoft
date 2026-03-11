@@ -250,6 +250,59 @@ php artisan tenant:migrate
 
 ---
 
+## Neu in Session 19 (2026-03-11) — Einsatzplanung Kalender + Routenplanung
+
+### Einsatzplanung Kalender (FullCalendar)
+- **URL:** `/kalender` — nur Admin
+- **Packages:** `@fullcalendar/core`, `@fullcalendar/resource-timeline`, `@fullcalendar/interaction` (via npm)
+- **JS-Bundle:** `resources/js/kalender.js` → Vite-Entry
+- **Controller:** `app/Http/Controllers/KalenderController.php`
+- **Routes:**
+  - `GET /kalender` → View
+  - `GET /kalender/einsaetze?start=&end=` → JSON-API für FullCalendar
+  - `PATCH /kalender/einsaetze/{einsatz}` → Drag & Drop speichern
+- **Features:**
+  - Resource Timeline Week/Day: Mitarbeiter als Zeilen, Einsätze als farbige Balken
+  - Doppelbelegungen (gleicher MA, überlappende Zeit) → rot + blinkt
+  - Nicht zugeteilt → gelbe Zeile oben
+  - Klick auf Einsatz → Popup mit Klient, Zeit, Leistungsart, Status
+  - Drag & Drop (Admin): Einsatz auf anderen MA oder andere Zeit ziehen → sofort gespeichert
+  - Leistungsart-Freigabe wird bei Drag & Drop geprüft (422 + revert wenn nicht erlaubt)
+- **Farben:** Geplant = Blau, Aktiv = Orange, Abgeschlossen = Grün, Doppelbelegung = Rot
+- **Lizenz:** `GPL-My-Project-Is-Open-Source` (Open-Source-Projekt, kostenlos)
+
+### Routenplanung (Leaflet + OpenStreetMap)
+- **Karte:** Erscheint auf Tour-Detail (`/touren/{id}`) wenn mind. 1 Stop Koordinaten hat
+- **Packages:** `leaflet` (via npm), `resources/js/tourenkarte.js` → Vite-Entry
+- **Service:** `app/Services/GeocodingService.php`
+  - `geocode(strasse, plz, ort)` → Nominatim API (kostenlos, kein Key, max 1 req/sec)
+  - `distanz(lat1, lng1, lat2, lng2)` → Haversine-Formel in Metern
+  - `optimiereReihenfolge($punkte)` → Nearest-Neighbor-Algorithmus (greedy TSP)
+- **Geocoding automatisch** beim Klienten-Speichern (store + update wenn Adresse geändert)
+- **Artisan-Command:** `php artisan klienten:geocoden` — alle Klienten ohne Koordinaten geocoden
+  - `--force` Flag: auch bereits geocodierte neu geocoden
+  - Rate-Limit: 1.1 Sekunden zwischen Requests (Nominatim-Pflicht)
+- **Button "🗺 Route optimieren"** erscheint wenn mind. 2 Stops Koordinaten haben (nur Admin)
+  - Sortiert `tour_reihenfolge` nach kürzester Strecke (Nearest-Neighbor)
+- **Karte zeigt:** Nummerierte Pins (blau=geplant, orange=aktiv, grün=abgeschlossen) + blaue Route-Linie
+- **Hinweis:** Fiktive Testdaten-Adressen werden von Nominatim nicht gefunden → normal
+
+### Neue Dateien Session 19
+| Datei | Zweck |
+|-------|-------|
+| `app/Http/Controllers/KalenderController.php` | Kalender View + JSON-API + Drag&Drop PATCH |
+| `app/Services/GeocodingService.php` | Nominatim Geocoding + Haversine + Route-Optimierung |
+| `app/Console/Commands/KlientenGeocoden.php` | Artisan: bestehende Klienten geocoden |
+| `resources/js/kalender.js` | FullCalendar Bundle |
+| `resources/js/tourenkarte.js` | Leaflet Karte Bundle |
+| `resources/views/kalender/index.blade.php` | Kalender-View (Admin) |
+
+### Nav-Link
+- Sidebar: "Einsatzplanung 📅" nur für Admin, unter "Tourenplanung"
+- Horizontal-Nav: noch nicht ergänzt (falls nötig: in `nav-horizontal.blade.php` unter Touren)
+
+---
+
 ## Module und URLs
 
 | Modul | URL | Controller | Rollen |
@@ -261,6 +314,9 @@ php artisan tenant:migrate
 | Check-In/Out | `/checkin/{token}` | CheckInController | admin, pflege |
 | Rapporte | `/rapporte` | RapporteController | admin, pflege |
 | Tourenplanung | `/touren` | TourenController | admin, pflege |
+| Einsatzplanung Kalender | `/kalender` | KalenderController | admin |
+| Kalender JSON-API | `GET /kalender/einsaetze` | KalenderController | admin |
+| Route optimieren | `POST /touren/{id}/route-optimieren` | TourenController | admin |
 | Rechnungen | `/rechnungen` | RechnungenController | admin, buchhaltung |
 | Rechnungsläufe | `/rechnungslaeufe` | RechnungslaufController | admin, buchhaltung |
 | Tagespauschalen | `/tagespauschalen` | TagespauschaleController | admin, buchhaltung |
@@ -1022,8 +1078,8 @@ Manuelles FTP = Tod für die Entwicklung. Alles über git → deploy.sh. Keine A
 
 ## Bekannte offene Punkte
 
-- **Tourenplanung**: Reihenfolge per Nummer setzbar, kein Drag-and-Drop.
-- **Einsatzplanung visuell (FullCalendar)**: Geplant — JS-Library FullCalendar (kostenlos, https://fullcalendar.io). Bauplan in dieser Reihenfolge:
+- **Tourenplanung**: Reihenfolge per Nummer setzbar + "Route optimieren" Button (Nearest-Neighbor). Drag-and-Drop in Tour-Liste noch nicht gebaut (FullCalendar Kalender hat Drag&Drop).
+- **Einsatzplanung visuell (FullCalendar)**: ✅ Implementiert (`/kalender`). Noch offen: Bauplan in dieser Reihenfolge:
   1. FullCalendar einbinden + Laravel JSON-API (`GET /einsaetze/kalender?von=&bis=`)
   2. Resource Timeline View: Mitarbeiter als Zeilen, Einsätze als farbige Balken, Wochenansicht
   3. Doppelbelegungen rot markieren (gleicher MA, überlappende Zeit)
@@ -1032,7 +1088,7 @@ Manuelles FTP = Tod für die Entwicklung. Alles über git → deploy.sh. Keine A
   6. Ferienvertretung: Bulk-Ummeldung (MA X vom Datum A–B → alle Einsätze auf MA Y, mit Qualifikations-Check)
   7. Qualifikations-Check bei Zuteilung (Logik `darfLeistungsart()` existiert bereits)
   Pflege sieht weiterhin nur Tourenplan + Vor-Ort-Seite — kein Kalender nötig.
-- **GPS Check-in vollständig**: Controller (`checkinGps`, `checkoutGps`) und Haversine-Distanzberechnung bereits implementiert. Fehlt: (1) Geocoding Klienten-Adresse → `klient_lat`/`klient_lng` via OpenStreetMap Nominatim (kostenlos, kein API-Key); (2) GPS-Button auf Vor-Ort-Seite ergänzen — ersetzt QR als primäre Methode, QR bleibt Fallback. Distanz wird protokolliert aber nicht blockiert.
+- **GPS Check-in vollständig** (Pendenz, noch nicht auf Vor-Ort-Seite angeboten): Controller (`checkinGps`, `checkoutGps`) und Haversine-Distanzberechnung bereits implementiert. Fehlt: (1) Geocoding Klienten-Adresse → `klient_lat`/`klient_lng` via OpenStreetMap Nominatim (kostenlos, kein API-Key); (2) GPS-Button auf Vor-Ort-Seite ergänzen — ersetzt QR als primäre Methode, QR bleibt Fallback. Distanz wird protokolliert aber nicht blockiert.
 - **Wiederkehrende Einsätze**: Serie bearbeiten (alle verschieben) noch nicht gebaut — nur Löschen möglich.
 - **Profil-Seite**: Link im Header-User-Menu → `profil.index`.
 - **Dokumente**: Speicher unter `storage/app/dokumente/{org_id}/` — kein public Zugriff, nur Download.
