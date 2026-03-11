@@ -100,12 +100,15 @@ class AlltagsheldenDemoSeeder extends Seeder
             ->where('email', 'info@spitex-alltagshelden.ch')->first();
         if ($existingPflege) {
             $this->pflegeId = $existingPflege->id;
-            $this->command->info('Pflege-User bereits vorhanden — übersprungen.');
+            // Name aktualisieren falls noch alt
+            DB::table('benutzer')->where('id', $this->pflegeId)
+                ->update(['anrede' => 'Frau', 'vorname' => 'Yasmine', 'nachname' => 'El Merghini']);
+            $this->command->info('Pflege-User bereits vorhanden — Name aktualisiert.');
         } else {
             $this->pflegeId = DB::table('benutzer')->insertGetId([
                 'organisation_id' => $this->orgId,
-                'anrede'          => 'Herr',
-                'vorname'         => 'Karim',
+                'anrede'          => 'Frau',
+                'vorname'         => 'Yasmine',
                 'nachname'        => 'El Merghini',
                 'email'           => 'info@spitex-alltagshelden.ch',
                 'password'        => $pw,
@@ -200,6 +203,8 @@ class AlltagsheldenDemoSeeder extends Seeder
             $zeiten = ['07:30', '09:00', '10:30', '13:00', '14:30', '16:00'];
 
             foreach ($klientIds as $i => $klientId) {
+                // Max. 4 Einsätze pro Tag (rotierend welche 4 von 6 Klienten)
+                if ($i >= 4) continue;
                 $zeit = $zeiten[$i % count($zeiten)];
                 $start  = Carbon::parse($datum->format('Y-m-d') . ' ' . $zeit);
                 $end    = $start->copy()->addMinutes(45);
