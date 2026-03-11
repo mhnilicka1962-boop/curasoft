@@ -1023,7 +1023,15 @@ Manuelles FTP = Tod für die Entwicklung. Alles über git → deploy.sh. Keine A
 ## Bekannte offene Punkte
 
 - **Tourenplanung**: Reihenfolge per Nummer setzbar, kein Drag-and-Drop.
-- **Einsatzplanung visuell (FullCalendar)**: Geplant — JS-Library FullCalendar (kostenlos) mit Resource Timeline View: Mitarbeiter als Spalten, Einsätze als Balken, Drag & Drop zum Verschieben. Laravel liefert JSON-API, FullCalendar rendert. Ersetzt/ergänzt die bestehende Tourenplanung-Tabelle.
+- **Einsatzplanung visuell (FullCalendar)**: Geplant — JS-Library FullCalendar (kostenlos, https://fullcalendar.io). Bauplan in dieser Reihenfolge:
+  1. FullCalendar einbinden + Laravel JSON-API (`GET /einsaetze/kalender?von=&bis=`)
+  2. Resource Timeline View: Mitarbeiter als Zeilen, Einsätze als farbige Balken, Wochenansicht
+  3. Doppelbelegungen rot markieren (gleicher MA, überlappende Zeit)
+  4. "Nicht zugeteilt" Bereich (Einsätze ohne benutzer_id)
+  5. Drag & Drop (nur Admin): Einsatz auf anderen MA oder andere Zeit ziehen → PATCH-Request
+  6. Ferienvertretung: Bulk-Ummeldung (MA X vom Datum A–B → alle Einsätze auf MA Y, mit Qualifikations-Check)
+  7. Qualifikations-Check bei Zuteilung (Logik `darfLeistungsart()` existiert bereits)
+  Pflege sieht weiterhin nur Tourenplan + Vor-Ort-Seite — kein Kalender nötig.
 - **GPS Check-in vollständig**: Controller (`checkinGps`, `checkoutGps`) und Haversine-Distanzberechnung bereits implementiert. Fehlt: (1) Geocoding Klienten-Adresse → `klient_lat`/`klient_lng` via OpenStreetMap Nominatim (kostenlos, kein API-Key); (2) GPS-Button auf Vor-Ort-Seite ergänzen — ersetzt QR als primäre Methode, QR bleibt Fallback. Distanz wird protokolliert aber nicht blockiert.
 - **Wiederkehrende Einsätze**: Serie bearbeiten (alle verschieben) noch nicht gebaut — nur Löschen möglich.
 - **Profil-Seite**: Link im Header-User-Menu → `profil.index`.
