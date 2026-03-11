@@ -1,0 +1,73 @@
+@extends('layouts.app')
+
+@section('title', 'Einsatzplanung — Kalender')
+
+@push('styles')
+<style>
+    .kalender-wrap { height: calc(100vh - 180px); min-height: 500px; }
+
+    .legende { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.8125rem; }
+    .legende-item { display: flex; align-items: center; gap: 0.375rem; }
+    .legende-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+    .kl-popup {
+        position: fixed; z-index: 9999;
+        background: white; border: 1px solid var(--cs-border);
+        border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        padding: 1rem 1.125rem; min-width: 220px; max-width: 280px;
+        font-size: 0.875rem;
+    }
+    .kl-popup-titel { font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9375rem; }
+    .kl-popup-zeile { display: flex; gap: 0.5rem; margin-bottom: 0.25rem; color: var(--cs-text-hell); }
+    .kl-popup-zeile strong { color: var(--cs-text); }
+    .kl-popup-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+    .kl-popup-close { position: absolute; top: 0.5rem; right: 0.625rem; cursor: pointer; font-size: 1.1rem; color: var(--cs-text-hell); background: none; border: none; line-height: 1; }
+
+    .fc .fc-datagrid-cell-main { font-size: 0.8125rem; }
+    .fc-event { cursor: pointer; border-radius: 4px !important; font-size: 0.75rem !important; padding: 1px 4px !important; }
+    .fc .fc-toolbar-title { font-size: 1rem !important; font-weight: 700; }
+    .fc .fc-button { font-size: 0.8125rem !important; padding: 0.3rem 0.65rem !important; }
+    .fc-resource-unzugeteilt .fc-datagrid-cell { background: #fefce8; }
+</style>
+@endpush
+
+@section('content')
+<div class="seiten-kopf">
+    <h1>Einsatzplanung</h1>
+    <a href="{{ route('einsaetze.create') }}" class="btn btn-primaer">+ Neuer Einsatz</a>
+</div>
+
+<div class="legende">
+    <span class="legende-item"><span class="legende-dot" style="background:#2563eb"></span> Geplant</span>
+    <span class="legende-item"><span class="legende-dot" style="background:#d97706"></span> Aktiv</span>
+    <span class="legende-item"><span class="legende-dot" style="background:#16a34a"></span> Abgeschlossen</span>
+    <span class="legende-item"><span class="legende-dot" style="background:#dc2626"></span> ⚠ Doppelbelegung</span>
+    <span class="legende-item"><span class="legende-dot" style="background:#fbbf24; border:1px solid #d97706;"></span> Nicht zugeteilt</span>
+</div>
+
+<div class="karte karte-null" style="padding: 0.75rem;">
+    <div id="kalender" class="kalender-wrap"></div>
+</div>
+
+{{-- Popup --}}
+<div id="kl-popup" class="kl-popup" style="display:none; position:fixed;">
+    <button class="kl-popup-close" onclick="schliessePopup()">×</button>
+    <div class="kl-popup-titel" id="kl-popup-titel"></div>
+    <div id="kl-popup-body"></div>
+    <div class="kl-popup-actions">
+        <a id="kl-popup-edit"   href="#" class="btn btn-sekundaer" style="font-size:.8rem;padding:.3rem .65rem;">Bearbeiten</a>
+        <a id="kl-popup-klient" href="#" class="btn btn-sekundaer" style="font-size:.8rem;padding:.3rem .65rem;">Klient</a>
+    </div>
+</div>
+
+@push('scripts')
+@vite('resources/js/kalender.js')
+<script>
+    // Mitarbeiter-Daten aus PHP → JS
+    const mitarbeiter = @json($mitarbeiter->map(fn($m) => ['id' => $m->id, 'vorname' => $m->vorname, 'nachname' => $m->nachname]));
+    document.addEventListener('DOMContentLoaded', function() {
+        window.KalenderInit(mitarbeiter);
+    });
+</script>
+@endpush
+@endsection

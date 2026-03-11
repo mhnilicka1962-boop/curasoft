@@ -24,6 +24,11 @@
 <a href="{{ route('touren.index') }}" class="nav-link {{ request()->routeIs('touren.*') ? 'aktiv' : '' }}">
     Tourenplanung
 </a>
+@if(auth()->user()?->rolle === 'admin')
+<a href="{{ route('kalender.index') }}" class="nav-link {{ request()->routeIs('kalender.*') ? 'aktiv' : '' }}">
+    Einsatzplanung 📅
+</a>
+@endif
 <a href="{{ route('rapporte.index') }}" class="nav-link {{ request()->routeIs('rapporte.*') ? 'aktiv' : '' }}">
     Rapporte
 </a>

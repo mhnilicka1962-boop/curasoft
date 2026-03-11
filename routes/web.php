@@ -24,6 +24,7 @@ use App\Http\Controllers\EinladungController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\WebAuthnController;
 use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\KalenderController;
 use Illuminate\Support\Facades\Route;
 
 // Setup-Wizard (nur wenn noch kein Benutzer existiert)
@@ -290,6 +291,11 @@ Route::middleware('auth')->group(function () {
 
     // Stammdaten + Audit — nur Admin
     Route::middleware('rolle:admin')->group(function () {
+        // Kalender (Einsatzplanung visuell)
+        Route::get('/kalender', [KalenderController::class, 'index'])->name('kalender.index');
+        Route::get('/kalender/einsaetze', [KalenderController::class, 'einsaetze'])->name('kalender.einsaetze');
+        Route::patch('/kalender/einsaetze/{einsatz}', [KalenderController::class, 'aktualisieren'])->name('kalender.aktualisieren');
+
         // Firma / Organisation
         Route::get('/firma', [FirmaController::class, 'index'])->name('firma.index');
         Route::put('/firma', [FirmaController::class, 'update'])->name('firma.update');
