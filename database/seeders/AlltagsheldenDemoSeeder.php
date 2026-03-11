@@ -196,12 +196,11 @@ class AlltagsheldenDemoSeeder extends Seeder
             if ($datum->dayOfWeek === Carbon::SUNDAY) continue;
 
             // Jeder Klient bekommt jeden 2. Tag einen Einsatz
-            foreach ($klientIds as $i => $klientId) {
-                if (($d + $i) % 2 !== 0) continue;
+            // Zeiten fix pro Klient (immer gleiche Zeit → realistischer Tagesplan)
+            $zeiten = ['07:30', '09:00', '10:30', '13:00', '14:30', '16:00'];
 
-                // Zeiten: 07:30, 09:00, 10:30, 13:00, 14:30, 16:00
-                $zeiten = ['07:30', '09:00', '10:30', '13:00', '14:30', '16:00'];
-                $zeit   = $zeiten[$i % count($zeiten)];
+            foreach ($klientIds as $i => $klientId) {
+                $zeit = $zeiten[$i % count($zeiten)];
                 $start  = Carbon::parse($datum->format('Y-m-d') . ' ' . $zeit);
                 $end    = $start->copy()->addMinutes(45);
 
