@@ -639,7 +639,7 @@
             <div class="feature-card">
                 <div class="feature-icon">📱</div>
                 <h3>Mobile App (PWA)</h3>
-                <p>Installierbar wie eine App, funktioniert auch offline. Kein App-Store, keine Zusatzkosten.</p>
+                <p>Installierbar wie eine App — kein App-Store, keine Zusatzkosten. Bei kurzen Verbindungsunterbrüchen bleibt die letzte Ansicht erhalten, Check-ins werden automatisch nachgesendet.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📝</div>
@@ -769,7 +769,7 @@
                     <span class="schnitt-logo-text" style="color: #059669;">QR / GPS</span>
                 </div>
                 <h3>Check-in System</h3>
-                <p>Mitarbeitende checken per QR-Code oder GPS beim Klienten ein — vollständig mobil, auch offline.</p>
+                <p>Mitarbeitende checken per QR-Code oder GPS beim Klienten ein — vollständig mobil, auch bei kurzen Verbindungsunterbrüchen.</p>
                 <span class="schnitt-badge">✓ Verfügbar</span>
             </div>
         </div>
@@ -833,8 +833,8 @@
                 <div class="zahl-text">weniger Administrationsaufwand</div>
             </div>
             <div>
-                <div class="zahl-gross">1. Jahr</div>
-                <div class="zahl-text">für Pilotpartner kostenlos</div>
+                <div class="zahl-gross">−40%</div>
+                <div class="zahl-text">Rabatt im ersten Jahr</div>
             </div>
         </div>
     </div>
@@ -844,8 +844,8 @@
 <section class="pilot">
     <div class="container">
         <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
-            <p class="section-label">Pilotprogramm</p>
-            <h2 class="section-title">Gemeinsam entwickeln — kostenlos im ersten Jahr</h2>
+            <p class="section-label">Frühstarter-Angebot</p>
+            <h2 class="section-title">Jetzt einsteigen — 40% Rabatt im ersten Jahr</h2>
             <p class="section-lead">
                 Wir suchen Spitex-Dienste, die das Produkt mit uns zusammen aufbauen.
                 Ihr Feedback prägt direkt, was als nächstes gebaut wird.
@@ -853,9 +853,9 @@
         </div>
         <div class="pilot-grid">
             <div class="pilot-card">
-                <div class="pilot-icon">🆓</div>
-                <h3>Kostenlose Nutzung</h3>
-                <p>12 Monate vollständig gratis. Kein Vertrag, keine Kreditkarte.</p>
+                <div class="pilot-icon">💰</div>
+                <h3>40% Rabatt — 1. Jahr</h3>
+                <p>Auf die gesamte Jahresrechnung. Danach zum regulären Preis.</p>
             </div>
             <div class="pilot-card">
                 <div class="pilot-icon">🎯</div>
@@ -869,13 +869,13 @@
             </div>
             <div class="pilot-card">
                 <div class="pilot-icon">🔒</div>
-                <h3>Keine Verpflichtung</h3>
-                <p>Nach dem Pilotjahr entscheiden Sie frei, ob Sie weitermachen.</p>
+                <h3>Keine Mindestlaufzeit</h3>
+                <p>Monatlich kündbar. Keine versteckten Kosten.</p>
             </div>
         </div>
         <div class="pilot-cta">
             <a href="#kontakt" class="btn-primaer">
-                Jetzt als Pilotpartner bewerben
+                Jetzt Angebot anfragen
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
         </div>
@@ -890,9 +890,14 @@
             <h2 class="section-title">Transparent und fair</h2>
         </div>
         <div class="preis-box">
-            <span class="preis-badge">Nach dem Pilotjahr</span>
-            <div class="preis-zahl">CHF 30–50</div>
-            <div class="preis-einheit">pro Mitarbeitenden / Monat</div>
+            <span class="preis-badge" style="background: #fef3c7; color: #92400e;">−40% im ersten Jahr</span>
+            <div class="preis-zahl">CHF 100</div>
+            <div class="preis-einheit">Basisgebühr / Monat + CHF 50 pro Mitarbeitenden</div>
+            <div style="background: var(--hintergrund); border-radius: 0.75rem; padding: 1rem 1.25rem; margin-bottom: 1.75rem; font-size: 0.875rem; color: var(--text-hell); line-height: 1.8;">
+                Beispiel: 4 Mitarbeitende<br>
+                CHF 100 + 4 × CHF 50 = <strong style="color: var(--text);">CHF 300 / Monat</strong><br>
+                <span style="color: var(--gruen); font-weight: 600;">Im ersten Jahr: CHF 180 / Monat (−40%)</span>
+            </div>
             <div class="preis-features">
                 <div class="preis-feature"><span class="check">✓</span> Einsatzplanung & Touren</div>
                 <div class="preis-feature"><span class="check">✓</span> Klientenverwaltung</div>
@@ -904,10 +909,10 @@
                 <div class="preis-feature"><span class="check">✓</span> Support direkt erreichbar</div>
             </div>
             <a href="#kontakt" class="btn-primaer" style="justify-content: center;">
-                Kostenlos starten als Pilotpartner
+                Jetzt Angebot anfragen
             </a>
             <p class="preis-hinweis">
-                Kein Setup-Fee. Keine Mindestlaufzeit. Preis wird gemeinsam mit Pilotpartnern festgelegt.
+                Kein Setup-Fee. Monatlich kündbar. 40% Rabatt gilt für das gesamte erste Jahr.
             </p>
         </div>
     </div>
