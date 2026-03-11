@@ -634,7 +634,7 @@
             <div class="feature-card">
                 <div class="feature-icon">✅</div>
                 <h3>Check-in / Check-out</h3>
-                <p>Mitarbeitende checken per QR-Code beim Klienten ein — Zeit wird automatisch erfasst, GPS-Standort optional.</p>
+                <p>Mitarbeitende checken direkt per Handy ein — Login, Einsatz wählen, fertig. Zeit wird automatisch erfasst, GPS-Standort optional protokolliert.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📱</div>
@@ -769,7 +769,7 @@
                     <span class="schnitt-logo-text" style="color: #059669;">QR / GPS</span>
                 </div>
                 <h3>Check-in System</h3>
-                <p>Mitarbeitende checken per QR-Code oder GPS beim Klienten ein — vollständig mobil, auch bei kurzen Verbindungsunterbrüchen.</p>
+                <p>Mitarbeitende checken direkt per Handy ein — kein QR-Code nötig. GPS-Standort wird optional protokolliert. Vollständig mobil, auch bei kurzen Verbindungsunterbrüchen.</p>
                 <span class="schnitt-badge">✓ Verfügbar</span>
             </div>
         </div>
