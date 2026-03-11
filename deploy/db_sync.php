@@ -62,6 +62,11 @@ $out .= '$app=require dirname(__DIR__)."/bootstrap/app.php";' . "\n";
 $out .= '$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();' . "\n";
 $out .= 'echo "<pre>\n"; $errors=0;' . "\n\n";
 
+// Passkeys (webauthn_credentials) VOR dem Löschen sichern — CASCADE würde sie sonst mitlöschen
+$out .= 'echo "=== Passkeys sichern ===\n";' . "\n";
+$out .= '$passkeys = DB::select("SELECT * FROM webauthn_credentials");' . "\n";
+$out .= 'echo count($passkeys)." Passkey(s) gesichert\n\n";' . "\n\n";
+
 // Organisation updaten
 $orgSets = [];
 foreach ($org as $col => $val) {
@@ -108,6 +113,15 @@ foreach ($tables as $table) {
     $out .= 'try{DB::statement("SELECT setval(pg_get_serial_sequence(\'' . $table . '\',\'id\'),(SELECT COALESCE(MAX(id),0) FROM \"' . $table . '\")+1,false)");}catch(Exception $e){}' . "\n";
     $out .= 'echo "' . $table . ': $c Zeilen\n";' . "\n";
 }
+
+// Passkeys wiederherstellen
+$out .= "\n" . 'echo "=== Passkeys wiederherstellen ===\n";' . "\n";
+$out .= '$pkc=0; foreach($passkeys as $pk){' . "\n";
+$out .= '  try{DB::statement("INSERT INTO webauthn_credentials (id,benutzer_id,credential_id,public_key_spki,counter,geraet_name,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)",' . "\n";
+$out .= '    [$pk->id,$pk->benutzer_id,$pk->credential_id,$pk->public_key_spki,$pk->counter,$pk->geraet_name,$pk->created_at,$pk->updated_at]);$pkc++;}' . "\n";
+$out .= '  catch(Exception $e){echo "Passkey #".$pk->id." Fehler: ".$e->getMessage()."\n";$errors++;}}' . "\n";
+$out .= 'try{DB::statement("SELECT setval(pg_get_serial_sequence(\'webauthn_credentials\',\'id\'),(SELECT COALESCE(MAX(id),0) FROM webauthn_credentials)+1,false)");}catch(Exception $e){}' . "\n";
+$out .= 'echo "$pkc Passkey(s) wiederhergestellt\n\n";' . "\n\n";
 
 $out .= "\n" . 'echo "\n=== FERTIG — Fehler: $errors ".date("Y-m-d H:i:s")." ===\n";' . "\n";
 $out .= 'echo "</pre>\n";' . "\n";

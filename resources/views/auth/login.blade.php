@@ -107,17 +107,18 @@
         </form>
 
         {{-- Face ID / Passkey --}}
-        <div id="form-faceid" style="display: none; text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
-            <p style="font-size: 0.9375rem; color: var(--cs-text); margin-bottom: 1.5rem;">
-                Mit Face ID oder Fingerabdruck anmelden
-            </p>
+        <div id="form-faceid" style="display: none;">
+            <div style="margin-bottom: 1rem;">
+                <label class="feld-label" for="faceid-email">E-Mail-Adresse</label>
+                <input type="email" id="faceid-email" class="feld"
+                    placeholder="name@beispiel.ch" autocomplete="email">
+            </div>
             <button id="passkey-btn" onclick="startPasskeyLogin()"
-                class="btn btn-primaer" style="width: 100%; justify-content: center; padding: 0.75rem 1rem; font-size: 1rem;">
-                Face ID / Fingerabdruck
+                class="btn btn-primaer" style="width: 100%; justify-content: center; padding: 0.75rem 1rem; font-size: 1rem; margin-bottom: 0.75rem;">
+                🔐 Face ID / Fingerabdruck
             </button>
-            <p id="passkey-fehler" style="margin-top: 1rem; font-size: 0.8125rem; color: var(--cs-fehler); display: none;"></p>
-            <p style="margin-top: 1.25rem; font-size: 0.8125rem; color: var(--cs-text-hell);">
+            <p id="passkey-fehler" style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--cs-fehler); display: none;"></p>
+            <p style="margin-top: 1rem; font-size: 0.8125rem; color: var(--cs-text-hell);">
                 Noch kein Passkey? <a href="#" onclick="zeigeTab('passwort'); return false;" class="link-primaer">Passwort verwenden</a>
                 und danach unter <strong>Profil</strong> registrieren.
             </p>
@@ -158,12 +159,14 @@ zeigeTab(istMobil ? 'faceid' : 'magic');
 async function startPasskeyLogin() {
     const btn    = document.getElementById('passkey-btn');
     const fehler = document.getElementById('passkey-fehler');
+    const email  = document.getElementById('faceid-email')?.value?.trim() || '';
     btn.disabled    = true;
     btn.textContent = 'Bitte warten…';
     fehler.style.display = 'none';
 
     try {
-        const optRes = await fetch('{{ route("webauthn.authenticate.options") }}', {
+        const url    = '{{ route("webauthn.authenticate.options") }}' + (email ? '?email=' + encodeURIComponent(email) : '');
+        const optRes = await fetch(url, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
         const opts = await optRes.json();
