@@ -115,16 +115,12 @@ Oder Admin bitten, eine neue Einladung zu senden.
 
 ---
 
-## Login-Daten Demo-Umgebung
+## Login-Daten
 
-| Rolle | E-Mail | Passwort |
-|-------|--------|----------|
-| Admin | `demo@curasoft.ch` | `Admin2026!` |
-| Pflege | `sandra.huber@test.spitex` | `test1234` |
-| Buchhaltung | `lisa.bauer@test.spitex` | `test1234` |
+Ihre persönlichen Zugangsdaten erhalten Sie per E-Mail von Ihrem CuraSoft-Ansprechpartner.
 
-> Alle Testbenutzer Pflege: Passwort `test1234`
+Login-Seite: https://www.curasoft.ch/login
 
 ---
 
-*Stand: 2026-02-24*
+*Stand: 2026-03-11*

@@ -1,99 +1,77 @@
 # CuraSoft Demo — Alltagshelden GmbH
-**Zugangsdaten für Ihre Test-Umgebung**
 
 ---
 
-## Ihre Login-Daten
+Guten Tag Herr El Merghini
 
-| | Admin-Zugang | Pflege-Zugang (Mobile) |
-|---|---|---|
-| **E-Mail** | `admin@alltagshelden.ch` | `info@spitex-alltagshelden.ch` |
-| **Passwort** | `Alltagshelden2026!` | `Alltagshelden2026!` |
-| **URL** | https://www.curasoft.ch/login | https://www.curasoft.ch/login |
+Herzlich willkommen bei CuraSoft — ich freue mich, Ihnen den Zugang zu Ihrer persönlichen Demo-Umgebung zu übergeben. Alles ist bereits vorbereitet: sechs Klienten aus der Region Zürich, Einsätze für die nächsten drei Wochen und eine fertige Tour für heute.
 
 ---
 
-## 1. Admin-Zugang — Was Sie sehen
+## Ihre Zugangsdaten
 
-Loggen Sie sich mit dem **Admin-Zugang** ein. Sie sehen die vollständige Verwaltungsoberfläche:
+**Admin-Zugang** (Verwaltung, am Computer)
+E-Mail: admin@alltagshelden.ch
+Passwort: Alltagshelden2026!
 
-### Dashboard
-- Übersicht: heutige Einsätze, offene Rapporte, Statistiken
-- Alle Einsätze der nächsten Wochen bereits geplant
+**Pflege-Zugang** (Unterwegs, auf dem Smartphone)
+E-Mail: info@spitex-alltagshelden.ch
+Passwort: Alltagshelden2026!
 
-### Klienten (`/klienten`)
-- 6 Demo-Klienten aus der Region Zürich bereits erfasst
-- Klicken Sie auf einen Klienten → Sie sehen alle Details: Adresse, Krankenkasse, Diagnosen, Einsätze, Rapporte
-
-### Einsätze (`/einsaetze`)
-- Geplante Einsätze für die nächsten 3 Wochen
-- Klicken Sie auf einen Einsatz → Details, Status, Abrechnung
-
-### Tourenplanung (`/touren`)
-- Tour für heute bereits angelegt mit allen heutigen Einsätzen
-
-### Rechnungen (`/rechnungen`) & Rechnungsläufe (`/rechnungslaeufe`)
-- Hier erstellen Sie am Monatsende den Rechnungslauf
-- Alle Einsätze werden automatisch zu Rechnungen zusammengefasst
-- Export als PDF und XML (für Krankenkassen-Abrechnung 450.100)
-
-### Stammdaten
-- **Firma** (`/firma`): Organisationsangaben, Logo, Primärfarbe
-- **Leistungsarten** (`/leistungsarten`): Tarife pro Kanton
-- **Mitarbeitende** (`/mitarbeiter`): Alle Pflegepersonen verwalten
-- **Regionen** (`/regionen`): Kantone mit Tarifen
+Login-Seite: https://www.curasoft.ch/login
 
 ---
 
-## 2. Pflege-Zugang — Mobile testen
+## Was Sie als Admin sehen
 
-Loggen Sie sich auf dem **Smartphone** mit dem Pflege-Zugang ein.
+Loggen Sie sich mit dem Admin-Zugang ein. Auf dem Dashboard sehen Sie sofort die heutigen Einsätze und offene Rapporte. Unter "Klienten" finden Sie alle sechs Demo-Klienten — klicken Sie ruhig durch, alles ist ausgefüllt: Adresse, Krankenkasse, Einsatzhistorie.
 
-### Schritt 1: Einloggen
-Öffnen Sie https://www.curasoft.ch/login auf dem Handy.
-→ E-Mail: `info@spitex-alltagshelden.ch` / Passwort: `Alltagshelden2026!`
+Unter "Rechnungen" und "Rechnungsläufe" sehen Sie, wie die Abrechnung am Monatsende funktioniert: alle Einsätze werden per Knopfdruck zu Rechnungen zusammengefasst, als PDF generiert und als XML-Datei für die Krankenkassen exportiert.
 
-### Schritt 2: Tour heute
-Nach dem Login sehen Sie direkt die **heutige Tour** mit allen Einsätzen.
-
-### Schritt 3: Einsatz öffnen
-Tippen Sie auf einen Klienten-Namen → Sie sehen die **Vor-Ort-Ansicht**:
-- Adresse mit direktem Link zu Google Maps
-- Telefonnummer (direkt anrufbar)
-- Notfallkontakt
-- Diagnosen und Verordnungen
-
-### Schritt 4: Check-in
-Tippen Sie auf **"Einsatz starten"** → Uhrzeit wird automatisch erfasst.
-
-### Schritt 5: Leistungserfassung
-Haken Sie die erbrachten Leistungen ab (Körperpflege, Medikamente, Mobilisation etc.)
-
-### Schritt 6: Rapport schreiben
-Tippen Sie auf **"Rapport schreiben"** → Text eingeben (oder Mikrofon-Button für Diktat).
-Der KI-Button **"✨ KI Bericht schreiben"** erstellt automatisch einen professionellen Pflegebericht aus Ihren Stichworten.
-
-### Schritt 7: Check-out
-Tippen Sie auf **"Einsatz beenden"** → Einsatz ist abgeschlossen.
-
-### Face ID einrichten (optional)
-Nach dem ersten Login unter **Profil** (oben rechts) → **"+ Passkey registrieren"** → Face ID oder Fingerabdruck registrieren.
-Ab sofort: Login ohne Passwort, nur Face ID antippen — fertig.
+Unter "Firma" können Sie Logo, Farbe und Organisationsangaben anpassen — das System passt sich sofort an Ihr Corporate Design an.
 
 ---
 
-## 3. Wichtige Hinweise zur Demo
+## Mobile testen — Schritt für Schritt
 
-- Dies ist eine **gemeinsame Demo-Umgebung** — andere Demo-Nutzer können ebenfalls eingeloggt sein
-- Alle Daten sind **Testdaten** — keine echten Patientendaten eintragen
-- Die Demo zeigt den **vollen Funktionsumfang** von CuraSoft
-- Für Ihre eigene Produktiv-Instanz erhalten Sie eine eigene Subdomain (z.B. `alltagshelden.curasoft.ch`) mit separater Datenbank
+Öffnen Sie https://www.curasoft.ch/login auf Ihrem Smartphone und loggen Sie sich mit dem Pflege-Zugang ein.
+
+**1. Tour heute**
+Nach dem Login sehen Sie direkt Ihre heutige Tour mit allen Einsätzen — sortiert nach Uhrzeit.
+
+**2. Zum Klienten navigieren**
+Tippen Sie auf einen Klienten. Sie sehen die Adresse mit direktem Link zu Google Maps, die Telefonnummer (direkt anrufbar) und alle relevanten Infos auf einen Blick.
+
+**3. Check-in**
+Tippen Sie auf "Einsatz starten" — die Uhrzeit wird automatisch erfasst.
+
+**4. Leistungen erfassen**
+Haken Sie die erbrachten Leistungen ab: Körperpflege, Medikamente, Mobilisation und viele mehr.
+
+**5. Rapport schreiben**
+Tippen Sie auf "Rapport schreiben". Sie können Text eintippen, diktieren — oder mit dem KI-Button aus ein paar Stichworten automatisch einen vollständigen Pflegebericht erstellen lassen.
+
+**6. Check-out**
+Tippen Sie auf "Einsatz beenden". Der Einsatz ist abgeschlossen und in der Abrechnung erfasst.
+
+**Tipp — Face ID einrichten**
+Gehen Sie nach dem ersten Login oben rechts auf "Profil" und tippen Sie auf "+ Passkey registrieren". Ab sofort melden Sie sich mit Face ID oder Fingerabdruck an — kein Passwort mehr nötig.
 
 ---
 
-## 4. Fragen?
+## Hinweise zur Demo
 
-**Karim El Merghini**
-Mathias Nilicka — CuraSoft
-📧 mhn@itjob.ch
-🌐 https://www.curasoft.ch
+Dies ist eine gemeinsame Demo-Umgebung — bitte keine echten Patientendaten eintragen. Die Demo zeigt den vollen Funktionsumfang von CuraSoft.
+
+Wenn Sie produktiv starten möchten, erhalten Sie eine eigene Instanz unter Ihrer eigenen Adresse (z.B. alltagshelden.curasoft.ch) mit vollständig getrennter Datenbank — Ihre Daten gehören nur Ihnen.
+
+---
+
+Als Beilage finden Sie eine kurze Anleitung zum Einloggen — mit Schritt-für-Schritt-Erklärung für Magic Link, Face ID und die App-Installation auf dem Homescreen.
+
+Ich freue mich auf Ihr Feedback und beantworte gerne alle Fragen.
+
+Freundliche Grüsse
+Mathias Nilicka
+CuraSoft — mhn@itjob.ch
+https://www.curasoft.ch
