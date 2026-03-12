@@ -135,4 +135,9 @@ window.KalenderInit = function(mitarbeiter) {
             popup.style.display = 'none';
         }
     });
+
+    // Chrome bfcache: Seite neu laden wenn aus Cache wiederhergestellt
+    window.addEventListener('pageshow', function(e) {
+        if (e.persisted) window.location.reload();
+    });
 };
