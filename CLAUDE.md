@@ -956,52 +956,47 @@ Falsch deployten Spitex-Dateien in `/public_html/itjob/` haben itjob **nicht bes
 - Abgeleitete Farben (hell/dunkel) werden automatisch aus Primärfarbe berechnet
 - App-Name im Titel kommt aus `organisation.name` (DB)
 
-### Deploy-Workflow — AKTUELL (ab Session 16, 2026-02-27)
+### Deploy-Workflow — AKTUELL (ab Session 20, 2026-03-12)
 
-#### Ein Befehl für alles:
+#### Code deployen — nur git push:
 ```bash
-./deploy.sh        # Code + CSS/JS + Server-Deploy
-./deploy.sh db     # Wie oben + DB-Daten syncen (Testdaten + Organisation)
+git add .
+git commit -m "..."
+git push
+# → GitHub Actions deployed automatisch auf alle Instanzen
 ```
 
-#### Was deploy.sh macht:
-| Schritt | Was | Wie |
-|---------|-----|-----|
-| 1 | `npm run build` | Vite Assets lokal bauen |
-| 2 | `git push` | Code auf GitHub |
-| 3 | FTP | CSS + JS nach `public/build/` |
-| 4 | FTP + HTTP | `deploy/server.php` → `public/srv_XYZ.php` → aufrufen → leeren |
-| 5 | (nur `db`) | `deploy/db_sync.php` → `db_import.php` → FTP → aufrufen → löschen |
+**NIEMALS `deploy.sh` oder `./deploy.sh` verwenden — diese Datei existiert nicht mehr.**
 
-#### Server-Deploy macht intern:
-```
-git reset --hard origin/master   ← IMMER reset, nie pull (vermeidet Konflikte)
-composer install --no-dev        ← Alle PHP-Pakete
-php artisan migrate --force      ← Neue Migrationen
-php artisan optimize:clear       ← Cache flush
-```
+#### Was GitHub Actions macht (`.github/workflows/deploy.yml`):
+| Schritt | Was |
+|---------|-----|
+| 1 | `npm ci && npm run build` — Vite Assets bauen |
+| 2 | SCP — Assets nach `public/build/` |
+| 3 | SSH — `git reset --hard origin/master` |
+| 4 | SSH — `composer install --no-dev` |
+| 5 | SSH — `php artisan migrate --force` |
+| 6 | SSH — `php artisan tenant:migrate --force` |
+| 7 | SSH — `php artisan optimize:clear` |
 
-#### DB Sync (wann nötig):
-- `./deploy.sh db` — bei Testdaten-Änderungen oder Firma-Daten-Änderungen
-- **NICHT** bei reinen Code-Änderungen
-- Synct: alle Tabellen + `organisationen` (Firma-Name, Adresse, IBAN usw.)
-- Überschreibt Demo-DB vollständig mit lokalen Daten
+#### DB Sync (nur bei Testdaten-Änderungen):
+```bash
+./db_sync.sh   # Lokal ausführen — NIEMALS auf Produktiv!
+```
+- Synct alle Tabellen + `organisationen` von lokal auf Demo
+- Überschreibt Demo-DB vollständig — nur für Testdaten
 
 #### Dateien im deploy/-Verzeichnis:
 | Datei | Zweck | In git? |
 |-------|-------|---------|
-| `deploy/server.php` | Server-seitiges Deploy-Script | ✅ ja |
 | `deploy/db_sync.php` | DB-Export-Generator | ✅ ja |
 | `deploy/db_import.php` | Generiert, temporär | ❌ gitignored |
 
 #### Produktiv vs. Demo:
-| Befehl | Demo | Produktiv |
+| Aktion | Demo | Produktiv |
 |--------|------|-----------|
-| `./deploy.sh` | ✅ | ✅ sicher — nur Code + Migrationen |
-| `./deploy.sh db` | ✅ | ❌ NIE — überschreibt alle Produktivdaten |
-
-#### NIEMALS mehr manuell per FTP einzelne PHP-Dateien hochladen!
-Manuelles FTP = Tod für die Entwicklung. Alles über git → deploy.sh. Keine Ausnahmen, nie wieder.
+| `git push` | ✅ | ✅ sicher — nur Code + Migrationen |
+| `./db_sync.sh` | ✅ | ❌ NIE — überschreibt alle Produktivdaten |
 
 ---
 
