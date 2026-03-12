@@ -41,6 +41,76 @@
         @endif
     </form>
 
+    {{-- Ansicht-Tabs --}}
+    @if(auth()->user()->rolle !== 'pflege')
+    <div style="display: flex; gap: 0; border-bottom: 2px solid var(--cs-border); margin-bottom: 1.25rem;">
+        <button onclick="tourAnsicht('touren')" id="tab-touren"
+            style="padding: 0.375rem 1rem; font-size: 0.875rem; font-weight: 600; background: none; border: none; border-bottom: 2px solid var(--cs-primaer); margin-bottom: -2px; cursor: pointer; color: var(--cs-primaer);">
+            Touren
+        </button>
+        <button onclick="tourAnsicht('klienten')" id="tab-klienten"
+            style="padding: 0.375rem 1rem; font-size: 0.875rem; font-weight: 600; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; color: var(--cs-text-hell);">
+            Klienten-Sicht
+        </button>
+    </div>
+    @endif
+
+    {{-- Klienten-Sicht --}}
+    @if(auth()->user()->rolle !== 'pflege')
+    <div id="panel-klienten" style="display: none;">
+        @php
+            $alleEinsaetzeTag = $touren->flatMap(fn($t) => $t->einsaetze->map(fn($e) => ['e' => $e, 'tour' => $t]))
+                ->concat(collect($ohneTouren->flatten()->map(fn($e) => ['e' => $e, 'tour' => null])))
+                ->sortBy(fn($item) => $item['e']->zeit_von ?? '99:99')
+                ->values();
+        @endphp
+        @if($alleEinsaetzeTag->isEmpty())
+            <div class="karte" style="text-align: center; padding: 2rem; color: var(--cs-text-hell);">Keine Einsätze für diesen Tag.</div>
+        @else
+        <div class="karte-null">
+            <table class="tabelle">
+                <thead>
+                    <tr>
+                        <th>Zeit</th>
+                        <th>Klient</th>
+                        <th class="col-desktop">Leistungsart</th>
+                        <th>Mitarbeiter</th>
+                        <th>Tour</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($alleEinsaetzeTag as $item)
+                    @php $e = $item['e']; $t = $item['tour']; @endphp
+                    <tr>
+                        <td class="text-hell" style="white-space: nowrap; font-size: 0.8125rem;">
+                            {{ $e->zeit_von ? substr($e->zeit_von,0,5) : '—' }}
+                        </td>
+                        <td>
+                            <a href="{{ route('klienten.show', $e->klient_id) }}" class="link-primaer text-mittel">
+                                {{ $e->klient?->vollname() }}
+                            </a>
+                        </td>
+                        <td class="col-desktop text-hell" style="font-size: 0.8125rem;">{{ $e->leistungsart?->bezeichnung }}</td>
+                        <td style="font-size: 0.8125rem;">{{ $e->benutzer?->vorname }} {{ $e->benutzer?->nachname }}</td>
+                        <td>
+                            @if($t)
+                                <a href="{{ route('touren.show', $t) }}" class="badge badge-primaer" style="text-decoration: none; font-size: 0.7rem;">
+                                    {{ $t->bezeichnung }}
+                                </a>
+                            @else
+                                <span class="badge badge-warnung" style="font-size: 0.7rem;">⚠ Keine Tour</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endif
+    </div>
+    @endif
+
+    <div id="panel-touren">
     @forelse($touren as $tour)
     <div class="karte" style="margin-bottom: 1rem;">
         <div class="seiten-kopf" style="margin-bottom: 0.875rem; gap: 0.5rem;">
@@ -141,6 +211,8 @@
     @endif
     @endif
 
+    </div>{{-- #panel-touren --}}
+
     {{-- Nicht eingeplante Einsätze (Lücken) — nur für Admin --}}
     @if($ohneTouren->isNotEmpty() && auth()->user()->rolle !== 'pflege')
     <div class="karte" style="border-left: 3px solid var(--cs-warnung); margin-top: 1rem;">
@@ -189,4 +261,17 @@
     @endif
 
 </div>
+
+@push('scripts')
+<script>
+function tourAnsicht(welche) {
+    document.getElementById('panel-touren').style.display   = welche === 'touren'   ? 'block' : 'none';
+    document.getElementById('panel-klienten').style.display = welche === 'klienten' ? 'block' : 'none';
+    document.getElementById('tab-touren').style.borderBottomColor   = welche === 'touren'   ? 'var(--cs-primaer)' : 'transparent';
+    document.getElementById('tab-klienten').style.borderBottomColor = welche === 'klienten' ? 'var(--cs-primaer)' : 'transparent';
+    document.getElementById('tab-touren').style.color   = welche === 'touren'   ? 'var(--cs-primaer)' : 'var(--cs-text-hell)';
+    document.getElementById('tab-klienten').style.color = welche === 'klienten' ? 'var(--cs-primaer)' : 'var(--cs-text-hell)';
+}
+</script>
+@endpush
 </x-layouts.app>

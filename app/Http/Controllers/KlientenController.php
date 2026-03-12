@@ -48,7 +48,14 @@ class KlientenController extends Controller
             $query->where('aktiv', $status === 'aktiv');
         }
 
-        $klienten = $query->withCount('beitraege')->paginate(25)->withQueryString();
+        $klienten = $query
+            ->withCount('beitraege')
+            ->withExists('einsaetze as ohne_tour', fn($q) => $q
+                ->where('status', 'geplant')
+                ->whereDate('datum', '>=', today())
+                ->whereNull('tour_id')
+            )
+            ->paginate(25)->withQueryString();
 
         return view('klienten.index', compact('klienten'));
     }

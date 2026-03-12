@@ -264,7 +264,7 @@
     {{-- Einsätze (immer sichtbar) --}}
     @php
         $heute = today();
-        $alleEinsaetze = $klient->einsaetze()->with('leistungsart', 'benutzer')->whereNull('tagespauschale_id')->orderBy('datum')->orderBy('zeit_von')->get();
+        $alleEinsaetze = $klient->einsaetze()->with('leistungsart', 'benutzer', 'tour')->whereNull('tagespauschale_id')->orderBy('datum')->orderBy('zeit_von')->get();
         $anstehend = $alleEinsaetze->filter(fn($e) => $e->datum >= $heute && !in_array($e->status, ['abgeschlossen','storniert']))->values();
         $vergangen  = $alleEinsaetze->filter(fn($e) => $e->datum < $heute || in_array($e->status, ['abgeschlossen','storniert']))->sortByDesc('datum')->values();
     @endphp
@@ -300,6 +300,11 @@
                     <span>{{ $e->leistungsart?->bezeichnung ?? '—' }}</span>
                     @if($e->benutzer)
                         <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
+                    @endif
+                    @if($e->tour)
+                        <a href="{{ route('touren.show', $e->tour) }}" class="badge badge-primaer" style="font-size: 0.7rem; text-decoration: none;">{{ $e->tour->bezeichnung }}</a>
+                    @elseif($e->status === 'geplant')
+                        <span class="badge badge-warnung" style="font-size: 0.7rem;">⚠ Keine Tour</span>
                     @endif
                 </div>
                 <div style="display: flex; gap: 0.375rem; align-items: center; flex-shrink: 0;">

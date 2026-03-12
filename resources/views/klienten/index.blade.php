@@ -45,6 +45,11 @@
                             Kein Beitrag
                         </span>
                     @endif
+                    @if($klient->aktiv && $klient->ohne_tour)
+                        <span class="badge badge-warnung" style="font-size:0.7rem; margin-left:0.25rem;" title="Geplante Einsätze ohne Tourplanung">
+                            ⚠ Keine Tour
+                        </span>
+                    @endif
                     <span class="mobile-meta">
                         {{ $klient->ort ?? '' }}{{ $klient->geburtsdatum ? ' · ' . $klient->geburtsdatum->format('d.m.Y') : '' }}
                     </span>
