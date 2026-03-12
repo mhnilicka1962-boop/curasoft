@@ -558,18 +558,37 @@ php artisan master:init   # tenants-Tabelle in devitjob_curasoft angelegt
 
 1. **NIEMALS einzelne Dateien per FTP hochladen** — alles über git + `./deploy.sh`
 2. **NIEMALS temporäre PHP-Scripts erstellen** um etwas auf dem Server auszuführen
-3. **NIEMALS Seeder direkt auf dem Server ausführen** — immer lokal ausführen, dann `./deploy.sh db`
+3. **NIEMALS Seeder direkt auf dem Server ausführen** — immer lokal, dann `./deploy.sh db`
+4. **NIEMALS `./deploy.sh` ausführen ohne vorher zu prüfen** ob lokal alles stimmt
 
-### ✅ Korrekter Ablauf für Testdaten / Demo-Sync
+### ✅ Gesamter Migrations-Workflow — IMMER SO, NIE ANDERS
 
+#### Code-Änderung deployen:
 ```
-1. Seeder lokal entwickeln + testen
+1. Lokal entwickeln + testen (http://spitex.test)
+2. git add + git commit
+3. ./deploy.sh          ← baut Assets, pusht zu GitHub, deployt auf Demo
+```
+
+#### Testdaten / DB-Änderung deployen:
+```
+1. Seeder lokal schreiben + testen
 2. php artisan db:seed --class=XyzSeeder   ← lokal ausführen
 3. Lokal prüfen ob alles stimmt
-4. ./deploy.sh db                          ← synct ALLES auf Demo
+4. ./deploy.sh db                          ← Code + DB komplett auf Demo syncen
 ```
 
-Nie anders. Nie Abkürzungen.
+#### Was deploy.sh macht:
+| Schritt | Was |
+|---------|-----|
+| 1 | `npm run build` — **ALLE** Vite Assets bauen (JS + CSS, alle Bundles!) |
+| 2 | `git push` — Code auf GitHub |
+| 3 | FTP — **ALLE** Assets aus `public/build/assets/*` hochladen |
+| 4 | Server: `git reset --hard` + `composer install` + `migrate` + `cache clear` |
+| 5 | (nur `db`) DB-Sync: lokale DB → Demo (Passkeys werden gesichert + wiederhergestellt) |
+
+#### Zustand immer gleich: Lokal = GitHub = Demo
+Nach `./deploy.sh` sind alle drei identisch. So muss es immer sein.
 
 ---
 
