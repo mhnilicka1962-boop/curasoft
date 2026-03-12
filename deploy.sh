@@ -42,8 +42,10 @@ echo "    Gepusht: $(git log --oneline -1)"
 echo ""
 echo "▶ 3/5  Vite Assets hochladen..."
 curl -s -T "public/build/manifest.json" "$FTP_BASE/public/build/manifest.json" --user "$FTP_USER"
-curl -s -T "$CSS_FILE" "$FTP_BASE/public/build/assets/$(basename $CSS_FILE)" --user "$FTP_USER" --ftp-create-dirs
-curl -s -T "$JS_FILE" "$FTP_BASE/public/build/assets/$(basename $JS_FILE)" --user "$FTP_USER"
+for f in public/build/assets/*; do
+    curl -s -T "$f" "$FTP_BASE/public/build/assets/$(basename $f)" --user "$FTP_USER" --ftp-create-dirs
+    echo "    $(basename $f)"
+done
 echo "    Hochgeladen ✓"
 
 # --- 4. Server Deploy (git reset + composer + migrate + cache) ---
