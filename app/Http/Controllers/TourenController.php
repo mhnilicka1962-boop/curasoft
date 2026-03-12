@@ -144,7 +144,12 @@ class TourenController extends Controller
         }
         $konflikteIds = $konflikteIds->unique()->values();
 
-        return view('touren.show', compact('tour', 'offeneEinsaetze', 'rapportZahlen', 'konflikteIds'));
+        $kartenEinsaetze = $tour->einsaetze
+            ->filter(fn($e) => $e->klient && $e->klient->klient_lat && $e->klient->klient_lng)
+            ->sortBy('tour_reihenfolge')
+            ->values();
+
+        return view('touren.show', compact('tour', 'offeneEinsaetze', 'rapportZahlen', 'konflikteIds', 'kartenEinsaetze'));
     }
 
     public function update(Request $request, Tour $tour)

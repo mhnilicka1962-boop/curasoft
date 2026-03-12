@@ -237,17 +237,22 @@
 
     @push('scripts')
     @vite('resources/js/tourenkarte.js')
+    @php
+        $kartenpunkte = $kartenEinsaetze->map(function($e) {
+            return [
+                'lat'         => (float) $e->klient->klient_lat,
+                'lng'         => (float) $e->klient->klient_lng,
+                'klient_name' => $e->klient->vorname . ' ' . $e->klient->nachname,
+                'adresse'     => $e->klient->adresse . ', ' . $e->klient->ort,
+                'zeit_von'    => $e->zeit_von ? substr($e->zeit_von, 0, 5) : null,
+                'zeit_bis'    => $e->zeit_bis ? substr($e->zeit_bis, 0, 5) : null,
+                'status'      => $e->status,
+            ];
+        })->values();
+    @endphp
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const punkte = @json($kartenEinsaetze->map(fn($e) => [
-                'lat'        => (float) $e->klient->klient_lat,
-                'lng'        => (float) $e->klient->klient_lng,
-                'klient_name'=> $e->klient->vorname . ' ' . $e->klient->nachname,
-                'adresse'    => $e->klient->adresse . ', ' . $e->klient->ort,
-                'zeit_von'   => $e->zeit_von ? substr($e->zeit_von, 0, 5) : null,
-                'zeit_bis'   => $e->zeit_bis ? substr($e->zeit_bis, 0, 5) : null,
-                'status'     => $e->status,
-            ]));
+            const punkte = @json($kartenpunkte);
             window.TourenkarteInit(punkte);
         });
     </script>

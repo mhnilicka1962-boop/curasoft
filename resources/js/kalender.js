@@ -24,6 +24,8 @@ window.KalenderInit = function(mitarbeiter) {
             right:  'resourceTimelineDay,resourceTimelineWeek',
         },
         buttonText: {
+            prev:                '←',
+            next:                '→',
             today:               'Heute',
             resourceTimelineDay:  'Tag',
             resourceTimelineWeek: 'Woche',
@@ -34,8 +36,24 @@ window.KalenderInit = function(mitarbeiter) {
         droppable:  true,
         slotMinTime: '06:00:00',
         slotMaxTime: '22:00:00',
-        resourceAreaWidth: '160px',
+        resourceAreaWidth: '150px',
         height: '100%',
+        slotDuration: '01:00:00',
+        slotLabelInterval: '01:00:00',
+        expandRows: false,
+        views: {
+            resourceTimelineDay: {
+                slotMinWidth: 48,
+                slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false, omitZeroMinute: false },
+            },
+            resourceTimelineWeek: {
+                slotMinWidth: 34,
+                slotLabelFormat: [
+                    { weekday: 'short', day: 'numeric', month: 'numeric' },
+                    { hour: '2-digit', minute: '2-digit', hour12: false, omitZeroMinute: false },
+                ],
+            },
+        },
 
         // Klick → Popup
         eventClick: function(info) {
@@ -70,6 +88,14 @@ window.KalenderInit = function(mitarbeiter) {
     });
 
     kalender.render();
+
+    // Zeitbereich-Controls
+    document.getElementById('kl-von').addEventListener('change', function() {
+        kalender.setOption('slotMinTime', this.value);
+    });
+    document.getElementById('kl-bis').addEventListener('change', function() {
+        kalender.setOption('slotMaxTime', this.value);
+    });
 
     // ── Popup ────────────────────────────────────────────────────────────────
     function zeigePopup(event, jsEvent) {

@@ -8,7 +8,7 @@
 # Insbesondere: Deploy-Regeln, Arbeitsablauf, bekannte Fallstricke.
 # NIEMALS aus dem Gedächtnis arbeiten — immer zuerst hier nachschlagen.
 
-## Stand: 2026-03-10 (Session 18 — Rechnungslauf UX + Bugfixes)
+## Stand: 2026-03-12 (Session 20 — Kalender + Touren Bugfixes)
 
 ---
 
@@ -249,6 +249,26 @@ php artisan tenant:migrate
 | `curapflege.curasoft.ch` | `devitjob_curapflege` | Produktiv |
 
 ---
+
+## Neu in Session 20 (2026-03-12) — Kalender UX + Touren Bugfixes
+
+### Kalender (/kalender) — UX-Verbesserungen
+- **Layout-Fix**: `kalender/index.blade.php` von `@extends` auf `<x-layouts.app>` umgestellt (war 500er wegen `$slot`)
+- **Ressourcen-Filterung**: Nur Mitarbeiter MIT Einsätzen (±3..+14 Tage) werden angezeigt — sortiert nach Anzahl Einsätze, dann alphabetisch
+- **resourceId-Fix**: `(string) $e->benutzer_id` — FullCalendar matcht nur bei Typ-Übereinstimmung (JS hat String-IDs)
+- **Zeitbereich-Controls**: Von/Bis Dropdowns oben (Default 06:00–22:00), ändern `slotMinTime`/`slotMaxTime` live
+- **Tagesansicht**: `slotMinWidth: 48`, 1h-Slots, Format `0600`
+- **Wochenansicht**: `slotMinWidth: 34`, zwei Header-Ebenen (Tag oben, Uhrzeit unten)
+- **← → Buttons**: statt leere Icon-Buttons (FullCalendar CSS-Injection Problem)
+- **Zeitlabels**: 0.7rem, grau, zentriert
+- **Tagesspalten-Header**: 0.75rem, font-weight 500
+
+### Touren (/touren/{id}) — Bugfixes
+- **`$kartenEinsaetze` fehlte**: TourenController::show() übergab Variable nicht → 500er. Fix: aus `$tour->einsaetze` filtern (nur mit Koordinaten), nach `tour_reihenfolge` sortiert
+- **Blade-Parser-Bug**: `@json(fn($e) => [...])` mit mehrzeiligem Array → ParseError. Fix: `@php`-Block mit `->map(function($e) { return [...]; })` + separates `@json($kartenpunkte)`
+
+### Technische Fixes
+- `KalenderController`: `orgId()` Hilfsmethode ergänzt (konsistent mit allen anderen Controllern)
 
 ## Neu in Session 19 (2026-03-11) — Einsatzplanung Kalender + Routenplanung
 

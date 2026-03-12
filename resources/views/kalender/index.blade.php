@@ -1,10 +1,8 @@
-@extends('layouts.app')
-
-@section('title', 'Einsatzplanung — Kalender')
+<x-layouts.app titel="Einsatzplanung — Kalender">
 
 @push('styles')
 <style>
-    .kalender-wrap { height: calc(100vh - 180px); min-height: 500px; }
+    .kalender-wrap { height: calc(100vh - 145px); min-height: 500px; }
 
     .legende { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.8125rem; }
     .legende-item { display: flex; align-items: center; gap: 0.375rem; }
@@ -25,16 +23,37 @@
 
     .fc .fc-datagrid-cell-main { font-size: 0.8125rem; }
     .fc-event { cursor: pointer; border-radius: 4px !important; font-size: 0.75rem !important; padding: 1px 4px !important; }
+    .fc .fc-col-header-cell-cushion { font-size: 0.75rem !important; font-weight: 500 !important; }
+    .fc .fc-timeline-slot-label { font-size: 0.7rem !important; font-weight: 400 !important; color: #6b7280 !important; text-align: center !important; }
+    .fc .fc-timeline-slot-label-cushion { display: block !important; text-align: center !important; }
     .fc .fc-toolbar-title { font-size: 1rem !important; font-weight: 700; }
     .fc .fc-button { font-size: 0.8125rem !important; padding: 0.3rem 0.65rem !important; }
     .fc-resource-unzugeteilt .fc-datagrid-cell { background: #fefce8; }
 </style>
 @endpush
 
-@section('content')
 <div class="seiten-kopf">
     <h1>Einsatzplanung</h1>
     <a href="{{ route('einsaetze.create') }}" class="btn btn-primaer">+ Neuer Einsatz</a>
+</div>
+
+<div style="display:flex; gap:1rem; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap;">
+    <label class="feld-label" style="margin:0; display:flex; align-items:center; gap:0.5rem;">
+        Von
+        <select id="kl-von" class="feld" style="width:auto; padding:0.25rem 0.5rem;">
+            @for($h = 0; $h <= 23; $h++)
+                <option value="{{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00:00" {{ $h === 6 ? 'selected' : '' }}>{{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00</option>
+            @endfor
+        </select>
+    </label>
+    <label class="feld-label" style="margin:0; display:flex; align-items:center; gap:0.5rem;">
+        Bis
+        <select id="kl-bis" class="feld" style="width:auto; padding:0.25rem 0.5rem;">
+            @for($h = 1; $h <= 24; $h++)
+                <option value="{{ $h === 24 ? '24:00:00' : str_pad($h,2,'0',STR_PAD_LEFT).':00:00' }}" {{ $h === 22 ? 'selected' : '' }}>{{ $h === 24 ? '24:00' : str_pad($h,2,'0',STR_PAD_LEFT).':00' }}</option>
+            @endfor
+        </select>
+    </label>
 </div>
 
 <div class="legende">
@@ -63,11 +82,11 @@
 @push('scripts')
 @vite('resources/js/kalender.js')
 <script>
-    // Mitarbeiter-Daten aus PHP → JS
     const mitarbeiter = @json($mitarbeiter->map(fn($m) => ['id' => $m->id, 'vorname' => $m->vorname, 'nachname' => $m->nachname]));
     document.addEventListener('DOMContentLoaded', function() {
         window.KalenderInit(mitarbeiter);
     });
 </script>
 @endpush
-@endsection
+
+</x-layouts.app>

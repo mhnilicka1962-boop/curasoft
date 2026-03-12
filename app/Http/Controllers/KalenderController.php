@@ -11,11 +11,30 @@ class KalenderController extends Controller
 {
     public function index()
     {
-        $mitarbeiter = Benutzer::where('organisation_id', auth()->user()->organisation_id)
+        $orgId = $this->orgId();
+        $von   = now()->subDays(3)->toDateString();
+        $bis   = now()->addDays(14)->toDateString();
+
+        $mitarbeiter = Benutzer::where('organisation_id', $orgId)
             ->where('aktiv', true)
             ->whereIn('rolle', ['admin', 'pflege'])
             ->orderBy('nachname')
             ->get(['id', 'vorname', 'nachname', 'rolle']);
+
+        $counts = Einsatz::where('organisation_id', $orgId)
+            ->whereNotIn('status', ['storniert'])
+            ->whereBetween('datum', [$von, $bis])
+            ->whereNotNull('benutzer_id')
+            ->selectRaw('benutzer_id, COUNT(*) as anzahl')
+            ->groupBy('benutzer_id')
+            ->pluck('anzahl', 'benutzer_id');
+
+        $mitarbeiter = $mitarbeiter
+            ->filter(fn($m) => isset($counts[$m->id]))
+            ->sort(function ($a, $b) use ($counts) {
+                $diff = ($counts[$b->id] ?? 0) - ($counts[$a->id] ?? 0);
+                return $diff !== 0 ? $diff : strcmp($a->nachname, $b->nachname);
+            })->values();
 
         return view('kalender.index', compact('mitarbeiter'));
     }
@@ -27,7 +46,7 @@ class KalenderController extends Controller
         $bis = $request->get('end')   ? Carbon::parse($request->get('end'))   : Carbon::today()->endOfWeek();
 
         $einsaetze = Einsatz::with(['klient', 'benutzer', 'leistungsart'])
-            ->where('organisation_id', auth()->user()->organisation_id)
+            ->where('organisation_id', $this->orgId())
             ->whereNotIn('status', ['storniert'])
             ->whereBetween('datum', [$von->toDateString(), $bis->toDateString()])
             ->get();
@@ -43,7 +62,7 @@ class KalenderController extends Controller
 
             return [
                 'id'              => $e->id,
-                'resourceId'      => $e->benutzer_id ?? 'unzugeteilt',
+                'resourceId'      => $e->benutzer_id ? (string) $e->benutzer_id : 'unzugeteilt',
                 'title'           => ($e->klient ? $e->klient->vorname . ' ' . $e->klient->nachname : '?')
                                    . ($hatZeit ? ' ' . substr($e->zeit_von, 0, 5) : ''),
                 'start'           => $start,
@@ -70,7 +89,7 @@ class KalenderController extends Controller
     // Drag & Drop: Mitarbeiter oder Zeit ändern
     public function aktualisieren(Request $request, Einsatz $einsatz)
     {
-        if ($einsatz->organisation_id !== auth()->user()->organisation_id) abort(403);
+        if ($einsatz->organisation_id !== $this->orgId()) abort(403);
 
         $request->validate([
             'datum'       => ['sometimes', 'date'],
@@ -117,6 +136,11 @@ class KalenderController extends Controller
         }
 
         return array_unique($doppelt);
+    }
+
+    private function orgId(): int
+    {
+        return auth()->user()->organisation_id;
     }
 
     private function statusFarbe(string $status): string
