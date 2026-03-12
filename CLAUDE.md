@@ -1298,12 +1298,13 @@ tasklist | grep -i postgres # postgres.exe muss erscheinen
 
 # 2. Projekt klonen
 cd C:\laragon\www
-git clone <repo-url> spitex
+git clone https://github.com/mhnilicka1962-boop/curasoft spitex
 
 # 3. Dependencies
 cd spitex
 composer install
-npm install && npm run build
+npm install
+npm run build
 
 # 4. .env anlegen
 cp .env.example .env
@@ -1325,14 +1326,27 @@ php artisan key:generate
 php artisan migrate
 php artisan db:seed --class=LeistungsartenSeeder
 php artisan db:seed --class=EinsatzartenSeeder
+php artisan db:seed --class=TestdatenSeeder
 
 # 7. Storage verlinken
 php artisan storage:link
 
 # 8. Laragon: Virtual Host spitex.test → C:\laragon\www\spitex\public
 
-# 9. Ersten Admin-User anlegen via Setup-Wizard
-# http://spitex.test/setup
+# 9. Login: http://spitex.test → mhn@itjob.ch / Admin2026!
+```
+
+### Workflow ab dann
+```bash
+# Entwickeln, dann:
+git add .
+git commit -m "..."
+git push        ← GitHub Actions deployt automatisch auf Demo (ca. 30 Sek.)
+
+# DB-Daten auf Demo syncen (nur wenn nötig, immer manuell!):
+php artisan db:seed --class=XyzSeeder   ← lokal ausführen + prüfen
+./deploy.sh db                          ← dann erst auf Demo syncen
+```
 ```
 
 ---
