@@ -37,12 +37,11 @@ class TenantMiddleware
                 ->where('aktiv', true)
                 ->first();
         } catch (\Exception $e) {
-            // Master-DB nicht verfügbar → Default-DB verwenden
-            return $next($request);
+            abort(503, 'Tenant-Datenbank nicht erreichbar. Bitte Administrator kontaktieren.');
         }
 
         if (! $tenant) {
-            abort(404, "Unbekannte Subdomain: {$subdomain}");
+            abort(503, "Konfigurationsfehler: Subdomain '{$subdomain}' nicht eingerichtet. Bitte Administrator kontaktieren.");
         }
 
         // Tenant-DB-Connection dynamisch setzen

@@ -131,8 +131,11 @@ class TenantCreate extends Command
             ]);
             $this->line("     ✓ tenants-Eintrag gesetzt");
         } catch (\Exception $e) {
-            $this->warn('     Master-DB nicht verfügbar: ' . $e->getMessage());
-            $this->warn('     Manuell eintragen: INSERT INTO tenants ...');
+            $this->error('     FEHLER: Master-DB-Eintrag konnte nicht gesetzt werden!');
+            $this->error('     ' . $e->getMessage());
+            $this->error('     Tenant ist NICHT aktiv bis dieser Eintrag existiert.');
+            $this->error('     Manuell beheben: php artisan tenant:ensure');
+            return self::FAILURE;
         }
 
         $this->newLine();
