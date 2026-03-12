@@ -41,6 +41,7 @@ jobs:
             HOME=/tmp composer install --no-dev --optimize-autoloader &&
             php artisan migrate --force &&
             php artisan migrate --path=database/migrations_telescope --force &&
+            php artisan tenant:migrate --force &&
             php artisan optimize:clear &&
             echo '✅ Deploy fertig'
           "
