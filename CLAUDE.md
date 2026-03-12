@@ -8,7 +8,7 @@
 # Insbesondere: Deploy-Regeln, Arbeitsablauf, bekannte Fallstricke.
 # NIEMALS aus dem Gedächtnis arbeiten — immer zuerst hier nachschlagen.
 
-## Stand: 2026-03-12 (Session 20 — Kalender + Touren Bugfixes)
+## Stand: 2026-03-12 (Session 20 — Kalender + Touren Bugfixes + Testdaten-Workflow)
 
 ---
 
@@ -554,8 +554,22 @@ php artisan master:init   # tenants-Tabelle in devitjob_curasoft angelegt
 | `deploy/db_sync.php` | Exportiert lokale DB → generiert `deploy/db_import.php` |
 | `deploy/db_import.php` | Temporär generiert, gitignored, wird nach Sync gelöscht |
 
-### Regel ab sofort: NIEMALS einzelne Dateien per FTP hochladen
-Alles über git + `./deploy.sh`. Keine Ausnahmen.
+### ⛔ ABSOLUT VERBOTEN — KEINE AUSNAHMEN
+
+1. **NIEMALS einzelne Dateien per FTP hochladen** — alles über git + `./deploy.sh`
+2. **NIEMALS temporäre PHP-Scripts erstellen** um etwas auf dem Server auszuführen
+3. **NIEMALS Seeder direkt auf dem Server ausführen** — immer lokal ausführen, dann `./deploy.sh db`
+
+### ✅ Korrekter Ablauf für Testdaten / Demo-Sync
+
+```
+1. Seeder lokal entwickeln + testen
+2. php artisan db:seed --class=XyzSeeder   ← lokal ausführen
+3. Lokal prüfen ob alles stimmt
+4. ./deploy.sh db                          ← synct ALLES auf Demo
+```
+
+Nie anders. Nie Abkürzungen.
 
 ---
 
