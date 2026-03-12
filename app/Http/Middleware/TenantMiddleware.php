@@ -119,6 +119,11 @@ class TenantMiddleware
 
         $subdomain = strtolower($parts[0]);
 
+        // www.tenant.domain.tld → tenant extrahieren
+        if ($subdomain === 'www' && count($parts) >= 4) {
+            return strtolower($parts[1]);
+        }
+
         // Bekannte Nicht-Tenant-Subdomains ignorieren
         if (in_array($subdomain, ['www', 'mail', 'ftp', 'smtp', 'pop', 'imap'])) {
             return null;
