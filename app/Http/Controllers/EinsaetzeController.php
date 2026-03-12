@@ -116,12 +116,18 @@ class EinsaetzeController extends Controller
                 ->get()
             : collect();
 
-        // Map: klient_id => [benutzer_id, ...] für pflegende Angehörige (für JS auto-detect)
-        $angehoerigeMap = \App\Models\KlientBenutzer::where('beziehungstyp', 'angehoerig_pflegend')
-            ->where('aktiv', true)
-            ->get()
+        // Map: klient_id => [{id, name}, ...] für pflegende Angehörige (Helfer-Dropdown + Auto-Detect)
+        $kbEintraege    = \App\Models\KlientBenutzer::where('beziehungstyp', 'angehoerig_pflegend')
+            ->where('aktiv', true)->get();
+        $benutzerLookup = Benutzer::whereIn('id', $kbEintraege->pluck('benutzer_id')->unique())
+            ->get()->keyBy('id');
+        $angehoerigeMap = $kbEintraege
             ->groupBy('klient_id')
-            ->map(fn($gruppe) => $gruppe->pluck('benutzer_id')->values());
+            ->map(fn($gruppe) => $gruppe->map(fn($kb) => [
+                'id'   => $kb->benutzer_id,
+                'name' => ($b = $benutzerLookup[$kb->benutzer_id] ?? null)
+                            ? $b->nachname . ' ' . $b->vorname : '?',
+            ])->values());
 
         return view('einsaetze.create', compact('klienten', 'leistungsarten', 'mitarbeiter', 'angehoerigeMap'));
     }
@@ -150,6 +156,7 @@ class EinsaetzeController extends Controller
             'verordnung_id'          => ['nullable', 'exists:klient_verordnungen,id'],
             'leistungserbringer_typ' => ['nullable', 'in:fachperson,angehoerig'],
             'benutzer_id'            => ['nullable', 'exists:benutzer,id'],
+            'helfer_id'              => ['nullable', 'exists:benutzer,id'],
             'bemerkung'              => ['nullable', 'string', 'max:1000'],
             'wiederholung'    => ['nullable', 'in:woechentlich,taeglich'],
             'serie_ende'      => ['nullable', 'date', 'after:datum'],
@@ -178,6 +185,7 @@ class EinsaetzeController extends Controller
             'verordnung_id'          => $daten['verordnung_id'] ?? null,
             'leistungserbringer_typ' => $daten['leistungserbringer_typ'] ?? 'fachperson',
             'benutzer_id'            => $benutzerId,
+            'helfer_id'              => $daten['helfer_id'] ?? null,
             'region_id'       => $klient->region_id,
             'datum_bis'       => $daten['datum_bis'] ?? null,
             'zeit_von'        => $daten['zeit_von'] ?? null,
@@ -247,7 +255,7 @@ class EinsaetzeController extends Controller
     public function show(Einsatz $einsatz)
     {
         $this->autorisiereZugriff($einsatz);
-        $einsatz->load('klient', 'benutzer', 'leistungsart', 'region');
+        $einsatz->load('klient', 'benutzer', 'helfer', 'leistungsart', 'region');
         return view('einsaetze.show', compact('einsatz'));
     }
 
@@ -262,6 +270,7 @@ class EinsaetzeController extends Controller
             'klient.verordnungen' => fn($q) => $q->where('aktiv', true),
             'leistungsart',
             'verordnung',
+            'helfer',
             'aktivitaeten',
             'rapporte' => fn($q) => $q->orderByDesc('datum')->orderByDesc('id'),
         ]);
@@ -310,7 +319,14 @@ class EinsaetzeController extends Controller
                 ->get()
             : collect();
 
-        return view('einsaetze.edit', compact('einsatz', 'klienten', 'leistungsarten', 'mitarbeiter'));
+        $angehoerigenBenutzer = Benutzer::whereIn('id',
+            \App\Models\KlientBenutzer::where('klient_id', $einsatz->klient_id)
+                ->where('beziehungstyp', 'angehoerig_pflegend')
+                ->where('aktiv', true)
+                ->pluck('benutzer_id')
+        )->orderBy('nachname')->get();
+
+        return view('einsaetze.edit', compact('einsatz', 'klienten', 'leistungsarten', 'mitarbeiter', 'angehoerigenBenutzer'));
     }
 
     public function update(Request $request, Einsatz $einsatz)
@@ -341,6 +357,7 @@ class EinsaetzeController extends Controller
 
         if (auth()->user()->rolle === 'admin') {
             $regeln['benutzer_id'] = ['nullable', 'exists:benutzer,id'];
+            $regeln['helfer_id']   = ['nullable', 'exists:benutzer,id'];
             $regeln['status']      = ['required', 'in:geplant,aktiv,abgeschlossen,storniert'];
         }
 
@@ -353,6 +370,12 @@ class EinsaetzeController extends Controller
             $daten['benutzer_id'] = $daten['benutzer_id'];
         } else {
             unset($daten['benutzer_id']);
+        }
+
+        if (auth()->user()->rolle === 'admin') {
+            $daten['helfer_id'] = $daten['helfer_id'] ?? null;
+        } else {
+            unset($daten['helfer_id']);
         }
 
         // Warnung wenn Pflegeperson diese Leistungsart nicht darf

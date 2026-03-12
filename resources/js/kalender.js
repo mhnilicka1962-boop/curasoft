@@ -60,6 +60,25 @@ window.KalenderInit = function(mitarbeiter) {
             zeigePopup(info.event, info.jsEvent);
         },
 
+        // Doppelklick auf leere Zelle → Einsatz erfassen
+        dateClick: function(info) {
+            const jetzt = Date.now();
+            if (kalender._letzterKlick && jetzt - kalender._letzterKlick < 400
+                && kalender._letzterKlickRes === info.resource?.id
+                && kalender._letzterKlickDate === info.dateStr) {
+                const benutzerId = info.resource?.id;
+                if (!benutzerId || benutzerId === 'unzugeteilt') return;
+                const datum   = info.dateStr.split('T')[0];
+                const zeitVon = info.dateStr.includes('T') ? info.dateStr.split('T')[1].slice(0, 5) : '';
+                let url = `/einsaetze/create?benutzer_id=${benutzerId}&datum=${datum}`;
+                if (zeitVon) url += `&zeit_von=${zeitVon}`;
+                window.location.href = url;
+            }
+            kalender._letzterKlick     = jetzt;
+            kalender._letzterKlickRes  = info.resource?.id;
+            kalender._letzterKlickDate = info.dateStr;
+        },
+
         // Drag & Drop → PATCH
         eventDrop: function(info) {
             const e      = info.event;
@@ -112,6 +131,7 @@ window.KalenderInit = function(mitarbeiter) {
             <div class="kl-popup-zeile"><span>Zeit:</span><strong>${p.zeit_von ?? '—'} – ${p.zeit_bis ?? '—'}</strong></div>
             <div class="kl-popup-zeile"><span>Leistung:</span><strong>${p.leistungsart ?? '—'}</strong></div>
             <div class="kl-popup-zeile"><span>Mitarbeiter:</span><strong>${p.benutzer_name}</strong></div>
+            ${p.helfer_name ? `<div class="kl-popup-zeile"><span>Helfer:</span><strong>${p.helfer_name}</strong></div>` : ''}
             <div class="kl-popup-zeile"><span>Status:</span><strong>${p.statusLabel}</strong></div>
         `;
 

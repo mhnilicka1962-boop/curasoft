@@ -31,12 +31,16 @@ class TourenController extends Controller
         }
 
         $touren      = $query->orderBy('start_zeit')->get();
-        $mitarbeiter = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
+        $mitarbeiter = Benutzer::where('organisation_id', $this->orgId())
+            ->where('aktiv', true)
+            ->where('anstellungsart', '!=', 'angehoerig')
+            ->orderBy('nachname')->get();
 
-        // Einsätze ohne Tour für diesen Tag (Lücken-Warnung)
+        // Einsätze ohne Tour für diesen Tag (Lücken-Warnung) — Angehörige ausschliessen
         $ohneTouren = Einsatz::where('organisation_id', $this->orgId())
             ->whereDate('datum', $datum)
             ->whereNull('tour_id')
+            ->whereHas('benutzer', fn($q) => $q->where('anstellungsart', '!=', 'angehoerig'))
             ->with('klient', 'benutzer', 'leistungsart')
             ->orderBy('benutzer_id')
             ->orderBy('zeit_von')
@@ -48,7 +52,10 @@ class TourenController extends Controller
 
     public function create(Request $request)
     {
-        $mitarbeiter      = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
+        $mitarbeiter      = Benutzer::where('organisation_id', $this->orgId())
+            ->where('aktiv', true)
+            ->where('anstellungsart', '!=', 'angehoerig')
+            ->orderBy('nachname')->get();
         $vorDatum         = $request->filled('datum') ? $request->datum : date('Y-m-d');
         $vorBenutzerId    = $request->filled('benutzer_id') ? (int) $request->benutzer_id : null;
         $vorBezeichnung   = $request->filled('bezeichnung') ? $request->bezeichnung : null;

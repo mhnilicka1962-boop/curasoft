@@ -85,7 +85,7 @@
                     <label class="feld-label" for="benutzer_id">Mitarbeiter</label>
                     <select id="benutzer_id" name="benutzer_id" class="feld">
                         <option value="">— unverändert —</option>
-                        @foreach($mitarbeiter as $m)
+                        @foreach($mitarbeiter->where('anstellungsart', '!=', 'angehoerig') as $m)
                             <option value="{{ $m->id }}" {{ old('benutzer_id', $einsatz->benutzer_id) == $m->id ? 'selected' : '' }}>
                                 {{ $m->nachname }} {{ $m->vorname }}
                             </option>
@@ -102,6 +102,21 @@
                         <option value="storniert"     {{ old('status', $einsatz->status) === 'storniert'     ? 'selected' : '' }}>Storniert</option>
                     </select>
                 </div>
+            </div>
+            @endif
+
+            {{-- Helfer (pflegender Angehöriger) --}}
+            @if(auth()->user()->rolle === 'admin' && $angehoerigenBenutzer->count())
+            <div style="margin-bottom: 1rem;">
+                <label class="feld-label" for="helfer_id">Helfer (pflegender Angehöriger)</label>
+                <select id="helfer_id" name="helfer_id" class="feld" style="max-width: 320px;">
+                    <option value="">— kein Helfer —</option>
+                    @foreach($angehoerigenBenutzer as $h)
+                        <option value="{{ $h->id }}" {{ old('helfer_id', $einsatz->helfer_id) == $h->id ? 'selected' : '' }}>
+                            {{ $h->nachname }} {{ $h->vorname }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
             @endif
 

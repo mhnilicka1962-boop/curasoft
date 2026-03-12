@@ -83,7 +83,7 @@
                 <div>
                     <label class="feld-label" for="zeit_von">Von (geplant)</label>
                     <input type="time" id="zeit_von" name="zeit_von" class="feld"
-                        step="300" value="{{ old('zeit_von') }}">
+                        step="300" value="{{ old('zeit_von', request('zeit_von')) }}">
                     <div class="text-klein text-hell" style="margin-top: 0.25rem;">5-Minuten-Schritte (KLV)</div>
                 </div>
                 <div>
@@ -100,14 +100,22 @@
                 <label class="feld-label" for="benutzer_id">Mitarbeiter</label>
                 <select id="benutzer_id" name="benutzer_id" class="feld">
                     <option value="">— Eigener Account —</option>
-                    @foreach($mitarbeiter as $m)
+                    @foreach($mitarbeiter->where('anstellungsart', '!=', 'angehoerig') as $m)
                         <option value="{{ $m->id }}"
-                            data-anstellungsart="{{ $m->anstellungsart ?? 'fachperson' }}"
                             {{ (old('benutzer_id', request('benutzer_id')) == $m->id) ? 'selected' : '' }}>
-                            {{ $m->nachname }} {{ $m->vorname }} ({{ $m->rolle }}){{ ($m->anstellungsart === 'angehoerig') ? ' — Pfl. Angeh.' : '' }}
+                            {{ $m->nachname }} {{ $m->vorname }} ({{ $m->rolle }})
                         </option>
                     @endforeach
                 </select>
+            </div>
+
+            {{-- Helfer (pflegender Angehöriger des Klienten) --}}
+            <div style="margin-bottom: 1rem;" id="helfer-bereich">
+                <label class="feld-label" for="helfer_id">Helfer (pflegender Angehöriger)</label>
+                <select id="helfer_id" name="helfer_id" class="feld">
+                    <option value="">— kein Helfer —</option>
+                </select>
+                <div class="text-klein text-hell" style="margin-top: 0.25rem;">Wird automatisch aus den zugewiesenen Angehörigen des Klienten befüllt.</div>
             </div>
             @endif
 
@@ -298,22 +306,34 @@ document.querySelectorAll('.wochentag-cb').forEach(cb => {
 
 zeigeWiederholung();
 
-// ── Angehörigen-Auto-Detect (via Klient-Beziehung) ────────
-const angehoerigeMap = @json($angehoerigeMap);
+// ── Angehörigen-Auto-Detect + Helfer-Dropdown ────────
+const angehoerigeMap  = @json($angehoerigeMap);  // klient_id => [{id, name}, ...]
 const benutzerSelect  = document.getElementById('benutzer_id');
+const helferSelect    = document.getElementById('helfer_id');
 const erbringerSelect = document.getElementById('leistungserbringer_typ');
+
+function aktualisiereHelfer() {
+    if (!helferSelect) return;
+    const angehoerige = angehoerigeMap[klientSelect.value] ?? [];
+    const altWert = helferSelect.value;
+    helferSelect.innerHTML = '<option value="">— kein Helfer —</option>';
+    angehoerige.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        opt.textContent = a.name;
+        if (String(a.id) === altWert) opt.selected = true;
+        helferSelect.appendChild(opt);
+    });
+    const bereich = document.getElementById('helfer-bereich');
+    if (bereich) bereich.style.display = angehoerige.length ? '' : 'none';
+}
 
 function pruefeAngehoerig() {
     if (!benutzerSelect || !erbringerSelect) return;
-    const klientId   = klientSelect.value;
-    const benutzerId = benutzerSelect.value;
-    if (!klientId || !benutzerId) return;
-
-    const angehoerige = angehoerigeMap[klientId] ?? [];
-    const istAngehoerig = angehoerige.includes(parseInt(benutzerId));
+    const angehoerige   = angehoerigeMap[klientSelect.value] ?? [];
+    const istAngehoerig = angehoerige.some(a => a.id === parseInt(benutzerSelect.value));
     erbringerSelect.value = istAngehoerig ? 'angehoerig' : 'fachperson';
 
-    // Hinweis anzeigen
     let hinweis = document.getElementById('hinweis-angehoerig-einsatz');
     if (istAngehoerig) {
         if (!hinweis) {
@@ -328,8 +348,9 @@ function pruefeAngehoerig() {
     }
 }
 
+klientSelect.addEventListener('change', () => { aktualisiereHelfer(); pruefeAngehoerig(); });
 if (benutzerSelect) benutzerSelect.addEventListener('change', pruefeAngehoerig);
-klientSelect.addEventListener('change', pruefeAngehoerig);
+aktualisiereHelfer();
 </script>
 @endpush
 </x-layouts.app>

@@ -67,6 +67,15 @@
                 <div class="detail-label">Mitarbeiter</div>
                 <div class="detail-wert">{{ $einsatz->benutzer?->name ?? '—' }}</div>
             </div>
+            @if($einsatz->helfer)
+            <div>
+                <div class="detail-label">Helfer</div>
+                <div class="detail-wert">
+                    {{ $einsatz->helfer->vorname }} {{ $einsatz->helfer->nachname }}
+                    <span class="badge badge-warnung" style="margin-left: 0.25rem;">Pfl. Angehöriger</span>
+                </div>
+            </div>
+            @endif
             @if($einsatz->dauerMinuten())
             <div>
                 <div class="detail-label">Effektive Dauer</div>

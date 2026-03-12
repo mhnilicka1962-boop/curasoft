@@ -18,8 +18,9 @@ class KalenderController extends Controller
         $mitarbeiter = Benutzer::where('organisation_id', $orgId)
             ->where('aktiv', true)
             ->whereIn('rolle', ['admin', 'pflege'])
+            ->where('anstellungsart', '!=', 'angehoerig')
             ->orderBy('nachname')
-            ->get(['id', 'vorname', 'nachname', 'rolle']);
+            ->get(['id', 'vorname', 'nachname', 'rolle', 'anstellungsart']);
 
         $counts = Einsatz::where('organisation_id', $orgId)
             ->whereNotIn('status', ['storniert'])
@@ -45,7 +46,7 @@ class KalenderController extends Controller
         $von = $request->get('start') ? Carbon::parse($request->get('start')) : Carbon::today()->startOfWeek();
         $bis = $request->get('end')   ? Carbon::parse($request->get('end'))   : Carbon::today()->endOfWeek();
 
-        $einsaetze = Einsatz::with(['klient', 'benutzer', 'leistungsart'])
+        $einsaetze = Einsatz::with(['klient', 'benutzer', 'helfer', 'leistungsart'])
             ->where('organisation_id', $this->orgId())
             ->whereNotIn('status', ['storniert'])
             ->whereBetween('datum', [$von->toDateString(), $bis->toDateString()])
@@ -78,6 +79,7 @@ class KalenderController extends Controller
                     'klient_id'    => $e->klient_id,
                     'klient_name'  => $e->klient ? $e->klient->vorname . ' ' . $e->klient->nachname : '?',
                     'benutzer_name'=> $e->benutzer ? $e->benutzer->vorname . ' ' . $e->benutzer->nachname : '—',
+                    'helfer_name'  => $e->helfer ? $e->helfer->vorname . ' ' . $e->helfer->nachname : null,
                     'doppelt'      => $istDoppelt,
                     'zeit_von'     => $e->zeit_von ? substr($e->zeit_von, 0, 5) : null,
                     'zeit_bis'     => $e->zeit_bis ? substr($e->zeit_bis, 0, 5) : null,

@@ -113,6 +113,12 @@
         ⚠ Verordnung abgelaufen ({{ $einsatz->verordnung->gueltig_bis->format('d.m.Y') }})
     </div>
     @endif
+    {{-- Helfer --}}
+    @if($einsatz->helfer)
+    <div style="margin-top: 0.375rem; font-size: 0.8125rem; color: rgba(255,255,255,0.85);">
+        👤 Helfer vor Ort: <strong>{{ $einsatz->helfer->vorname }} {{ $einsatz->helfer->nachname }}</strong>
+    </div>
+    @endif
 </div>
 
 {{-- Rapport-Button oben --}}
