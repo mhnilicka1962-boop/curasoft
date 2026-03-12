@@ -43,6 +43,7 @@ jobs:
             php artisan migrate --path=database/migrations_telescope --force &&
             php artisan tenant:migrate --force &&
             php artisan tenant:ensure &&
+            psql devitjob_curapflege -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO devitjob_csapp; GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO devitjob_csapp;" &&
             php artisan optimize:clear &&
             echo '✅ Deploy fertig'
           "
