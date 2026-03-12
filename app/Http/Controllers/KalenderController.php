@@ -29,14 +29,12 @@ class KalenderController extends Controller
             ->groupBy('benutzer_id')
             ->pluck('anzahl', 'benutzer_id');
 
-        if ($counts->isNotEmpty()) {
-            $mitarbeiter = $mitarbeiter
-                ->filter(fn($m) => isset($counts[$m->id]))
-                ->sort(function ($a, $b) use ($counts) {
-                    $diff = ($counts[$b->id] ?? 0) - ($counts[$a->id] ?? 0);
-                    return $diff !== 0 ? $diff : strcmp($a->nachname, $b->nachname);
-                })->values();
-        }
+        $mitarbeiter = $mitarbeiter
+            ->filter(fn($m) => isset($counts[$m->id]))
+            ->sort(function ($a, $b) use ($counts) {
+                $diff = ($counts[$b->id] ?? 0) - ($counts[$a->id] ?? 0);
+                return $diff !== 0 ? $diff : strcmp($a->nachname, $b->nachname);
+            })->values();
 
         return view('kalender.index', compact('mitarbeiter'));
     }
