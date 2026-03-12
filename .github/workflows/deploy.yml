@@ -42,6 +42,7 @@ jobs:
             php artisan migrate --force &&
             php artisan migrate --path=database/migrations_telescope --force &&
             php artisan tenant:migrate --force &&
+            php artisan tenant:ensure &&
             php artisan optimize:clear &&
             echo '✅ Deploy fertig'
           "
