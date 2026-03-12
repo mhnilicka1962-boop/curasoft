@@ -389,7 +389,7 @@ class EinsaetzeController extends Controller
 
         $einsatz->update($daten);
 
-        return redirect()->route('einsaetze.show', $einsatz)
+        return redirect()->route('kalender.index')
             ->with('erfolg', 'Einsatz wurde gespeichert.');
     }
 
