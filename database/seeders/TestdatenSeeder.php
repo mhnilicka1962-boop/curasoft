@@ -701,11 +701,20 @@ class TestdatenSeeder extends Seeder
 
     private function createEinsaetze(): void
     {
-        $count = DB::table('einsaetze')->where('organisation_id', $this->orgId)->count();
-        if ($count > 0) {
-            $this->command->line("Einsätze vorhanden ({$count}), übersprungen.");
-            return;
+        $testPflegerIds = array_values($this->pfleger);
+
+        // Zukünftige + heutige geplante Einsätze der Testbenutzer immer neu erstellen
+        if (!empty($testPflegerIds)) {
+            DB::table('einsaetze')
+                ->where('organisation_id', $this->orgId)
+                ->whereIn('benutzer_id', $testPflegerIds)
+                ->where('status', 'geplant')
+                ->where('datum', '>=', Carbon::today()->toDateString())
+                ->delete();
         }
+
+        $count = DB::table('einsaetze')->where('organisation_id', $this->orgId)->count();
+        $nurZukunft = $count > 0;
 
         $laGrund    = $this->la['Grundpflege']             ?? array_values($this->la)[0];
         $laBehandl  = $this->la['Untersuchung Behandlung'] ?? $laGrund;
@@ -754,10 +763,11 @@ class TestdatenSeeder extends Seeder
             5 => [1, 2, 3, 4, 5],
         ];
 
-        $heute   = Carbon::today();
+        $heute    = Carbon::today();
         $inserted = 0;
 
-        // ── Historische Einsätze (30 Tage) ───────────────────────────────────
+        // ── Historische Einsätze (30 Tage) — nur beim ersten Mal ─────────────
+        if (!$nurZukunft)
         for ($d = 30; $d >= 1; $d--) {
             $datum = $heute->copy()->subDays($d);
             $wt    = (int) $datum->dayOfWeekIso; // 1=Mo
@@ -825,9 +835,9 @@ class TestdatenSeeder extends Seeder
             $inserted++;
         }
 
-        // ── Zukünftige Einsätze (14 Tage) mit serie_id — nur Fachpersonen ───
+        // ── Zukünftige Einsätze (21 Tage) mit serie_id — nur Fachpersonen ───
         $serieId = (string) Str::uuid();
-        for ($d = 1; $d <= 14; $d++) {
+        for ($d = 1; $d <= 21; $d++) {
             $datum = $heute->copy()->addDays($d);
             $wt    = (int) $datum->dayOfWeekIso;
 
