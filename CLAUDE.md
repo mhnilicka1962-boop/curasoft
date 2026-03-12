@@ -8,7 +8,7 @@
 # Insbesondere: Deploy-Regeln, Arbeitsablauf, bekannte Fallstricke.
 # NIEMALS aus dem Gedächtnis arbeiten — immer zuerst hier nachschlagen.
 
-## Stand: 2026-03-12 (Session 20 — Kalender + Touren Bugfixes + Testdaten-Workflow)
+## Stand: 2026-03-12 (Session 20 — GitHub Actions + Deploy-Workflow + Sprachkorrektur)
 
 ---
 
@@ -269,6 +269,53 @@ php artisan tenant:migrate
 
 ### Technische Fixes
 - `KalenderController`: `orgId()` Hilfsmethode ergänzt (konsistent mit allen anderen Controllern)
+
+## Neu in Session 20 (2026-03-12) — GitHub Actions + Deploy-Workflow + Sprachkorrektur
+
+### GitHub Actions — Automatischer Deploy
+- **Workflow:** `.github/workflows/deploy.yml` — bei jedem `git push` auf `master`
+- **Ablauf:** `npm ci + build` → SCP Assets → SSH: `git reset --hard` + `composer` + `migrate` + `tenant:migrate` + `cache clear`
+- **Kein FTP mehr** für Code-Deploys — alles via SSH/SCP
+- **`./deploy.sh`** bleibt nur noch für **DB-Sync** (`./deploy.sh db`) — niemals automatisch
+- **SSH-Key** in `~/.ssh/authorized_keys` auf Server + GitHub Secret `DEPLOY_SSH_KEY`
+- **Tenant-Migrationen** automatisch: `php artisan tenant:migrate --force` bei jedem Deploy
+
+### Deploy-Workflow ab Session 20 — DEFINITIV
+```
+Code:    git push → GitHub Actions → automatisch auf Demo + alle Tenants (30 Sek.)
+DB-Sync: ./deploy.sh db → lokal ausführen, manuell, niemals automatisch
+```
+
+### Testdaten-Workflow — DEFINITIV
+```
+1. Seeder lokal schreiben + testen
+2. php artisan db:seed --class=XyzSeeder
+3. Lokal prüfen
+4. ./deploy.sh db
+```
+
+### Sprachkorrektur
+- `lang/de/pagination.php` — «Zurück / Weiter»
+- `lang/de/auth.php`, `passwords.php`, `validation.php`
+- `lang/de.json` — "Zeige X bis Y von Z Einträgen"
+- `APP_LOCALE=de` in `.env` + `.env.example`
+- Eigene Pagination-View: `resources/views/vendor/pagination/tailwind.blade.php` — nutzt Projekt-CSS (`.btn`, `.btn-sekundaer`, `.btn-primaer`)
+
+### Kalender-Fixes
+- **bfcache Chrome**: `pageshow`-Listener in `kalender.js` — Seite neu laden bei Back-Navigation
+- **deploy.sh**: Alle Vite Assets hochladen (nicht nur `head -1`) — `kalender.js` + `tourenkarte.js` fehlten
+
+### AlltagsheldenDemoSeeder
+- `database/seeders/AlltagsheldenDemoSeeder.php` — 6 Klienten + Touren Mo–Fr für 3 Wochen
+- Benutzer-IDs: Karim=27, Yasmine=28, Nina=29, Marc=30
+- Passwort: `Alltagshelden2026!`
+- Kann beliebig oft neu ausgeführt werden (löscht vorher alte Demo-Daten)
+
+### TestdatenSeeder-Fix
+- Zukunftseinsätze werden nun **immer neu erstellt** (löscht alte `geplant`-Einsätze + erstellt 21 Tage neu)
+- Verhindert dass Testmitarbeiter nach einigen Wochen aus dem Kalender verschwinden
+
+---
 
 ## Neu in Session 19 (2026-03-11) — Einsatzplanung Kalender + Routenplanung
 
