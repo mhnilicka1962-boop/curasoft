@@ -28,6 +28,9 @@
 <a href="{{ route('kalender.index') }}" class="nav-link {{ request()->routeIs('kalender.*') ? 'aktiv' : '' }}">
     Einsatzplanung 📅
 </a>
+<a href="{{ route('vertretung.index') }}" class="nav-link {{ request()->routeIs('vertretung.*') ? 'aktiv' : '' }}">
+    Ferienvertretung
+</a>
 @endif
 <a href="{{ route('rapporte.index') }}" class="nav-link {{ request()->routeIs('rapporte.*') ? 'aktiv' : '' }}">
     Rapporte

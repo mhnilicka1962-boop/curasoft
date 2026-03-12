@@ -25,6 +25,7 @@ use App\Http\Controllers\SetupController;
 use App\Http\Controllers\WebAuthnController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\KalenderController;
+use App\Http\Controllers\VertretungController;
 use Illuminate\Support\Facades\Route;
 
 // Setup-Wizard (nur wenn noch kein Benutzer existiert)
@@ -240,6 +241,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/touren/{tour}/einsaetze',          [TourenController::class, 'einsatzZuweisen'])->name('touren.einsatz.zuweisen');
         Route::delete('/touren/{tour}/einsaetze/{einsatz}', [TourenController::class, 'einsatzEntfernen'])->name('touren.einsatz.entfernen');
         Route::post('/touren/{tour}/route-optimieren',   [TourenController::class, 'routeOptimieren'])->name('touren.route.optimieren');
+
+        // Ferienvertretung (nur Admin)
+        Route::middleware('rolle:admin')->group(function () {
+            Route::get('/vertretung',          [VertretungController::class, 'index'])->name('vertretung.index');
+            Route::post('/vertretung/vorschau',[VertretungController::class, 'vorschau'])->name('vertretung.vorschau');
+            Route::post('/vertretung/ausfuehren',[VertretungController::class, 'ausfuehren'])->name('vertretung.ausfuehren');
+        });
 
         // Dokumente
         Route::post('/dokumente',              [DokumenteController::class, 'store'])->name('dokumente.store');
