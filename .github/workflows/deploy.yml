@@ -1,0 +1,46 @@
+name: Deploy to curasoft.ch
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: npm install + build
+        run: npm ci && npm run build
+
+      - name: SSH-Key einrichten
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H devitjob.ch >> ~/.ssh/known_hosts
+
+      - name: Vite Assets via SCP hochladen
+        run: |
+          scp -i ~/.ssh/deploy_key -r public/build/ devitjob@devitjob.ch:~/public_html/spitex/public/
+
+      - name: Server deployen (git + composer + migrate + cache)
+        run: |
+          ssh -i ~/.ssh/deploy_key devitjob@devitjob.ch "
+            cd ~/public_html/spitex &&
+            git fetch origin &&
+            git reset --hard origin/master &&
+            HOME=/tmp composer install --no-dev --optimize-autoloader &&
+            php artisan migrate --force &&
+            php artisan migrate --path=database/migrations_telescope --force &&
+            php artisan optimize:clear &&
+            echo '✅ Deploy fertig'
+          "
