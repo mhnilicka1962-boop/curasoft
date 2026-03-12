@@ -6,265 +6,133 @@ use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
- * Demo-Zugang für Alltagshelden GmbH
- * 1 Admin + 3 Pflegepersonen + 6 Klienten + 6 Einsätze/Tag
- * Ab Montag dieser Woche bis +21 Tage
- *
- * Ausführen: php artisan db:seed --class=AlltagsheldenDemoSeeder
+ * Demo-Daten für Alltagshelden GmbH (Herr El Merghini)
+ * 6 Klienten, 3 Pflegepersonen, Touren + Einsätze für nächste 3 Wochen (Mo–Fr)
+ * Kann beliebig oft neu ausgeführt werden — löscht vorher alte Demo-Daten.
  */
 class AlltagsheldenDemoSeeder extends Seeder
 {
-    private int   $orgId;
-    private int   $regionId;
-    private int   $adminId;
-    private array $pflegeIds = [];
-    private array $klienten  = [];
-    private array $la        = [];
+    private const YASMINE = 28;
+    private const NINA    = 29;
+    private const MARC    = 30;
+    private const KARIM   = 27;
 
     public function run(): void
     {
-        $org = DB::table('organisationen')->first();
-        if (!$org) { $this->command->error('Keine Organisation gefunden.'); return; }
-        $this->orgId = $org->id;
+        $orgId = 1;
+        $now   = Carbon::now();
 
-        $this->command->info('=== Alltagshelden Demo-Seeder ===');
+        // Passwörter setzen
+        DB::table('benutzer')
+            ->whereIn('id', [self::KARIM, self::YASMINE, self::NINA, self::MARC])
+            ->update(['password' => Hash::make('Alltagshelden2026!')]);
 
-        $this->setupRegion();
-        $this->ladeLeistungsarten();
-        $this->createBenutzer();
-        $this->createKlienten();
-        $this->createEinsaetze();
-        $this->createTouren();
-        $this->printSummary();
-    }
+        // Alte Demo-Daten löschen
+        $alteKlientIds = DB::table('klienten')
+            ->where('organisation_id', $orgId)
+            ->whereIn('zustaendig_id', [self::YASMINE, self::NINA, self::MARC])
+            ->pluck('id');
 
-    private function setupRegion(): void
-    {
-        $region = DB::table('regionen')->where('kuerzel', 'ZH')->first()
-            ?? DB::table('regionen')->first();
-        if (!$region) { $this->command->error('Keine Region gefunden.'); exit(1); }
-        $this->regionId = $region->id;
-        $this->command->info("Region: {$region->bezeichnung}");
-    }
-
-    private function ladeLeistungsarten(): void
-    {
-        foreach (DB::table('leistungsarten')->where('aktiv', true)->get() as $la) {
-            $this->la[$la->bezeichnung] = $la->id;
+        if ($alteKlientIds->isNotEmpty()) {
+            DB::table('einsaetze')->whereIn('klient_id', $alteKlientIds)->delete();
         }
-    }
-
-    private function createBenutzer(): void
-    {
-        $pw  = Hash::make('Alltagshelden2026!');
-        $now = now();
-
-        // Admin
-        $existing = DB::table('benutzer')->where('email', 'admin@alltagshelden.ch')->first();
-        if ($existing) {
-            $this->adminId = $existing->id;
-            $this->command->info('Admin bereits vorhanden.');
-        } else {
-            $this->adminId = DB::table('benutzer')->insertGetId([
-                'organisation_id' => $this->orgId,
-                'anrede' => 'Herr', 'vorname' => 'Karim', 'nachname' => 'El Merghini',
-                'email' => 'admin@alltagshelden.ch', 'password' => $pw,
-                'rolle' => 'admin', 'aktiv' => true, 'anstellungsart' => 'fachperson',
-                'pensum' => 100, 'eintrittsdatum' => today()->format('Y-m-d'),
-                'created_at' => $now, 'updated_at' => $now,
-            ]);
-            $this->command->info("Admin angelegt: admin@alltagshelden.ch");
+        DB::table('einsaetze')
+            ->whereIn('benutzer_id', [self::YASMINE, self::NINA, self::MARC])
+            ->delete();
+        DB::table('touren')
+            ->where('organisation_id', $orgId)
+            ->whereIn('benutzer_id', [self::YASMINE, self::NINA, self::MARC])
+            ->delete();
+        if ($alteKlientIds->isNotEmpty()) {
+            DB::table('klienten')->whereIn('id', $alteKlientIds)->delete();
         }
 
-        // 3 Pflegepersonen
-        $pflegePersonen = [
-            ['anrede' => 'Frau', 'vorname' => 'Yasmine', 'nachname' => 'El Merghini', 'email' => 'info@spitex-alltagshelden.ch'],
-            ['anrede' => 'Frau', 'vorname' => 'Nina',    'nachname' => 'Bosshard',     'email' => 'nina.bosshard@alltagshelden.ch'],
-            ['anrede' => 'Herr', 'vorname' => 'Marc',    'nachname' => 'Widmer',       'email' => 'marc.widmer@alltagshelden.ch'],
+        // 6 Klienten anlegen (2 pro Mitarbeiter)
+        $klientDaten = [
+            self::YASMINE => [
+                ['anrede' => 'Frau', 'vorname' => 'Margrit',   'nachname' => 'Schneider',  'geburtsdatum' => '1942-03-15', 'geschlecht' => 'w', 'adresse' => 'Rebbergstrasse 12', 'plz' => '5600', 'ort' => 'Lenzburg',   'telefon' => '062 891 45 67', 'notfallnummer' => '079 456 78 90'],
+                ['anrede' => 'Herr', 'vorname' => 'Hans',      'nachname' => 'Müller',     'geburtsdatum' => '1938-07-22', 'geschlecht' => 'm', 'adresse' => 'Bahnhofstrasse 8',  'plz' => '5600', 'ort' => 'Lenzburg',   'telefon' => '062 891 23 45', 'notfallnummer' => '078 123 45 67'],
+            ],
+            self::NINA => [
+                ['anrede' => 'Frau', 'vorname' => 'Elisabeth', 'nachname' => 'Brunner',    'geburtsdatum' => '1945-11-08', 'geschlecht' => 'w', 'adresse' => 'Kirchgasse 3',       'plz' => '5600', 'ort' => 'Lenzburg',   'telefon' => '062 891 78 90', 'notfallnummer' => '076 789 01 23'],
+                ['anrede' => 'Herr', 'vorname' => 'Werner',    'nachname' => 'Keller',     'geburtsdatum' => '1940-05-14', 'geschlecht' => 'm', 'adresse' => 'Hauptstrasse 45',    'plz' => '5620', 'ort' => 'Bremgarten', 'telefon' => '056 633 12 34', 'notfallnummer' => '079 234 56 78'],
+            ],
+            self::MARC => [
+                ['anrede' => 'Frau', 'vorname' => 'Rosa',      'nachname' => 'Zimmermann', 'geburtsdatum' => '1948-09-30', 'geschlecht' => 'w', 'adresse' => 'Gartenweg 7',        'plz' => '5620', 'ort' => 'Bremgarten', 'telefon' => '056 633 56 78', 'notfallnummer' => '077 345 67 89'],
+                ['anrede' => 'Herr', 'vorname' => 'Fritz',     'nachname' => 'Weber',      'geburtsdatum' => '1936-12-03', 'geschlecht' => 'm', 'adresse' => 'Lindenstrasse 19',   'plz' => '5620', 'ort' => 'Bremgarten', 'telefon' => '056 633 90 12', 'notfallnummer' => '078 456 78 90'],
+            ],
         ];
 
-        foreach ($pflegePersonen as $p) {
-            $existing = DB::table('benutzer')->where('email', $p['email'])->first();
-            if ($existing) {
-                // Name sicherstellen
-                DB::table('benutzer')->where('id', $existing->id)->update([
-                    'anrede' => $p['anrede'], 'vorname' => $p['vorname'], 'nachname' => $p['nachname'],
-                ]);
-                $this->pflegeIds[] = $existing->id;
-                $this->command->info("{$p['vorname']} {$p['nachname']} bereits vorhanden.");
-            } else {
-                $id = DB::table('benutzer')->insertGetId([
-                    'organisation_id' => $this->orgId,
-                    'anrede' => $p['anrede'], 'vorname' => $p['vorname'], 'nachname' => $p['nachname'],
-                    'email' => $p['email'], 'password' => $pw,
-                    'rolle' => 'pflege', 'aktiv' => true, 'anstellungsart' => 'fachperson',
-                    'pensum' => 100, 'eintrittsdatum' => today()->format('Y-m-d'),
-                    'created_at' => $now, 'updated_at' => $now,
-                ]);
-                $this->pflegeIds[] = $id;
-                $this->command->info("{$p['vorname']} {$p['nachname']} angelegt: {$p['email']}");
+        $mitarbeiterKlienten = [];
+        foreach ($klientDaten as $benutzerId => $paare) {
+            $ids = [];
+            foreach ($paare as $k) {
+                $ids[] = DB::table('klienten')->insertGetId(array_merge($k, [
+                    'organisation_id'     => $orgId,
+                    'zustaendig_id'       => $benutzerId,
+                    'region_id'           => 1,
+                    'aktiv'               => true,
+                    'einsatz_geplant_von' => Carbon::today()->format('Y-m-d'),
+                    'einsatz_geplant_bis' => Carbon::today()->addWeeks(3)->format('Y-m-d'),
+                    'qr_token'            => Str::random(32),
+                    'created_at'          => $now,
+                    'updated_at'          => $now,
+                ]));
             }
+            $mitarbeiterKlienten[$benutzerId] = $ids;
         }
-    }
 
-    private function createKlienten(): void
-    {
-        $kkId = DB::table('krankenkassen')->where('organisation_id', $this->orgId)->value('id');
-        $now  = now();
-
-        // 6 Klienten — je 2 pro Pflegeperson
-        $liste = [
-            ['anrede' => 'Frau', 'vorname' => 'Margrit',   'nachname' => 'Bauer',      'geburtsdatum' => '1942-03-15', 'adresse' => 'Seestrasse 12',     'plz' => '8800', 'ort' => 'Thalwil',    'pflege_idx' => 0],
-            ['anrede' => 'Herr', 'vorname' => 'Werner',    'nachname' => 'Hartmann',   'geburtsdatum' => '1938-07-22', 'adresse' => 'Bahnhofstrasse 44', 'plz' => '8953', 'ort' => 'Dietikon',   'pflege_idx' => 0],
-            ['anrede' => 'Frau', 'vorname' => 'Hildegard', 'nachname' => 'Brunner',    'geburtsdatum' => '1945-11-08', 'adresse' => 'Kirchweg 7',        'plz' => '8910', 'ort' => 'Affoltern',  'pflege_idx' => 1],
-            ['anrede' => 'Herr', 'vorname' => 'Ernst',     'nachname' => 'Zimmermann', 'geburtsdatum' => '1935-05-30', 'adresse' => 'Hauptstrasse 23',   'plz' => '8048', 'ort' => 'Zürich',     'pflege_idx' => 1],
-            ['anrede' => 'Frau', 'vorname' => 'Ursula',    'nachname' => 'Meier',      'geburtsdatum' => '1949-09-12', 'adresse' => 'Dorfstrasse 5',     'plz' => '8902', 'ort' => 'Urdorf',     'pflege_idx' => 2],
-            ['anrede' => 'Frau', 'vorname' => 'Elisabeth', 'nachname' => 'Keller',     'geburtsdatum' => '1941-01-27', 'adresse' => 'Lindenallee 18',    'plz' => '8046', 'ort' => 'Zürich',     'pflege_idx' => 2],
-        ];
-
-        foreach ($liste as $k) {
-            $pflegeIdx = $k['pflege_idx'];
-            unset($k['pflege_idx']);
-
-            $existing = DB::table('klienten')
-                ->where('organisation_id', $this->orgId)
-                ->where('nachname', $k['nachname'])->where('vorname', $k['vorname'])->first();
-
-            if ($existing) {
-                $this->klienten[] = ['id' => $existing->id, 'pflege_idx' => $pflegeIdx];
-                continue;
-            }
-
-            $id = DB::table('klienten')->insertGetId(array_merge($k, [
-                'organisation_id' => $this->orgId,
-                'region_id'       => $this->regionId,
-                'zustaendig_id'   => $this->pflegeIds[$pflegeIdx],
-                'aktiv'           => true,
-                'klient_typ'      => 'patient',
-                'created_at'      => $now, 'updated_at' => $now,
-            ]));
-
-            if ($kkId) {
-                DB::table('klient_krankenkassen')->insert([
-                    'klient_id' => $id, 'krankenkasse_id' => $kkId,
-                    'versicherungs_typ' => 'kvg', 'tiers_payant' => false, 'aktiv' => true,
-                    'created_at' => $now, 'updated_at' => $now,
-                ]);
-            }
-
-            $this->klienten[] = ['id' => $id, 'pflege_idx' => $pflegeIdx];
-        }
-        $this->command->info(count($this->klienten) . ' Klienten bereit (2 pro Pflegeperson).');
-    }
-
-    private function createEinsaetze(): void
-    {
-        $laId = $this->la['Grundpflege'] ?? $this->la['Hauswirtschaft'] ?? array_values($this->la)[0] ?? null;
-        if (!$laId) { $this->command->warn('Keine Leistungsart — Einsätze übersprungen.'); return; }
-
-        // Zeiten pro Pflegeperson: 2 Einsätze/Tag
+        // Touren + Einsätze für nächste 3 Wochen Mo–Fr
         $zeiten = [
-            0 => ['07:30', '10:00'],  // Yasmine
-            1 => ['08:00', '13:00'],  // Nina
-            2 => ['09:00', '14:30'],  // Marc
+            ['von' => '08:00:00', 'bis' => '09:00:00'],
+            ['von' => '10:30:00', 'bis' => '11:30:00'],
         ];
 
-        // Ab Montag dieser Woche bis +21 Tage
-        $start = today()->startOfWeek(Carbon::MONDAY);
-        $end   = today()->addDays(21);
-        $count = 0;
+        $datum    = Carbon::today();
+        $endDatum = Carbon::today()->addWeeks(3);
 
-        for ($datum = $start->copy(); $datum->lte($end); $datum->addDay()) {
-            if ($datum->dayOfWeek === Carbon::SUNDAY) continue;
+        while ($datum->lte($endDatum)) {
+            if ($datum->isWeekday()) {
+                foreach ($mitarbeiterKlienten as $benutzerId => $klientIds) {
+                    $istVergangen = $datum->isPast() && !$datum->isToday();
 
-            foreach ($this->klienten as $k) {
-                $pflegeIdx  = $k['pflege_idx'];
-                $pflegeId   = $this->pflegeIds[$pflegeIdx];
-                $klientId   = $k['id'];
-                // Klient 0+1 → pflege 0, je 1 Einsatz = 2 Zeiten verteilt auf beide Klienten
-                $zeitIdx    = array_search($klientId, array_column(
-                    array_filter($this->klienten, fn($x) => $x['pflege_idx'] === $pflegeIdx),
-                    'id'
-                ));
-                $zeit       = $zeiten[$pflegeIdx][$zeitIdx] ?? $zeiten[$pflegeIdx][0];
-                $start_dt   = Carbon::parse($datum->format('Y-m-d') . ' ' . $zeit);
-                $end_dt     = $start_dt->copy()->addMinutes(45);
+                    $tourId = DB::table('touren')->insertGetId([
+                        'organisation_id' => $orgId,
+                        'benutzer_id'     => $benutzerId,
+                        'datum'           => $datum->format('Y-m-d'),
+                        'bezeichnung'     => 'Tour ' . $datum->format('d.m.Y'),
+                        'status'          => $istVergangen ? 'abgeschlossen' : 'geplant',
+                        'created_at'      => $now,
+                        'updated_at'      => $now,
+                    ]);
 
-                $exists = DB::table('einsaetze')
-                    ->where('klient_id', $klientId)->where('benutzer_id', $pflegeId)
-                    ->where('datum', $datum->format('Y-m-d'))->exists();
-                if ($exists) continue;
-
-                DB::table('einsaetze')->insert([
-                    'organisation_id'        => $this->orgId,
-                    'klient_id'              => $klientId,
-                    'benutzer_id'            => $pflegeId,
-                    'leistungsart_id'        => $laId,
-                    'region_id'              => $this->regionId,
-                    'datum'                  => $datum->format('Y-m-d'),
-                    'zeit_von'               => $start_dt->format('H:i'),
-                    'zeit_bis'               => $end_dt->format('H:i'),
-                    'minuten'                => 45,
-                    'status'                 => $datum->lt(today()) ? 'abgeschlossen' : 'geplant',
-                    'verrechnet'             => false,
-                    'leistungserbringer_typ' => 'fachperson',
-                    'created_at'             => now(), 'updated_at' => now(),
-                ]);
-                $count++;
+                    foreach ($klientIds as $idx => $klientId) {
+                        DB::table('einsaetze')->insert([
+                            'organisation_id'  => $orgId,
+                            'klient_id'        => $klientId,
+                            'benutzer_id'      => $benutzerId,
+                            'region_id'        => 1,
+                            'datum'            => $datum->format('Y-m-d'),
+                            'zeit_von'         => $zeiten[$idx]['von'],
+                            'zeit_bis'         => $zeiten[$idx]['bis'],
+                            'minuten'          => 60,
+                            'leistungsart_id'  => 4, // Grundpflege
+                            'status'           => $istVergangen ? 'abgeschlossen' : 'geplant',
+                            'tour_id'          => $tourId,
+                            'tour_reihenfolge' => $idx + 1,
+                            'verrechnet'       => false,
+                            'created_at'       => $now,
+                            'updated_at'       => $now,
+                        ]);
+                    }
+                }
             }
+            $datum->addDay();
         }
-        $this->command->info("{$count} Einsätze erstellt (Mo dieser Woche bis +21 Tage, 6/Tag).");
-    }
 
-    private function createTouren(): void
-    {
-        // Tour für heute pro Pflegeperson
-        $pflegeNamen = ['Yasmine El Merghini', 'Nina Bosshard', 'Marc Widmer'];
-        $tourCount   = 0;
-
-        foreach ($this->pflegeIds as $i => $pflegeId) {
-            $existing = DB::table('touren')
-                ->where('organisation_id', $this->orgId)
-                ->where('benutzer_id', $pflegeId)
-                ->where('datum', today()->format('Y-m-d'))->first();
-
-            if ($existing) continue;
-
-            $tourId = DB::table('touren')->insertGetId([
-                'organisation_id' => $this->orgId,
-                'benutzer_id'     => $pflegeId,
-                'datum'           => today()->format('Y-m-d'),
-                'bezeichnung'     => $pflegeNamen[$i] . ' — ' . today()->format('d.m.Y'),
-                'created_at'      => now(), 'updated_at' => now(),
-            ]);
-
-            $einsaetze = DB::table('einsaetze')
-                ->where('benutzer_id', $pflegeId)->where('datum', today()->format('Y-m-d'))
-                ->orderBy('zeit_von')->get();
-
-            foreach ($einsaetze as $j => $e) {
-                DB::table('einsaetze')->where('id', $e->id)
-                    ->update(['tour_id' => $tourId, 'tour_reihenfolge' => $j + 1]);
-            }
-            $tourCount++;
-        }
-        $this->command->info("{$tourCount} Touren für heute angelegt (je 2 Einsätze pro Tour).");
-    }
-
-    private function printSummary(): void
-    {
-        $this->command->newLine();
-        $this->command->info('╔══════════════════════════════════════════════════════╗');
-        $this->command->info('║  ALLTAGSHELDEN DEMO — ZUGANGSDATEN                   ║');
-        $this->command->info('╠══════════════════════════════════════════════════════╣');
-        $this->command->info('║  Admin:   admin@alltagshelden.ch                     ║');
-        $this->command->info('║  Pflege1: info@spitex-alltagshelden.ch               ║');
-        $this->command->info('║  Pflege2: nina.bosshard@alltagshelden.ch             ║');
-        $this->command->info('║  Pflege3: marc.widmer@alltagshelden.ch               ║');
-        $this->command->info('║  Passwort alle: Alltagshelden2026!                   ║');
-        $this->command->info('║  URL: https://www.curasoft.ch/login                  ║');
-        $this->command->info('╚══════════════════════════════════════════════════════╝');
+        $this->command->info('✅ Alltagshelden Demo: 6 Klienten, Touren + Einsätze bis ' . $endDatum->format('d.m.Y'));
     }
 }
