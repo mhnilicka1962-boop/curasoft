@@ -32,7 +32,7 @@
     @endif
 
     {{-- Einsätze --}}
-    <div class="karte" style="margin-bottom: 1rem; padding: 0;">
+    <div class="karte" id="einsatz-karte" style="margin-bottom: 1rem; padding: 0;">
 
         <div style="padding: 0.875rem 1rem; border-bottom: 1px solid var(--cs-border); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
             <span class="abschnitt-label" style="margin: 0;">Einsätze ({{ $tour->einsaetze->count() }})</span>
@@ -55,6 +55,7 @@
             </div>
         </div>
 
+        <div id="einsatz-liste">
         @forelse($tour->einsaetze->sortBy('tour_reihenfolge') as $idx => $e)
         @php
             $rapporte    = $rapportZahlen[$e->id] ?? 0;
@@ -71,11 +72,24 @@
                 default => 'transparent',
             };
         @endphp
-        <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--cs-border); background: {{ $zeileFarbe }};">
+        <div
+            data-einsatz-id="{{ $e->id }}"
+            data-lat="{{ $e->klient?->klient_lat ?? '' }}"
+            data-lng="{{ $e->klient?->klient_lng ?? '' }}"
+            data-zeit-von="{{ $e->zeit_von ? substr($e->zeit_von, 0, 5) : '' }}"
+            data-zeit-bis="{{ $e->zeit_bis ? substr($e->zeit_bis, 0, 5) : '' }}"
+            data-name="{{ $e->klient?->vorname }} {{ $e->klient?->nachname }}"
+            data-adresse="{{ $e->klient?->adresse }}, {{ $e->klient?->ort }}"
+            data-status="{{ $e->status }}"
+            @if(auth()->user()->rolle === 'admin') draggable="true" @endif
+            style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--cs-border); background: {{ $zeileFarbe }}; {{ auth()->user()->rolle === 'admin' ? 'cursor:grab;' : '' }}">
             <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
 
-                {{-- Nummer --}}
-                <span style="min-width: 1.5rem; font-size: 0.8rem; color: var(--cs-text-hell); padding-top: 0.125rem;">{{ $e->tour_reihenfolge ?? $idx + 1 }}.</span>
+                {{-- Drag handle (Admin) + Nummer --}}
+                @if(auth()->user()->rolle === 'admin')
+                <span title="Ziehen um Reihenfolge zu ändern" style="color: var(--cs-text-hell); padding-top: 0.125rem; font-size: 1rem; line-height: 1; cursor: grab; user-select: none;">⠿</span>
+                @endif
+                <span class="reihenfolge-nr" style="min-width: 1.5rem; font-size: 0.8rem; color: var(--cs-text-hell); padding-top: 0.125rem;">{{ $e->tour_reihenfolge ?? $idx + 1 }}.</span>
 
                 {{-- Hauptinfo --}}
                 <div style="flex: 1; min-width: 0;">
@@ -161,6 +175,7 @@
         @empty
         <div class="text-hell" style="padding: 2rem; text-align: center; font-size: 0.875rem;">Noch keine Einsätze zugewiesen.</div>
         @endforelse
+        </div>{{-- #einsatz-liste --}}
 
         {{-- Offene Einsätze hinzufügen --}}
         @if($offeneEinsaetze->count())
@@ -255,6 +270,132 @@
             const punkte = @json($kartenpunkte);
             window.TourenkarteInit(punkte);
         });
+    </script>
+    @endpush
+    @endif
+
+    @if(auth()->user()->rolle === 'admin')
+    @push('scripts')
+    <script>
+    (function() {
+        const tourId   = {{ $tour->id }};
+        const csrf     = '{{ csrf_token() }}';
+        const liste    = document.getElementById('einsatz-liste');
+        if (!liste) return;
+
+        let dragSrc = null;
+
+        liste.addEventListener('dragstart', function(e) {
+            const row = e.target.closest('[data-einsatz-id]');
+            if (!row) return;
+            dragSrc = row;
+            setTimeout(() => row.style.opacity = '0.45', 0);
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        liste.addEventListener('dragend', function(e) {
+            const row = e.target.closest('[data-einsatz-id]');
+            if (row) row.style.opacity = '';
+            liste.querySelectorAll('[data-einsatz-id]').forEach(r => r.style.outline = '');
+            dragSrc = null;
+        });
+
+        liste.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (!dragSrc) return;
+            const row = e.target.closest('[data-einsatz-id]');
+            if (!row || row === dragSrc) return;
+            const mid = row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
+            if (e.clientY < mid) {
+                if (row.previousSibling !== dragSrc) liste.insertBefore(dragSrc, row);
+            } else {
+                if (row.nextSibling !== dragSrc) liste.insertBefore(dragSrc, row.nextSibling);
+            }
+        });
+
+        liste.addEventListener('drop', function(e) {
+            e.preventDefault();
+            speichern();
+        });
+
+        function speichern() {
+            const reihenfolge = [...liste.querySelectorAll('[data-einsatz-id]')].map(r => r.dataset.einsatzId);
+
+            // Nummern aktualisieren
+            liste.querySelectorAll('[data-einsatz-id]').forEach((row, i) => {
+                const nr = row.querySelector('.reihenfolge-nr');
+                if (nr) nr.textContent = (i + 1) + '.';
+            });
+
+            fetch('/touren/' + tourId + '/reihenfolge', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                body: JSON.stringify({ reihenfolge }),
+            });
+
+            aktualisiereWarnungen();
+        }
+
+        function aktualisiereWarnungen() {
+            liste.querySelectorAll('.fahrzeitwarnung').forEach(el => el.remove());
+
+            const rows  = [...liste.querySelectorAll('[data-einsatz-id]')];
+            const mapPunkte = rows
+                .filter(r => r.dataset.lat && r.dataset.lng)
+                .map(r => ({
+                    lat:        parseFloat(r.dataset.lat),
+                    lng:        parseFloat(r.dataset.lng),
+                    klient_name: r.dataset.name  || '',
+                    adresse:    r.dataset.adresse || '',
+                    zeit_von:   r.dataset.zeitVon || null,
+                    zeit_bis:   r.dataset.zeitBis || null,
+                    status:     r.dataset.status  || 'geplant',
+                }));
+
+            rows.forEach(function(row, i) {
+                if (i >= rows.length - 1) return;
+                const next = rows[i + 1];
+                const pBis = row.dataset.zeitBis;
+                const nVon = next.dataset.zeitVon;
+                const pLat = row.dataset.lat  ? parseFloat(row.dataset.lat)  : null;
+                const pLng = row.dataset.lng  ? parseFloat(row.dataset.lng)  : null;
+                const nLat = next.dataset.lat ? parseFloat(next.dataset.lat) : null;
+                const nLng = next.dataset.lng ? parseFloat(next.dataset.lng) : null;
+
+                if (!pBis || !nVon || !pLat || !nLat) return;
+
+                const [h1, m1] = pBis.split(':').map(Number);
+                const [h2, m2] = nVon.split(':').map(Number);
+                const verfuegbar = (h2 * 60 + m2) - (h1 * 60 + m1);
+                const distM      = haversineM(pLat, pLng, nLat, nLng);
+                const fahrtMin   = Math.ceil(distM / 1000 / 25 * 60) + 2;
+
+                if (verfuegbar < fahrtMin) {
+                    const warn = document.createElement('div');
+                    warn.className = 'fahrzeitwarnung';
+                    warn.style.cssText = 'background:#fef2f2;color:#dc2626;font-size:0.75rem;padding:0.2rem 1rem 0.2rem 3.5rem;border-bottom:1px solid #fca5a5;';
+                    const km = (distM / 1000).toFixed(1);
+                    warn.textContent = `⚠ Fahrzeit ~${fahrtMin - 2} Min. (${km} km) — nur ${verfuegbar} Min. bis nächsten Einsatz`;
+                    row.insertAdjacentElement('afterend', warn);
+                }
+            });
+
+            if (window.TourenkarteUpdate && window.berechneWarnungen) {
+                window.TourenkarteUpdate(mapPunkte, window.berechneWarnungen(mapPunkte));
+            }
+        }
+
+        function haversineM(lat1, lng1, lat2, lng2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        // Warnungen beim Laden berechnen (nach Karteninitialisierung)
+        setTimeout(aktualisiereWarnungen, 500);
+    })();
     </script>
     @endpush
     @endif

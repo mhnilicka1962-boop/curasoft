@@ -223,6 +223,22 @@ class TourenController extends Controller
         return back()->with('erfolg', 'Einsatz wurde aus der Tour entfernt.');
     }
 
+    // Reihenfolge per Drag & Drop speichern
+    public function reihenfolgeAktualisieren(Tour $tour, Request $request)
+    {
+        if ($tour->organisation_id !== $this->orgId()) abort(403);
+
+        $reihenfolge = $request->validate(['reihenfolge' => 'required|array'])['reihenfolge'];
+
+        foreach ($reihenfolge as $i => $id) {
+            Einsatz::where('id', $id)
+                ->where('tour_id', $tour->id)
+                ->update(['tour_reihenfolge' => $i + 1]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
     // Route optimieren: Nearest-Neighbor nach GPS-Koordinaten
     public function routeOptimieren(Tour $tour)
     {

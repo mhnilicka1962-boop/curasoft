@@ -169,7 +169,7 @@
                         <label><input type="checkbox" data-script="s3" data-step="0">
                             Stammdaten erfassen: Name, E-Mail, Rolle (Pflege / Buchhaltung / Admin)
                         </label>
-                        <a href="{{ route('mitarbeiter.create') }}" class="script-link" target="_blank">+ Neue Mitarbeiterin →</a>
+                        <a href="{{ route('mitarbeiter.index') }}" class="script-link" target="_blank">+ Neue Mitarbeiterin →</a>
                     </li>
                     <li data-step="1">
                         <label><input type="checkbox" data-script="s3" data-step="1">

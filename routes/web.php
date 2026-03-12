@@ -241,6 +241,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/touren/{tour}/einsaetze',          [TourenController::class, 'einsatzZuweisen'])->name('touren.einsatz.zuweisen');
         Route::delete('/touren/{tour}/einsaetze/{einsatz}', [TourenController::class, 'einsatzEntfernen'])->name('touren.einsatz.entfernen');
         Route::post('/touren/{tour}/route-optimieren',   [TourenController::class, 'routeOptimieren'])->name('touren.route.optimieren');
+        Route::patch('/touren/{tour}/reihenfolge',        [TourenController::class, 'reihenfolgeAktualisieren'])->name('touren.reihenfolge');
 
         // Ferienvertretung (nur Admin)
         Route::middleware('rolle:admin')->group(function () {
