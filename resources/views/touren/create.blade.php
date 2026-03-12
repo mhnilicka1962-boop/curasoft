@@ -49,10 +49,14 @@
                     <span class="feld-label" style="margin-bottom: 0;">
                         Einsätze direkt zuweisen ({{ $verfuegbareEinsaetze->count() }} verfügbar)
                     </span>
-                    <label style="font-size: 0.8125rem; cursor: pointer; color: var(--cs-primaer); display: flex; align-items: center; gap: 0.3rem;">
-                        <input type="checkbox" id="alle-toggle" onchange="alleToggle(this.checked)" checked>
-                        Alle
-                    </label>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <a href="{{ route('einsaetze.create', ['benutzer_id' => $vorBenutzerId, 'datum' => $vorDatum, '_nach_touren' => 1]) }}"
+                           class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">+ Neuer Einsatz</a>
+                        <label style="font-size: 0.8125rem; cursor: pointer; color: var(--cs-primaer); display: flex; align-items: center; gap: 0.3rem;">
+                            <input type="checkbox" id="alle-toggle" onchange="alleToggle(this.checked)" checked>
+                            Alle
+                        </label>
+                    </div>
                 </div>
                 @foreach($verfuegbareEinsaetze as $e)
                 <label style="display: flex; align-items: center; gap: 0.625rem; padding: 0.375rem 0; font-size: 0.875rem; cursor: pointer; border-bottom: 1px solid var(--cs-border);">
