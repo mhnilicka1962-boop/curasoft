@@ -62,9 +62,10 @@ class KlientenController extends Controller
 
     public function create()
     {
-        $regionen   = Region::orderBy('kuerzel')->get();
-        $mitarbeiter = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
-        return view('klienten.create', compact('regionen', 'mitarbeiter'));
+        $regionen      = Region::orderBy('kuerzel')->get();
+        $mitarbeiter   = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
+        $krankenkassen = Krankenkasse::where('aktiv', true)->orderBy('name')->get();
+        return view('klienten.create', compact('regionen', 'mitarbeiter', 'krankenkassen'));
     }
 
     public function store(Request $request)
@@ -227,9 +228,10 @@ class KlientenController extends Controller
     public function edit(Klient $klient)
     {
         $this->autorisiereZugriff($klient);
-        $regionen    = Region::orderBy('kuerzel')->get();
-        $mitarbeiter = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
-        return view('klienten.edit', compact('klient', 'regionen', 'mitarbeiter'));
+        $regionen      = Region::orderBy('kuerzel')->get();
+        $mitarbeiter   = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
+        $krankenkassen = Krankenkasse::where('aktiv', true)->orderBy('name')->get();
+        return view('klienten.edit', compact('klient', 'regionen', 'mitarbeiter', 'krankenkassen'));
     }
 
     public function update(Request $request, Klient $klient)
@@ -396,6 +398,7 @@ class KlientenController extends Controller
         $klient->krankenkassen()->create(array_merge($daten, [
             'aktiv'        => true,
             'tiers_payant' => (bool) ($daten['tiers_payant'] ?? true),
+            'deckungstyp'  => $daten['deckungstyp'] ?? 'allgemein',
         ]));
         return back()->with('erfolg', 'Krankenkasse wurde hinzugefügt.');
     }

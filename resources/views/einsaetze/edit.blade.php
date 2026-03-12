@@ -1,6 +1,6 @@
 <x-layouts.app :titel="'Einsatz bearbeiten'">
 <div style="max-width: 600px;">
-    <a href="{{ route('einsaetze.show', $einsatz) }}" class="link-gedaempt" style="font-size: 0.875rem; display: inline-block; margin-bottom: 1.25rem;">← Detail</a>
+    <a href="{{ route('kalender.index') }}" class="link-gedaempt" style="font-size: 0.875rem; display: inline-block; margin-bottom: 1.25rem;">← Einsatzplanung</a>
 
     @if($errors->any())
         <div class="alert alert-fehler" style="margin-bottom: 1.25rem;">
@@ -139,7 +139,7 @@
 
             <div style="display: flex; gap: 0.75rem;">
                 <button type="submit" class="btn btn-primaer">Speichern</button>
-                <a href="{{ route('einsaetze.show', $einsatz) }}" class="btn btn-sekundaer">Abbrechen</a>
+                <a href="{{ route('kalender.index') }}" class="btn btn-sekundaer">Abbrechen</a>
             </div>
         </form>
     </div>

@@ -170,8 +170,15 @@
     <div class="form-grid-2" style="gap: 0.75rem; margin-bottom: 0.75rem;">
         <div>
             <label class="feld-label" for="krankenkasse_name">Krankenkasse</label>
-            <input type="text" id="krankenkasse_name" name="krankenkasse_name" class="feld"
-                value="{{ old('krankenkasse_name', $k?->krankenkasse_name) }}" placeholder="CSS, Helsana, …">
+            <select id="krankenkasse_name" name="krankenkasse_name" class="feld">
+                <option value="">— bitte wählen —</option>
+                @foreach($krankenkassen ?? [] as $kk)
+                    <option value="{{ $kk->name }}"
+                        {{ old('krankenkasse_name', $k?->krankenkasse_name) === $kk->name ? 'selected' : '' }}>
+                        {{ $kk->name }}
+                    </option>
+                @endforeach
+            </select>
         </div>
         <div>
             <label class="feld-label" for="krankenkasse_nr">Krankenkassen-Nr.</label>
