@@ -176,12 +176,30 @@ Route::middleware('auth')->group(function () {
             }
         }
 
+        // Onboarding-Status (nur für Admin relevant)
+        $setup = [];
+        if ($rolle === 'admin') {
+            $org = \App\Models\Organisation::find($orgId);
+            $setup = [
+                'firma'       => !empty($org?->name) && !empty($org?->strasse),
+                'region'      => \App\Models\Region::where('organisation_id', $orgId)->exists(),
+                'klient'      => $klientenAktiv > 0,
+                'mitarbeiter' => \App\Models\Benutzer::where('organisation_id', $orgId)->where('id', '!=', $userId)->exists(),
+                'einsatz'     => \App\Models\Einsatz::where('organisation_id', $orgId)->exists(),
+            ];
+        }
+        $setupFertig = empty($setup) || !in_array(false, $setup, true);
+
         return view('dashboard', compact(
             'klientenAktiv', 'einsaetzeHeute', 'einsaetzeGeplant',
             'offeneRechnungen', 'ungeleseneNachrichten',
-            'letzteRapporte', 'einsaetzeListe', 'einsaetzeDatumLabel'
+            'letzteRapporte', 'einsaetzeListe', 'einsaetzeDatumLabel',
+            'setup', 'setupFertig'
         ));
     })->name('dashboard');
+
+    // Schulung
+    Route::get('/schulung', fn() => view('schulung.index'))->name('schulung');
 
     // Profil + WebAuthn (Passkeys) — alle eingeloggten Benutzer
     Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');

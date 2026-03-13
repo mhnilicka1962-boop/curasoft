@@ -6,6 +6,118 @@
         Willkommen, {{ Auth::user()->vorname }}!
     </h1>
 
+    {{-- ===== ONBOARDING (nur Admin, solange Setup nicht fertig) ===== --}}
+    @if(auth()->user()->rolle === 'admin' && !$setupFertig)
+    <div class="karte" style="margin-bottom: 1.5rem; border-left: 4px solid var(--cs-primaer);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <div>
+                <div style="font-size: 1.0625rem; font-weight: 700;">Ersteinrichtung — In 5 Schritten startklar</div>
+                <div class="text-klein text-hell" style="margin-top: 0.2rem;">Folgen Sie den Schritten — danach verschwindet diese Anleitung automatisch.</div>
+            </div>
+            @php $done = collect($setup)->filter()->count(); $total = count($setup); @endphp
+            <div style="text-align: right;">
+                <span style="font-size: 1.5rem; font-weight: 700; color: var(--cs-primaer);">{{ $done }}/{{ $total }}</span>
+                <div class="text-mini text-hell">abgeschlossen</div>
+            </div>
+        </div>
+
+        {{-- Fortschrittsbalken --}}
+        <div style="background: var(--cs-border); border-radius: 4px; height: 6px; margin-bottom: 1.25rem;">
+            <div style="background: var(--cs-primaer); height: 6px; border-radius: 4px; width: {{ round($done / $total * 100) }}%; transition: width .4s;"></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+
+            {{-- Schritt 1: Firma --}}
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; border-radius: var(--cs-radius); background: {{ $setup['firma'] ? 'var(--cs-hintergrund)' : 'var(--cs-hintergrund)' }};">
+                <div style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+                    background: {{ $setup['firma'] ? 'var(--cs-erfolg)' : 'var(--cs-border)' }};
+                    color: {{ $setup['firma'] ? '#fff' : 'var(--cs-text-hell)' }}; font-weight: 700; font-size: 0.8rem;">
+                    {{ $setup['firma'] ? '✓' : '1' }}
+                </div>
+                <div style="flex: 1;">
+                    <div class="text-fett" style="font-size: 0.9rem; {{ $setup['firma'] ? 'text-decoration: line-through; color: var(--cs-text-hell);' : '' }}">Firmen-Daten erfassen</div>
+                    <div class="text-mini text-hell">Name, Adresse, IBAN — für Rechnungen und PDF</div>
+                </div>
+                @if(!$setup['firma'])
+                <a href="{{ route('firma.index') }}" class="btn btn-primaer" style="font-size: 0.8rem; padding: 0.25rem 0.75rem; white-space: nowrap;">Jetzt →</a>
+                @endif
+            </div>
+
+            {{-- Schritt 2: Region --}}
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; border-radius: var(--cs-radius); background: var(--cs-hintergrund);">
+                <div style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+                    background: {{ $setup['region'] ? 'var(--cs-erfolg)' : ($setup['firma'] ? 'var(--cs-primaer)' : 'var(--cs-border)') }};
+                    color: {{ $setup['region'] || $setup['firma'] ? '#fff' : 'var(--cs-text-hell)' }}; font-weight: 700; font-size: 0.8rem;">
+                    {{ $setup['region'] ? '✓' : '2' }}
+                </div>
+                <div style="flex: 1;">
+                    <div class="text-fett" style="font-size: 0.9rem; {{ $setup['region'] ? 'text-decoration: line-through; color: var(--cs-text-hell);' : '' }}">Kanton / Region anlegen</div>
+                    <div class="text-mini text-hell">z.B. Kanton Aargau — bestimmt die Tarife (KVG-Ansätze)</div>
+                </div>
+                @if(!$setup['region'])
+                <a href="{{ route('regionen.index') }}" class="btn {{ $setup['firma'] ? 'btn-primaer' : 'btn-sekundaer' }}" style="font-size: 0.8rem; padding: 0.25rem 0.75rem; white-space: nowrap;">Jetzt →</a>
+                @endif
+            </div>
+
+            {{-- Schritt 3: Klient --}}
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; border-radius: var(--cs-radius); background: var(--cs-hintergrund);">
+                <div style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+                    background: {{ $setup['klient'] ? 'var(--cs-erfolg)' : ($setup['region'] ? 'var(--cs-primaer)' : 'var(--cs-border)') }};
+                    color: {{ $setup['klient'] || $setup['region'] ? '#fff' : 'var(--cs-text-hell)' }}; font-weight: 700; font-size: 0.8rem;">
+                    {{ $setup['klient'] ? '✓' : '3' }}
+                </div>
+                <div style="flex: 1;">
+                    <div class="text-fett" style="font-size: 0.9rem; {{ $setup['klient'] ? 'text-decoration: line-through; color: var(--cs-text-hell);' : '' }}">Ersten Klienten anlegen</div>
+                    <div class="text-mini text-hell">Name, Adresse, Krankenkasse — Pflichtfelder reichen für den Start</div>
+                </div>
+                @if(!$setup['klient'])
+                <a href="{{ route('klienten.index') }}#neu" class="btn {{ $setup['region'] ? 'btn-primaer' : 'btn-sekundaer' }}" style="font-size: 0.8rem; padding: 0.25rem 0.75rem; white-space: nowrap;">Jetzt →</a>
+                @endif
+            </div>
+
+            {{-- Schritt 4: Mitarbeiter --}}
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; border-radius: var(--cs-radius); background: var(--cs-hintergrund);">
+                <div style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+                    background: {{ $setup['mitarbeiter'] ? 'var(--cs-erfolg)' : ($setup['klient'] ? 'var(--cs-primaer)' : 'var(--cs-border)') }};
+                    color: {{ $setup['mitarbeiter'] || $setup['klient'] ? '#fff' : 'var(--cs-text-hell)' }}; font-weight: 700; font-size: 0.8rem;">
+                    {{ $setup['mitarbeiter'] ? '✓' : '4' }}
+                </div>
+                <div style="flex: 1;">
+                    <div class="text-fett" style="font-size: 0.9rem; {{ $setup['mitarbeiter'] ? 'text-decoration: line-through; color: var(--cs-text-hell);' : '' }}">Erste Mitarbeiterin einladen</div>
+                    <div class="text-mini text-hell">Pflegeperson mit E-Mail — erhält automatisch Einladungslink</div>
+                </div>
+                @if(!$setup['mitarbeiter'])
+                <a href="{{ route('mitarbeiter.index') }}#neu" class="btn {{ $setup['klient'] ? 'btn-primaer' : 'btn-sekundaer' }}" style="font-size: 0.8rem; padding: 0.25rem 0.75rem; white-space: nowrap;">Jetzt →</a>
+                @endif
+            </div>
+
+            {{-- Schritt 5: Einsatz --}}
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; border-radius: var(--cs-radius); background: var(--cs-hintergrund);">
+                <div style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+                    background: {{ $setup['einsatz'] ? 'var(--cs-erfolg)' : ($setup['mitarbeiter'] ? 'var(--cs-primaer)' : 'var(--cs-border)') }};
+                    color: {{ $setup['einsatz'] || $setup['mitarbeiter'] ? '#fff' : 'var(--cs-text-hell)' }}; font-weight: 700; font-size: 0.8rem;">
+                    {{ $setup['einsatz'] ? '✓' : '5' }}
+                </div>
+                <div style="flex: 1;">
+                    <div class="text-fett" style="font-size: 0.9rem; {{ $setup['einsatz'] ? 'text-decoration: line-through; color: var(--cs-text-hell);' : '' }}">Ersten Einsatz planen</div>
+                    <div class="text-mini text-hell">Klient + Mitarbeiterin + Datum + Zeit — fertig</div>
+                </div>
+                @if(!$setup['einsatz'])
+                <a href="{{ route('einsaetze.create') }}" class="btn {{ $setup['mitarbeiter'] ? 'btn-primaer' : 'btn-sekundaer' }}" style="font-size: 0.8rem; padding: 0.25rem 0.75rem; white-space: nowrap;">Jetzt →</a>
+                @endif
+            </div>
+
+        </div>
+
+        <div class="text-mini text-hell" style="margin-top: 1rem; text-align: center;">
+            Fragen? <a href="{{ route('schulung') }}" class="link-primaer">Schulungsunterlagen</a> ·
+            <a href="{{ route('hilfe') }}" class="link-primaer">Hilfe & Scripts</a>
+        </div>
+    </div>
+    @endif
+
+    {{-- ===== NORMALE DASHBOARD-ANSICHT ===== --}}
     {{-- Stat-Chips --}}
     <div class="stat-chips">
 

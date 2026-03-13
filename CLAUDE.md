@@ -225,15 +225,19 @@ php artisan tenant:seed curapflege --db=devitjob_curapflege
 php artisan tenant:migrate
 ```
 
-### Seeders die bei jedem neuen Tenant automatisch laufen
-`tenant:create` und `tenant:seed` spielen folgende Daten ein — immer vollständig, keine manuelle Nacharbeit nötig:
+### Was bei jedem neuen Tenant automatisch angelegt wird
+`tenant:create` erstellt folgendes — immer vollständig, keine manuelle Nacharbeit nötig:
 
-| Seeder | Inhalt |
-|--------|--------|
+| Was | Inhalt |
+|-----|--------|
 | `LeistungsartenSeeder` | 5 Leistungsarten mit Default-Ansätzen |
 | `EinsatzartenSeeder` | 30 Einsatzarten |
-| `KrankenkassenSeeder` | 39 Schweizer KVG-Krankenkassen |
+| `KrankenkassenSeeder` | 39 Schweizer KVG-Krankenkassen (BAG-Nr + GLN) |
 | `QualifikationenSeeder` | Pflegequalifikationen (FaGe, HF, DN I/II usw.) |
+| Organisation | Name der Spitex (aus `{name}`-Argument) |
+| Admin-Benutzer | Rolle `admin`, Email aus `{email}`-Argument, zufälliges Passwort (wird im Terminal angezeigt) |
+
+`tenant:seed` spielt nur die 4 Seeders ein (kein neuer Admin, keine neue Organisation).
 
 ### cPanel Terminal — WICHTIG: Kein Copy-Paste mit Zeilenumbrüchen!
 - cPanel Terminal aktiviert "Bracketed Paste Mode" → Zeilenumbrüche im eingefügten Text werden als Befehlsende interpretiert
