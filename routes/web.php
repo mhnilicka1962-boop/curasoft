@@ -291,11 +291,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/tagespauschalen/{tagespauschale}',   [TagespauschaleController::class, 'show'])->name('tagespauschalen.show');
         Route::patch('/tagespauschalen/{tagespauschale}', [TagespauschaleController::class, 'update'])->name('tagespauschalen.update');
 
-        // Personalabrechnung
-        Route::get('/personalabrechnung',                              [PersonalabrechnungController::class, 'index'])->name('personalabrechnung.index');
-        Route::get('/personalabrechnung/{benutzer}',                   [PersonalabrechnungController::class, 'show'])->name('personalabrechnung.show');
-        Route::get('/personalabrechnung/{benutzer}/export',            [PersonalabrechnungController::class, 'exportCsv'])->name('personalabrechnung.export');
-        Route::get('/personalabrechnung/{benutzer}/pdf',              [PersonalabrechnungController::class, 'pdfExport'])->name('personalabrechnung.pdf');
+        // Personalabrechnung — Übersicht nur admin/buchhaltung
+        Route::get('/personalabrechnung', [PersonalabrechnungController::class, 'index'])->name('personalabrechnung.index');
 
         Route::resource('/rechnungen', RechnungenController::class)->only(['index','create','store','show'])->parameters(['rechnungen' => 'rechnung']);
         Route::patch('/rechnungen/{rechnung}/status', [RechnungenController::class, 'statusUpdate'])->name('rechnungen.status');
@@ -305,6 +302,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/rechnungen/{rechnung}/bexio/sync',   [RechnungenController::class, 'bexioSync'])->name('rechnungen.bexio.sync');
         Route::post('/rechnungen/{rechnung}/bexio/status', [RechnungenController::class, 'bexioStatusPruefen'])->name('rechnungen.bexio.status');
     });
+
+    // Personalabrechnung Detail — alle eingeloggten (Controller prüft: pflege = nur eigene Daten)
+    Route::get('/personalabrechnung/{benutzer}',        [PersonalabrechnungController::class, 'show'])->name('personalabrechnung.show');
+    Route::get('/personalabrechnung/{benutzer}/export', [PersonalabrechnungController::class, 'exportCsv'])->name('personalabrechnung.export');
+    Route::get('/personalabrechnung/{benutzer}/pdf',    [PersonalabrechnungController::class, 'pdfExport'])->name('personalabrechnung.pdf');
 
     // Stammdaten + Audit — nur Admin
     Route::middleware('rolle:admin')->group(function () {

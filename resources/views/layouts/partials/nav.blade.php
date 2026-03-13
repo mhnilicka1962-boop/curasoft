@@ -35,6 +35,12 @@
 <a href="{{ route('rapporte.index') }}" class="nav-link {{ request()->routeIs('rapporte.*') ? 'aktiv' : '' }}">
     Rapporte
 </a>
+@if(auth()->user()?->rolle === 'pflege')
+<a href="{{ route('personalabrechnung.show', [auth()->id(), 'monat' => now()->format('Y-m')]) }}"
+   class="nav-link {{ request()->routeIs('personalabrechnung.*') ? 'aktiv' : '' }}">
+    Meine Arbeitszeit
+</a>
+@endif
 
 @if(auth()->user()?->rolle !== 'pflege')
 <div class="nav-abschnitt">Abrechnung</div>

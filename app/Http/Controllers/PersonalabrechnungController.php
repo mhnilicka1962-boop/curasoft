@@ -78,6 +78,10 @@ class PersonalabrechnungController extends Controller
     public function show(Request $request, Benutzer $benutzer)
     {
         abort_if($benutzer->organisation_id !== $this->orgId(), 403);
+        // Pflege-Rolle darf nur eigene Daten sehen
+        if (auth()->user()->rolle === 'pflege') {
+            abort_if($benutzer->id !== auth()->id(), 403);
+        }
 
         $monat = $request->input('monat', now()->format('Y-m'));
         [$von, $bis] = $this->parseMonat($monat);
@@ -107,6 +111,10 @@ class PersonalabrechnungController extends Controller
     public function exportCsv(Request $request, Benutzer $benutzer)
     {
         abort_if($benutzer->organisation_id !== $this->orgId(), 403);
+        // Pflege-Rolle darf nur eigene Daten sehen
+        if (auth()->user()->rolle === 'pflege') {
+            abort_if($benutzer->id !== auth()->id(), 403);
+        }
 
         $monat = $request->input('monat', now()->format('Y-m'));
         [$von, $bis] = $this->parseMonat($monat);
@@ -189,6 +197,10 @@ class PersonalabrechnungController extends Controller
     public function pdfExport(Request $request, Benutzer $benutzer)
     {
         abort_if($benutzer->organisation_id !== $this->orgId(), 403);
+        // Pflege-Rolle darf nur eigene Daten sehen
+        if (auth()->user()->rolle === 'pflege') {
+            abort_if($benutzer->id !== auth()->id(), 403);
+        }
 
         $monat = $request->input('monat', now()->format('Y-m'));
         [$von, $bis] = $this->parseMonat($monat);
