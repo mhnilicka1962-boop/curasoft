@@ -11,7 +11,7 @@
 
 <div class="seiten-kopf">
     <h1>Angehörigenpflege</h1>
-    <a href="{{ route('mitarbeiter.create') }}?anstellungsart=angehoerig" class="btn btn-primaer">
+    <a href="{{ route('mitarbeiter.index') }}#neu" class="btn btn-primaer">
         + Neuer Angehöriger
     </a>
 </div>
@@ -53,7 +53,7 @@
         Noch keine aktiven Angehörigenpflege-Verhältnisse.<br>
         <strong>So geht's:</strong>
         <ol style="margin-top:.5rem; padding-left:1.25rem; line-height:1.8;">
-            <li>Angehörigen unter <a href="{{ route('mitarbeiter.create') }}" class="link-primaer">Mitarbeitende → + Neu</a> erfassen — Anstellungsart: «Pflegender Angehöriger»</li>
+            <li>Angehörigen unter <a href="{{ route('mitarbeiter.index') }}" class="link-primaer">Mitarbeitende → + Neu</a> erfassen — Anstellungsart: «Pflegender Angehöriger»</li>
             <li>Unter <em>Mitarbeiter-Detail → Zugewiesene Klienten</em> den betreuten Klienten zuweisen (Beziehung: «Pflegend tätig»)</li>
             <li>Einsätze für den Klienten erstellen — Mitarbeiter = Angehöriger</li>
         </ol>
@@ -189,7 +189,7 @@
     <div class="abschnitt-label" style="margin-bottom:.75rem;">Checkliste — Neues Pflegeverhältnis einrichten</div>
     <div style="display:grid; grid-template-columns:1.5rem 1fr; gap:.4rem .75rem; font-size:.875rem; line-height:1.5;">
         <span style="color:var(--cs-primaer); font-weight:700;">1.</span>
-        <span><a href="{{ route('mitarbeiter.create') }}" class="link-primaer">Angehörigen als Mitarbeitenden erfassen</a> — Anstellungsart: «Pflegender Angehöriger», Rolle: «Pflege», E-Mail-Adresse setzen</span>
+        <span><a href="{{ route('mitarbeiter.index') }}" class="link-primaer">Angehörigen als Mitarbeitenden erfassen</a> — Anstellungsart: «Pflegender Angehöriger», Rolle: «Pflege», E-Mail-Adresse setzen</span>
         <span style="color:var(--cs-primaer); font-weight:700;">2.</span>
         <span>Mitarbeiter-Detail öffnen → <strong>Zugewiesene Klienten</strong> → betreuten Klienten hinzufügen, Beziehung: «Pflegend tätig»</span>
         <span style="color:var(--cs-primaer); font-weight:700;">3.</span>
