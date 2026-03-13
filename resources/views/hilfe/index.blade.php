@@ -19,6 +19,9 @@
             <a href="#kap6"     class="badge badge-grau"      style="text-decoration: none;">6 — Rechnung</a>
             <a href="#kap6b"    class="badge badge-grau"      style="text-decoration: none;">6b — Rechnungslauf</a>
             <a href="#kap7"     class="badge badge-grau"      style="text-decoration: none;">7 — FAQ</a>
+            <a href="#script-angehoerig" class="badge badge-info" style="text-decoration: none;">▶ Angehörigenpflege</a>
+            <a href="#script-lohnabrechnung" class="badge badge-info" style="text-decoration: none;">▶ Lohnabrechnung</a>
+            <a href="#script-einsatz" class="badge badge-info" style="text-decoration: none;">▶ Einsatz erfassen</a>
         </div>
     </div>
 
@@ -356,6 +359,198 @@
                 </div>
             </div>
         </div>
+        {{-- SCRIPT 7: Angehörigenpflege --}}
+        <div class="karte script-karte" id="script-angehoerig" style="margin-bottom: 1rem;">
+            <div class="script-kopf" onclick="toggleScript('s7')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 1rem; font-weight: 600;">👪 Angehörigenpflege einrichten</span>
+                    <span class="text-klein text-hell" style="margin-left: 0.75rem;">Familienmitglied als Pflegeperson anstellen</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span class="badge badge-grau text-klein" id="fortschritt-s7">0 / 7</span>
+                    <span id="pfeil-s7">▼</span>
+                </div>
+            </div>
+            <div id="body-s7" style="display: none; margin-top: 1rem;">
+                <div class="info-box" style="margin-bottom: 0.75rem; font-size: 0.875rem;">
+                    <strong>Konzept:</strong> Das Familienmitglied wird als Mitarbeitende/r bei Ihnen angestellt und erbringt Pflegeleistungen.
+                    Die Spitex übernimmt Aufsicht, Erstbeurteilung und Lohnabrechnung.
+                    Vergütung ca. <strong>CHF 37.90/h</strong> inkl. Sozialversicherungen · Nur Grundpflege &amp; Hauswirtschaft (KLV) · Reassessment alle 6 Monate.
+                </div>
+                <ol class="script-liste" data-script="s7">
+                    <li data-step="0">
+                        <label><input type="checkbox" data-script="s7" data-step="0">
+                            Angehörigen unter Mitarbeitende als neue Person erfassen —
+                            Anstellungsart: <strong>«Pflegender Angehöriger»</strong>, Rolle: <strong>«Pflege»</strong>, E-Mail-Adresse eingeben
+                        </label>
+                        <a href="{{ route('mitarbeiter.index') }}" class="script-link" target="_blank">Mitarbeitende → + Neu →</a>
+                    </li>
+                    <li data-step="1">
+                        <label><input type="checkbox" data-script="s7" data-step="1">
+                            Im Mitarbeiter-Detail: Erlaubte Leistungsarten prüfen —
+                            System setzt automatisch nur <em>Grundpflege</em> und <em>Hauswirtschaft</em> (KLV-Pflicht)
+                        </label>
+                    </li>
+                    <li data-step="2">
+                        <label><input type="checkbox" data-script="s7" data-step="2">
+                            Im Mitarbeiter-Detail → <strong>«Zugewiesene Klienten»</strong> → betreuten Klienten hinzufügen,
+                            Beziehungstyp: <strong>«Pflegend tätig»</strong>
+                        </label>
+                    </li>
+                    <li data-step="3">
+                        <label><input type="checkbox" data-script="s7" data-step="3">
+                            Einladungs-E-Mail an Angehörigen senden (Button «Einladung senden» im Mitarbeiter-Detail) —
+                            er/sie loggt sich ein und sieht sofort seine Einsätze + «Meine Arbeitszeit»
+                        </label>
+                    </li>
+                    <li data-step="4">
+                        <label><input type="checkbox" data-script="s7" data-step="4">
+                            Ersten Einsatz planen: Klient wählen → Mitarbeiter = Angehöriger (erscheint mit 👪 im Dropdown) →
+                            Leistungserbringer-Typ springt automatisch auf «Pflegender Angehöriger»
+                        </label>
+                        <a href="{{ route('einsaetze.create') }}" class="script-link" target="_blank">+ Einsatz planen →</a>
+                    </li>
+                    <li data-step="5">
+                        <label><input type="checkbox" data-script="s7" data-step="5">
+                            Wiederkehrende Einsätze einrichten — Wochentage + Zeiten festlegen, Wiederholung «Wöchentlich»
+                        </label>
+                    </li>
+                    <li data-step="6">
+                        <label><input type="checkbox" data-script="s7" data-step="6">
+                            Monatliche Lohnabrechnung: Personalabrechnung → Mitarbeiter wählen → <strong>PDF Zeitnachweis</strong> erstellen → unterschreiben lassen
+                        </label>
+                        <a href="{{ route('personalabrechnung.index') }}" class="script-link" target="_blank">Personalabrechnung →</a>
+                    </li>
+                </ol>
+                <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button onclick="resetScript('s7')" class="btn btn-sekundaer" style="font-size: 0.8125rem;">Script zurücksetzen</button>
+                    <a href="{{ route('angehoerigenpflege.index') }}" class="btn btn-primaer" style="font-size: 0.8125rem;">Angehörigenpflege-Übersicht →</a>
+                </div>
+            </div>
+        </div>
+
+        {{-- SCRIPT 8: Monatliche Lohnabrechnung --}}
+        <div class="karte script-karte" id="script-lohnabrechnung" style="margin-bottom: 1.5rem;">
+            <div class="script-kopf" onclick="toggleScript('s8')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 1rem; font-weight: 600;">💰 Monatliche Lohnabrechnung</span>
+                    <span class="text-klein text-hell" style="margin-left: 0.75rem;">Stundennachweis für alle Mitarbeitenden</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span class="badge badge-grau text-klein" id="fortschritt-s8">0 / 5</span>
+                    <span id="pfeil-s8">▼</span>
+                </div>
+            </div>
+            <div id="body-s8" style="display: none; margin-top: 1rem;">
+                <ol class="script-liste" data-script="s8">
+                    <li data-step="0">
+                        <label><input type="checkbox" data-script="s8" data-step="0">
+                            Monat in der Personalabrechnung wählen — Übersicht zeigt alle Mitarbeitenden mit geplanten und geleisteten Stunden
+                        </label>
+                        <a href="{{ route('personalabrechnung.index') }}" class="script-link" target="_blank">Personalabrechnung öffnen →</a>
+                    </li>
+                    <li data-step="1">
+                        <label><input type="checkbox" data-script="s8" data-step="1">
+                            Auffällige Abweichungen prüfen (rot = deutlich weniger geleistet als geplant) —
+                            fehlende Check-outs im Einsatz nacherfassen
+                        </label>
+                        <a href="{{ route('einsaetze.index') }}?ansicht=vergangen" class="script-link" target="_blank">Vergangene Einsätze →</a>
+                    </li>
+                    <li data-step="2">
+                        <label><input type="checkbox" data-script="s8" data-step="2">
+                            Pro Mitarbeitenden: «Detail →» klicken → <strong>«PDF Zeitnachweis»</strong> herunterladen
+                        </label>
+                        <div class="text-klein text-hell" style="margin: 0.2rem 0 0 1.5rem;">PDF zeigt alle Tage, Einsätze, Geplant vs. Ist, Wochentotale und Unterschriftsblock</div>
+                    </li>
+                    <li data-step="3">
+                        <label><input type="checkbox" data-script="s8" data-step="3">
+                            Zeitnachweis-PDF von Mitarbeitenden unterschreiben lassen (oder per E-Mail zustellen) —
+                            CSV-Export für Lohnbuchhaltungssystem
+                        </label>
+                    </li>
+                    <li data-step="4">
+                        <label><input type="checkbox" data-script="s8" data-step="4">
+                            Pflegende Angehörige gesondert abrechnen:
+                            Angehörigenpflege-Übersicht → «Arbeitszeit» → PDF Zeitnachweis → AHV/Lohn abrechnen
+                        </label>
+                        <a href="{{ route('angehoerigenpflege.index') }}" class="script-link" target="_blank">Angehörigenpflege →</a>
+                    </li>
+                </ol>
+                <div style="margin-top: 0.75rem;">
+                    <button onclick="resetScript('s8')" class="btn btn-sekundaer" style="font-size: 0.8125rem;">Script zurücksetzen</button>
+                </div>
+            </div>
+        </div>
+
+        {{-- SCRIPT 9: Einsatz erfassen --}}
+        <div class="karte script-karte" id="script-einsatz" style="margin-bottom: 1.5rem;">
+            <div class="script-kopf" onclick="toggleScript('s9')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 1rem; font-weight: 600;">📅 Einsatz erfassen</span>
+                    <span class="text-klein text-hell" style="margin-left: 0.75rem;">Einzelner oder wiederkehrender Einsatz</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span class="badge badge-grau text-klein" id="fortschritt-s9">0 / 6</span>
+                    <span id="pfeil-s9">▼</span>
+                </div>
+            </div>
+            <div id="body-s9" style="display: none; margin-top: 1rem;">
+                <div class="tabelle-wrapper" style="margin-bottom: 0.75rem;">
+                    <table class="tabelle">
+                        <thead><tr><th>Feld</th><th>Was eingeben</th><th>Hinweis</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Klient</strong></td><td>Patient aus Dropdown wählen</td><td>Pflichtfeld</td></tr>
+                            <tr><td><strong>Leistungsart</strong></td><td>Grundpflege / Behandlungspflege / Hauswirtschaft usw.</td><td>Pflichtfeld — bestimmt den Tarif</td></tr>
+                            <tr><td><strong>Datum</strong></td><td>Datum des Einsatzes</td><td>Pflichtfeld</td></tr>
+                            <tr><td><strong>Von / Bis</strong></td><td>Geplante Uhrzeit, z.B. 08:00 – 09:30</td><td>5-Minuten-Schritte (KLV-Vorschrift)</td></tr>
+                            <tr><td><strong>Mitarbeiter</strong></td><td>Zuständige Pflegeperson wählen</td><td>Angehörige erscheinen mit 👪</td></tr>
+                            <tr><td><strong>Verordnung</strong></td><td>Ärztliche Verordnung verknüpfen (für KK-Abrechnung)</td><td>Nur nötig bei Behandlungspflege</td></tr>
+                            <tr><td><strong>Leistungserbringer</strong></td><td>Fachperson oder Pflegender Angehöriger</td><td>Wird automatisch gesetzt wenn Angehöriger gewählt</td></tr>
+                            <tr><td><strong>Wiederholung</strong></td><td>Wöchentlich + Wochentage wählen + Enddatum</td><td>Erstellt alle Einsätze der Serie auf einmal</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <ol class="script-liste" data-script="s9">
+                    <li data-step="0">
+                        <label><input type="checkbox" data-script="s9" data-step="0">
+                            Einsätze → <strong>«+ Neuer Einsatz»</strong> — oder direkt vom Klienten-Detail aus
+                        </label>
+                        <a href="{{ route('einsaetze.create') }}" class="script-link btn btn-primaer" style="display:inline-block; text-decoration:none; margin-top:0.4rem;" target="_blank">+ Neuer Einsatz →</a>
+                    </li>
+                    <li data-step="1">
+                        <label><input type="checkbox" data-script="s9" data-step="1">
+                            Klient, Leistungsart, Datum und Zeit eingeben (Von/Bis in 5-Minuten-Schritten)
+                        </label>
+                    </li>
+                    <li data-step="2">
+                        <label><input type="checkbox" data-script="s9" data-step="2">
+                            Mitarbeiter wählen — bei Angehörigen: 👪 im Dropdown, Leistungserbringer-Typ wird automatisch gesetzt
+                        </label>
+                    </li>
+                    <li data-step="3">
+                        <label><input type="checkbox" data-script="s9" data-step="3">
+                            Bei Behandlungspflege: Ärztliche Verordnung verknüpfen (für KK-Abrechnung zwingend)
+                        </label>
+                    </li>
+                    <li data-step="4">
+                        <label><input type="checkbox" data-script="s9" data-step="4">
+                            Wiederkehrender Einsatz: Wiederholung «Wöchentlich» wählen → Wochentage anklicken → Enddatum →
+                            Vorschau zeigt Anzahl Einsätze
+                        </label>
+                    </li>
+                    <li data-step="5">
+                        <label><input type="checkbox" data-script="s9" data-step="5">
+                            Einsatz speichern → danach Tour zuweisen (Tourenplanung) oder im Kalender prüfen
+                        </label>
+                        <a href="{{ route('kalender.index') }}" class="script-link" target="_blank">Kalender prüfen →</a>
+                    </li>
+                </ol>
+                <div style="margin-top: 0.75rem;">
+                    <button onclick="resetScript('s9')" class="btn btn-sekundaer" style="font-size: 0.8125rem;">Script zurücksetzen</button>
+                </div>
+            </div>
+        </div>
+
     </div>
     {{-- Ende Scripts --}}
 
@@ -601,7 +796,7 @@ function resetScript(id) {
 }
 
 // Event-Listener für alle Checkboxen
-['s1','s2','s3','s4','s5','s6'].forEach(id => {
+['s1','s2','s3','s4','s5','s6','s7','s8','s9'].forEach(id => {
     ladeScript(id);
     document.querySelectorAll('[data-script="' + id + '"]').forEach(cb => {
         cb.addEventListener('change', () => speichereSchritt(id, cb.dataset.step, cb.checked));
