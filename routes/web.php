@@ -26,6 +26,7 @@ use App\Http\Controllers\WebAuthnController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\VertretungController;
+use App\Http\Controllers\PersonalabrechnungController;
 use Illuminate\Support\Facades\Route;
 
 // Setup-Wizard (nur wenn noch kein Benutzer existiert)
@@ -289,6 +290,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/tagespauschalen',                   [TagespauschaleController::class, 'store'])->name('tagespauschalen.store');
         Route::get('/tagespauschalen/{tagespauschale}',   [TagespauschaleController::class, 'show'])->name('tagespauschalen.show');
         Route::patch('/tagespauschalen/{tagespauschale}', [TagespauschaleController::class, 'update'])->name('tagespauschalen.update');
+
+        // Personalabrechnung
+        Route::get('/personalabrechnung',                              [PersonalabrechnungController::class, 'index'])->name('personalabrechnung.index');
+        Route::get('/personalabrechnung/{benutzer}',                   [PersonalabrechnungController::class, 'show'])->name('personalabrechnung.show');
+        Route::get('/personalabrechnung/{benutzer}/export',            [PersonalabrechnungController::class, 'exportCsv'])->name('personalabrechnung.export');
+        Route::get('/personalabrechnung/{benutzer}/pdf',              [PersonalabrechnungController::class, 'pdfExport'])->name('personalabrechnung.pdf');
 
         Route::resource('/rechnungen', RechnungenController::class)->only(['index','create','store','show'])->parameters(['rechnungen' => 'rechnung']);
         Route::patch('/rechnungen/{rechnung}/status', [RechnungenController::class, 'statusUpdate'])->name('rechnungen.status');

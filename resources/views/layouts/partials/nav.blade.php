@@ -44,6 +44,9 @@
 <a href="{{ route('rechnungslauf.index') }}" class="nav-link {{ request()->routeIs('rechnungslauf.*') ? 'aktiv' : '' }}">
     Rechnungsläufe
 </a>
+<a href="{{ route('personalabrechnung.index') }}" class="nav-link {{ request()->routeIs('personalabrechnung.*') ? 'aktiv' : '' }}">
+    Personalabrechnung
+</a>
 @endif
 
 @if(auth()->user()?->rolle === 'admin')
