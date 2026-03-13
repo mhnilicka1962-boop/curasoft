@@ -25,6 +25,9 @@
     Tourenplanung
 </a>
 @if(auth()->user()?->rolle === 'admin')
+<a href="{{ route('angehoerigenpflege.index') }}" class="nav-link {{ request()->routeIs('angehoerigenpflege.*') ? 'aktiv' : '' }}">
+    Angehörigenpflege
+</a>
 <a href="{{ route('kalender.index') }}" class="nav-link {{ request()->routeIs('kalender.*') ? 'aktiv' : '' }}">
     Einsatzplanung 📅
 </a>

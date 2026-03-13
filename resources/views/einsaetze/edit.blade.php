@@ -85,9 +85,14 @@
                     <label class="feld-label" for="benutzer_id">Mitarbeiter</label>
                     <select id="benutzer_id" name="benutzer_id" class="feld">
                         <option value="">— unverändert —</option>
-                        @foreach($mitarbeiter->where('anstellungsart', '!=', 'angehoerig') as $m)
-                            <option value="{{ $m->id }}" {{ old('benutzer_id', $einsatz->benutzer_id) == $m->id ? 'selected' : '' }}>
+                        @foreach($mitarbeiter as $m)
+                            <option value="{{ $m->id }}"
+                                data-anstellungsart="{{ $m->anstellungsart }}"
+                                {{ old('benutzer_id', $einsatz->benutzer_id) == $m->id ? 'selected' : '' }}>
                                 {{ $m->nachname }} {{ $m->vorname }}
+                                @if($m->anstellungsart === 'angehoerig') 👪 (Angehörig)
+                                @elseif($m->anstellungsart === 'freiwillig') (Freiwillig)
+                                @endif
                             </option>
                         @endforeach
                     </select>

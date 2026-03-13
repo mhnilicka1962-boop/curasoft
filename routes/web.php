@@ -27,6 +27,7 @@ use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\VertretungController;
 use App\Http\Controllers\PersonalabrechnungController;
+use App\Http\Controllers\AngehoerigenpflegeController;
 use Illuminate\Support\Facades\Route;
 
 // Setup-Wizard (nur wenn noch kein Benutzer existiert)
@@ -310,6 +311,9 @@ Route::middleware('auth')->group(function () {
 
     // Stammdaten + Audit — nur Admin
     Route::middleware('rolle:admin')->group(function () {
+        // Angehörigenpflege
+        Route::get('/angehoerigenpflege', [AngehoerigenpflegeController::class, 'index'])->name('angehoerigenpflege.index');
+
         // Kalender (Einsatzplanung visuell)
         Route::get('/kalender', [KalenderController::class, 'index'])->name('kalender.index');
         Route::get('/kalender/einsaetze', [KalenderController::class, 'einsaetze'])->name('kalender.einsaetze');

@@ -96,26 +96,37 @@
 
             {{-- Mitarbeiter (nur Admin) --}}
             @if(auth()->user()->rolle === 'admin' && $mitarbeiter->count())
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 0.5rem;">
                 <label class="feld-label" for="benutzer_id">Mitarbeiter</label>
                 <select id="benutzer_id" name="benutzer_id" class="feld">
                     <option value="">— Eigener Account —</option>
-                    @foreach($mitarbeiter->where('anstellungsart', '!=', 'angehoerig') as $m)
+                    @foreach($mitarbeiter as $m)
                         <option value="{{ $m->id }}"
+                            data-anstellungsart="{{ $m->anstellungsart }}"
                             {{ (old('benutzer_id', request('benutzer_id')) == $m->id) ? 'selected' : '' }}>
-                            {{ $m->nachname }} {{ $m->vorname }} ({{ $m->rolle }})
+                            {{ $m->nachname }} {{ $m->vorname }}
+                            @if($m->anstellungsart === 'angehoerig') 👪 (Angehörig)
+                            @elseif($m->anstellungsart === 'freiwillig') (Freiwillig)
+                            @endif
                         </option>
                     @endforeach
                 </select>
             </div>
+            {{-- Info wenn Angehöriger ausgewählt --}}
+            <div id="hinweis-angehoerig-ma" style="display:none; margin-bottom:1rem;">
+                <div class="info-box" style="font-size:0.8125rem;">
+                    👪 <strong>Pflegender Angehöriger</strong> — Leistungserbringer-Typ wird automatisch gesetzt.
+                    Nur Grundpflege &amp; Hauswirtschaft erlaubt (KLV).
+                </div>
+            </div>
 
-            {{-- Helfer (pflegender Angehöriger des Klienten) --}}
-            <div style="margin-bottom: 1rem;" id="helfer-bereich">
-                <label class="feld-label" for="helfer_id">Helfer (pflegender Angehöriger)</label>
+            {{-- Helfer (nur sichtbar wenn der Klient zugewiesene Angehörige hat) --}}
+            <div style="margin-bottom: 1rem; display:none;" id="helfer-bereich">
+                <label class="feld-label" for="helfer_id">Pflegender Angehöriger (Helfer)</label>
                 <select id="helfer_id" name="helfer_id" class="feld">
                     <option value="">— kein Helfer —</option>
                 </select>
-                <div class="text-klein text-hell" style="margin-top: 0.25rem;">Wird automatisch aus den zugewiesenen Angehörigen des Klienten befüllt.</div>
+                <div class="text-klein text-hell" style="margin-top: 0.25rem;">Angehörige des gewählten Klienten.</div>
             </div>
             @endif
 
@@ -320,7 +331,7 @@ function aktualisiereHelfer() {
     angehoerige.forEach(a => {
         const opt = document.createElement('option');
         opt.value = a.id;
-        opt.textContent = a.name;
+        opt.textContent = a.name + ' (Angehörig)';
         if (String(a.id) === altWert) opt.selected = true;
         helferSelect.appendChild(opt);
     });
@@ -330,27 +341,19 @@ function aktualisiereHelfer() {
 
 function pruefeAngehoerig() {
     if (!benutzerSelect || !erbringerSelect) return;
-    const angehoerige   = angehoerigeMap[klientSelect.value] ?? [];
-    const istAngehoerig = angehoerige.some(a => a.id === parseInt(benutzerSelect.value));
+    const sel = benutzerSelect.options[benutzerSelect.selectedIndex];
+    const istAngehoerig = sel?.dataset?.anstellungsart === 'angehoerig';
+
     erbringerSelect.value = istAngehoerig ? 'angehoerig' : 'fachperson';
 
-    let hinweis = document.getElementById('hinweis-angehoerig-einsatz');
-    if (istAngehoerig) {
-        if (!hinweis) {
-            hinweis = document.createElement('div');
-            hinweis.id = 'hinweis-angehoerig-einsatz';
-            hinweis.style.cssText = 'margin-top:0.4rem; font-size:0.8rem; color:#92400e; background:#fffbeb; border:1px solid #f59e0b; border-radius:5px; padding:0.35rem 0.6rem;';
-            erbringerSelect.parentNode.appendChild(hinweis);
-        }
-        hinweis.textContent = '↑ Automatisch erkannt: pflegender Angehöriger dieses Klienten.';
-    } else if (hinweis) {
-        hinweis.remove();
-    }
+    const hinweis = document.getElementById('hinweis-angehoerig-ma');
+    if (hinweis) hinweis.style.display = istAngehoerig ? '' : 'none';
 }
 
 klientSelect.addEventListener('change', () => { aktualisiereHelfer(); pruefeAngehoerig(); });
 if (benutzerSelect) benutzerSelect.addEventListener('change', pruefeAngehoerig);
 aktualisiereHelfer();
+pruefeAngehoerig();
 </script>
 @endpush
 </x-layouts.app>
