@@ -4,13 +4,17 @@ import interactionPlugin      from '@fullcalendar/interaction';
 import deLocale               from '@fullcalendar/core/locales/de';
 
 // Globale Referenz für Blade-View
-window.KalenderInit = function(mitarbeiter) {
+window.KalenderInit = function(mitarbeiter, klienten) {
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
-    const ressourcen = [
+    const ressourcenAngestellte = [
         { id: 'unzugeteilt', title: '— Nicht zugeteilt —' },
         ...mitarbeiter.map(m => ({ id: String(m.id), title: m.vorname + ' ' + m.nachname }))
     ];
+
+    const ressourcenKlienten = klienten.map(k => ({ id: 'k' + String(k.id), title: k.vorname + ' ' + k.nachname, klient_id: k.id }));
+
+    let ansicht = 'angestellte'; // 'angestellte' | 'klienten'
 
     const kalender = new Calendar(document.getElementById('kalender'), {
         plugins:             [resourceTimelinePlugin, interactionPlugin],
@@ -30,7 +34,8 @@ window.KalenderInit = function(mitarbeiter) {
             resourceTimelineDay:  'Tag',
             resourceTimelineWeek: 'Woche',
         },
-        resources:  ressourcen,
+        resourceAreaHeaderContent: 'Angestellte',
+        resources:  ressourcenAngestellte,
         events:     '/kalender/einsaetze',
         editable:   true,
         droppable:  true,
@@ -55,13 +60,12 @@ window.KalenderInit = function(mitarbeiter) {
             },
         },
 
-        // Klick → Popup
         eventClick: function(info) {
             zeigePopup(info.event, info.jsEvent);
         },
 
-        // Doppelklick auf leere Zelle → Einsatz erfassen
         dateClick: function(info) {
+            if (ansicht !== 'angestellte') return;
             const jetzt = Date.now();
             if (kalender._letzterKlick && jetzt - kalender._letzterKlick < 400
                 && kalender._letzterKlickRes === info.resource?.id
@@ -79,8 +83,8 @@ window.KalenderInit = function(mitarbeiter) {
             kalender._letzterKlickDate = info.dateStr;
         },
 
-        // Drag & Drop → PATCH
         eventDrop: function(info) {
+            if (ansicht !== 'angestellte') { info.revert(); return; }
             const e      = info.event;
             const neueRes = info.newResource;
 
@@ -108,6 +112,23 @@ window.KalenderInit = function(mitarbeiter) {
 
     kalender.render();
 
+    // Ansicht-Toggle
+    document.getElementById('kl-ansicht-toggle').addEventListener('click', function() {
+        ansicht = ansicht === 'angestellte' ? 'klienten' : 'angestellte';
+        if (ansicht === 'klienten') {
+            kalender.setOption('resources', ressourcenKlienten);
+            kalender.setOption('resourceAreaHeaderContent', 'Klient');
+            kalender.setOption('editable', false);
+            this.textContent = 'Ansicht: Klienten';
+        } else {
+            kalender.setOption('resources', ressourcenAngestellte);
+            kalender.setOption('resourceAreaHeaderContent', 'Angestellte');
+            kalender.setOption('editable', true);
+            this.textContent = 'Ansicht: Angestellte';
+        }
+        kalender.refetchEvents();
+    });
+
     // Zeitbereich-Controls
     document.getElementById('kl-von').addEventListener('change', function() {
         kalender.setOption('slotMinTime', this.value);
@@ -116,7 +137,6 @@ window.KalenderInit = function(mitarbeiter) {
         kalender.setOption('slotMaxTime', this.value);
     });
 
-    // ── Popup ────────────────────────────────────────────────────────────────
     function zeigePopup(event, jsEvent) {
         const p     = event.extendedProps;
         const popup = document.getElementById('kl-popup');
@@ -156,7 +176,6 @@ window.KalenderInit = function(mitarbeiter) {
         }
     });
 
-    // Chrome bfcache: Seite neu laden wenn aus Cache wiederhergestellt
     window.addEventListener('pageshow', function(e) {
         if (e.persisted) window.location.reload();
     });

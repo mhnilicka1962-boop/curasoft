@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Benutzer;
 use App\Models\Einsatz;
+use App\Models\Klient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -37,7 +38,12 @@ class KalenderController extends Controller
                 return $diff !== 0 ? $diff : strcmp($a->nachname, $b->nachname);
             })->values();
 
-        return view('kalender.index', compact('mitarbeiter'));
+        $klienten = Klient::where('organisation_id', $orgId)
+            ->where('aktiv', true)
+            ->orderBy('nachname')
+            ->get(['id', 'vorname', 'nachname']);
+
+        return view('kalender.index', compact('mitarbeiter', 'klienten'));
     }
 
     // JSON-API für FullCalendar
@@ -64,6 +70,10 @@ class KalenderController extends Controller
             return [
                 'id'              => $e->id,
                 'resourceId'      => $e->benutzer_id ? (string) $e->benutzer_id : 'unzugeteilt',
+                'resourceIds'     => array_filter([
+                    $e->benutzer_id ? (string) $e->benutzer_id : 'unzugeteilt',
+                    $e->klient_id   ? 'k' . $e->klient_id : null,
+                ]),
                 'title'           => ($e->klient ? $e->klient->vorname . ' ' . $e->klient->nachname : '?')
                                    . ($hatZeit ? ' ' . substr($e->zeit_von, 0, 5) : ''),
                 'start'           => $start,
@@ -129,7 +139,6 @@ class KalenderController extends Controller
                 if ($a->benutzer_id !== $b->benutzer_id) continue;
                 if ($a->datum->format('Y-m-d') !== $b->datum->format('Y-m-d')) continue;
 
-                // Überlappung: A beginnt vor B endet UND B beginnt vor A endet
                 if ($a->zeit_von < $b->zeit_bis && $b->zeit_von < $a->zeit_bis) {
                     $doppelt[] = $a->id;
                     $doppelt[] = $b->id;

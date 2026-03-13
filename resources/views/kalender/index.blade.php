@@ -54,6 +54,7 @@
             @endfor
         </select>
     </label>
+    <button id="kl-ansicht-toggle" class="btn btn-sekundaer" style="margin-left:auto;">Ansicht: Angestellte</button>
 </div>
 
 <div class="legende">
@@ -83,8 +84,9 @@
 @vite('resources/js/kalender.js')
 <script>
     const mitarbeiter = @json($mitarbeiter->map(fn($m) => ['id' => $m->id, 'vorname' => $m->vorname, 'nachname' => $m->nachname]));
+    const klienten    = @json($klienten->map(fn($k) => ['id' => $k->id, 'vorname' => $k->vorname, 'nachname' => $k->nachname]));
     document.addEventListener('DOMContentLoaded', function() {
-        window.KalenderInit(mitarbeiter);
+        window.KalenderInit(mitarbeiter, klienten);
     });
 </script>
 @endpush
