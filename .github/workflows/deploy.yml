@@ -44,6 +44,6 @@ jobs:
             php artisan tenant:migrate --force &&
             php artisan tenant:ensure &&
             php artisan optimize:clear &&
-            php -r "if(function_exists('opcache_reset')){opcache_reset();echo 'Opcache geleert';}else{echo 'Kein Opcache';}" &&
+            php -r 'if(function_exists("opcache_reset")){opcache_reset();echo "Opcache geleert";}else{echo "Kein Opcache";}' &&
             echo '✅ Deploy fertig'
           "
