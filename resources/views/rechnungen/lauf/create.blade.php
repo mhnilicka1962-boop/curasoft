@@ -252,6 +252,7 @@
 @endif
 
 
+<script>
 document.addEventListener('DOMContentLoaded', function () {
     const alleCheckbox  = document.getElementById('alle-waehlen');
     const klientCbs     = () => document.querySelectorAll('.klient-cb');
