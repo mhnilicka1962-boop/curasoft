@@ -119,7 +119,7 @@
 {{-- Suche --}}
 <div style="margin-bottom: 0.75rem;">
     <input type="text" id="lauf-suche" class="feld" style="max-width: 300px;"
-        placeholder="Name oder Rechnungsnummer…" oninput="laufSuche(this.value)" autocomplete="off">
+        placeholder="Name suchen…" oninput="laufSuche(this.value)" autocomplete="off">
 </div>
 
 {{-- Tabelle aller Rechnungen --}}
@@ -170,7 +170,8 @@
                         </div>
                     @endif
                 </td>
-                <td class="text-rechts">
+                <td class="text-rechts" style="white-space: nowrap;">
+                    <a href="{{ route('rechnungen.pdf', $r) }}" class="btn btn-sekundaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;" target="_blank">📄 PDF</a>
                     <a href="{{ route('rechnungen.show', $r) }}" class="btn btn-sekundaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;">Detail</a>
                 </td>
             </tr>
