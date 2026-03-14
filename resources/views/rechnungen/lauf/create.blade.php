@@ -151,10 +151,14 @@
                                 <span class="badge badge-info" style="font-size:0.7rem; margin-left:0.25rem;">{{ $z['label'] }}</span>
                             @endif
                             @if($z['ohne_tarif'])<span title="Einsätze ohne Leistungsart/Tarif"> ⚠</span>@endif
-                            <div style="margin-top:0.15rem;">
+                            <div style="margin-top:0.25rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+                                <a href="{{ route('rechnungslauf.vorschau-pdf', ['klient_id' => $z['klient']->id, 'periode_von' => request('periode_von'), 'periode_bis' => request('periode_bis'), 'pauschale' => ($z['label'] === 'Pauschale' ? 1 : 0)]) }}"
+                                   class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.15rem 0.5rem;" target="_blank">
+                                    📄 PDF Vorschau
+                                </a>
                                 <a href="{{ route('einsaetze.index', ['klient_id' => $z['klient']->id, 'datum_von' => request('periode_von'), 'datum_bis' => request('periode_bis'), 'ansicht' => 'vergangen']) }}"
-                                   class="link-gedaempt" style="font-size:0.75rem;" target="_blank">
-                                    Einsätze ansehen →
+                                   class="link-gedaempt" style="font-size:0.75rem; line-height:2;" target="_blank">
+                                    Einsätze →
                                 </a>
                             </div>
                         </td>

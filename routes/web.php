@@ -289,6 +289,7 @@ Route::middleware('auth')->group(function () {
         // Rechnungslauf — VOR resource(), damit /lauf/create nicht als {lauf}=create interpretiert wird
         Route::get('/rechnungen/lauf',                      [RechnungslaufController::class, 'index'])->name('rechnungslauf.index');
         Route::get('/rechnungen/lauf/create',               [RechnungslaufController::class, 'create'])->name('rechnungslauf.create');
+        Route::get('/rechnungen/lauf/vorschau-pdf',         [RechnungslaufController::class, 'vorschauPdf'])->name('rechnungslauf.vorschau-pdf');
         Route::post('/rechnungen/lauf',                     [RechnungslaufController::class, 'store'])->name('rechnungslauf.store');
         Route::get('/rechnungen/lauf/{lauf}',               [RechnungslaufController::class, 'show'])->name('rechnungslauf.show');
         Route::post('/rechnungen/lauf/{lauf}/email',        [RechnungslaufController::class, 'emailVersand'])->name('rechnungslauf.email');

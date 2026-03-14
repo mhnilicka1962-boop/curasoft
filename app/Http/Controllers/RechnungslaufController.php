@@ -50,6 +50,116 @@ class RechnungslaufController extends Controller
         return view('rechnungen.lauf.index', compact('laeufe', 'jahre', 'jahr'));
     }
 
+    public function vorschauPdf(Request $request)
+    {
+        $request->validate([
+            'klient_id'   => ['required', 'integer'],
+            'periode_von' => ['required', 'date'],
+            'periode_bis' => ['required', 'date'],
+            'pauschale'   => ['nullable', 'boolean'],
+        ]);
+
+        $klient = Klient::where('organisation_id', $this->orgId())
+            ->where('aktiv', true)
+            ->findOrFail($request->klient_id);
+
+        $nurPauschale = (bool) $request->input('pauschale', false);
+
+        $einsaetze = Einsatz::where('klient_id', $klient->id)
+            ->where('verrechnet', false)
+            ->where(function ($q) {
+                $q->whereNotNull('checkout_zeit')->orWhereNotNull('tagespauschale_id');
+            })
+            ->whereBetween('datum', [$request->periode_von, $request->periode_bis])
+            ->with('leistungsart', 'tagespauschale')
+            ->orderBy('datum')
+            ->get();
+
+        $einsaetze = $nurPauschale
+            ? $einsaetze->filter(fn($e) => $e->tagespauschale_id)
+            : $einsaetze->filter(fn($e) => !$e->tagespauschale_id);
+
+        if ($einsaetze->isEmpty()) {
+            abort(404, 'Keine Einsätze für diese Vorschau gefunden.');
+        }
+
+        // Temporäre Rechnung bauen (nicht speichern)
+        $rechnungstyp = $nurPauschale
+            ? ($einsaetze->first()->tagespauschale->rechnungstyp ?? $klient->rechnungstyp ?? 'kombiniert')
+            : ($klient->rechnungstyp ?? 'kombiniert');
+
+        $rechnung = new Rechnung([
+            'organisation_id' => $this->orgId(),
+            'klient_id'       => $klient->id,
+            'rechnungsnummer' => 'VORSCHAU',
+            'periode_von'     => $request->periode_von,
+            'periode_bis'     => $request->periode_bis,
+            'rechnungsdatum'  => today(),
+            'status'          => 'entwurf',
+            'rechnungstyp'    => $rechnungstyp,
+        ]);
+        $rechnung->id = 0;
+        $rechnung->setRelation('klient', $klient->load(['region', 'krankenkassen.krankenkasse', 'adressen']));
+
+        $tarifCache = [];
+        $positionen = collect();
+
+        foreach ($einsaetze as $einsatz) {
+            if ($nurPauschale) {
+                $tp     = $einsatz->tagespauschale;
+                $ansatz = (float) $tp->ansatz;
+                [$tarifPat, $tarifKk] = match($tp->rechnungstyp) {
+                    'kvg'  => [0.0, $ansatz],
+                    default=> [$ansatz, 0.0],
+                };
+                $pos = new RechnungsPosition([
+                    'rechnung_id'    => 0,
+                    'einsatz_id'     => $einsatz->id,
+                    'datum'          => $einsatz->datum,
+                    'menge'          => 1,
+                    'einheit'        => 'tage',
+                    'beschreibung'   => $tp->text,
+                    'tarif_patient'  => $tarifPat,
+                    'tarif_kk'       => $tarifKk,
+                    'betrag_patient' => round($tarifPat, 2),
+                    'betrag_kk'      => round($tarifKk, 2),
+                ]);
+            } else {
+                [$tarifPat, $tarifKk] = $this->tarifeFuerEinsatz($einsatz, $klient, $rechnungstyp, $tarifCache);
+                $m = $einsatz->minuten ?? 0;
+                $pos = new RechnungsPosition([
+                    'rechnung_id'    => 0,
+                    'einsatz_id'     => $einsatz->id,
+                    'datum'          => $einsatz->datum,
+                    'menge'          => $m,
+                    'einheit'        => 'minuten',
+                    'beschreibung'   => null,
+                    'tarif_patient'  => $tarifPat,
+                    'tarif_kk'       => $tarifKk,
+                    'betrag_patient' => round($m / 60 * $tarifPat, 2),
+                    'betrag_kk'      => round($m / 60 * $tarifKk, 2),
+                ]);
+            }
+            $pos->setRelation('einsatz', $einsatz);
+            $positionen->push($pos);
+        }
+
+        $rechnung->setRelation('positionen', $positionen);
+        $rechnung->betrag_patient = $positionen->sum('betrag_patient');
+        $rechnung->betrag_kk      = $positionen->sum('betrag_kk');
+        $rechnung->betrag_total   = $rechnung->betrag_patient + $rechnung->betrag_kk;
+
+        $org     = Organisation::findOrFail($this->orgId());
+        $service = new PdfExportService($org);
+        $pdf     = $service->rechnungAlsPdfString($rechnung);
+
+        $name = "vorschau_{$klient->nachname}_{$request->periode_von}.pdf";
+        return response($pdf, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => "inline; filename=\"{$name}\"",
+        ]);
+    }
+
     public function create(Request $request)
     {
         $vorschau = null;

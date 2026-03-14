@@ -109,4 +109,51 @@ class PdfExportService
 
         return $pfad;
     }
+
+    /**
+     * PDF direkt als String rendern — ohne speichern, für Vorschau.
+     */
+    public function rechnungAlsPdfString(Rechnung $rechnung): string
+    {
+        $rechnung->loadMissing([
+            'klient.region',
+            'klient.krankenkassen.krankenkasse',
+            'klient.adressen',
+            'positionen.leistungstyp.leistungsart',
+            'positionen.einsatz.leistungsart',
+        ]);
+
+        $regionDaten = $rechnung->klient->region_id
+            ? $this->org->datenFuerRegion($rechnung->klient->region_id)
+            : [
+                'zsr_nr'         => $this->org->zsr_nr ?? '',
+                'bank'           => $this->org->bank ?? '',
+                'bankadresse'    => $this->org->bankadresse ?? '',
+                'iban'           => $this->org->iban ?? '',
+                'postcheckkonto' => $this->org->postcheckkonto ?? '',
+                'esr'            => '',
+                'qr_iban'        => '',
+            ];
+
+        $logoBase64 = null;
+        if ($this->org->logo_pfad) {
+            $logoPfad = public_path($this->org->logo_pfad);
+            if (file_exists($logoPfad)) {
+                $mime       = mime_content_type($logoPfad);
+                $logoBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($logoPfad));
+            }
+        }
+
+        $html = view('pdfs.rechnung', [
+            'rechnung'         => $rechnung,
+            'org'              => $this->org,
+            'regionDaten'      => $regionDaten,
+            'logoBase64'       => $logoBase64,
+            'logoAusrichtung'  => $this->org->logo_ausrichtung ?? 'links_anschrift_rechts',
+            'qrCodeDataUri'    => null,
+            'qrIbanFormatiert' => null,
+        ])->render();
+
+        return Pdf::loadHTML($html)->setPaper('A4', 'portrait')->output();
+    }
 }
