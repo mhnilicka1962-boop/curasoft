@@ -3,7 +3,11 @@
 
     {{-- Header --}}
     <div class="seiten-kopf">
-        <a href="{{ route('klienten.index') }}" class="text-klein link-gedaempt">← Alle Klienten</a>
+        @if(request('back'))
+            <a href="{{ request('back') }}" class="text-klein link-gedaempt">← Zurück</a>
+        @else
+            <a href="{{ route('klienten.index') }}" class="text-klein link-gedaempt">← Alle Klienten</a>
+        @endif
         <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
             @if(!$klient->aktiv)
                 <span class="badge badge-grau">Inaktiv</span>

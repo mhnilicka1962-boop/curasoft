@@ -156,8 +156,8 @@
                                    class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.15rem 0.5rem;" target="_blank">
                                     📄 PDF Vorschau
                                 </a>
-                                <a href="{{ route('klienten.show', $z['klient']) }}"
-                                   class="link-gedaempt" style="font-size:0.75rem; line-height:2;" target="_blank">
+                                <a href="{{ route('klienten.show', $z['klient']) . '?back=' . urlencode(request()->fullUrl()) }}"
+                                   class="link-gedaempt" style="font-size:0.75rem; line-height:2;">
                                     Klient →
                                 </a>
                             </div>
