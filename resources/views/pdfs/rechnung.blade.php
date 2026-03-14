@@ -173,7 +173,6 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
             @endif
         </div>
         <div class="kopf-rechts">
-            @if(!$logoBase64)<strong>{{ $org->name }}</strong><br>@endif
             @if($org->adresse){{ $org->adresse }}<br>@endif
             @if($org->postfach){{ $org->postfach }}<br>@endif
             {{ $org->plz }} {{ $org->ort }}
