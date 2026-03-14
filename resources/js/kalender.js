@@ -25,14 +25,16 @@ window.KalenderInit = function(mitarbeiter, klienten) {
         headerToolbar: {
             left:   'prev,next today',
             center: 'title',
-            right:  'resourceTimelineDay,resourceTimelineWeek',
+            right:  'resourceTimelineDay,resourceTimelineWeek,resourceTimeline2Wochen,resourceTimelineMonth',
         },
         buttonText: {
-            prev:                '←',
-            next:                '→',
-            today:               'Heute',
-            resourceTimelineDay:  'Tag',
-            resourceTimelineWeek: 'Woche',
+            prev:                    '←',
+            next:                    '→',
+            today:                   'Heute',
+            resourceTimelineDay:      'Tag',
+            resourceTimelineWeek:     'Woche',
+            resourceTimeline2Wochen:  '2 Wo.',
+            resourceTimelineMonth:    'Monat',
         },
         resourceAreaHeaderContent: 'Angestellte',
         resources:  ressourcenAngestellte,
@@ -55,6 +57,24 @@ window.KalenderInit = function(mitarbeiter, klienten) {
                 slotMinWidth: 34,
                 slotLabelFormat: [
                     { weekday: 'short', day: 'numeric', month: 'numeric' },
+                    { hour: '2-digit', minute: '2-digit', hour12: false, omitZeroMinute: false },
+                ],
+            },
+            resourceTimeline2Wochen: {
+                type:     'resourceTimeline',
+                duration: { weeks: 2 },
+                slotMinWidth: 22,
+                slotDuration: '01:00:00',
+                slotLabelFormat: [
+                    { weekday: 'short', day: 'numeric', month: 'numeric' },
+                    { hour: '2-digit', minute: '2-digit', hour12: false, omitZeroMinute: false },
+                ],
+            },
+            resourceTimelineMonth: {
+                slotMinWidth: 28,
+                slotDuration: '01:00:00',
+                slotLabelFormat: [
+                    { weekday: 'short', day: 'numeric' },
                     { hour: '2-digit', minute: '2-digit', hour12: false, omitZeroMinute: false },
                 ],
             },

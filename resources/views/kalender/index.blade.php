@@ -2,11 +2,14 @@
 
 @push('styles')
 <style>
-    .kalender-wrap { height: calc(100vh - 145px); min-height: 500px; }
+    .kalender-wrap { height: calc(100vh - 115px); min-height: 500px; }
 
-    .legende { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.8125rem; }
-    .legende-item { display: flex; align-items: center; gap: 0.375rem; }
-    .legende-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    .kl-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; font-size: 0.8125rem; }
+    .kl-controls label { display: flex; align-items: center; gap: 0.3rem; }
+    .kl-controls .feld { width: auto; padding: 0.2rem 0.4rem; font-size: 0.8125rem; }
+    .legende { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; flex: 1; }
+    .legende-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; }
+    .legende-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 
     .kl-popup {
         position: fixed; z-index: 9999;
@@ -32,37 +35,34 @@
 </style>
 @endpush
 
-<div class="seiten-kopf">
+<div class="seiten-kopf" style="margin-bottom:0.5rem;">
     <h1>Einsatzplanung</h1>
     <a href="{{ route('einsaetze.create') }}" class="btn btn-primaer">+ Neuer Einsatz</a>
 </div>
 
-<div style="display:flex; gap:1rem; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap;">
-    <label class="feld-label" style="margin:0; display:flex; align-items:center; gap:0.5rem;">
-        Von
-        <select id="kl-von" class="feld" style="width:auto; padding:0.25rem 0.5rem;">
+<div class="kl-controls">
+    <label>Von
+        <select id="kl-von" class="feld">
             @for($h = 0; $h <= 23; $h++)
                 <option value="{{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00:00" {{ $h === 6 ? 'selected' : '' }}>{{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00</option>
             @endfor
         </select>
     </label>
-    <label class="feld-label" style="margin:0; display:flex; align-items:center; gap:0.5rem;">
-        Bis
-        <select id="kl-bis" class="feld" style="width:auto; padding:0.25rem 0.5rem;">
+    <label>Bis
+        <select id="kl-bis" class="feld">
             @for($h = 1; $h <= 24; $h++)
                 <option value="{{ $h === 24 ? '24:00:00' : str_pad($h,2,'0',STR_PAD_LEFT).':00:00' }}" {{ $h === 22 ? 'selected' : '' }}>{{ $h === 24 ? '24:00' : str_pad($h,2,'0',STR_PAD_LEFT).':00' }}</option>
             @endfor
         </select>
     </label>
-    <button id="kl-ansicht-toggle" class="btn btn-sekundaer" style="margin-left:auto;">Ansicht: Angestellte</button>
-</div>
-
-<div class="legende">
-    <span class="legende-item"><span class="legende-dot" style="background:#2563eb"></span> Geplant</span>
-    <span class="legende-item"><span class="legende-dot" style="background:#d97706"></span> Aktiv</span>
-    <span class="legende-item"><span class="legende-dot" style="background:#16a34a"></span> Abgeschlossen</span>
-    <span class="legende-item"><span class="legende-dot" style="background:#dc2626"></span> ⚠ Doppelbelegung</span>
-    <span class="legende-item"><span class="legende-dot" style="background:#fbbf24; border:1px solid #d97706;"></span> Nicht zugeteilt</span>
+    <div class="legende">
+        <span class="legende-item"><span class="legende-dot" style="background:#2563eb"></span> Geplant</span>
+        <span class="legende-item"><span class="legende-dot" style="background:#d97706"></span> Aktiv</span>
+        <span class="legende-item"><span class="legende-dot" style="background:#16a34a"></span> Abgeschlossen</span>
+        <span class="legende-item"><span class="legende-dot" style="background:#dc2626"></span> ⚠ Doppelb.</span>
+        <span class="legende-item"><span class="legende-dot" style="background:#fbbf24; border:1px solid #d97706;"></span> Nicht zugeteilt</span>
+    </div>
+    <button id="kl-ansicht-toggle" class="btn btn-sekundaer">Ansicht: Angestellte</button>
 </div>
 
 <div class="karte karte-null" style="padding: 0.75rem;">
