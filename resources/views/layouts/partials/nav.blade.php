@@ -10,10 +10,10 @@
 </a>
 
 <div class="nav-abschnitt">Kommunikation</div>
-<a href="{{ route('nachrichten.index') }}" class="nav-link nav-link-mit-badge {{ request()->routeIs('nachrichten.*') ? 'aktiv' : '' }}">
-    <span>Nachrichten</span>
-    @if(!empty($navNachrichtenUngelesen) && $navNachrichtenUngelesen > 0)
-        <span class="nav-badge">{{ $navNachrichtenUngelesen }}</span>
+<a href="{{ route('chat.index') }}" class="nav-link nav-link-mit-badge {{ request()->routeIs('chat.*') ? 'aktiv' : '' }}">
+    <span>💬 Chat</span>
+    @if(!empty($navChatUngelesen) && $navChatUngelesen > 0)
+        <span class="nav-badge">{{ $navChatUngelesen }}</span>
     @endif
 </a>
 

@@ -6,6 +6,7 @@ use App\Models\Benutzer;
 use App\Models\Einsatz;
 use App\Models\Klient;
 use App\Models\NachrichtEmpfaenger;
+use Illuminate\Support\Facades\DB;
 use App\Models\Rechnung;
 use App\Observers\AuditObserver;
 use Illuminate\Support\Facades\URL;
@@ -29,14 +30,21 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        // Ungelesene Nachrichten-Badge für Navigation
+
+        // Chat Ungelesen-Badge für Navigation
         View::composer('layouts.partials.nav', function ($view) {
             if (auth()->check()) {
-                $ungelesen = NachrichtEmpfaenger::where('empfaenger_id', auth()->id())
-                    ->whereNull('gelesen_am')
-                    ->where('archiviert', false)
+                $userId = auth()->id();
+                $ungelesen = DB::table('chat_nachrichten as cn')
+                    ->join('chat_teilnehmer as ct', function ($j) use ($userId) {
+                        $j->on('ct.chat_id', '=', 'cn.chat_id')
+                          ->where('ct.benutzer_id', $userId);
+                    })
+                    ->whereNull('cn.geloescht_am')
+                    ->where('cn.absender_id', '!=', $userId)
+                    ->whereRaw('cn.id > ct.letzte_gesehen_id')
                     ->count();
-                $view->with('navNachrichtenUngelesen', $ungelesen);
+                $view->with('navChatUngelesen', $ungelesen);
             }
         });
 

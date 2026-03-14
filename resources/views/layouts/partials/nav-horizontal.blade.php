@@ -1,5 +1,5 @@
 <a href="{{ route('dashboard') }}" class="topnav-link {{ request()->routeIs('dashboard') ? 'aktiv' : '' }}">Dashboard</a>
-<a href="{{ route('nachrichten.index') }}" class="topnav-link {{ request()->routeIs('nachrichten.*') ? 'aktiv' : '' }}">Nachrichten</a>
+<a href="{{ route('chat.index') }}" class="topnav-link {{ request()->routeIs('chat.*') ? 'aktiv' : '' }}">💬 Chat</a>
 <a href="{{ route('klienten.index') }}" class="topnav-link {{ request()->routeIs('klienten.*') ? 'aktiv' : '' }}">Klienten</a>
 <a href="{{ route('einsaetze.index') }}" class="topnav-link {{ request()->routeIs('einsaetze.*') || request()->routeIs('checkin.*') || request()->routeIs('checkout.*') ? 'aktiv' : '' }}">Einsätze</a>
 <a href="{{ route('touren.index') }}" class="topnav-link {{ request()->routeIs('touren.*') ? 'aktiv' : '' }}">Touren</a>

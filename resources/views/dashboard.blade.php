@@ -143,9 +143,9 @@
         </a>
         @endif
 
-        <a href="{{ route('nachrichten.index') }}" class="stat-chip">
-            <span class="stat-chip-label">Nachrichten</span>
-            <span class="stat-chip-zahl {{ $ungeleseneNachrichten > 0 ? 'primaer' : '' }}">{{ $ungeleseneNachrichten }}</span>
+        <a href="{{ route('chat.index') }}" class="stat-chip">
+            <span class="stat-chip-label">Chat</span>
+            <span class="stat-chip-zahl">💬</span>
         </a>
 
     </div>

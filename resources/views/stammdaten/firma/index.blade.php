@@ -6,6 +6,23 @@
         <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Firma / Organisation</h1>
     </div>
 
+    @php
+        $fehlend = collect([
+            'Firmaname'  => empty($org->name),
+            'Adresse'    => empty($org->adresse),
+            'IBAN'       => empty($org->iban),
+        ])->filter()->keys();
+    @endphp
+    @if($fehlend->isNotEmpty())
+    <div class="warn-box" style="margin-bottom: 1rem; display:flex; gap: 0.5rem; align-items:flex-start;">
+        <span>⚠</span>
+        <div>
+            <strong>Für Rechnungen und PDF fehlt noch:</strong>
+            {{ $fehlend->join(', ') }}
+        </div>
+    </div>
+    @endif
+
     <form method="POST" action="{{ route('firma.update') }}" enctype="multipart/form-data">
         @csrf @method('PUT')
 
@@ -93,8 +110,8 @@
                     <input type="text" name="bankadresse" class="feld" value="{{ old('bankadresse', $org->bankadresse) }}" placeholder="3000 Bern">
                 </div>
                 <div>
-                    <label class="feld-label">IBAN (21-stellig)</label>
-                    <input type="text" name="iban" class="feld" value="{{ old('iban', $org->iban) }}" placeholder="CH08 0900 0000 6049 0383 6" maxlength="30">
+                    <label class="feld-label">IBAN (21-stellig) @if(empty($org->iban))<span style="color:var(--cs-fehler);"> *</span>@endif</label>
+                    <input type="text" name="iban" class="feld" value="{{ old('iban', $org->iban) }}" placeholder="CH08 0900 0000 6049 0383 6" maxlength="30" style="{{ empty($org->iban) ? 'border-color: var(--cs-fehler);' : '' }}">
                 </div>
                 <div>
                     <label class="feld-label">Postkonto / Kontonummer</label>
@@ -313,8 +330,13 @@
 
     {{-- Kanton hinzufügen / bearbeiten --}}
     <div class="karte" id="kanton-formular">
-        <div class="abschnitt-label" style="margin-bottom: 1rem;">
+        <div class="abschnitt-label" style="margin-bottom: 0.75rem;">
             Kanton hinzufügen / bearbeiten
+        </div>
+
+        <div class="info-box" style="margin-bottom: 1rem; font-size: 0.8125rem;">
+            💡 <strong>Nur ausfüllen wenn dieser Kanton abweichende Angaben hat.</strong><br>
+            Alle leeren Felder fallen automatisch auf die Firmadaten zurück — das gilt für ZSR-Nr. <em>und</em> Bankdaten gleichermassen. Für die meisten Kantone muss hier gar nichts eingetragen werden.
         </div>
 
         <form method="POST" action="{{ route('firma.region.speichern') }}">
@@ -369,11 +391,6 @@
                         style="width: 1rem; height: 1rem; accent-color: var(--cs-primaer);">
                     Kanton ist aktiv (Org tätig in diesem Kanton)
                 </label>
-            </div>
-
-            {{-- Info-Box: Fallback-Logik --}}
-            <div style="background: var(--cs-primaer-hell); border-radius: var(--cs-radius); padding: 0.625rem 0.875rem; margin-bottom: 1rem; font-size: 0.8125rem; color: var(--cs-text-hell);">
-                Leere Felder = Haupt-Bankdaten der Firma werden verwendet. Nur ausfüllen wenn für diesen Kanton abweichende Bankdaten gelten.
             </div>
 
             <button type="submit" class="btn btn-primaer">Kanton speichern</button>

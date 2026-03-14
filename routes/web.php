@@ -8,6 +8,7 @@ use App\Http\Controllers\EinsaetzeController;
 use App\Http\Controllers\KlientenController;
 use App\Http\Controllers\FirmaController;
 use App\Http\Controllers\NachrichtenController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\LeistungsartenController;
 use App\Http\Controllers\RechnungenController;
 use App\Http\Controllers\RechnungslaufController;
@@ -135,8 +136,6 @@ Route::middleware('auth')->group(function () {
                 ->sum('betrag_total')
             : 0;
 
-        $ungeleseneNachrichten = \App\Models\NachrichtEmpfaenger::where('empfaenger_id', $userId)
-            ->whereNull('gelesen_am')->count();
 
         $letzteRapporte = \App\Models\Rapport::where('organisation_id', $orgId)
             ->with('klient', 'benutzer')
@@ -181,8 +180,8 @@ Route::middleware('auth')->group(function () {
         if ($rolle === 'admin') {
             $org = \App\Models\Organisation::find($orgId);
             $setup = [
-                'firma'       => !empty($org?->name) && !empty($org?->strasse),
-                'region'      => \App\Models\Region::where('organisation_id', $orgId)->exists(),
+                'firma'       => !empty($org?->name) && !empty($org?->adresse) && !empty($org?->iban),
+                'region'      => \App\Models\Region::exists(),
                 'klient'      => $klientenAktiv > 0,
                 'mitarbeiter' => \App\Models\Benutzer::where('organisation_id', $orgId)->where('id', '!=', $userId)->exists(),
                 'einsatz'     => \App\Models\Einsatz::where('organisation_id', $orgId)->exists(),
@@ -192,7 +191,7 @@ Route::middleware('auth')->group(function () {
 
         return view('dashboard', compact(
             'klientenAktiv', 'einsaetzeHeute', 'einsaetzeGeplant',
-            'offeneRechnungen', 'ungeleseneNachrichten',
+            'offeneRechnungen',
             'letzteRapporte', 'einsaetzeListe', 'einsaetzeDatumLabel',
             'setup', 'setupFertig'
         ));
@@ -207,14 +206,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/webauthn/register',           [WebAuthnController::class, 'register'])->name('webauthn.register');
     Route::delete('/webauthn/credentials/{id}', [WebAuthnController::class, 'delete'])->name('webauthn.delete');
 
-    // Internes Nachrichtensystem — alle eingeloggten Benutzer
-    Route::get('/nachrichten', [NachrichtenController::class, 'index'])->name('nachrichten.index');
-    Route::get('/nachrichten/neu', [NachrichtenController::class, 'create'])->name('nachrichten.create');
-    Route::post('/nachrichten', [NachrichtenController::class, 'store'])->name('nachrichten.store');
-    Route::get('/nachrichten/{nachricht}', [NachrichtenController::class, 'show'])->name('nachrichten.show');
-    Route::post('/nachrichten/{nachricht}/antworten', [NachrichtenController::class, 'antworten'])->name('nachrichten.antworten');
-    Route::patch('/nachrichten/{nachricht}/archivieren', [NachrichtenController::class, 'archivieren'])->name('nachrichten.archivieren');
-    Route::post('/nachrichten/rundschreiben', [NachrichtenController::class, 'rundschreiben'])->name('nachrichten.rundschreiben');
+    // Chat — alle eingeloggten Benutzer
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat/sidebar', [ChatController::class, 'sidebarDaten'])->name('chat.sidebar');
+    Route::get('/chat/{chat}/nachrichten', [ChatController::class, 'nachrichten'])->name('chat.nachrichten');
+    Route::post('/chat/{chat}', [ChatController::class, 'store'])->name('chat.store');
+    Route::delete('/chat/{chat}/nachrichten/{chatNachricht}', [ChatController::class, 'destroy'])->name('chat.destroy');
+    Route::post('/chat/direkt/{benutzer}', [ChatController::class, 'startDirekt'])->name('chat.direkt');
 
     // KI — alle eingeloggten Benutzer
     Route::post('/ki/rapport', [KiController::class, 'rapportVorschlag'])->name('ki.rapport');
