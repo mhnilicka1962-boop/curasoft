@@ -8,7 +8,7 @@
 # Insbesondere: Deploy-Regeln, Arbeitsablauf, bekannte Fallstricke.
 # NIEMALS aus dem Gedächtnis arbeiten — immer zuerst hier nachschlagen.
 
-## Stand: 2026-03-12 (Session 20 — GitHub Actions + Deploy-Workflow + Sprachkorrektur)
+## Stand: 2026-03-14 (Session 21 — Chat-System + Kalender-Ansichten + Fixes)
 
 ---
 
@@ -254,6 +254,40 @@ php artisan tenant:migrate
 
 ---
 
+## Neu in Session 21 (2026-03-14) — Chat-System + Kalender-Ansichten + Fixes
+
+### Chat-System (ersetzt Nachrichten komplett)
+- **URL:** `/chat` — alle eingeloggten Benutzer
+- **Tabellen:** `chats`, `chat_teilnehmer`, `chat_nachrichten`
+- **Typen:** `team` (alle sehen es) + `direkt` (1:1)
+- **Auto-Delete:** Nachrichten nach 14 Tagen automatisch gelöscht (einmal täglich via Cache-Throttle)
+- **Eigene Nachrichten löschen:** Hover → ✕ — löscht für alle; Admin kann alles löschen
+- **Ungelesen-Badge:** Pro Chat in Sidebar + im Nav-Link (via `letzte_gesehen_id` auf `chat_teilnehmer`)
+- **Polling:** Nachrichten alle 5 Sek., Sidebar alle 10 Sek. (neue DMs erscheinen automatisch)
+- **Sidebar:** "+ Direktnachricht" oben sichtbar; Absender + Datum/Zeit im Bubble; Timezone via JS-Timestamp
+- **Nachrichten-System:** Routes + View Composer entfernt; `navNachrichtenUngelesen` aus AppServiceProvider entfernt
+
+### Neue Dateien Session 21
+| Datei | Zweck |
+|-------|-------|
+| `app/Http/Controllers/ChatController.php` | index, nachrichten, store, destroy, startDirekt, sidebarDaten |
+| `app/Models/Chat.php` | Chat-Model (team/direkt) |
+| `app/Models/ChatNachricht.php` | Nachrichten-Model mit geloescht_am |
+| `app/Models/ChatTeilnehmer.php` | Pivot mit letzte_gesehen_id |
+| `resources/views/chat/index.blade.php` | Chat-UI (Sidebar + Bubbles + Polling) |
+| `database/migrations/2026_03_14_100000` | chats + chat_teilnehmer + chat_nachrichten |
+| `database/migrations/2026_03_14_110000` | letzte_gesehen_id auf chat_teilnehmer |
+
+### Kalender-Ansichten erweitert
+- **2 Wochen** (`resourceTimeline2Wochen`) + **Monat** (`resourceTimelineMonth`) neu in Toolbar
+- **Kompakteres Layout:** Controls + Legende in einer Zeile, `calc(100vh - 115px)` Höhe
+
+### Fixes Session 21
+- Dashboard: `Region::where('organisation_id')` → `Region::exists()` (Spalte existiert nicht)
+- Dashboard: `nachrichten.index` → `chat.index`; `$ungeleseneNachrichten` entfernt
+- Firma: Check `strasse` → `adresse`; IBAN-Pflichtfeld rot wenn leer; Warn-Banner fehlende Felder
+- Firma Kanton: Info-Box "Nur ausfüllen wenn abweichende Angaben" oben statt unten
+
 ## Neu in Session 20 (2026-03-12) — Kalender UX + Touren Bugfixes
 
 ### Kalender (/kalender) — UX-Verbesserungen
@@ -402,7 +436,7 @@ DB-Sync: ./deploy.sh db → lokal ausführen, manuell, niemals automatisch
 | Ärzte | `/aerzte` | AerzteController | admin |
 | Krankenkassen | `/krankenkassen` | KrankenkassenController | admin |
 | Audit-Log | `/audit-log` | AuditLogController | admin |
-| Nachrichten | `/nachrichten` | NachrichtenController | alle |
+| Chat | `/chat` | ChatController | alle |
 
 ---
 
