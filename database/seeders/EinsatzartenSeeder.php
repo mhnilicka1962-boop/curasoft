@@ -27,34 +27,36 @@ class EinsatzartenSeeder extends Seeder
             ['leistungsart_id' => $pauschale, 'bezeichnung' => 'Tagespauschale'],
 
             // Untersuchung / Behandlung
-            ['leistungsart_id' => $ub, 'bezeichnung' => 'Vitalzeichen (Puls, BD, T, Gewicht)'],
             ['leistungsart_id' => $ub, 'bezeichnung' => 'Blutzucker'],
             ['leistungsart_id' => $ub, 'bezeichnung' => 'Inhalation'],
-            ['leistungsart_id' => $ub, 'bezeichnung' => 'Medikamente'],
+            ['leistungsart_id' => $ub, 'bezeichnung' => 'Injektion subcutan'],
+            ['leistungsart_id' => $ub, 'bezeichnung' => 'Medikamente richten'],
             ['leistungsart_id' => $ub, 'bezeichnung' => 'Verbandwechsel'],
+            ['leistungsart_id' => $ub, 'bezeichnung' => 'Vitalzeichen (Puls, BD, T, Gewicht)'],
 
             // Hauswirtschaft
             ['leistungsart_id' => $hwl, 'bezeichnung' => 'Abklärung und Beratung HWL'],
             ['leistungsart_id' => $hwl, 'bezeichnung' => 'HWL-Leistungen'],
 
             // Grundpflege
-            ['leistungsart_id' => $gp, 'bezeichnung' => 'Grundpflege'],
-            ['leistungsart_id' => $gp, 'bezeichnung' => 'Waschen im Bett'],
-            ['leistungsart_id' => $gp, 'bezeichnung' => 'Waschen am Lavabo'],
-            ['leistungsart_id' => $gp, 'bezeichnung' => 'Duschen'],
-            ['leistungsart_id' => $gp, 'bezeichnung' => 'Intimpflege'],
-            ['leistungsart_id' => $gp, 'bezeichnung' => 'Mobilisation'],
-            ['leistungsart_id' => $gp, 'bezeichnung' => 'Lagern'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'An-/Auskleiden'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'Antithrombose Strümpfe'],
             ['leistungsart_id' => $gp, 'bezeichnung' => 'Ausscheidung'],
             ['leistungsart_id' => $gp, 'bezeichnung' => 'Beine einbinden'],
-            ['leistungsart_id' => $gp, 'bezeichnung' => 'Antithrombose Strümpfe'],
             ['leistungsart_id' => $gp, 'bezeichnung' => 'Betten im Bett'],
             ['leistungsart_id' => $gp, 'bezeichnung' => 'Dekubitusprophylaxe'],
-            ['leistungsart_id' => $gp, 'bezeichnung' => 'An-/Auskleiden'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'Duschen'],
             ['leistungsart_id' => $gp, 'bezeichnung' => 'Essen und Trinken'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'Grundpflege'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'Intimpflege'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'Lagern'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'Medikamente abgeben'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'Mobilisation'],
             ['leistungsart_id' => $gp, 'bezeichnung' => 'Mundpflege'],
-            ['leistungsart_id' => $gp, 'bezeichnung' => 'Rasur'],
             ['leistungsart_id' => $gp, 'bezeichnung' => 'Nagelpflege'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'Rasur'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'Waschen am Lavabo'],
+            ['leistungsart_id' => $gp, 'bezeichnung' => 'Waschen im Bett'],
 
             // Abklärung / Beratung
             ['leistungsart_id' => $ab, 'bezeichnung' => 'Bedarfsanalyse'],
