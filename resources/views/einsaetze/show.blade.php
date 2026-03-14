@@ -14,6 +14,9 @@
                 </button>
             </form>
             @endif
+            <a href="{{ route('einsaetze.vor-ort', $einsatz) }}" class="btn btn-sekundaer" style="font-size: 0.8125rem;">
+                📋 Vor-Ort
+            </a>
             @if($einsatz->status !== 'storniert')
             <a href="{{ route('einsaetze.edit', $einsatz) }}" class="btn btn-sekundaer" style="font-size: 0.8125rem;">
                 Bearbeiten
