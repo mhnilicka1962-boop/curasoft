@@ -28,14 +28,19 @@
                 <input type="date" name="periode_bis" class="feld" value="{{ request('periode_bis') }}"
                     max="{{ today()->format('Y-m-d') }}" required>
             </div>
-            <div class="form-feld" style="display: flex; align-items: flex-end;">
-                <button type="submit" class="btn btn-sekundaer" style="width: 100%;">Vorschau laden</button>
+            <div class="form-feld" style="display: flex; align-items: flex-end; gap: 0.5rem;">
+                <button type="submit" class="btn btn-sekundaer" style="flex: 1;">Vorschau laden</button>
+                @if($vorschau !== null && $vorschau['anzahl_mit'] > 0)
+                <button type="submit" form="lauf-form" class="btn btn-primaer" style="flex: 1;" onclick="return bestaetigeStart()">
+                    Rechnungslauf starten (<span class="selected-count-display">{{ $vorschau['anzahl_mit'] }}</span>)
+                </button>
+                @endif
             </div>
         </div>
     </form>
     <div class="text-hell" style="font-size: 0.8125rem; margin-top: 0.625rem;">
-        Rechnungstyp und Tarife werden pro Klient aus den Stammdaten übernommen
-        (Rechnungstyp unter Klient → Abrechnung, Tarife aus Leistungsarten → Regionen).
+        Rechnungstyp und Tarife werden pro Klient aus den Stammdaten übernommen.
+        Der Rechnungslauf kann jederzeit storniert werden, solange keine Rechnung als «Gesendet» markiert wurde — alle Einsätze werden dabei zurückgesetzt.
     </div>
     @if(request('periode_bis') && request('periode_bis') > today()->format('Y-m-d'))
     <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:var(--cs-radius); padding:0.5rem 0.75rem; margin-top:0.625rem; font-size:0.875rem; color:#dc2626; font-weight:600;">
@@ -49,14 +54,13 @@
 @php
     $typen      = ['kombiniert' => 'Kombi.', 'kvg' => 'KVG', 'klient' => 'Klient', 'gemeinde' => 'Gemeinde'];
     $typenBadge = ['kombiniert' => 'badge-grau', 'kvg' => 'badge-info', 'klient' => 'badge-erfolg', 'gemeinde' => ''];
-    // Mit Einsätzen zuerst, ohne danach
     $zeilen = collect($vorschau['zeilen'])->sortBy('ohne_einsaetze');
     $mitEinsaetzen = $zeilen->where('ohne_einsaetze', false);
 @endphp
 
 <div class="karte" style="margin-bottom: 1.5rem;">
 
-    {{-- Header + Top-Button --}}
+    {{-- Header --}}
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
         <h3 style="margin: 0;">
             Vorschau —
@@ -73,12 +77,6 @@
                 <span class="badge badge-warnung" title="Einsätze ohne Leistungsart haben Tarif 0">
                     ⚠ {{ $vorschau['ohne_leistungsart'] }} mit Tarif 0
                 </span>
-            @endif
-            @if($vorschau['anzahl_mit'] > 0)
-            <button type="submit" form="lauf-form" class="btn btn-primaer" id="btn-starten-top"
-                onclick="return bestaetigeStart()">
-                Lauf starten (<span class="selected-count-display">{{ $vorschau['anzahl_mit'] }}</span>)
-            </button>
             @endif
         </div>
     </div>
@@ -99,6 +97,13 @@
     <div class="meldung meldung-warnung" style="margin-bottom: 1rem; font-size: 0.875rem;">
         {{ $vorschau['ohne_leistungsart'] }} Klient(en) mit Einsätzen ohne Leistungsart — Tarif 0.
         <a href="{{ route('leistungsarten.index') }}" class="link-primaer">Leistungsarten konfigurieren</a>
+    </div>
+    @endif
+
+    {{-- Suchfeld --}}
+    @if($zeilen->count() > 5)
+    <div style="margin-bottom: 0.75rem;">
+        <input type="text" id="klient-suche" class="feld" placeholder="Klient suchen…" style="max-width: 280px; font-size: 0.875rem;">
     </div>
     @endif
 
@@ -127,19 +132,28 @@
                         <th class="text-mitte">Versand</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="klient-tbody">
                     @foreach($zeilen as $z)
                     @if(!$z['ohne_einsaetze'])
                     {{-- Klient mit Einsätzen --}}
-                    <tr class="klient-zeile" @if($z['ohne_tarif']) style="background:#fffbeb;" @endif>
+                    <tr class="klient-zeile" data-name="{{ strtolower($z['klient']->nachname . ' ' . $z['klient']->vorname) }}"
+                        @if($z['ohne_tarif']) style="background:#fffbeb;" @endif>
                         <td style="text-align:center;">
                             <input type="checkbox" name="klienten[]" value="{{ $z['klient']->id }}"
                                 checked class="klient-cb"
                                 style="cursor:pointer; width:15px; height:15px;">
                         </td>
                         <td>
-                            {{ $z['klient']->nachname }} {{ $z['klient']->vorname }}
+                            <a href="{{ route('klienten.show', $z['klient']) }}" class="link-primaer" style="font-weight:600;">
+                                {{ $z['klient']->nachname }} {{ $z['klient']->vorname }}
+                            </a>
                             @if($z['ohne_tarif'])<span title="Einsätze ohne Leistungsart/Tarif"> ⚠</span>@endif
+                            <div style="margin-top:0.15rem;">
+                                <a href="{{ route('einsaetze.index', ['klient_id' => $z['klient']->id, 'datum_von' => request('periode_von'), 'datum_bis' => request('periode_bis'), 'ansicht' => 'vergangen']) }}"
+                                   class="link-gedaempt" style="font-size:0.75rem;" target="_blank">
+                                    Einsätze ansehen →
+                                </a>
+                            </div>
                         </td>
                         <td class="text-mitte">
                             <span class="badge {{ $typenBadge[$z['rechnungstyp']] ?? 'badge-grau' }}">
@@ -162,7 +176,8 @@
                     </tr>
                     @else
                     {{-- Klient ohne Einsätze — rot, nicht selektierbar --}}
-                    <tr style="background:#fef2f2;">
+                    <tr class="klient-zeile" style="background:#fef2f2;"
+                        data-name="{{ strtolower($z['klient']->nachname . ' ' . $z['klient']->vorname) }}">
                         <td style="text-align:center; color:#dc2626; font-weight:700;">—</td>
                         <td>
                             <a href="{{ route('klienten.show', $z['klient']) }}"
@@ -240,11 +255,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const n = document.querySelectorAll('.klient-cb:checked').length;
         countDisplays.forEach(el => el.textContent = n);
         if (selectedCount) selectedCount.textContent = n;
-        // "Alle"-Checkbox: checked wenn alle, indeterminate wenn teilweise
         const alle = klientCbs();
         const checkedCount = document.querySelectorAll('.klient-cb:checked').length;
-        alleCheckbox.checked       = checkedCount === alle.length;
-        alleCheckbox.indeterminate = checkedCount > 0 && checkedCount < alle.length;
+        if (alleCheckbox) {
+            alleCheckbox.checked       = checkedCount === alle.length;
+            alleCheckbox.indeterminate = checkedCount > 0 && checkedCount < alle.length;
+        }
     }
 
     if (alleCheckbox) {
@@ -255,6 +271,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     klientCbs().forEach(cb => cb.addEventListener('change', aktualisiereAnzahl));
+
+    // Klient-Suchfeld
+    const suchfeld = document.getElementById('klient-suche');
+    if (suchfeld) {
+        suchfeld.addEventListener('input', function () {
+            const suche = this.value.toLowerCase();
+            document.querySelectorAll('#klient-tbody tr.klient-zeile').forEach(function (tr) {
+                const name = tr.dataset.name || '';
+                tr.style.display = name.includes(suche) ? '' : 'none';
+            });
+        });
+    }
 });
 
 function bestaetigeStart() {

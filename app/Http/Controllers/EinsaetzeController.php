@@ -51,6 +51,9 @@ class EinsaetzeController extends Controller
             );
         }
 
+        if ($request->filled('klient_id')) {
+            $q->where('klient_id', $request->klient_id);
+        }
         if ($request->filled('datum_von')) {
             $q->whereDate('datum', '>=', $request->datum_von);
         }
