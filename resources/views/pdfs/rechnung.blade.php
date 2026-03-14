@@ -175,7 +175,7 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
         <div class="kopf-rechts">
             @if(!$logoBase64)<strong>{{ $org->name }}</strong><br>@endif
             @if($org->adresse){{ $org->adresse }}<br>@endif
-            @if($org->postfach)Postfach {{ $org->postfach }}<br>@endif
+            @if($org->postfach){{ $org->postfach }}<br>@endif
             {{ $org->plz }} {{ $org->ort }}
             @if($org->telefon)<br>Tel. {{ $org->telefon }}@endif
             @if($org->email) · {{ $org->email }}@endif
