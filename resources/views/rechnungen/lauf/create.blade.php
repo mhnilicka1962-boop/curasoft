@@ -252,6 +252,7 @@
 @endif
 
 
+@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const alleCheckbox  = document.getElementById('alle-waehlen');
@@ -302,5 +303,6 @@ function bestaetigeStart() {
     return confirm(n + ' Rechnung(en) jetzt erstellen?\n\nEinsätze werden als «verrechnet» markiert.');
 }
 </script>
+@endpush
 
 </x-layouts.app>
