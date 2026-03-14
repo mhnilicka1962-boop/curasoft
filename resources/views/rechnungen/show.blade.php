@@ -36,6 +36,16 @@
             @endif
             {{-- PDF Export --}}
             <a href="{{ route('rechnungen.pdf', $rechnung) }}" class="btn btn-sekundaer" title="PDF herunterladen">📄 PDF</a>
+            {{-- Stornieren (nur wenn noch nicht versendet/bezahlt) --}}
+            @if(!in_array($rechnung->status, ['gesendet', 'bezahlt', 'storniert']))
+            <form method="POST" action="{{ route('rechnungen.stornieren', $rechnung) }}" style="display:inline;">
+                @csrf
+                <button type="submit" class="btn btn-sekundaer" style="color:#b91c1c; border-color:#fca5a5;"
+                    onclick="return confirm('Rechnung {{ $rechnung->rechnungsnummer }} stornieren?\n\nDie Einsätze werden wieder als «unverrechnet» gesetzt.\nDie Rechnungsnummer bleibt erhalten.')">
+                    Stornieren
+                </button>
+            </form>
+            @endif
         </div>
     </div>
 

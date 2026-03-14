@@ -240,6 +240,34 @@ class RechnungenController extends Controller
         );
     }
 
+    public function stornieren(Rechnung $rechnung)
+    {
+        $this->autorisiereZugriff($rechnung);
+
+        if (in_array($rechnung->status, ['gesendet', 'bezahlt'])) {
+            return back()->with('fehler', 'Rechnung wurde bereits versendet oder bezahlt — Stornierung nicht möglich.');
+        }
+
+        if ($rechnung->status === 'storniert') {
+            return back()->with('fehler', 'Rechnung ist bereits storniert.');
+        }
+
+        // Einsätze dieser Rechnung zurücksetzen
+        $einsatzIds = RechnungsPosition::where('rechnung_id', $rechnung->id)
+            ->whereNotNull('einsatz_id')
+            ->pluck('einsatz_id');
+
+        Einsatz::whereIn('id', $einsatzIds)->update(['verrechnet' => false]);
+
+        $rechnung->update(['status' => 'storniert']);
+
+        AuditLog::schreiben('geaendert', 'Rechnung', $rechnung->id,
+            "Rechnung {$rechnung->rechnungsnummer} storniert — {$einsatzIds->count()} Einsätze zurückgesetzt");
+
+        return back()->with('erfolg',
+            "Rechnung {$rechnung->rechnungsnummer} storniert — {$einsatzIds->count()} Einsätze wieder verrechenbar.");
+    }
+
     private function autorisiereZugriff(Rechnung $rechnung): void
     {
         if ($rechnung->organisation_id !== $this->orgId()) abort(403);
