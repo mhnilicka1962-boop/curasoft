@@ -147,6 +147,9 @@
                             <a href="{{ route('klienten.show', $z['klient']) }}" class="link-primaer" style="font-weight:600;">
                                 {{ $z['klient']->nachname }} {{ $z['klient']->vorname }}
                             </a>
+                            @if($z['label'] ?? null)
+                                <span class="badge badge-info" style="font-size:0.7rem; margin-left:0.25rem;">{{ $z['label'] }}</span>
+                            @endif
                             @if($z['ohne_tarif'])<span title="Einsätze ohne Leistungsart/Tarif"> ⚠</span>@endif
                             <div style="margin-top:0.15rem;">
                                 <a href="{{ route('einsaetze.index', ['klient_id' => $z['klient']->id, 'datum_von' => request('periode_von'), 'datum_bis' => request('periode_bis'), 'ansicht' => 'vergangen']) }}"

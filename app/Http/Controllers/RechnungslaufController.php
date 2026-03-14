@@ -370,23 +370,14 @@ class RechnungslaufController extends Controller
                 continue;
             }
 
-            $rechnungstyp = $klient->rechnungstyp ?? 'kombiniert';
-            $betragPat    = 0;
-            $betragKk     = 0;
-            $minuten      = 0;
-            $ohneTypCount = 0;
+            $rechnungstyp  = $klient->rechnungstyp ?? 'kombiniert';
+            $normale       = $einsaetze->filter(fn($e) => !$e->tagespauschale_id);
+            $tagespauschalen = $einsaetze->filter(fn($e) => $e->tagespauschale_id);
 
-            foreach ($einsaetze as $einsatz) {
-                if ($einsatz->tagespauschale_id) {
-                    $pauschale  = $einsatz->tagespauschale;
-                    $ansatz     = (float) $pauschale->ansatz;
-                    [$tp, $tk]  = match($pauschale->rechnungstyp) {
-                        'kvg'  => [0.0, $ansatz],
-                        default=> [$ansatz, 0.0],
-                    };
-                    $betragPat += $tp;
-                    $betragKk  += $tk;
-                } else {
+            // Zeile für normale Einsätze
+            if ($normale->isNotEmpty()) {
+                $betragPat = 0; $betragKk = 0; $minuten = 0; $ohneTypCount = 0;
+                foreach ($normale as $einsatz) {
                     $istTage = $einsatz->leistungsart?->einheit === 'tage';
                     [$tp, $tk] = $this->tarifeFuerEinsatz($einsatz, $klient, $rechnungstyp, $tarifCache);
                     if ($istTage) {
@@ -401,28 +392,57 @@ class RechnungslaufController extends Controller
                     }
                     if (!$einsatz->leistungsart_id) $ohneTypCount++;
                 }
+                if ($ohneTypCount > 0) $ohneLeistungsart++;
+                $betrag = $betragPat + $betragKk;
+                $zeilen[] = [
+                    'klient'         => $klient,
+                    'label'          => null,
+                    'rechnungstyp'   => $rechnungstyp,
+                    'anzahl'         => $normale->count(),
+                    'minuten'        => $minuten,
+                    'betrag_patient' => $betragPat,
+                    'betrag_kk'      => $betragKk,
+                    'betrag'         => $betrag,
+                    'versandart'     => $klient->versandart_patient ?? 'post',
+                    'ohne_tarif'     => $ohneTypCount > 0,
+                    'ohne_einsaetze' => false,
+                ];
+                $totalMinuten += $minuten;
+                $totalBetrag  += $betrag;
+                $anzahlMit++;
             }
 
-            if ($ohneTypCount > 0) $ohneLeistungsart++;
-
-            $betrag = $betragPat + $betragKk;
-
-            $zeilen[] = [
-                'klient'         => $klient,
-                'rechnungstyp'   => $rechnungstyp,
-                'anzahl'         => $einsaetze->count(),
-                'minuten'        => $minuten,
-                'betrag_patient' => $betragPat,
-                'betrag_kk'      => $betragKk,
-                'betrag'         => $betrag,
-                'versandart'     => $klient->versandart_patient ?? 'post',
-                'ohne_tarif'     => $ohneTypCount > 0,
-                'ohne_einsaetze' => false,
-            ];
-
-            $totalMinuten += $minuten;
-            $totalBetrag  += $betrag;
-            $anzahlMit++;
+            // Separate Zeile für Tagespauschalen
+            if ($tagespauschalen->isNotEmpty()) {
+                $betragPat = 0; $betragKk = 0;
+                $tpRechnungstyp = $tagespauschalen->first()->tagespauschale->rechnungstyp ?? $rechnungstyp;
+                foreach ($tagespauschalen as $einsatz) {
+                    $pauschale = $einsatz->tagespauschale;
+                    $ansatz    = (float) $pauschale->ansatz;
+                    [$tp, $tk] = match($pauschale->rechnungstyp) {
+                        'kvg'  => [0.0, $ansatz],
+                        default=> [$ansatz, 0.0],
+                    };
+                    $betragPat += $tp;
+                    $betragKk  += $tk;
+                }
+                $betrag = $betragPat + $betragKk;
+                $zeilen[] = [
+                    'klient'         => $klient,
+                    'label'          => 'Pauschale',
+                    'rechnungstyp'   => $tpRechnungstyp,
+                    'anzahl'         => $tagespauschalen->count(),
+                    'minuten'        => 0,
+                    'betrag_patient' => $betragPat,
+                    'betrag_kk'      => $betragKk,
+                    'betrag'         => $betrag,
+                    'versandart'     => $klient->versandart_patient ?? 'post',
+                    'ohne_tarif'     => false,
+                    'ohne_einsaetze' => false,
+                ];
+                $totalBetrag += $betrag;
+                $anzahlMit++;
+            }
         }
 
         // Regionen ohne konfigurierte Tarife ermitteln
