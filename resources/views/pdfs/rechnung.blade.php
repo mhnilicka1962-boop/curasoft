@@ -131,25 +131,29 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
 
     if ($nurKK && $rechnung->klient->krankenkassen->isNotEmpty()) {
         $kk = $rechnung->klient->krankenkassen->first();
-        $anschriftAnrede = null;
-        $anschriftName   = $kk->krankenkasse->name ?? '';
-        $anschriftStr    = $kk->krankenkasse->adresse ?? '';
-        $anschriftOrt    = trim(($kk->krankenkasse->plz ?? '') . ' ' . ($kk->krankenkasse->ort ?? ''));
+        $anschriftAnrede   = null;
+        $anschriftName     = $kk->krankenkasse->name ?? '';
+        $anschriftStr      = $kk->krankenkasse->adresse ?? '';
+        $anschriftPostfach = null;
+        $anschriftOrt      = trim(($kk->krankenkasse->plz ?? '') . ' ' . ($kk->krankenkasse->ort ?? ''));
     } elseif ($adrRechnung) {
-        $anschriftAnrede = null;
-        $anschriftName   = $adrRechnung->nachname ?? $klientName;
-        $anschriftStr    = $adrRechnung->strasse ?? '';
-        $anschriftOrt    = trim(($adrRechnung->plz ?? '') . ' ' . ($adrRechnung->ort ?? ''));
+        $anschriftAnrede   = null;
+        $anschriftName     = $adrRechnung->nachname ?? $klientName;
+        $anschriftStr      = $adrRechnung->strasse ?? '';
+        $anschriftPostfach = $adrRechnung->postfach ?? null;
+        $anschriftOrt      = trim(($adrRechnung->plz ?? '') . ' ' . ($adrRechnung->ort ?? ''));
     } elseif ($adrEinsatz) {
-        $anschriftAnrede = $rechnung->klient->anrede;
-        $anschriftName   = $klientName;
-        $anschriftStr    = $adrEinsatz->strasse ?? '';
-        $anschriftOrt    = trim(($adrEinsatz->plz ?? '') . ' ' . ($adrEinsatz->ort ?? ''));
+        $anschriftAnrede   = $rechnung->klient->anrede;
+        $anschriftName     = $klientName;
+        $anschriftStr      = $adrEinsatz->strasse ?? '';
+        $anschriftPostfach = $adrEinsatz->postfach ?? null;
+        $anschriftOrt      = trim(($adrEinsatz->plz ?? '') . ' ' . ($adrEinsatz->ort ?? ''));
     } else {
-        $anschriftAnrede = $rechnung->klient->anrede;
-        $anschriftName   = $klientName;
-        $anschriftStr    = $rechnung->klient->adresse ?? '';
-        $anschriftOrt    = trim(($rechnung->klient->plz ?? '') . ' ' . ($rechnung->klient->ort ?? ''));
+        $anschriftAnrede   = $rechnung->klient->anrede;
+        $anschriftName     = $klientName;
+        $anschriftStr      = $rechnung->klient->adresse ?? '';
+        $anschriftPostfach = null;
+        $anschriftOrt      = trim(($rechnung->klient->plz ?? '') . ' ' . ($rechnung->klient->ort ?? ''));
     }
 
     // Positionen: Pauschale (alle einheit=tage) vs. Einzelleistungen
@@ -179,6 +183,7 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
         @if($anschriftAnrede ?? null)<span>{{ $anschriftAnrede }}</span><br>@endif
         <strong>{{ $anschriftName }}</strong><br>
         @if($anschriftStr){{ $anschriftStr }}<br>@endif
+        @if($anschriftPostfach ?? null)Postfach {{ $anschriftPostfach }}<br>@endif
         {{ $anschriftOrt }}
     </div>
 
