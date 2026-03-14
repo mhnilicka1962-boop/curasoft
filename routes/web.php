@@ -180,7 +180,7 @@ Route::middleware('auth')->group(function () {
         if ($rolle === 'admin') {
             $org = \App\Models\Organisation::find($orgId);
             $setup = [
-                'firma'       => !empty($org?->name) && !empty($org?->adresse) && !empty($org?->iban),
+                'firma'       => !empty($org?->name) && (!empty($org?->adresse) || !empty($org?->postfach)) && !empty($org?->iban),
                 'region'      => \App\Models\Region::exists(),
                 'klient'      => $klientenAktiv > 0,
                 'mitarbeiter' => \App\Models\Benutzer::where('organisation_id', $orgId)->where('id', '!=', $userId)->exists(),

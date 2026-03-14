@@ -9,7 +9,7 @@
     @php
         $fehlend = collect([
             'Firmaname'  => empty($org->name),
-            'Adresse'    => empty($org->adresse),
+            'Adresse'    => empty($org->adresse) && empty($org->postfach),
             'IBAN'       => empty($org->iban),
         ])->filter()->keys();
     @endphp
