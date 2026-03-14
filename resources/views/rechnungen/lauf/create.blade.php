@@ -152,11 +152,10 @@
                             @endif
                             @if($z['ohne_tarif'])<span title="Einsätze ohne Leistungsart/Tarif"> ⚠</span>@endif
                             <div style="margin-top:0.25rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
-                                <button type="button"
-                                    class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.15rem 0.5rem;"
-                                    onclick="pdfPopup('{{ route('rechnungslauf.vorschau-pdf', ['klient_id' => $z['klient']->id, 'periode_von' => request('periode_von'), 'periode_bis' => request('periode_bis'), 'pauschale' => ($z['label'] === 'Pauschale' ? 1 : 0)]) }}', '{{ $z['klient']->nachname }} {{ $z['klient']->vorname }}{{ $z['label'] ? " – " . $z['label'] : "" }}')">
+                                <a href="{{ route('rechnungslauf.vorschau-pdf', ['klient_id' => $z['klient']->id, 'periode_von' => request('periode_von'), 'periode_bis' => request('periode_bis'), 'pauschale' => ($z['label'] === 'Pauschale' ? 1 : 0)]) }}"
+                                   class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.15rem 0.5rem;" target="_blank">
                                     📄 PDF Vorschau
-                                </button>
+                                </a>
                                 <a href="{{ route('klienten.show', $z['klient']) }}"
                                    class="link-gedaempt" style="font-size:0.75rem; line-height:2;" target="_blank">
                                     Klient →
@@ -252,31 +251,6 @@
 </div>
 @endif
 
-{{-- PDF-Vorschau Modal --}}
-<div id="pdf-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
-    <div style="background:#fff; border-radius:8px; width:90vw; max-width:900px; height:90vh; display:flex; flex-direction:column; overflow:hidden;">
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem; border-bottom:1px solid var(--cs-border); flex-shrink:0;">
-            <span id="pdf-modal-titel" style="font-weight:600; font-size:0.9375rem;"></span>
-            <button onclick="pdfPopupSchliessen()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--cs-text-hell); line-height:1;">&times;</button>
-        </div>
-        <iframe id="pdf-modal-iframe" src="" style="flex:1; border:none; width:100%;"></iframe>
-    </div>
-</div>
-
-<script>
-function pdfPopup(url, titel) {
-    document.getElementById('pdf-modal-titel').textContent = titel;
-    document.getElementById('pdf-modal-iframe').src = url;
-    const modal = document.getElementById('pdf-modal');
-    modal.style.display = 'flex';
-}
-function pdfPopupSchliessen() {
-    document.getElementById('pdf-modal').style.display = 'none';
-    document.getElementById('pdf-modal-iframe').src = '';
-}
-document.getElementById('pdf-modal').addEventListener('click', function(e) {
-    if (e.target === this) pdfPopupSchliessen();
-});
 
 document.addEventListener('DOMContentLoaded', function () {
     const alleCheckbox  = document.getElementById('alle-waehlen');
