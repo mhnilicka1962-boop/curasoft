@@ -32,7 +32,6 @@ class EinsatzartenSeeder extends Seeder
             ['leistungsart_id' => $ub, 'bezeichnung' => 'Inhalation'],
             ['leistungsart_id' => $ub, 'bezeichnung' => 'Medikamente'],
             ['leistungsart_id' => $ub, 'bezeichnung' => 'Verbandwechsel'],
-            ['leistungsart_id' => $ub, 'bezeichnung' => 'Spritzen'],
 
             // Hauswirtschaft
             ['leistungsart_id' => $hwl, 'bezeichnung' => 'Abklärung und Beratung HWL'],
