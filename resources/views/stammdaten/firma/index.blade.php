@@ -135,21 +135,68 @@
                 </label>
             </div>
 
-            <div class="form-grid-2" style="gap: 0.875rem;">
-                <div>
-                    <label class="feld-label">Rechnungsadresse</label>
-                    <select name="rechnungsadresse_position" class="feld">
-                        <option value="links"  {{ old('rechnungsadresse_position', $org->rechnungsadresse_position) === 'links'  ? 'selected' : '' }}>Links (Standard)</option>
-                        <option value="rechts" {{ old('rechnungsadresse_position', $org->rechnungsadresse_position) === 'rechts' ? 'selected' : '' }}>Rechts</option>
-                    </select>
+            <div style="margin-bottom: 0.5rem;">
+                <label class="feld-label">Rechnungsadresse</label>
+                <select name="rechnungsadresse_position" class="feld" style="max-width: 200px;">
+                    <option value="links"  {{ old('rechnungsadresse_position', $org->rechnungsadresse_position) === 'links'  ? 'selected' : '' }}>Links (Standard)</option>
+                    <option value="rechts" {{ old('rechnungsadresse_position', $org->rechnungsadresse_position) === 'rechts' ? 'selected' : '' }}>Rechts</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="feld-label" style="margin-bottom: 0.5rem; display: block;">PDF-Layout</label>
+                @php $aktAusr = old('logo_ausrichtung', $org->logo_ausrichtung ?? 'links_anschrift_rechts'); @endphp
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+
+                    {{-- Option 1: Logo links, Adresse rechts --}}
+                    <label style="cursor: pointer; flex: 1; min-width: 130px;">
+                        <input type="radio" name="logo_ausrichtung" value="links_anschrift_rechts"
+                            {{ $aktAusr === 'links_anschrift_rechts' ? 'checked' : '' }}
+                            style="display:none;" class="layout-radio-ausr">
+                        <div class="layout-ausr-karte" style="border: 2px solid {{ $aktAusr === 'links_anschrift_rechts' ? 'var(--cs-primaer)' : 'var(--cs-border)' }}; border-radius: var(--cs-radius); padding: 0.625rem; text-align: center; font-size: 0.75rem;">
+                            {{-- Mini PDF-Skizze --}}
+                            <div style="background:#f8f9fa; border:1px solid #e5e7eb; border-radius:3px; padding:0.4rem 0.5rem; margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:flex-start; gap:0.25rem;">
+                                <div style="background:#cbd5e1; border-radius:2px; width:38%; height:14px; flex-shrink:0;"></div>
+                                <div style="text-align:right; font-size:0.6rem; color:#6b7280; line-height:1.3;">Firma<br>Adresse</div>
+                            </div>
+                            <div style="font-weight:500; font-size:0.8rem;">Logo links</div>
+                            <div style="color:var(--cs-text-hell); font-size:0.7rem;">Adresse rechts</div>
+                        </div>
+                    </label>
+
+                    {{-- Option 2: Logo rechts, Adresse links --}}
+                    <label style="cursor: pointer; flex: 1; min-width: 130px;">
+                        <input type="radio" name="logo_ausrichtung" value="rechts_anschrift_links"
+                            {{ $aktAusr === 'rechts_anschrift_links' ? 'checked' : '' }}
+                            style="display:none;" class="layout-radio-ausr">
+                        <div class="layout-ausr-karte" style="border: 2px solid {{ $aktAusr === 'rechts_anschrift_links' ? 'var(--cs-primaer)' : 'var(--cs-border)' }}; border-radius: var(--cs-radius); padding: 0.625rem; text-align: center; font-size: 0.75rem;">
+                            <div style="background:#f8f9fa; border:1px solid #e5e7eb; border-radius:3px; padding:0.4rem 0.5rem; margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:flex-start; gap:0.25rem;">
+                                <div style="text-align:left; font-size:0.6rem; color:#6b7280; line-height:1.3;">Firma<br>Adresse</div>
+                                <div style="background:#cbd5e1; border-radius:2px; width:38%; height:14px; flex-shrink:0;"></div>
+                            </div>
+                            <div style="font-weight:500; font-size:0.8rem;">Logo rechts</div>
+                            <div style="color:var(--cs-text-hell); font-size:0.7rem;">Adresse links</div>
+                        </div>
+                    </label>
+
+                    {{-- Option 3: Logo Mitte, Adresse Fusszeile --}}
+                    <label style="cursor: pointer; flex: 1; min-width: 130px;">
+                        <input type="radio" name="logo_ausrichtung" value="mitte_anschrift_fusszeile"
+                            {{ $aktAusr === 'mitte_anschrift_fusszeile' ? 'checked' : '' }}
+                            style="display:none;" class="layout-radio-ausr">
+                        <div class="layout-ausr-karte" style="border: 2px solid {{ $aktAusr === 'mitte_anschrift_fusszeile' ? 'var(--cs-primaer)' : 'var(--cs-border)' }}; border-radius: var(--cs-radius); padding: 0.625rem; text-align: center; font-size: 0.75rem;">
+                            <div style="background:#f8f9fa; border:1px solid #e5e7eb; border-radius:3px; padding:0.4rem 0.5rem; margin-bottom:0.5rem;">
+                                <div style="background:#cbd5e1; border-radius:2px; height:14px; width:50%; margin:0 auto 0.3rem;"></div>
+                                <div style="font-size:0.6rem; color:#6b7280; border-top:1px solid #e5e7eb; padding-top:0.25rem;">Firma · Adresse · Tel.</div>
+                            </div>
+                            <div style="font-weight:500; font-size:0.8rem;">Logo Mitte</div>
+                            <div style="color:var(--cs-text-hell); font-size:0.7rem;">Adresse Fusszeile</div>
+                        </div>
+                    </label>
+
                 </div>
-                <div>
-                    <label class="feld-label">Logo-Ausrichtung</label>
-                    <select name="logo_ausrichtung" class="feld">
-                        <option value="links_anschrift_rechts"      {{ old('logo_ausrichtung', $org->logo_ausrichtung) === 'links_anschrift_rechts'      ? 'selected' : '' }}>Logo links — Anschrift rechts</option>
-                        <option value="rechts_anschrift_links"      {{ old('logo_ausrichtung', $org->logo_ausrichtung) === 'rechts_anschrift_links'      ? 'selected' : '' }}>Logo rechts — Anschrift links</option>
-                        <option value="mitte_anschrift_fusszeile"   {{ old('logo_ausrichtung', $org->logo_ausrichtung) === 'mitte_anschrift_fusszeile'   ? 'selected' : '' }}>Logo Mitte — Anschrift Fusszeile</option>
-                    </select>
+                <div class="text-hell text-mini" style="margin-top:0.375rem;">
+                    Gilt für das PDF (kein Logo = Firmenname als Text)
                 </div>
             </div>
         </div>
@@ -251,6 +298,14 @@
                 r.closest('label').querySelector('div').style.borderColor = 'var(--cs-border)';
             });
             radio.closest('label').querySelector('div').style.borderColor = 'var(--cs-primaer)';
+        });
+    });
+    document.querySelectorAll('.layout-radio-ausr').forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.querySelectorAll('.layout-radio-ausr').forEach(r => {
+                r.closest('label').querySelector('.layout-ausr-karte').style.borderColor = 'var(--cs-border)';
+            });
+            radio.closest('label').querySelector('.layout-ausr-karte').style.borderColor = 'var(--cs-primaer)';
         });
     });
     </script>
