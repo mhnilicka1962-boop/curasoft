@@ -8,7 +8,7 @@
 # Insbesondere: Deploy-Regeln, Arbeitsablauf, bekannte Fallstricke.
 # NIEMALS aus dem Gedächtnis arbeiten — immer zuerst hier nachschlagen.
 
-## Stand: 2026-03-14 (Session 21 — Chat-System + Kalender-Ansichten + Fixes)
+## Stand: 2026-03-14 (Session 22 — Rechnungslauf UX + Einzelstornierung + PDF-Fixes)
 
 ---
 
@@ -251,6 +251,49 @@ php artisan tenant:migrate
 |-----------|-----|--------|
 | `www.curasoft.ch` | `devitjob_curasoft` | Demo — NICHT ANFASSEN |
 | `curapflege.curasoft.ch` | `devitjob_curapflege` | Produktiv |
+
+---
+
+## Neu in Session 22 (2026-03-14) — Rechnungslauf UX + Einzelstornierung + PDF-Fixes
+
+### Rechnungslauf-Vorschau (`/rechnungen/lauf/create`)
+- **Buttons vereinheitlicht**: oben + unten heissen beide "Rechnungslauf starten (X)" — Top-Button neben "Vorschau laden"
+- **Stornierungshinweis**: Info-Text erklärt dass Lauf jederzeit storniert werden kann (solange nichts versendet)
+- **Suchfeld**: erscheint bei >5 Klienten, filtert nach Name (JS, kein Reload)
+- **Tagespauschalen als separate Zeile**: Klienten mit normalen Einsätzen + Tagespauschalen → 2 Zeilen (blau "Pauschale"-Badge), exakt wie Lauf 2 Rechnungen erstellt
+- **PDF-Vorschau Button** pro Zeile → öffnet temporäres PDF in neuem Tab ohne Lauf zu starten, ohne zu speichern (Rechnungsnummer = "VORSCHAU")
+- **Klient-Link mit Zurück-Navigation**: `?back=` URL-Parameter → Klient-Detail zeigt "← Zurück" zur Vorschau
+- **EinsaetzeController**: `klient_id`-Filter im Index ergänzt
+
+### Neue Route: Vorschau-PDF
+- `GET /rechnungen/lauf/vorschau-pdf?klient_id=&periode_von=&periode_bis=&pauschale=`
+- `RechnungslaufController::vorschauPdf()` — baut temporäre Rechnung im Memory, rendert PDF ohne DB-Speicherung
+- `PdfExportService::rechnungAlsPdfString()` — neuer Service-Helper für PDF ohne Speichern
+
+### Einzelne Rechnung stornieren
+- `POST /rechnungen/{rechnung}/stornieren` → `RechnungenController::stornieren()`
+- Status → "storniert" (Rechnungsnummer bleibt erhalten — keine Buchführungs-Lücke)
+- Einsätze → `verrechnet = false` (wieder verrechenbar im nächsten Lauf)
+- Button "Stornieren" in `rechnungen/show.blade.php` — nur sichtbar wenn Status `entwurf`
+- Blockiert bei Status `gesendet` oder `bezahlt`
+
+### Rechnungslauf-Detail (`/rechnungen/lauf/{id}`)
+- **PDF-Button pro Zeile**: 📄 PDF neben Detail-Button
+- **Suchfeld**: Placeholder "Name suchen"
+
+### PDF-Rechnung — Kopfzeile Fixes
+- Postfach aus `klient_adressen` wird in Anschrift angezeigt (zwischen Strasse und PLZ/Ort)
+- Kopfzeile: leere Felder (Adresse, Tel) werden nicht mehr angezeigt — kein hängendes Komma, kein nacktes "Tel."
+- Postfach der Organisation: kein doppeltes "Postfach Postfach X" mehr (Feld enthält bereits das Wort)
+- Firmenname erscheint nur einmal (links als Text wenn kein Logo)
+
+### Firma — PDF-Layout visuell
+- Logo-Ausrichtung: Dropdown ersetzt durch 3 visuelle Karten mit Mini PDF-Skizze
+- Rechnungsadresse-Position als separates kompaktes Select
+
+### Zurück-Navigation (`?back=`-Muster)
+- `klienten/show.blade.php`: zeigt "← Zurück" wenn `?back=` Parameter gesetzt, sonst "← Alle Klienten"
+- Kann überall eingesetzt werden wo kontextabhängige Zurück-Navigation nötig ist
 
 ---
 
