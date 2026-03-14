@@ -8,7 +8,7 @@
 # Insbesondere: Deploy-Regeln, Arbeitsablauf, bekannte Fallstricke.
 # NIEMALS aus dem Gedächtnis arbeiten — immer zuerst hier nachschlagen.
 
-## Stand: 2026-03-14 (Session 22 — Rechnungslauf UX + Einzelstornierung + PDF-Fixes)
+## Stand: 2026-03-14 (Session 23 — Rapportierung Konzept-Analyse)
 
 ---
 
@@ -251,6 +251,122 @@ php artisan tenant:migrate
 |-----------|-----|--------|
 | `www.curasoft.ch` | `devitjob_curasoft` | Demo — NICHT ANFASSEN |
 | `curapflege.curasoft.ch` | `devitjob_curapflege` | Produktiv |
+
+---
+
+## Konzept-Analyse Session 23 (2026-03-14) — Rapportierung (NOCH NICHT GEBAUT)
+
+### Status: In Überlegung — bewusst vorsichtig
+
+Mathias ist vorsichtig und will es "wenn schon dann richtig" machen. **Noch kein Baubeschluss.**
+
+### Ausgangslage
+
+Kunde arbeitet mit Excel/Word + Altsystem: Monatsraster (Zeilen = Leistungstypen, Spalten = Tage 1–31, Zellen = Minuten). Kein Check-in/out, kein App-Einsatz durch Pflegepersonen. Alles im Büro durch Admin.
+
+### Was Rapportierung bedeutet
+
+Alternativer Erfassungsweg: Admin füllt monatliches Grid aus → Minuten pro Leistungstyp pro Tag → System speichert als Einsätze → Rechnungslauf rechnet normal ab.
+
+**Kein Check-in/out, keine Zeiten, keine Pflegeberichte, nur Admin.**
+
+### Zwei Kundentypen
+
+| Typ | Erfassung | Wer nutzt App |
+|-----|-----------|---------------|
+| **Digital** | Check-in/out, Vor-Ort, Echtzeit | Pflegepersonen + Admin |
+| **Rapportierung** | Monatsraster, Büro, nachträglich | Nur Admin |
+
+### Produktentscheid — noch offen
+
+**Pro Rapportierung:**
+- Excel/Word-Kunden können sofort migrieren (niedrige Hürde)
+- Migrationspfad: Rapportierung → später Digital (freiwillig)
+- Gesetzlich konform (KLV/KVG verlangt keine exakten Uhrzeiten)
+- Viel grössere Zielgruppe (viele kleine Spitex noch auf Excel)
+
+**Contra / Risiken:**
+- Verwässert Produktpositionierung "modern, digital, Echtzeit"
+- Kunden die per Rapportierung arbeiten wechseln nie auf Digital
+- Komplexität steigt, Support schwieriger
+- Philosophischer Bruch: Pflegebericht fehlt, Benutzer_id = Admin (künstlich)
+
+### Technische Analyse — Rechnungslauf
+
+**Befund:** `erstelleLauf()` / `vorschauBerechnen()` / `store()` filtern:
+```php
+->whereNotNull('checkout_zeit')->orWhereNotNull('tagespauschale_id')
+```
+→ Rapportierungs-Einsätze (kein checkout_zeit) werden **ignoriert**.
+
+**Fix wäre minimal** — 3 Stellen, je 1 Zeile:
+```php
+->orWhere('checkin_methode', 'rapportierung')
+```
+Rapportierungs-Einsätze mit `checkin_methode = 'rapportierung'` markieren (existierendes Feld, keine Migration).
+
+**Gut:** Rechnungslauf nimmt `einsatz.minuten` direkt (Zeile 856) — nicht `dauerMinuten()`. Minuten-Berechnung funktioniert also ohne Änderung.
+
+### Datenmodell — kein Schema-Änderung nötig
+
+| Feld | Wert für Rapportierung |
+|------|----------------------|
+| `datum` | Tag aus Grid |
+| `leistungsart_id` | von Leistungstyp abgeleitet |
+| `minuten` | aus Grid-Eingabe |
+| `benutzer_id` | zuständige Person des Klienten (klient_benutzer) |
+| `status` | `abgeschlossen` |
+| `checkin_methode` | `rapportierung` (Markierung) |
+| `checkin_zeit` | null |
+| `checkout_zeit` | null |
+| `zeit_von/bis` | null |
+
+### Aktivitäten-Detail
+
+`einsatz_aktivitaeten` (bereits vorhanden) speichert Leistungstyp-Breakdown:
+- `kategorie` = Leistungsart-Name (z.B. "Grundpflege")
+- `aktivitaet` = Leistungstyp-Name (z.B. "An-/Auskleiden")
+- `minuten` = Minuten für diese Aktivität an diesem Tag
+
+### Abrechnungsmodell — gegenseitig ausschliessend
+
+Ein Klient hat **entweder** Minuten-Abrechnung **oder** Tagespauschale — nie beides.
+
+| Klient-Typ | Erfassung | Abrechnung |
+|---|---|---|
+| Minuten/Digital | Check-in/out | Rechnungslauf (Minuten) |
+| Minuten/Büro | Rapportierung-Grid | Rechnungslauf (Minuten) |
+| Tagespauschale | Tagespauschalen-Modul | Rechnungslauf (Tage) |
+
+**Wechsel zwischen Modellen:** An Monatsgrenze — altes Modell `datum_bis` setzen, neues starten. Alte Einsätze bleiben verrechenbar.
+
+### Steuerung pro Organisation
+
+Empfehlung: `organisationen.erfassungsmodus` = `digital` | `rapportierung`
+- Kein Mischbetrieb pro Org
+- Nav + Routes reagieren darauf (Touren/Vor-Ort ausgeblendet bei Rapportierung)
+- Bestehende Tenants = `digital`
+
+### Navigation Rapportierung-Tenant
+```
+Klienten
+Rapportierung    ← neu, pro Klient aufgerufen
+Rechnungen / Rechnungsläufe
+────────────────
+Stammdaten
+```
+
+### Was noch zu entscheiden ist (vor Baubeschluss)
+1. **Produktentscheid**: Wird Rapportierung gebaut? Ja/Nein
+2. **Scope**: Für welchen Tenant zuerst? (aktueller Kunde von Mathias)
+3. **benutzer_id**: Zuständige Person aus `klient_benutzer` oder Admin?
+4. **Kalender**: Rapportierungs-Einsätze ausblenden oder als Tagesbalken anzeigen?
+5. **Pflegebericht**: Bewusst nicht vorgesehen — kommunizieren als "Büro-Modus ohne Dokumentation"
+6. **klient.erfassungsmodus Feld**: Explizit (sichtbar, bewusst wählbar) vs. implizit (aus Tagespauschale-Vorhandensein ableitbar)
+
+### ⛔ REGEL: Erst bauen wenn Produktentscheid gefallen
+
+Kein Code ohne grünes Licht von Mathias. Konzept ist dokumentiert, Analyse ist gemacht.
 
 ---
 
