@@ -41,6 +41,13 @@
         <input type="hidden" name="lng" id="co-lng">
     </form>
 
+    {{-- Zur Vor-Ort-Seite --}}
+    <a href="{{ route('einsaetze.vor-ort', $einsatz) }}"
+       class="btn btn-sekundaer"
+       style="width: 100%; justify-content: center; margin-bottom: 0.75rem; display: flex;">
+        📋 Leistungserfassung &amp; Rapport
+    </a>
+
     {{-- Manueller Check-out --}}
     <details style="text-align: left;">
         <summary class="text-klein text-hell" style="cursor: pointer; padding: 0.5rem 0; text-align: center;">✏️ Manuell eintragen</summary>
