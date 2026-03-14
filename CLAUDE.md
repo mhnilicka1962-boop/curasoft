@@ -287,6 +287,18 @@ php artisan tenant:migrate
 - Dashboard: `nachrichten.index` → `chat.index`; `$ungeleseneNachrichten` entfernt
 - Firma: Check `strasse` → `adresse`; IBAN-Pflichtfeld rot wenn leer; Warn-Banner fehlende Felder
 - Firma Kanton: Info-Box "Nur ausfüllen wenn abweichende Angaben" oben statt unten
+- Vor-Ort-Button auf `checkin/aktiv` + `einsaetze/show` (Admin) ergänzt
+
+### Leistungstypen-Korrektur (2026-03-14)
+- `EinsatzAktivitaet`-Checkliste war mit erfundenen Begriffen hardcoded → komplett korrigiert
+- Grundset verifiziert gegen Altsystem (`leistungstyp`-Tabelle, `fkspitexid=1`)
+- **⛔ REGEL:** Leistungstypen/Pflegebegriffe NIEMALS erfinden — immer aus Altsystem verifizieren
+- Korrektes Grundset:
+  - **Grundpflege (18):** An-/Auskleiden, Antithrombose Strümpfe, Ausscheidung, Beine einbinden, Betten im Bett, Dekubitusprophylaxe, Duschen, Essen und Trinken, Grundpflege, Intimpflege, Lagern, Medikamente abgeben, Mobilisation, Mundpflege, Nagelpflege, Rasur, Waschen am Lavabo, Waschen im Bett
+  - **Untersuchung/Behandlung (6):** Blutzucker, Inhalation, Injektion subcutan, Medikamente richten, Verbandwechsel, Vitalzeichen (Puls, BD, T, Gewicht)
+  - **Hauswirtschaft (2):** Abklärung und Beratung HWL, HWL-Leistungen
+  - **Abklärung/Beratung (4):** Administration, Bedarfsanalyse, Beratungsgespräch, Dokumentation
+  - **Pauschale (1):** Tagespauschale
 
 ## Neu in Session 20 (2026-03-12) — Kalender UX + Touren Bugfixes
 
