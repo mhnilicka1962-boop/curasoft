@@ -57,6 +57,11 @@
 | **Touren** `/touren` | **Pflege**: Nur eigene Touren |
 | | **Admin**: Alle, Filter nach Mitarbeiter |
 | | Tages-Navigation |
+| **Kalender** `/kalender` | **Nur Admin** |
+| | Resource Timeline: alle Mitarbeiter als Zeilen, Einsätze als Balken |
+| | Woche / 2 Wochen / Monat / Tag |
+| | Doppelbelegungen rot markiert |
+| | Drag & Drop: Einsatz auf anderen MA oder andere Zeit ziehen |
 | **Dashboard** | Eigene Touren heute, letzte Rapporte, Kennzahlen |
 
 ---
@@ -92,8 +97,9 @@ Check-in (QR/GPS/manuell) → Check-out
 
 ---
 
-## 7. Bekannte Einschränkungen
+## 7. Hinweise
 
-- Tourenplanung: Reihenfolge nur per Nummer, kein Drag-and-Drop
-- Einsatzarten (leistungstypen): 30 Stück, aber Einsätze verknüpfen nur `leistungsart_id` (5 Leistungsarten), nicht Einsatzart
-- Klient-Detail: Einsatz-Formular direkt auf Seite; Alternative: redirect zu `/einsaetze/create?klient_id=...`
+- **Tourenplanung Reihenfolge**: per Nummer setzbar + "Route optimieren" Button (Nearest-Neighbor)
+- **Drag & Drop**: im Kalender (`/kalender`) verfügbar — nicht auf der Touren-Seite
+- **Einsatzarten (leistungstypen)**: 30 Stück, Einsätze verknüpfen `leistungsart_id` (5 Leistungsarten); Leistungserfassung (Aktivitäten-Checkliste) auf der Vor-Ort-Seite
+- **Klient-Detail**: Einsatz-Formular direkt auf Seite; Alternative: redirect zu `/einsaetze/create?klient_id=...`

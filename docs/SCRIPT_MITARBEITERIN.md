@@ -10,10 +10,10 @@ Täglicher Ablauf in Spitex — Schritt für Schritt aus Sicht einer Pflegefachp
    `http://spitex.test/login` → E-Mail + Passwort  
    → Detaillierte Anleitung: `docs/ANLEITUNG_EINLOGGEN.md`
 
-2. **Dashboard**  
+2. **Dashboard**
    - Touren heute
    - Letzte Rapporte
-   - Nachrichten (falls vorhanden)
+   - Chat (falls neue Nachrichten)
 
 3. **Einsätze** `/einsaetze`  
    - Tab „Anstehend“
@@ -92,7 +92,7 @@ Auch möglich: Klient-Detail → Sektion Rapporte → Link zu neuem Rapport
 | Bereich      | Zugriff                               |
 |--------------|----------------------------------------|
 | Dashboard    | Ja                                     |
-| Nachrichten  | Ja                                     |
+| Chat         | Ja                                     |
 | Klienten     | Ja                                     |
 | Einsätze     | Nur meine                              |
 | Touren       | Nur meine                              |
@@ -109,4 +109,4 @@ Auch möglich: Klient-Detail → Sektion Rapporte → Link zu neuem Rapport
 - [ ] Bei jedem Klienten: Check-in (QR oder Einsatz-Detail)
 - [ ] Nach Einsatz: Check-out (GPS oder manuell)
 - [ ] Rapport schreiben
-- [ ] Nachrichten prüfen
+- [ ] Chat prüfen (`/chat`)

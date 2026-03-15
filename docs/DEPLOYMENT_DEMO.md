@@ -1,168 +1,100 @@
-# Deployment-Anleitung — Demo-Umgebung
+# Deployment — Demo & Tenants
 
-**Zweck:** Erstmalige Migration der Curasoft-App auf den Demo-Server
-**Wichtig:** Die produktive `spitex`-Datenbank wird zu keinem Zeitpunkt berührt.
-
----
-
-## Schritt 1 — cPanel: Datenbank + User anlegen
-
-1. cPanel öffnen → **MySQL Databases** (oder PostgreSQL Databases)
-2. Neue Datenbank anlegen: `curasoft`
-3. Neuen DB-User anlegen: `curasoft_user` + sicheres Passwort notieren
-4. User der Datenbank zuweisen: `curasoft_user` → `curasoft` → **All Privileges**
-
-> Dieser User hat **keinen Zugriff** auf die produktive `spitex`-DB.
+**Stand: 2026-03-15**
 
 ---
 
-## Schritt 2 — Code hochladen
-
-### Option A: Git (empfohlen)
-```bash
-cd /pfad/zum/webroot
-git clone <repo-url> curasoft
-```
-
-### Option B: FTP / Dateimanager
-- Alle Projektdateien in den Zielordner hochladen
-- `node_modules/` und `.env` **nicht** hochladen
-
----
-
-## Schritt 3 — .env erstellen
-
-Im Projektordner auf dem Server eine `.env`-Datei anlegen (Vorlage: `.env.example`):
-
-```env
-APP_NAME=Curasoft
-APP_ENV=production
-APP_KEY=                          # wird in Schritt 4 generiert
-APP_DEBUG=false
-APP_URL=https://demo.example.ch   # URL der Demo-Umgebung
-
-APP_LOCALE=de
-APP_FALLBACK_LOCALE=de
-
-LOG_CHANNEL=stack
-LOG_LEVEL=error
-
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=curasoft
-DB_USERNAME=curasoft_user
-DB_PASSWORD=<passwort aus Schritt 1>
-
-SESSION_DRIVER=database
-SESSION_LIFETIME=60
-SESSION_ENCRYPT=true
-SESSION_SECURE_COOKIE=true
-
-CACHE_STORE=database
-QUEUE_CONNECTION=database
-FILESYSTEM_DISK=local
-
-MAIL_MAILER=smtp
-MAIL_HOST=<smtp-host>
-MAIL_PORT=587
-MAIL_USERNAME=<absender@example.ch>
-MAIL_PASSWORD=<mail-passwort>
-MAIL_FROM_ADDRESS=demo@example.ch
-MAIL_FROM_NAME="Curasoft Demo"
-```
-
----
-
-## Schritt 4 — Dependencies + App-Key
-
-Über SSH im Projektordner:
+## Code deployen (täglich)
 
 ```bash
-composer install --no-dev --optimize-autoloader
+git add .
+git commit -m "..."
+git push
+```
+
+→ GitHub Actions deployt automatisch auf alle Instanzen (ca. 30 Sekunden).
+
+### Was GitHub Actions macht (`.github/workflows/deploy.yml`)
+
+| Schritt | Was |
+|---------|-----|
+| 1 | `npm ci && npm run build` — Vite Assets bauen |
+| 2 | SCP — Assets nach `public/build/` |
+| 3 | SSH — `git reset --hard origin/master` |
+| 4 | SSH — `composer install --no-dev` |
+| 5 | SSH — `php artisan migrate --force` |
+| 6 | SSH — `php artisan tenant:migrate --force` |
+| 7 | SSH — `php artisan optimize:clear` |
+
+---
+
+## DB / Testdaten deployen
+
+```bash
+# 1. Seeder lokal ausführen + prüfen
+php artisan db:seed --class=CurasoftDemoSeeder
+
+# 2. Auf Demo syncen (NIEMALS auf Produktiv!)
+./db_sync.sh
+```
+
+⛔ `db_sync.sh` **niemals auf Produktiv-DBs** anwenden — nur auf Demo (`devitjob_curasoft`).
+
+---
+
+## Bestehende Instanzen (Server)
+
+| Domain | DB | Typ |
+|--------|-----|-----|
+| `curasoft.ch` | `devitjob_curasoft` | Demo — CurasoftDemoSeeder |
+| `curapflege.curasoft.ch` | `devitjob_curapflege` | Produktiv ⛔ Keine Testdaten |
+
+---
+
+## Neuen Tenant einrichten
+
+```bash
+# 1. cPanel: Subdomain X.curasoft.ch anlegen
+#    Document Root: /home/devitjob/public_html/spitex/public
+#    cPanel erstellt falschen Pfad → Symlink im Terminal:
+rm -rf ~/X.curasoft.ch && ln -s ~/public_html/spitex/public ~/X.curasoft.ch
+
+# 2. cPanel: PostgreSQL-DB devitjob_X anlegen
+#    User devitjob_csapp berechtigen
+
+# 3. Tenant anlegen
+php artisan tenant:create X "Name GmbH" admin@x.ch --skip-create-db --db=devitjob_X
+```
+
+→ `tenant:create` führt automatisch alle Seeders aus (Leistungsarten, Einsatzarten, Krankenkassen, Qualifikationen) und legt Admin-Benutzer an. Passwort wird im Terminal angezeigt.
+
+---
+
+## Lokale Entwicklung
+
+```bash
+# Voraussetzungen: Laragon, PHP 8.3+, PostgreSQL, Composer, Node
+
+cd C:\laragon\www
+git clone https://github.com/mhnilicka1962-boop/curasoft spitex
+cd spitex
+
+composer install
+npm install && npm run build
+cp .env.example .env
 php artisan key:generate
-```
+# .env: DB_DATABASE=spitex, DB_HOST=localhost, DB_PORT=5432
 
-> `key:generate` trägt den APP_KEY automatisch in die `.env` ein.
-
----
-
-## Schritt 5 — Datenbank aufbauen
-
-```bash
+# DB anlegen in pgAdmin: CREATE DATABASE spitex;
 php artisan migrate
-```
-
-→ Alle Tabellen werden frisch angelegt. Kein SQL-Dump nötig.
-
----
-
-## Schritt 6 — Grunddaten einspielen (Seeders)
-
-```bash
 php artisan db:seed --class=LeistungsartenSeeder
 php artisan db:seed --class=EinsatzartenSeeder
 php artisan db:seed --class=KrankenkassenSeeder
-```
+php artisan db:seed --class=TestdatenSeeder
+# oder für Demo-Daten:
+php artisan db:seed --class=CurasoftDemoSeeder
 
----
-
-## Schritt 7 — Storage + Cache
-
-```bash
 php artisan storage:link
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
 ```
 
----
-
-## Schritt 8 — Ersten Admin-User anlegen
-
-Im Browser aufrufen:
-```
-https://demo.example.ch/setup
-```
-
-→ Organisationsname, Admin-E-Mail und Passwort eingeben.
-
----
-
-## Schritt 9 — Smoke Test
-
-| Was | URL | Erwartung |
-|-----|-----|-----------|
-| Login | `/login` | Formular erscheint |
-| Dashboard | `/dashboard` | Lädt ohne Fehler |
-| Klienten | `/klienten` | Leere Liste |
-| Leistungsarten | `/leistungsarten` | 5 Einträge vorhanden |
-| Einsatzarten | `/einsatzarten` | 30 Einträge vorhanden |
-| Krankenkassen | `/krankenkassen` | 39 Einträge vorhanden |
-| Region anlegen | `/regionen` | AG anlegen → 5 Leistungsregionen auto-erstellt |
-
----
-
-## Rollback (falls nötig)
-
-Wenn etwas schiefläuft:
-
-```bash
-php artisan migrate:rollback
-```
-
-Oder einfach die DB `curasoft` löschen und neu starten ab Schritt 5.
-Die produktive `spitex`-DB ist zu keinem Zeitpunkt betroffen.
-
----
-
-## Checkliste vor dem Start
-
-- [ ] SSH-Zugang zum Server vorhanden
-- [ ] cPanel-Zugang vorhanden
-- [ ] DB-Name und Passwort notiert
-- [ ] Demo-URL bekannt
-- [ ] Mail-Zugangsdaten bereit
-- [ ] PHP 8.3+ auf dem Server (`php -v`)
-- [ ] Composer auf dem Server (`composer -V`)
-- [ ] PostgreSQL auf dem Server verfügbar
+Login: `http://spitex.test` → `mhn@itjob.ch` / `Admin2026!`

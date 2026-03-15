@@ -93,6 +93,7 @@ Funktioniert auf jedem Gerät, keine Konfiguration nötig.
 
 - `Rapporte` → Heute filtern → Zwischenfälle (rotes Badge)
 - `Touren` → Tour-Detail → Orange = zu spät, kein Check-in = nicht eingecheckt
+- `Chat` → neue Nachrichten vom Team prüfen
 
 ---
 
@@ -129,12 +130,21 @@ Funktioniert auf jedem Gerät, keine Konfiguration nötig.
 
 ---
 
-## Kapitel 6 — Rechnung erstellen
+## Kapitel 6 — Abrechnung
 
+### Rechnungslauf (empfohlen — alle Klienten auf einmal)
+
+1. `Rechnungsläufe` → **„+ Neuer Rechnungslauf"**
+2. Periode (Von–Bis) eingeben → **„Vorschau laden"**
+3. Übersicht zeigt alle Klienten mit verrechenbaren Einsätzen
+4. **„Rechnungslauf starten"** → alle Rechnungen werden automatisch erstellt
+5. Pro Klient: PDF herunterladen oder per E-Mail versenden
+6. XML-Export für Krankenkasse: Rechnung öffnen → **„XML"**
+
+### Einzelrechnung
 1. `Rechnungen` → **„+ Neue Rechnung"**
 2. Klient wählen → Leistungsperiode (Von–Bis)
-3. Einsätze werden automatisch einbezogen
-4. XML-Export für Krankenkasse: Rechnung öffnen → **„XML exportieren"**
+3. Einsätze werden automatisch einbezogen → **„Rechnung erstellen"**
 
 ---
 
@@ -159,10 +169,12 @@ Funktioniert auf jedem Gerät, keine Konfiguration nötig.
 | Klienten | `/klienten` |
 | Einsätze | `/einsaetze` |
 | Tourenplanung | `/touren` |
+| Einsatzplanung (Kalender) | `/kalender` |
 | Rapporte | `/rapporte` |
 | Rechnungen | `/rechnungen` |
+| Rechnungsläufe | `/rechnungslaeufe` |
 | Mitarbeiter | `/mitarbeiter` |
-| Nachrichten | `/nachrichten` |
+| Chat | `/chat` |
 | Firma / Einstellungen | `/firma` |
 | Mein Profil / Passkeys | `/profil` |
 | **Hilfe / Betriebsanweisung** | `/hilfe` |

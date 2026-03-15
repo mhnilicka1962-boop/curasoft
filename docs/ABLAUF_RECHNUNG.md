@@ -59,24 +59,18 @@
 
 ---
 
-## Testdaten (TestdatenSeeder)
+## Testdaten (CurasoftDemoSeeder)
 
-### Rechnung
-- **Eine Rechnung** für Maria Schmidt
-- Periode: letzter Monat (1.–letzter Tag)
-- Beträge: 180 (Patient) + 720 (KK) = 900 CHF
-- Status: entwurf
+- 5 Klienten (Brunner, Weber, Schneider, Keller, Gerber)
+- Einsätze 4 Monate zurück + 6 Wochen voraus
+- **4 Rechnungsläufe** bereits erstellt:
+  - Dez: abgeschlossen, Rechnungen bezahlt
+  - Jan: abgeschlossen, Rechnungen gesendet
+  - Feb: abgeschlossen, Rechnungen entwurf
+  - März: laufend (bis heute), Rechnungen entwurf
+- Verrechnet=true für alle Einsätze aus abgeschlossenen Perioden
 
-### Hinweis Testdaten
-- Die Test-Rechnung hat **keine rechnungs_positionen**
-- Sie wurde direkt mit Beträgen eingefügt (ohne Einsätze → Positionen)
-- In der Rechnungs-Detailansicht erscheint daher eine **leere Positionstabelle**
-
-### Einsätze für Rechnung nutzbar
-- Maria: 4 abgeschlossene Einsätze im letzten Monat (je 120 Min, verrechnet=false)
-- Hans: 4 abgeschlossene Einsätze (verrechnet=false)
-
-**Rechnung «richtig» testen:** `/rechnungen/create` → Klient Maria → Periode letzter Monat → Einsätze laden → Rechnung erstellen. Dann hat die Rechnung echte Positionen mit Minuten, Tarife können gesetzt werden.
+**Rechnungslauf testen:** `/rechnungslaeufe/create` → nächsten Monat als Periode → Vorschau zeigt Klienten mit aktuellen Einsätzen.
 
 ---
 
@@ -95,7 +89,11 @@ entwurf → gesendet → bezahlt
 
 ---
 
-## Offene Punkte (CLAUDE.md)
-- PDF-Button: Placeholder, «Folgt bald»
-- XML-Export: tarmed_code auf leistungsarten fehlt
-- Tarife: Aktuell manuell pro Position; evtl. später aus leistungsregionen/Tarif-Setup übernehmen
+## Implementierte Features
+
+- **PDF-Export**: Button auf Rechnungs-Detail → generiert A4-PDF mit QR-Zahlteil (Swiss QR Bill)
+- **XML 450.100**: `generalInvoiceRequest` konform, tiers_garant/payant dynamisch, tarmed_code aus leistungsarten
+- **Tarife**: werden aus `leistungsregionen` übernommen und in `rechnungs_positionen` eingefroren
+- **Rechnungslauf**: Batch-Erstellung für alle Klienten, E-Mail-Versand, Sammel-PDF
+- **Einzelstornierung**: Rechnung stornieren → Einsätze wieder verrechenbar
+- **Bexio-Sync**: Rechnungen nach Bexio übertragen + Zahlungsstatus zurücklesen
