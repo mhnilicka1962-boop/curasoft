@@ -13,10 +13,6 @@ class DemoController extends Controller
      */
     public function login(string $rolle)
     {
-        if (!config('app.demo_mode')) {
-            abort(404);
-        }
-
         $email = match ($rolle) {
             'admin'  => 'admin@curasoft-demo.ch',
             'pflege' => 'sandra@curasoft-demo.ch',
