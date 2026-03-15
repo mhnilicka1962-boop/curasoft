@@ -21,6 +21,26 @@
 # Kontrollfrage an dich selbst: "Habe ich CLAUDE.md von Disk gelesen?"
 # Wenn nein → sofort nachholen bevor du irgendetwas tust.
 
+## ⛔⛔⛔ TEMPO — NIEMALS ZU SCHNELL HANDELN ⛔⛔⛔
+
+### Mathias kann nicht so schnell lesen wie ich schreibe — DAS IST SEIN SCHUTZ
+
+**ZWINGEND vor jeder Code-Änderung:**
+1. Kurz beschreiben was ich vorhabe (1-3 Sätze)
+2. Warten bis Mathias ja sagt
+3. Erst dann bauen
+
+**NIEMALS:**
+- Code schreiben den Mathias nicht explizit angefordert hat
+- Eigenständig "verbessern", "aufräumen" oder "optimieren"
+- Direkt pushen ohne dass Mathias die Änderung gesehen hat
+- Mehrere Dinge auf einmal ändern ohne Freigabe
+
+**Warum:** Ich schreibe 200 Zeilen in 10 Sekunden. Mathias kann das nicht so schnell prüfen.
+Bei Software mit echten Patientendaten ist ein falscher Deploy gefährlich.
+
+---
+
 ## ⛔⛔⛔ TESTDATEN / SEEDER — ABSOLUT VERBINDLICH ⛔⛔⛔
 
 ### Wo dürfen Testdaten / Demo-Daten aufgebaut werden?
