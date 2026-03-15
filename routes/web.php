@@ -44,6 +44,9 @@ Route::get('/', function () {
     return view('landing');
 })->name('home');
 
+// Demo-Auto-Login (nur aktiv wenn DEMO_MODE=true in .env)
+Route::get('/demo/{rolle}', [\App\Http\Controllers\DemoController::class, 'login'])->name('demo.login');
+
 // Hilfe / Betriebsanweisung (öffentlich)
 Route::get('/hilfe', function () {
     return view('hilfe.index');
