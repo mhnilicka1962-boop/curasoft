@@ -39,6 +39,35 @@ Produktive Tenants (`curapflege.curasoft.ch` und alle zukünftigen) enthalten ec
 
 **Vor jedem Seeder-Aufruf zwingend prüfen: Auf welcher DB bin ich? Ist das lokal oder Demo?**
 
+## Stand: 2026-03-16 (Session 25 — Landing Page Marketing + Akquise-Tool)
+
+## Neu in Session 25 (2026-03-16) — Landing Page + Akquise-Tool
+
+### Landing Page (`resources/views/landing.blade.php`)
+- **Stats-Block ersetzt**: Alle 26 Kantone / Keine Mindestlaufzeit / 12 Monate Pilot / Direkt erreichbar
+- **Navigation**: Preise + FAQ Links ergänzt (Desktop)
+- **Testimonials-Sektion** (`id="testimonials"`): 3 Karten nach Frühstarter-Angebot, vor Preissektion
+- **SEO**: title, description, keywords aktuell — alles in `<head>`
+
+### Akquise-Tool (`/intern/email-vorlage`)
+- Route: `GET /intern/email-vorlage` — öffentlich aber nicht verlinkt, robots.txt sperrt `/intern/`
+- View: `resources/views/intern/email-vorlage.blade.php`
+- Betreff + Email-Text kopierfertig (clipboard.js)
+- Tages-Zähler (LocalStorage, täglich zurückgesetzt)
+- Checkliste mit JS-State
+- Auf Demo verfügbar: `https://www.curasoft.ch/intern/email-vorlage`
+
+### robots.txt (`public/robots.txt`)
+- `Disallow: /intern/` + `Disallow: /admin/`
+- `Sitemap: https://www.curasoft.ch/sitemap.xml`
+
+### Marketing-Recherche (nicht gebaut)
+- ASPS (Association Spitex privée Suisse) = Dachverband private Spitex → `info@spitexprivee.swiss`
+- Kein öffentliches Email-Verzeichnis gefunden — kantonale Verbände als beste Quelle
+- Zielgruppe: kleine private Spitex (2–15 MA), Inhaber direkt anschreiben
+
+---
+
 ## Stand: 2026-03-15 (Session 24 — Demo-Umgebung vollständig aufgebaut)
 
 ## Demo-Workflow (www.curasoft.ch)
