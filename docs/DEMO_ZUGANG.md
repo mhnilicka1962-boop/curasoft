@@ -12,7 +12,13 @@ Klienten, Einsatzplanung, Tourenplanung, Rechnungsläufe — der vollständige V
 
 ## Am Smartphone — Pflege-Ansicht
 
-**→ https://www.curasoft.ch/demo/pflege**
+Einfach einen der folgenden Links öffnen — direkt eingeloggt, kein Passwort:
+
+| Name | Link |
+|------|------|
+| Sandra Meier | https://www.curasoft.ch/demo/pflege |
+| Peter Keller | https://www.curasoft.ch/demo/peter |
+| Anna Brunner | https://www.curasoft.ch/demo/anna |
 
 Heutige Tour, Klienten-Details mit Adresse und Notfallnummer, Check-in/out, Leistungserfassung, Rapport schreiben.
 

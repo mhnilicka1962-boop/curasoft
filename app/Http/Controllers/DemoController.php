@@ -16,6 +16,8 @@ class DemoController extends Controller
         $email = match ($rolle) {
             'admin'  => 'admin@curasoft-demo.ch',
             'pflege' => 'sandra@curasoft-demo.ch',
+            'peter'  => 'peter@curasoft-demo.ch',
+            'anna'   => 'anna@curasoft-demo.ch',
             default  => null,
         };
 
