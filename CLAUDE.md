@@ -8,6 +8,24 @@
 # Insbesondere: Deploy-Regeln, Arbeitsablauf, bekannte Fallstricke.
 # NIEMALS aus dem Gedächtnis arbeiten — immer zuerst hier nachschlagen.
 
+## ⛔⛔⛔ TESTDATEN / SEEDER — ABSOLUT VERBINDLICH ⛔⛔⛔
+
+### Wo dürfen Testdaten / Demo-Daten aufgebaut werden?
+
+| Umgebung | DB | Testdaten erlaubt? |
+|----------|----|--------------------|
+| Lokal (`spitex.test`) | `spitex` | ✅ JA |
+| Demo (`www.curasoft.ch`) | `devitjob_curasoft` | ✅ JA — nur CurasoftDemoSeeder |
+| Produktiv (`curapflege.curasoft.ch`) | `devitjob_curapflege` | ⛔ NIEMALS |
+| Jeder weitere Produktiv-Tenant | `devitjob_*` (produktiv) | ⛔ NIEMALS |
+
+### Regel — keine Ausnahmen
+**Testdaten, Demo-Seeder, Seeders jeglicher Art dürfen NUR lokal und auf der Demo-DB (`devitjob_curasoft`) eingespielt werden.**
+
+Produktive Tenants (`curapflege.curasoft.ch` und alle zukünftigen) enthalten echte Patientendaten. Dort wird NIEMALS ein Seeder ausgeführt, NIEMALS `db_sync.sh` angewendet, NIEMALS manuell Testdaten erfasst.
+
+**Vor jedem Seeder-Aufruf zwingend prüfen: Auf welcher DB bin ich? Ist das lokal oder Demo?**
+
 ## Stand: 2026-03-14 (Session 23 — Rapportierung Konzept-Analyse)
 
 ---
@@ -816,6 +834,7 @@ php artisan master:init   # tenants-Tabelle in devitjob_curasoft angelegt
 2. **NIEMALS temporäre PHP-Scripts erstellen** um etwas auf dem Server auszuführen
 3. **NIEMALS Seeder direkt auf dem Server ausführen** — immer lokal, dann `./deploy.sh db`
 4. **NIEMALS `./deploy.sh` ausführen ohne vorher zu prüfen** ob lokal alles stimmt
+5. **NIEMALS Testdaten / Demo-Seeder auf Produktiv-DB einspielen** — nur lokal (`spitex`) und Demo (`devitjob_curasoft`) dürfen mit Testdaten befüllt werden. `devitjob_curapflege` (und alle zukünftigen Produktiv-Tenants) sind tabu.
 
 ### ✅ Gesamter Migrations-Workflow — IMMER SO, NIE ANDERS
 

@@ -5,6 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Spitex-Software für die ganze Schweiz. Kantonsübergreifende Einsatzplanung, automatische KK-Abrechnung nach XML 450.100, Bexio-Integration — für alle Spitex-Dienste.">
     <title>Spitex — Die Software für alle Spitex-Dienste in der Schweiz</title>
+
+    {{-- ── SEO: Canonical + Robots ──────────────────────────────────────── --}}
+    <link rel="canonical" href="https://curasoft.ch/">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+    {{-- ── Open Graph ────────────────────────────────────────────────────── --}}
+    <meta property="og:type"        content="website">
+    <meta property="og:locale"      content="de_CH">
+    <meta property="og:url"         content="https://curasoft.ch/">
+    <meta property="og:title"       content="CuraSoft — Die Spitex-Software für die ganze Schweiz">
+    <meta property="og:description" content="Kantonsübergreifende Einsatzplanung, automatische KK-Abrechnung nach XML 450.100, Bexio-Integration — für alle Spitex-Dienste in der Schweiz.">
+    <meta property="og:image"       content="https://curasoft.ch/og-image.png">
+
+    {{-- ── Twitter Card ──────────────────────────────────────────────────── --}}
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="CuraSoft — Die Spitex-Software für die ganze Schweiz">
+    <meta name="twitter:description" content="Kantonsübergreifende Einsatzplanung, KK-Abrechnung XML 450.100, Bexio-Integration — einfach, sicher, schweizweit.">
+    <meta name="twitter:image"       content="https://curasoft.ch/og-image.png">
+
+    {{-- ── Schema.org Structured Data ──────────────────────────────────── --}}
+    <script type="application/ld+json">
+    @verbatim
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                "@id": "https://curasoft.ch/#organization",
+                "name": "CuraSoft",
+                "url": "https://curasoft.ch",
+                "description": "CuraSoft ist die moderne Spitex-Software für alle 26 Schweizer Kantone — mit Einsatzplanung, KK-Abrechnung nach XML 450.100 und Bexio-Integration.",
+                "email": "mhn@itjob.ch",
+                "address": {
+                    "@type": "PostalAddress",
+                    "addressCountry": "CH",
+                    "addressLocality": "Adliswil"
+                },
+                "contactPoint": {
+                    "@type": "ContactPoint",
+                    "email": "mhn@itjob.ch",
+                    "contactType": "sales",
+                    "availableLanguage": ["de"]
+                }
+            },
+            {
+                "@type": "SoftwareApplication",
+                "@id": "https://curasoft.ch/#software",
+                "name": "CuraSoft",
+                "applicationCategory": "BusinessApplication",
+                "operatingSystem": "Web",
+                "description": "Spitex-Verwaltungssoftware für Schweizer Spitex-Dienste: Einsatzplanung, Klientenverwaltung, KVG-Abrechnung, XML 450.100 Export, Bexio-Integration, Face ID Login.",
+                "url": "https://curasoft.ch",
+                "offers": [
+                    {
+                        "@type": "Offer",
+                        "name": "Starter",
+                        "price": "150",
+                        "priceCurrency": "CHF",
+                        "priceSpecification": {
+                            "@type": "UnitPriceSpecification",
+                            "price": "150",
+                            "priceCurrency": "CHF",
+                            "unitText": "Monat"
+                        },
+                        "description": "Bis 20 Klienten, alle Funktionen, E-Mail Support"
+                    },
+                    {
+                        "@type": "Offer",
+                        "name": "Professional",
+                        "price": "290",
+                        "priceCurrency": "CHF",
+                        "priceSpecification": {
+                            "@type": "UnitPriceSpecification",
+                            "price": "290",
+                            "priceCurrency": "CHF",
+                            "unitText": "Monat"
+                        },
+                        "description": "Bis 50 Klienten, alle Funktionen, Priority Support"
+                    },
+                    {
+                        "@type": "Offer",
+                        "name": "Business",
+                        "price": "490",
+                        "priceCurrency": "CHF",
+                        "priceSpecification": {
+                            "@type": "UnitPriceSpecification",
+                            "price": "490",
+                            "priceCurrency": "CHF",
+                            "unitText": "Monat"
+                        },
+                        "description": "Bis 100 Klienten, alle Funktionen, Telefon-Support"
+                    },
+                    {
+                        "@type": "Offer",
+                        "name": "Enterprise",
+                        "price": "790",
+                        "priceCurrency": "CHF",
+                        "priceSpecification": {
+                            "@type": "UnitPriceSpecification",
+                            "price": "790",
+                            "priceCurrency": "CHF",
+                            "unitText": "Monat"
+                        },
+                        "description": "Bis 200 Klienten, alle Funktionen, dedizierter Support"
+                    }
+                ],
+                "publisher": {
+                    "@id": "https://curasoft.ch/#organization"
+                }
+            }
+        ]
+    }
+    @endverbatim
+    </script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -373,38 +487,91 @@
         .pilot-card p { font-size: 0.85rem; color: var(--text-hell); }
         .pilot-cta { text-align: center; }
 
-        /* ── Preis ──────────────────────────────────────────────────── */
-        .preis { background: var(--weiss); }
-        .preis-box {
-            max-width: 680px; margin: 0 auto;
+        /* ── Preismodell ─────────────────────────────────────────────── */
+        .preismodell { background: var(--hintergrund); }
+        .preis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .preis-karte {
             background: var(--weiss);
-            border: 2px solid var(--blau);
-            border-radius: 1.25rem;
-            padding: 2.5rem;
-            text-align: center;
+            border: 1.5px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem 1.75rem;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.2s, border-color 0.2s;
+            position: relative;
         }
-        .preis-badge {
-            display: inline-block;
+        .preis-karte:hover { box-shadow: 0 8px 24px rgba(37,99,235,0.09); border-color: #bfdbfe; }
+        .preis-karte.beliebt {
+            border-color: var(--blau);
+            border-width: 2px;
+            box-shadow: 0 8px 32px rgba(37,99,235,0.15);
+        }
+        .beliebt-badge {
+            position: absolute;
+            top: -0.75rem; left: 50%; transform: translateX(-50%);
             background: var(--blau); color: #fff;
-            padding: 0.25rem 0.875rem;
+            font-size: 0.75rem; font-weight: 700;
+            padding: 0.2rem 0.875rem;
             border-radius: 999px;
-            font-size: 0.8125rem; font-weight: 700;
-            margin-bottom: 1.5rem;
+            white-space: nowrap;
         }
-        .preis-zahl {
-            font-size: 3.5rem; font-weight: 800;
-            color: var(--blau); letter-spacing: -0.04em;
+        .preis-karte-name {
+            font-size: 0.8125rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            color: var(--text-hell); margin-bottom: 1rem;
+        }
+        .preis-karte-betrag {
+            font-size: 2.25rem; font-weight: 800;
+            color: var(--text); letter-spacing: -0.03em;
             line-height: 1;
         }
-        .preis-einheit { font-size: 1rem; color: var(--text-hell); margin-bottom: 1.75rem; }
-        .preis-features {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 0.625rem; text-align: left; margin-bottom: 2rem;
+        .preis-karte-betrag span { font-size: 1rem; font-weight: 600; color: var(--text-hell); }
+        .preis-karte-klienten {
+            font-size: 0.875rem; color: var(--text-hell);
+            margin: 0.5rem 0 1.5rem;
         }
-        @media (max-width: 500px) { .preis-features { grid-template-columns: 1fr; } }
-        .preis-feature { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
-        .preis-feature .check { color: var(--gruen); font-size: 0.9rem; background: none; width: auto; height: auto; }
-        .preis-hinweis { font-size: 0.8125rem; color: var(--text-hell); margin-top: 1.5rem; }
+        .preis-karte-liste {
+            list-style: none;
+            display: flex; flex-direction: column; gap: 0.5rem;
+            margin-bottom: 1.75rem; flex: 1;
+        }
+        .preis-karte-liste li {
+            display: flex; align-items: flex-start; gap: 0.5rem;
+            font-size: 0.875rem; color: var(--text-hell);
+        }
+        .preis-karte-liste li .check-gruen {
+            color: var(--gruen); font-weight: 700; flex-shrink: 0; margin-top: 0.05rem;
+        }
+        .btn-preis {
+            display: block; text-align: center;
+            padding: 0.65rem 1rem;
+            border-radius: 0.625rem;
+            font-size: 0.9375rem; font-weight: 600;
+            text-decoration: none;
+            transition: background 0.15s, border-color 0.15s;
+            border: 1.5px solid var(--border);
+            color: var(--text);
+            background: var(--weiss);
+        }
+        .btn-preis:hover { border-color: var(--blau); color: var(--blau); }
+        .preis-karte.beliebt .btn-preis {
+            background: var(--blau); color: #fff; border-color: var(--blau);
+        }
+        .preis-karte.beliebt .btn-preis:hover { background: var(--blau-dunkel); border-color: var(--blau-dunkel); }
+        .preis-enterprise-link {
+            text-align: center; font-size: 0.9rem; color: var(--text-hell);
+            margin-bottom: 1.25rem;
+        }
+        .preis-enterprise-link a { color: var(--blau); font-weight: 600; text-decoration: none; }
+        .preis-enterprise-link a:hover { text-decoration: underline; }
+        .preis-mwst {
+            text-align: center; font-size: 0.8125rem; color: var(--text-hell);
+        }
 
         /* ── Kontakt ────────────────────────────────────────────────── */
         .kontakt { background: var(--hintergrund); }
@@ -484,13 +651,79 @@
             section { padding: 3.5rem 1.25rem; }
             .hero { padding-top: 6rem; }
         }
+
+        /* ── FAQ ────────────────────────────────────────────────────────── */
+        .faq { background: var(--weiss); }
+        .faq-liste {
+            max-width: 760px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .faq-item {
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            margin-bottom: 0.625rem;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .faq-item:last-child { margin-bottom: 0; }
+        .faq-item.offen {
+            border-color: #bfdbfe;
+            box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+        }
+        .faq-frage {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            transition: background 0.15s;
+        }
+        .faq-frage:hover { background: var(--hintergrund); }
+        .faq-item.offen .faq-frage { background: var(--blau-hell); color: var(--blau-dunkel); }
+        .faq-chevron {
+            flex-shrink: 0;
+            width: 1.25rem; height: 1.25rem;
+            color: var(--text-hell);
+            transition: transform 0.25s;
+        }
+        .faq-item.offen .faq-chevron {
+            transform: rotate(180deg);
+            color: var(--blau);
+        }
+        .faq-antwort {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.2s;
+            padding: 0 1.5rem;
+        }
+        .faq-antwort-inner {
+            padding: 0.125rem 0 1.25rem;
+            font-size: 0.9375rem;
+            color: var(--text-hell);
+            line-height: 1.7;
+        }
+        .faq-item.offen .faq-antwort {
+            max-height: 400px;
+        }
     </style>
 </head>
 <body>
 
 {{-- ── Topbar ──────────────────────────────────────────────────────────── --}}
 <header class="topbar">
-    <a href="#" class="topbar-logo">
+    <a href="/" class="topbar-logo">
         <div class="topbar-logo-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -650,6 +883,16 @@
                 <div class="feature-icon">🔒</div>
                 <h3>Sicherer Login</h3>
                 <p>Face ID, Windows Hello oder Magic Link — kein Passwort nötig. Passwort-Variante ebenfalls verfügbar.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>Team-Chat</h3>
+                <p>Internes Nachrichtensystem mit Direktnachrichten und Gruppen-Chats — für alle Mitarbeitenden, direkt im Browser. Nachrichten werden nach 14 Tagen automatisch gelöscht.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🗓️</div>
+                <h3>Einsatzplanung visuell</h3>
+                <p>Kalender-Übersicht mit Drag &amp; Drop — alle Mitarbeitenden auf einen Blick. Doppelbelegungen werden sofort rot markiert. Wochen-, 2-Wochen- und Monatsansicht.</p>
             </div>
         </div>
     </div>
@@ -882,38 +1125,147 @@
     </div>
 </section>
 
-{{-- ── Preis ────────────────────────────────────────────────────────────── --}}
-<section class="preis" id="preis">
+{{-- ── Preismodell ──────────────────────────────────────────────────────── --}}
+<section class="preismodell" id="preis">
     <div class="container">
         <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
-            <p class="section-label">Preis</p>
-            <h2 class="section-title">Transparent und fair</h2>
+            <p class="section-label">Preise</p>
+            <h2 class="section-title">Transparente Preise — ohne Überraschungen</h2>
+            <p class="section-lead">Pro Monat, inkl. Updates, Support und allen Funktionen. Keine Setup-Gebühr.</p>
         </div>
-        <div class="preis-box">
-            <span class="preis-badge" style="background: #fef3c7; color: #92400e;">−40% im ersten Jahr</span>
-            <div class="preis-zahl">CHF 100</div>
-            <div class="preis-einheit">Basisgebühr / Monat + CHF 50 pro Mitarbeitenden</div>
-            <div style="background: var(--hintergrund); border-radius: 0.75rem; padding: 1rem 1.25rem; margin-bottom: 1.75rem; font-size: 0.875rem; color: var(--text-hell); line-height: 1.8;">
-                Beispiel: 4 Mitarbeitende<br>
-                CHF 100 + 4 × CHF 50 = <strong style="color: var(--text);">CHF 300 / Monat</strong><br>
-                <span style="color: var(--gruen); font-weight: 600;">Im ersten Jahr: CHF 180 / Monat (−40%)</span>
+        <div class="preis-grid">
+
+            {{-- Starter --}}
+            <div class="preis-karte">
+                <div class="preis-karte-name">Starter</div>
+                <div class="preis-karte-betrag">CHF 150 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 20 Klienten</div>
+                <ul class="preis-karte-liste">
+                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> E-Mail Support</li>
+                    <li><span class="check-gruen">✓</span> Updates inklusive</li>
+                </ul>
+                <a href="{{ route('login') }}" class="btn-preis">Jetzt starten</a>
             </div>
-            <div class="preis-features">
-                <div class="preis-feature"><span class="check">✓</span> Einsatzplanung & Touren</div>
-                <div class="preis-feature"><span class="check">✓</span> Klientenverwaltung</div>
-                <div class="preis-feature"><span class="check">✓</span> Alle 26 Kantone</div>
-                <div class="preis-feature"><span class="check">✓</span> XML 450.100 Export</div>
-                <div class="preis-feature"><span class="check">✓</span> Bexio-Integration</div>
-                <div class="preis-feature"><span class="check">✓</span> Mobile App (PWA)</div>
-                <div class="preis-feature"><span class="check">✓</span> Rapporte & Dokumentation</div>
-                <div class="preis-feature"><span class="check">✓</span> Support direkt erreichbar</div>
+
+            {{-- Professional (Beliebteste Wahl) --}}
+            <div class="preis-karte beliebt">
+                <span class="beliebt-badge">Beliebteste Wahl</span>
+                <div class="preis-karte-name">Professional</div>
+                <div class="preis-karte-betrag">CHF 290 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 50 Klienten</div>
+                <ul class="preis-karte-liste">
+                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Priority Support</li>
+                    <li><span class="check-gruen">✓</span> Updates inklusive</li>
+                </ul>
+                <a href="{{ route('login') }}" class="btn-preis">Jetzt starten</a>
             </div>
-            <a href="#kontakt" class="btn-primaer" style="justify-content: center;">
-                Jetzt Angebot anfragen
-            </a>
-            <p class="preis-hinweis">
-                Kein Setup-Fee. Monatlich kündbar. 40% Rabatt gilt für das gesamte erste Jahr.
-            </p>
+
+            {{-- Business --}}
+            <div class="preis-karte">
+                <div class="preis-karte-name">Business</div>
+                <div class="preis-karte-betrag">CHF 490 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 100 Klienten</div>
+                <ul class="preis-karte-liste">
+                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Telefon-Support</li>
+                    <li><span class="check-gruen">✓</span> Updates inklusive</li>
+                </ul>
+                <a href="{{ route('login') }}" class="btn-preis">Jetzt starten</a>
+            </div>
+
+            {{-- Enterprise --}}
+            <div class="preis-karte">
+                <div class="preis-karte-name">Enterprise</div>
+                <div class="preis-karte-betrag">CHF 790 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 200 Klienten</div>
+                <ul class="preis-karte-liste">
+                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Dedizierter Support</li>
+                    <li><span class="check-gruen">✓</span> Updates inklusive</li>
+                </ul>
+                <a href="{{ route('login') }}" class="btn-preis">Jetzt starten</a>
+            </div>
+
+        </div>
+        <p class="preis-enterprise-link">
+            Über 200 Klienten? <a href="#kontakt">Kontakt für individuelles Angebot →</a>
+        </p>
+        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar.</p>
+    </div>
+</section>
+
+{{-- ── FAQ ───────────────────────────────────────────────────────────────── --}}
+<section class="faq" itemscope itemtype="https://schema.org/FAQPage">
+    <div class="container">
+        <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
+            <p class="section-label">FAQ</p>
+            <h2 class="section-title">Häufig gestellte Fragen</h2>
+            <p class="section-lead">Alles Wichtige auf einen Blick — oder einfach direkt schreiben.</p>
+        </div>
+        <div class="faq-liste" id="faq-liste">
+
+            <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                <button class="faq-frage" aria-expanded="false">
+                    <span itemprop="name">Wie lange dauert die Einführung?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                    <div class="faq-antwort-inner" itemprop="text">
+                        In der Regel 2 bis 4 Wochen — je nach Grösse der Organisation. Wir begleiten Sie persönlich beim Einrichten: Stammdaten, Kantonstariife, erste Klienten, erster Rechnungslauf. Kein Ticketsystem, kein Callcenter — Sie haben eine direkte Ansprechperson.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                <button class="faq-frage" aria-expanded="false">
+                    <span itemprop="name">Welche Kantone werden unterstützt?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                    <div class="faq-antwort-inner" itemprop="text">
+                        Alle 26 Kantone der Schweiz — von AG bis ZH. Die kantonalen Tarife für Grundpflege, Hauswirtschaft und weitere Leistungsarten sind bereits im System hinterlegt. Einen neuen Kanton einrichten dauert wenige Minuten — die Standardtariife werden automatisch vorausgefüllt und können jederzeit angepasst werden.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                <button class="faq-frage" aria-expanded="false">
+                    <span itemprop="name">Funktioniert CuraSoft auf dem Handy?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                    <div class="faq-antwort-inner" itemprop="text">
+                        Ja — vollständig. CuraSoft ist eine Progressive Web App (PWA): Sie fügen sie einmal zum Home-Bildschirm hinzu, danach verhält sie sich wie eine native App. Check-in, Check-out, Rapporte schreiben, Tourenplan abrufen — alles mobil. Login per Face ID oder Windows Hello möglich, kein Passwort nötig. Kein App-Store, keine Zusatzkosten.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                <button class="faq-frage" aria-expanded="false">
+                    <span itemprop="name">Wie funktioniert die Krankenkassen-Abrechnung?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                    <div class="faq-antwort-inner" itemprop="text">
+                        Sie starten am Monatsende einen Rechnungslauf — CuraSoft berechnet alle Einsätze, wendet die korrekten Kantonstariife an und erstellt Rechnungen für Patienten und Krankenkassen. Jede Rechnung kann als XML 450.100 exportiert werden — dem Schweizer Standard für die elektronische KVG-Abrechnung, kompatibel mit allen Krankenkassen. Auf Knopfdruck, ohne manuelle Nachbearbeitung.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                <button class="faq-frage" aria-expanded="false">
+                    <span itemprop="name">Kann ich CuraSoft kostenlos testen?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                    <div class="faq-antwort-inner" itemprop="text">
+                        Ja — schreiben Sie uns einfach kurz und wir richten einen Demo-Zugang für Sie ein. Keine Kreditkarte, keine Vertragsbindung. Sie sehen das System mit realistischen Testdaten, können alles durchklicken und Fragen direkt stellen. Wenn es passt, begleiten wir Sie bei der Einführung.
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
@@ -995,6 +1347,24 @@
 </footer>
 
 <script>
+// ── FAQ Accordion ──────────────────────────────────────────────────────
+document.querySelectorAll('#faq-liste .faq-frage').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var item = this.closest('.faq-item');
+        var isOffen = item.classList.contains('offen');
+        // alle schliessen
+        document.querySelectorAll('#faq-liste .faq-item.offen').forEach(function(el) {
+            el.classList.remove('offen');
+            el.querySelector('.faq-frage').setAttribute('aria-expanded', 'false');
+        });
+        // dieses öffnen falls es vorher zu war
+        if (!isOffen) {
+            item.classList.add('offen');
+            this.setAttribute('aria-expanded', 'true');
+        }
+    });
+});
+
 document.getElementById('kontakt-form')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     const form = this;
