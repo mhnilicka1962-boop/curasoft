@@ -44,5 +44,6 @@ jobs:
             php artisan tenant:migrate --force &&
             php artisan tenant:ensure &&
             php artisan optimize:clear &&
+            grep -q "DEMO_MODE" .env || echo "DEMO_MODE=true" >> .env &&
             echo '✅ Deploy fertig'
           "
