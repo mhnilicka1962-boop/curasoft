@@ -1,22 +1,28 @@
-# CuraSoft Demo — Zugang
+# CuraSoft Demo — Zugangsdaten
 
 **Login-Seite:** https://www.curasoft.ch/login
+**Passwort für alle Zugänge:** `Demo2026!`
 
 ---
 
-Sie erhalten eine E-Mail mit einem Login-Link — einfach klicken, fertig. Kein Passwort nötig.
+## Am Computer — Admin-Ansicht
 
-Nächstes Mal: Login-Seite öffnen → E-Mail-Adresse eingeben → Link anfordern → Link klicken → eingeloggt.
+E-Mail: `admin@curasoft-demo.ch`
 
----
-
-## Was Sie sehen
-
-**Am Computer (Admin-Ansicht)**
 Klienten, Einsatzplanung, Tourenplanung, Rechnungsläufe — der vollständige Verwaltungsbereich.
 
-**Am Smartphone (Pflege-Ansicht)**
-Ihre heutige Tour, Klienten-Details mit Adresse und Notfallnummer, Check-in/out, Leistungserfassung, Rapport schreiben — alles mobil.
+---
+
+## Am Smartphone — Pflege-Ansicht
+
+Einer der folgenden Zugänge:
+
+| Name | E-Mail |
+|------|--------|
+| Sandra Meier | `sandra@curasoft-demo.ch` |
+| Peter Keller | `peter@curasoft-demo.ch` |
+
+Nach dem Login: heutige Tour, Klienten-Details mit Adresse und Notfallnummer, Check-in/out, Leistungserfassung, Rapport schreiben.
 
 **Tipp — App auf dem Homescreen:**
 Safari → Teilen-Symbol → «Zum Home-Bildschirm» → ab sofort wie eine native App, mit Face ID einloggen.
