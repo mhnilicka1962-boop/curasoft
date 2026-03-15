@@ -43,7 +43,7 @@ jobs:
             php artisan migrate --path=database/migrations_telescope --force &&
             php artisan tenant:migrate --force &&
             php artisan tenant:ensure &&
-            php artisan optimize:clear &&
             grep -q "DEMO_MODE" .env || echo "DEMO_MODE=true" >> .env &&
+            php artisan optimize:clear &&
             echo '✅ Deploy fertig'
           "
