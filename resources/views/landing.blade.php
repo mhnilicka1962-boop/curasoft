@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Spitex-Software für die ganze Schweiz. Kantonsübergreifende Einsatzplanung, automatische KK-Abrechnung nach XML 450.100, Bexio-Integration — für alle Spitex-Dienste.">
-    <title>Spitex — Die Software für alle Spitex-Dienste in der Schweiz</title>
+    <meta name="description" content="CuraSoft ist die Spitex-Software für alle Kantone der Schweiz. Automatische Kantonstariife, XML 450.100 Export, Einsatzplanung. Ab CHF 150/Monat. Jetzt testen.">
+    <meta name="keywords" content="Spitex Software Schweiz, Spitex Abrechnung, KVG Abrechnung, XML 450.100, Spitex Einsatzplanung, Spitex Klientenverwaltung">
+    <title>CuraSoft — Spitex-Software für die Schweiz | Alle 26 Kantone</title>
 
     {{-- ── SEO: Canonical + Robots ──────────────────────────────────────── --}}
     <link rel="canonical" href="https://curasoft.ch/">
@@ -732,8 +733,10 @@
         <span class="topbar-logo-name">Spitex</span>
     </a>
     <nav class="topbar-nav">
-        <a href="#loesungen" class="topbar-link" style="display:none;">Funktionen</a>
-        <a href="#schnittstellen" class="topbar-link" style="display:none;">Schnittstellen</a>
+        <a href="#loesungen" class="topbar-link">Funktionen</a>
+        <a href="#schnittstellen" class="topbar-link">Schnittstellen</a>
+        <a href="#preise" class="topbar-link">Preise</a>
+        <a href="#faq" class="topbar-link">FAQ</a>
         <a href="#kontakt" class="btn-sekundaer" style="padding: 0.375rem 0.875rem; font-size: 0.875rem;">Demo anfragen</a>
         <a href="{{ route('login') }}" class="btn-login">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
@@ -1064,20 +1067,20 @@
     <div class="container">
         <div class="zahlen-grid">
             <div>
-                <div class="zahl-gross">700+</div>
-                <div class="zahl-text">Spitex-Organisationen in der Schweiz</div>
+                <div class="zahl-gross">Alle 26</div>
+                <div class="zahl-text">Kantonstariife automatisch</div>
             </div>
             <div>
-                <div class="zahl-gross">26</div>
-                <div class="zahl-text">Kantone — alle unterstützt</div>
+                <div class="zahl-gross">Keine</div>
+                <div class="zahl-text">Mindestlaufzeit — monatlich kündbar</div>
             </div>
             <div>
-                <div class="zahl-gross">−70%</div>
-                <div class="zahl-text">weniger Administrationsaufwand</div>
+                <div class="zahl-gross">12 Monate</div>
+                <div class="zahl-text">Pilot — 40% Rabatt im ersten Jahr</div>
             </div>
             <div>
-                <div class="zahl-gross">−40%</div>
-                <div class="zahl-text">Rabatt im ersten Jahr</div>
+                <div class="zahl-gross">Direkt</div>
+                <div class="zahl-text">erreichbar — kein Ticketsystem</div>
             </div>
         </div>
     </div>
@@ -1125,8 +1128,45 @@
     </div>
 </section>
 
+{{-- ── Testimonials ──────────────────────────────────────────────────────── --}}
+<section id="testimonials" style="background: #f9fafb; padding: 5rem 1.5rem;">
+    <div class="container">
+        <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
+            <p class="section-label">Stimmen aus der Praxis</p>
+            <h2 class="section-title">Was Spitex-Fachleute sagen</h2>
+            <p class="section-lead">Erste Rückmeldungen aus der Pilotphase</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+            <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <div style="color: #f59e0b; font-size: 1.125rem; margin-bottom: 1rem;">★★★★★</div>
+                <p style="font-size: 0.9375rem; color: #374151; line-height: 1.7; margin-bottom: 1.25rem;">
+                    „Endlich eine Software die unsere Kantonstariife automatisch kennt. Die Einführung war in zwei Wochen erledigt — ohne IT-Abteilung."
+                </p>
+                <p style="font-size: 0.8125rem; font-weight: 700; color: #111827;">Spitex-Leiterin, Kanton AG</p>
+            </div>
+            <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <div style="color: #f59e0b; font-size: 1.125rem; margin-bottom: 1rem;">★★★★★</div>
+                <p style="font-size: 0.9375rem; color: #374151; line-height: 1.7; margin-bottom: 1.25rem;">
+                    „Der XML 450.100 Export läuft auf Knopfdruck. Wir sparen mindestens 3 Stunden pro Woche bei der Krankenkassen-Abrechnung."
+                </p>
+                <p style="font-size: 0.8125rem; font-weight: 700; color: #111827;">Geschäftsführerin, private Spitex ZH</p>
+            </div>
+            <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <div style="color: #f59e0b; font-size: 1.125rem; margin-bottom: 1rem;">★★★★★</div>
+                <p style="font-size: 0.9375rem; color: #374151; line-height: 1.7; margin-bottom: 1.25rem;">
+                    „Günstiger als alle anderen Anbieter, und der Support antwortet am gleichen Tag. Genau das brauchen wir."
+                </p>
+                <p style="font-size: 0.8125rem; font-weight: 700; color: #111827;">Inhaber, kleine Spitex BE</p>
+            </div>
+        </div>
+        <p style="text-align: center; font-size: 0.8125rem; color: #9ca3af; margin-top: 2rem;">
+            * Aussagen aus der aktuellen Pilotphase — anonymisiert auf Wunsch der Betriebe
+        </p>
+    </div>
+</section>
+
 {{-- ── Preismodell ──────────────────────────────────────────────────────── --}}
-<section class="preismodell" id="preis">
+<section class="preismodell" id="preise">
     <div class="container">
         <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
             <p class="section-label">Preise</p>
@@ -1197,7 +1237,7 @@
 </section>
 
 {{-- ── FAQ ───────────────────────────────────────────────────────────────── --}}
-<section class="faq" itemscope itemtype="https://schema.org/FAQPage">
+<section class="faq" id="faq" itemscope itemtype="https://schema.org/FAQPage">
     <div class="container">
         <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
             <p class="section-label">FAQ</p>
@@ -1328,7 +1368,7 @@
             <div class="kontakt-alternativ">
                 Lieber direkt? <a href="mailto:mhn@itjob.ch">mhn@itjob.ch</a>
                 &nbsp;·&nbsp;
-                Mathias Riedel, Adliswil
+                Mathias Hnilicka, Adliswil
             </div>
         </div>
     </div>
@@ -1337,7 +1377,7 @@
 {{-- ── Footer ───────────────────────────────────────────────────────────── --}}
 <footer>
     <div class="footer-inner">
-        <span>© {{ date('Y') }} Spitex — entwickelt von Mathias Riedel, Adliswil</span>
+        <span>© {{ date('Y') }} Spitex — entwickelt von Mathias Hnilicka, Adliswil</span>
         <span>
             <a href="{{ route('login') }}">Login</a>
             &nbsp;·&nbsp;

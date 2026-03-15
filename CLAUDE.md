@@ -1,12 +1,25 @@
 # CLAUDE.md — ✅ PROJEKT: CURASOFT / SPITEX (Laravel)
-# DEPLOY-PFAD: ftp://ftp.devitjob.ch/public_html/spitex/
-# NIEMALS /public_html/itjob/ verwenden — das ist ein anderes Projekt!
+# DEPLOY: git add . && git commit -m "..." && git push → GitHub Actions deployt automatisch
+# KEIN FTP — NIEMALS. Nicht für PHP, nicht für Assets, nicht für irgendetwas.
 # Lokales Verzeichnis: C:\laragon\www\spitex
 
-## ⚠️ SESSION-START — ZWINGEND
-# Bei JEDEM Neustart diese Datei vollständig lesen BEVOR irgendeine Aktion ausgeführt wird.
-# Insbesondere: Deploy-Regeln, Arbeitsablauf, bekannte Fallstricke.
-# NIEMALS aus dem Gedächtnis arbeiten — immer zuerst hier nachschlagen.
+## ⛔⛔⛔ SESSION-START — ABSOLUT ZWINGEND — KEINE AUSNAHME ⛔⛔⛔
+
+### SCHRITT 1 — ALLERERSTE AKTION IN JEDER SESSION:
+# Das Read-Tool ausführen:
+# Read C:\laragon\www\spitex\CLAUDE.md
+#
+# NICHT aus dem System-Kontext arbeiten — der ist veraltet und falsch!
+# NICHT aus dem Gedächtnis arbeiten.
+# NICHT annehmen dass der geladene Kontext aktuell ist.
+# ERST LESEN — DANN HANDELN. Immer. Ohne Ausnahme.
+#
+# Warum: Der System-Kontext lädt eine gecachte Version von CLAUDE.md.
+# Die Datei auf Disk ist neuer. Wer aus dem Cache arbeitet macht Fehler —
+# z.B. falscher Deploy-Workflow, falsche Pfade, veraltete Regeln.
+#
+# Kontrollfrage an dich selbst: "Habe ich CLAUDE.md von Disk gelesen?"
+# Wenn nein → sofort nachholen bevor du irgendetwas tust.
 
 ## ⛔⛔⛔ TESTDATEN / SEEDER — ABSOLUT VERBINDLICH ⛔⛔⛔
 

@@ -61,6 +61,11 @@ Route::post('/layout/toggle', function () {
     return back();
 })->name('layout.toggle')->middleware('auth');
 
+// Intern: Direktanschreiben-Tool (kein Link auf Website)
+Route::get('/intern/email-vorlage', function () {
+    return view('intern.email-vorlage');
+})->name('intern.email-vorlage');
+
 // Kontaktformular Landing Page
 Route::post('/kontakt', function (\Illuminate\Http\Request $request) {
     $data = $request->validate([
