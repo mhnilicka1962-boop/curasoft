@@ -26,14 +26,51 @@ Produktive Tenants (`curapflege.curasoft.ch` und alle zukünftigen) enthalten ec
 
 **Vor jedem Seeder-Aufruf zwingend prüfen: Auf welcher DB bin ich? Ist das lokal oder Demo?**
 
-## Stand: 2026-03-15 (Session 24 — CurasoftDemoSeeder fertig, Docs aktualisiert)
+## Stand: 2026-03-15 (Session 24 — Demo-Umgebung vollständig aufgebaut)
 
 ## Demo-Workflow (www.curasoft.ch)
 
-- **Demo-Daten**: `CurasoftDemoSeeder` — 5 Klienten, 4 Rechnungsläufe, 4 Monate Einsätze
-- **Zugang für Interessenten**: Magic Link per E-Mail (Admin sendet via `/mitarbeiter` → Einladung oder direkt via Login-Seite)
-- **CC immer an**: `mhn@itjob.ch` — Mathias kann die Mail weiterleiten / archivieren
-- **Kein kundespezifisches Dokument mehr nötig** — Demo-Daten sind für alle Interessenten gedacht
+- **Demo-Daten**: `CurasoftDemoSeeder` — 5 Klienten, 4 Rechnungsläufe, 4 Monate Einsätze, Notfallkontakte, Beiträge
+- **Zugang für Interessenten**: Direct-Login-Links — kein Passwort, kein Setup nötig
+- **Dokument**: `docs/DEMO_ZUGANG.md` — einfach an Interessenten schicken
+- **Security**: Demo-User (`@curasoft-demo.ch`) existieren nur in `devitjob_curasoft` — auf Produktiv-Tenants automatisch 404
+
+### Demo-Links (www.curasoft.ch)
+
+| Link | Ansicht |
+|------|---------|
+| `https://www.curasoft.ch/demo/admin` | Admin — PC, voller Verwaltungsbereich |
+| `https://www.curasoft.ch/demo/pflege` | Sandra Meier — Pflege, Smartphone |
+| `https://www.curasoft.ch/demo/peter` | Peter Keller — Pflege, Smartphone |
+| `https://www.curasoft.ch/demo/anna` | Anna Brunner — Pflege, Smartphone |
+
+### Demo-Controller
+- `app/Http/Controllers/DemoController.php`
+- Loggt Demo-User direkt ein (kein Passwort)
+- Nur `@curasoft-demo.ch` E-Mails erlaubt
+- User nicht gefunden → abort(404)
+- Route: `GET /demo/{rolle}` — öffentlich, kein Auth-Middleware nötig
+
+## Neu in Session 24 (2026-03-15) — Demo-Umgebung
+
+### CurasoftDemoSeeder (fertig, produktiv auf www.curasoft.ch)
+- 5 Klienten: Brunner/Weber (AG), Schneider/Keller/Gerber (BE)
+- 4 Mitarbeiter (Sandra, Peter, Anna, Ruth) + Demo-Admin
+- 520 Einsätze — 4 Monate zurück + 6 Wochen voraus, Serie + einmalig
+- 314 Touren automatisch erstellt
+- 4 Rechnungsläufe: Dez=bezahlt, Jan=gesendet, Feb=entwurf, März=laufend
+- 7 Notfallkontakte (CHECK-Constraint-konform)
+- 5 Patientenbeiträge mit echten Kantonstarifen (AG 43.40, BE 8.00 CHF/h)
+- Idempotent — kann beliebig oft neu ausgeführt werden
+- Demo-Benutzer: `admin/sandra/peter/anna/ruth @curasoft-demo.ch`, Passwort `Demo2026!`
+
+### Docs aktualisiert
+- Alle `/nachrichten` → `/chat` ersetzt
+- `BETRIEBSANWEISUNG.md`: Rechnungsläufe, Kalender-URL ergänzt
+- `ABLAUF_RECHNUNG.md`: Offene Punkte → implementierte Features
+- `ABLAUF_EINSATZPLANUNG.md`: Kalender als neue Übersicht
+- `DEPLOYMENT_DEMO.md`: komplett neu — GitHub Actions Workflow
+- `DEMO_ZUGANG.md`: neu — vier Direct-Login-Links für Interessenten
 
 ---
 
