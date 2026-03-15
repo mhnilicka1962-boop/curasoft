@@ -26,7 +26,14 @@ Produktive Tenants (`curapflege.curasoft.ch` und alle zukünftigen) enthalten ec
 
 **Vor jedem Seeder-Aufruf zwingend prüfen: Auf welcher DB bin ich? Ist das lokal oder Demo?**
 
-## Stand: 2026-03-14 (Session 23 — Rapportierung Konzept-Analyse)
+## Stand: 2026-03-15 (Session 24 — CurasoftDemoSeeder fertig, Docs aktualisiert)
+
+## Demo-Workflow (www.curasoft.ch)
+
+- **Demo-Daten**: `CurasoftDemoSeeder` — 5 Klienten, 4 Rechnungsläufe, 4 Monate Einsätze
+- **Zugang für Interessenten**: Magic Link per E-Mail (Admin sendet via `/mitarbeiter` → Einladung oder direkt via Login-Seite)
+- **CC immer an**: `mhn@itjob.ch` — Mathias kann die Mail weiterleiten / archivieren
+- **Kein kundespezifisches Dokument mehr nötig** — Demo-Daten sind für alle Interessenten gedacht
 
 ---
 
