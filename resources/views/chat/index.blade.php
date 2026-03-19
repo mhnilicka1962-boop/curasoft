@@ -250,7 +250,7 @@
         flex-shrink: 0;
     }
     @media (max-width: 640px) {
-        .chat-layout { height: calc(100vh - 60px); border-radius: 0; margin: -1rem; margin-bottom: -1.5rem; position: relative; }
+        .chat-layout { height: calc(100dvh - 60px); border-radius: 0; margin: -1rem; margin-bottom: -1.5rem; position: relative; }
         .chat-sidebar { display: none; flex-direction: column; width: 240px; position: absolute; z-index: 20; height: 100%; box-shadow: 2px 0 12px rgba(0,0,0,0.15); }
         .chat-sidebar.sichtbar { display: flex; }
         .chat-sidebar-overlay { display: none; position: absolute; inset: 0; z-index: 15; background: rgba(0,0,0,0.25); }
