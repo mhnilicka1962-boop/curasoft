@@ -312,7 +312,7 @@
     {{-- Chat-Panel --}}
     <div class="chat-panel">
         <div class="chat-panel-header">
-            <button class="chat-sidebar-toggle" onclick="sidebarToggle()" title="Gespräche">💬</button>
+            <button class="chat-sidebar-toggle" onclick="sidebarToggle()" title="Gespräche" id="chat-toggle-btn">💬 <span id="chat-toggle-badge" style="display:none; background:#ef4444; color:white; border-radius:10px; font-size:0.65rem; font-weight:700; padding:1px 5px; margin-left:2px;"></span></button>
             <span class="chat-panel-titel" id="chat-titel">Team</span>
             <span id="chat-typ-badge"></span>
             <span class="chat-autodelete-info" style="margin-left:auto;">🗑 14 Tage</span>
@@ -377,6 +377,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Sidebar alle 10 Sek. aktualisieren (neue DMs erkennen)
     setInterval(aktualisiereSidebar, 10000);
+
+    // iOS: Polling neu starten wenn App wieder in Vordergrund kommt
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && aktiverChatId) {
+            polleNeu();
+            startePolling();
+        }
+    });
 });
 
 function ladeChat(chatId, titel, isTeam) {
@@ -523,6 +531,17 @@ function loescheNachricht(nachrichtId, chatId) {
     });
 }
 
+function aktualisiereToggleBadge() {
+    let total = 0;
+    document.querySelectorAll('.chat-sidebar-badge').forEach(b => {
+        total += parseInt(b.textContent) || 0;
+    });
+    const badge = document.getElementById('chat-toggle-badge');
+    if (!badge) return;
+    if (total > 0) { badge.textContent = total; badge.style.display = 'inline'; }
+    else { badge.style.display = 'none'; }
+}
+
 function aktualisiereSidebar() {
     fetch('/chat/sidebar', { headers: { 'X-CSRF-TOKEN': CSRF } })
         .then(r => r.json())
@@ -569,6 +588,7 @@ function markiereGesehen(chatId, letzteId) {
     localStorage.setItem('chat_gesehen_' + chatId, letzteId);
     const badge = document.querySelector(`[data-chat-id="${chatId}"] .dm-badge`);
     if (badge) badge.style.display = 'none';
+    aktualisiereToggleBadge();
 }
 
 function heuteDatum() {
