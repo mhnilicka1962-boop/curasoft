@@ -38,6 +38,10 @@ class EinsaetzeController extends Controller
                 $sub->whereDate('datum', '<', $heute)
                     ->orWhereIn('status', ['abgeschlossen', 'storniert'])
             );
+            if ($request->filled('nur_unverrechnete')) {
+                $q->where('verrechnet', false)->where('status', 'abgeschlossen');
+            }
+            $q->with(['rechnungsPosition.rechnung.lauf']);
         } else {
             $q->whereDate('datum', '>=', $heute)
               ->whereNotIn('status', ['abgeschlossen', 'storniert']);

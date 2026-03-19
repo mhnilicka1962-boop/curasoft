@@ -288,6 +288,10 @@
                 style="padding: 0.375rem 0.875rem; font-size: 0.8125rem; font-weight: 600; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; color: var(--cs-text-hell);">
                 Vergangen ({{ $vergangen->count() }})
             </button>
+            <button onclick="einsatzTab('monat')" id="tab-monat"
+                style="padding: 0.375rem 0.875rem; font-size: 0.8125rem; font-weight: 600; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; color: var(--cs-text-hell);">
+                Monatsübersicht
+            </button>
         </div>
 
         {{-- Anstehend --}}
@@ -325,6 +329,13 @@
             @empty
             <p class="text-klein text-hell" style="padding: 0.5rem 0; margin: 0;">Keine anstehenden Einsätze.</p>
             @endforelse
+        </div>
+
+        {{-- Monatsübersicht --}}
+        <div id="panel-monat" style="display: none;">
+            <div id="monat-inhalt" style="min-height: 60px;">
+                <p class="text-klein text-hell" style="padding: 0.5rem 0;">Wird geladen…</p>
+            </div>
         </div>
 
         {{-- Vergangen --}}
@@ -1440,13 +1451,36 @@ function toggleKlientEdit() {
     if (open) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+var monatGeladen = false;
+var aktuellerMonat = {{ now()->month }};
+var aktuellesJahr  = {{ now()->year }};
+
 function einsatzTab(tab) {
     document.getElementById('panel-anstehend').style.display = tab === 'anstehend' ? 'block' : 'none';
     document.getElementById('panel-vergangen').style.display  = tab === 'vergangen'  ? 'block' : 'none';
-    document.getElementById('tab-anstehend').style.borderBottomColor = tab === 'anstehend' ? 'var(--cs-primaer)' : 'transparent';
-    document.getElementById('tab-anstehend').style.color             = tab === 'anstehend' ? 'var(--cs-primaer)' : 'var(--cs-text-hell)';
-    document.getElementById('tab-vergangen').style.borderBottomColor = tab === 'vergangen'  ? 'var(--cs-primaer)' : 'transparent';
-    document.getElementById('tab-vergangen').style.color             = tab === 'vergangen'  ? 'var(--cs-primaer)' : 'var(--cs-text-hell)';
+    document.getElementById('panel-monat').style.display      = tab === 'monat'      ? 'block' : 'none';
+
+    ['anstehend','vergangen','monat'].forEach(function(t) {
+        var btn = document.getElementById('tab-' + t);
+        btn.style.borderBottomColor = t === tab ? 'var(--cs-primaer)' : 'transparent';
+        btn.style.color             = t === tab ? 'var(--cs-primaer)' : 'var(--cs-text-hell)';
+    });
+
+    if (tab === 'monat' && !monatGeladen) {
+        ladeMonate(aktuellerMonat, aktuellesJahr);
+    }
+}
+
+function ladeMonate(monat, jahr) {
+    monatGeladen = true;
+    aktuellerMonat = monat;
+    aktuellesJahr  = jahr;
+    var url = '{{ route('klienten.monatsuebersicht', $klient) }}?monat=' + monat + '&jahr=' + jahr;
+    document.getElementById('monat-inhalt').innerHTML = '<p class="text-klein text-hell" style="padding:0.5rem 0;">Wird geladen…</p>';
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.text(); })
+        .then(function(html) { document.getElementById('monat-inhalt').innerHTML = html; })
+        .catch(function() { document.getElementById('monat-inhalt').innerHTML = '<p class="text-klein" style="color:var(--cs-fehler);">Fehler beim Laden.</p>'; });
 }
 
 const planLa       = document.getElementById('plan-la');

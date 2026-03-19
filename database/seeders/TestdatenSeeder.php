@@ -50,9 +50,10 @@ class TestdatenSeeder extends Seeder
         $this->createKlienten();
         $this->createVerordnungen();
         $this->createEinsaetze();
+        $this->createAktivitaeten();
         $this->createRapporte();
         $this->createTouren();
-        $this->createRechnungen();
+        $this->createRechnungslaeufe();
         $this->printSummary();
     }
 
@@ -701,20 +702,20 @@ class TestdatenSeeder extends Seeder
 
     private function createEinsaetze(): void
     {
-        $testPflegerIds = array_values($this->pfleger);
-
-        // Zukünftige + heutige geplante Einsätze der Testbenutzer immer neu erstellen
-        if (!empty($testPflegerIds)) {
-            DB::table('einsaetze')
-                ->where('organisation_id', $this->orgId)
-                ->whereIn('benutzer_id', $testPflegerIds)
-                ->where('status', 'geplant')
-                ->where('datum', '>=', Carbon::today()->toDateString())
-                ->delete();
-        }
-
-        $count = DB::table('einsaetze')->where('organisation_id', $this->orgId)->count();
-        $nurZukunft = $count > 0;
+        // Cleanup: alles löschen und sauber neu aufbauen
+        $this->command->info('Bereinige alte Testdaten...');
+        DB::table('rechnungs_positionen')
+            ->whereIn('rechnung_id', DB::table('rechnungen')
+                ->where('organisation_id', $this->orgId)->pluck('id'))
+            ->delete();
+        DB::table('rechnungen')->where('organisation_id', $this->orgId)->delete();
+        DB::table('rechnungslaeufe')->where('organisation_id', $this->orgId)->delete();
+        DB::table('einsatz_aktivitaeten')->where('organisation_id', $this->orgId)->delete();
+        DB::table('rapporte')->where('organisation_id', $this->orgId)->delete();
+        DB::table('einsaetze')->where('organisation_id', $this->orgId)
+            ->update(['tour_id' => null, 'tour_reihenfolge' => null]);
+        DB::table('touren')->where('organisation_id', $this->orgId)->delete();
+        DB::table('einsaetze')->where('organisation_id', $this->orgId)->delete();
 
         $laGrund    = $this->la['Grundpflege']             ?? array_values($this->la)[0];
         $laBehandl  = $this->la['Untersuchung Behandlung'] ?? $laGrund;
@@ -766,9 +767,8 @@ class TestdatenSeeder extends Seeder
         $heute    = Carbon::today();
         $inserted = 0;
 
-        // ── Historische Einsätze (30 Tage) — nur beim ersten Mal ─────────────
-        if (!$nurZukunft)
-        for ($d = 30; $d >= 1; $d--) {
+        // ── Historische Einsätze (90 Tage) — Dez/Jan/Feb/März abgedeckt ──────
+        for ($d = 90; $d >= 1; $d--) {
             $datum = $heute->copy()->subDays($d);
             $wt    = (int) $datum->dayOfWeekIso; // 1=Mo
 
@@ -794,7 +794,7 @@ class TestdatenSeeder extends Seeder
                     'zeit_bis'               => $bis . ':00',
                     'minuten'                => $this->minutenZwischen($von, $bis),
                     'bemerkung'              => $this->bemerkung($klient),
-                    'verrechnet'             => ($d > 14),
+                    'verrechnet'             => false,
                     'leistungserbringer_typ' => $erbTyp,
                     'checkin_zeit'           => $datum->copy()->setTimeFromTimeString($von)->addMinutes(rand(1, 8))->toDateTimeString(),
                     'checkin_methode'        => $erbTyp === 'angehoerig' ? 'manuell' : ($d % 3 === 0 ? 'gps' : 'qr'),
@@ -879,12 +879,6 @@ class TestdatenSeeder extends Seeder
 
     private function createRapporte(): void
     {
-        $count = DB::table('rapporte')->where('organisation_id', $this->orgId)->count();
-        if ($count > 0) {
-            $this->command->line("Rapporte vorhanden ({$count}), übersprungen.");
-            return;
-        }
-
         $einsaetze = DB::table('einsaetze')
             ->where('organisation_id', $this->orgId)
             ->where('status', 'abgeschlossen')
@@ -981,50 +975,149 @@ class TestdatenSeeder extends Seeder
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // RECHNUNGEN (5 in verschiedenen Zuständen)
+    // RECHNUNGSLÄUFE (2 abgeschlossene: Dez + Jan) — inkl. Positionen
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function createRechnungen(): void
+    private function createRechnungslaeufe(): void
     {
-        $count = DB::table('rechnungen')->where('organisation_id', $this->orgId)->count();
-        if ($count > 0) {
-            $this->command->line("Rechnungen vorhanden ({$count}), übersprungen.");
+        $heute = Carbon::today();
+
+        // Tarife aus leistungsregionen laden (neuester Eintrag pro Leistungsart)
+        $tarifeRaw = DB::table('leistungsregionen')
+            ->where('region_id', $this->regionId)
+            ->orderBy('gueltig_ab', 'desc')
+            ->get()
+            ->groupBy('leistungsart_id');
+
+        $tarife = [];
+        foreach ($tarifeRaw as $laId => $rows) {
+            $row = $rows->first();
+            $tarife[(int)$laId] = [
+                'kk'      => (float) ($row->kkasse ?? 0),
+                'patient' => (float) ($row->ansatz ?? 0),
+            ];
+        }
+        if (empty($tarife)) {
+            $this->command->warn('Keine Tarife in leistungsregionen gefunden — Rechnungsläufe übersprungen.');
+            $this->command->warn('Bitte unter /regionen die Tarife erfassen.');
             return;
         }
 
-        $liste = [
-            // [klient, monateBack, betragKK, betragPatient, status]
-            ['Schmidt',  -3,  720.00,  180.00, 'bezahlt'],
-            ['Bühler',   -2,  960.00,  240.00, 'gesendet'],
-            ['Stauffer', -2,  840.00,  210.00, 'gesendet'],
-            ['Brunner',  -1,  480.00,  120.00, 'entwurf'],
-            ['Berger',   -1, 1080.00,  270.00, 'entwurf'],
+        // Leistungsart-Namen vorausladen
+        $laBezeichnungen = DB::table('leistungsarten')->pluck('bezeichnung', 'id');
+
+        $laeufe = [
+            [
+                'periode_von' => $heute->copy()->subMonths(3)->startOfMonth(),
+                'periode_bis' => $heute->copy()->subMonths(3)->endOfMonth(),
+                'status'      => 'abgeschlossen',
+                'rech_status' => 'bezahlt',
+            ],
+            [
+                'periode_von' => $heute->copy()->subMonths(2)->startOfMonth(),
+                'periode_bis' => $heute->copy()->subMonths(2)->endOfMonth(),
+                'status'      => 'abgeschlossen',
+                'rech_status' => 'gesendet',
+            ],
         ];
 
-        foreach ($liste as [$nachname, $monateBack, $betragKK, $betragPatient, $status]) {
-            if (!isset($this->klienten[$nachname])) continue;
+        $gesamtRechnungen = 0;
 
-            $laufNr    = DB::table('rechnungen')->where('organisation_id', $this->orgId)->count() + 1;
-            $rechnNr   = 'RE-' . now()->year . '-' . str_pad($laufNr, 4, '0', STR_PAD_LEFT);
-            $periodeVon = now()->addMonths($monateBack)->startOfMonth();
-            $periodeBis = now()->addMonths($monateBack)->endOfMonth();
+        foreach ($laeufe as $laufData) {
+            $periodeVon = $laufData['periode_von'];
+            $periodeBis = $laufData['periode_bis'];
 
-            DB::table('rechnungen')->insert([
+            $laufId = DB::table('rechnungslaeufe')->insertGetId([
                 'organisation_id' => $this->orgId,
-                'klient_id'       => $this->klienten[$nachname],
-                'rechnungsnummer' => $rechnNr,
                 'periode_von'     => $periodeVon->toDateString(),
                 'periode_bis'     => $periodeBis->toDateString(),
-                'rechnungsdatum'  => $periodeBis->copy()->addDays(5)->toDateString(),
-                'betrag_kk'       => $betragKK,
-                'betrag_patient'  => $betragPatient,
-                'betrag_total'    => $betragKK + $betragPatient,
-                'status'          => $status,
+                'status'          => $laufData['status'],
+                'erstellt_von'    => $this->adminId,
                 'created_at'      => now(), 'updated_at' => now(),
             ]);
+
+            // Abgeschlossene Einsätze der Periode (inkl. Angehörige via checkout_zeit)
+            $einsaetze = DB::table('einsaetze')
+                ->where('organisation_id', $this->orgId)
+                ->where('status', 'abgeschlossen')
+                ->whereNotNull('checkout_zeit')
+                ->whereBetween('datum', [$periodeVon->toDateString(), $periodeBis->toDateString()])
+                ->get();
+
+            $klientGruppen = $einsaetze->groupBy('klient_id');
+            $anzahl = 0;
+
+            foreach ($klientGruppen as $klientId => $kEinsaetze) {
+                $betragKk      = 0.0;
+                $betragPatient = 0.0;
+                $positionen    = [];
+
+                foreach ($kEinsaetze as $e) {
+                    $tarif = $tarife[$e->leistungsart_id] ?? null;
+                    if (!$tarif) continue; // Kein Tarif konfiguriert — Position überspringen
+                    $min   = max(1, (int) $e->minuten);
+                    $bKk   = round($min / 60 * $tarif['kk'], 2);
+                    $bPat  = round($min / 60 * $tarif['patient'], 2);
+                    $betragKk      += $bKk;
+                    $betragPatient += $bPat;
+
+                    $positionen[] = [
+                        'einsatz_id'     => $e->id,
+                        'datum'          => $e->datum,
+                        'menge'          => $min,
+                        'einheit'        => 'min',
+                        'beschreibung'   => ($laBezeichnungen[$e->leistungsart_id] ?? 'Leistung')
+                                           . ' — ' . Carbon::parse($e->datum)->format('d.m.Y'),
+                        'tarif_kk'       => $tarif['kk'],
+                        'tarif_patient'  => $tarif['patient'],
+                        'betrag_kk'      => $bKk,
+                        'betrag_patient' => $bPat,
+                    ];
+                }
+
+                $laufNr  = str_pad(($gesamtRechnungen + $anzahl + 1), 4, '0', STR_PAD_LEFT);
+                $rechnNr = 'RE-' . $periodeVon->year . '-' . $laufNr;
+
+                $rechnungId = DB::table('rechnungen')->insertGetId([
+                    'organisation_id'  => $this->orgId,
+                    'klient_id'        => $klientId,
+                    'rechnungslauf_id' => $laufId,
+                    'rechnungsnummer'  => $rechnNr,
+                    'periode_von'      => $periodeVon->toDateString(),
+                    'periode_bis'      => $periodeBis->toDateString(),
+                    'rechnungsdatum'   => $periodeBis->copy()->addDays(5)->toDateString(),
+                    'betrag_kk'        => round($betragKk, 2),
+                    'betrag_patient'   => round($betragPatient, 2),
+                    'betrag_total'     => round($betragKk + $betragPatient, 2),
+                    'status'           => $laufData['rech_status'],
+                    'rechnungstyp'     => 'kombiniert',
+                    'created_at'       => now(), 'updated_at' => now(),
+                ]);
+
+                foreach ($positionen as $pos) {
+                    DB::table('rechnungs_positionen')->insert(array_merge($pos, [
+                        'rechnung_id' => $rechnungId,
+                        'created_at'  => now(), 'updated_at' => now(),
+                    ]));
+                }
+
+                // Einsätze als verrechnet markieren
+                DB::table('einsaetze')
+                    ->whereIn('id', $kEinsaetze->pluck('id'))
+                    ->update(['verrechnet' => true, 'updated_at' => now()]);
+
+                $anzahl++;
+            }
+
+            DB::table('rechnungslaeufe')->where('id', $laufId)->update([
+                'anzahl_erstellt' => $anzahl, 'updated_at' => now(),
+            ]);
+
+            $this->command->info("Lauf #{$laufId} {$periodeVon->format('M Y')}: {$anzahl} Rechnungen, " . $einsaetze->count() . ' Einsätze verrechnet');
+            $gesamtRechnungen += $anzahl;
         }
 
-        $this->command->info('Rechnungen erstellt: ' . count($liste));
+        $this->command->info("Rechnungsläufe: Dez + Jan verrechnet, Feb/März offen ✓");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -1042,6 +1135,94 @@ class TestdatenSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AKTIVITÄTEN (nur lokal — für Monatsübersicht-Test)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function createAktivitaeten(): void
+    {
+        // Aktivitäten-Sets pro Einsatz-Variante (Minuten müssen zur Einsatzdauer passen)
+        $sets = [
+            // 45-Min-Einsatz (typisch 08:00–08:45)
+            45 => [
+                ['Grundpflege', 'Duschen',            20],
+                ['Grundpflege', 'An-/Auskleiden',     10],
+                ['Grundpflege', 'Intimpflege',         5],
+                ['Grundpflege', 'Rasur',              10],
+            ],
+            // 60-Min-Einsatz
+            60 => [
+                ['Grundpflege', 'Duschen',            20],
+                ['Grundpflege', 'An-/Auskleiden',     10],
+                ['Grundpflege', 'Intimpflege',         5],
+                ['Grundpflege', 'Rasur',              10],
+                ['Grundpflege', 'Medikamente abgeben',15],
+            ],
+        ];
+
+        // Varianten-Sets für abwechslungsreiche Daten
+        $varianten = [
+            [
+                ['Grundpflege', 'Waschen am Lavabo',  10],
+                ['Grundpflege', 'An-/Auskleiden',     15],
+                ['Grundpflege', 'Mundpflege',         10],
+                ['Grundpflege', 'Medikamente abgeben',10],
+            ],
+            [
+                ['Grundpflege', 'Duschen',            20],
+                ['Grundpflege', 'Mobilisation',       10],
+                ['Grundpflege', 'Intimpflege',         5],
+                ['Grundpflege', 'Rasur',              10],
+            ],
+            [
+                ['Grundpflege', 'Waschen im Bett',    15],
+                ['Grundpflege', 'Lagern',             10],
+                ['Grundpflege', 'Intimpflege',         5],
+                ['Grundpflege', 'Mundpflege',         10],
+                ['Grundpflege', 'Medikamente abgeben', 5],
+            ],
+        ];
+
+        $einsaetze = DB::table('einsaetze')
+            ->where('organisation_id', $this->orgId)
+            ->where('status', 'abgeschlossen')
+            ->whereNull('tagespauschale_id')
+            ->get();
+
+        $inserted = 0;
+        foreach ($einsaetze as $i => $e) {
+            // Minuten aus zeit_von/bis berechnen
+            $min = 45;
+            if ($e->zeit_von && $e->zeit_bis) {
+                [$h1, $m1] = explode(':', substr($e->zeit_von, 0, 5));
+                [$h2, $m2] = explode(':', substr($e->zeit_bis, 0, 5));
+                $min = ((int)$h2 * 60 + (int)$m2) - ((int)$h1 * 60 + (int)$m1);
+            }
+
+            // Set auswählen
+            if (isset($sets[$min])) {
+                $aktivitaeten = $sets[$min];
+            } else {
+                $aktivitaeten = $varianten[$i % count($varianten)];
+            }
+
+            foreach ($aktivitaeten as $akt) {
+                DB::table('einsatz_aktivitaeten')->insert([
+                    'einsatz_id'      => $e->id,
+                    'organisation_id' => $this->orgId,
+                    'kategorie'       => $akt[0],
+                    'aktivitaet'      => $akt[1],
+                    'minuten'         => $akt[2],
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ]);
+            }
+            $inserted++;
+        }
+
+        $this->command->info("Aktivitäten erstellt: {$inserted} Einsätze");
     }
 
     private function minutenZwischen(string $von, string $bis): int
@@ -1116,9 +1297,13 @@ class TestdatenSeeder extends Seeder
         $this->command->newLine();
         $this->command->line('Klienten:  ' . count($this->klienten) . ' (davon 3 mit pflegendem Angehörigem)');
         $this->command->line('Ärzte:     ' . count($this->aerzte));
-        $einsatzCount = DB::table('einsaetze')->where('organisation_id', $this->orgId)->count();
-        $this->command->line("Einsätze:  {$einsatzCount}");
-        $rapportCount = DB::table('rapporte')->where('organisation_id', $this->orgId)->count();
+        $einsatzCount  = DB::table('einsaetze')->where('organisation_id', $this->orgId)->count();
+        $verrechnCount = DB::table('einsaetze')->where('organisation_id', $this->orgId)->where('verrechnet', true)->count();
+        $this->command->line("Einsätze:  {$einsatzCount} (davon {$verrechnCount} verrechnet, Rest offen)");
+        $rapportCount  = DB::table('rapporte')->where('organisation_id', $this->orgId)->count();
         $this->command->line("Rapporte:  {$rapportCount}");
+        $laufCount     = DB::table('rechnungslaeufe')->where('organisation_id', $this->orgId)->count();
+        $rechnCount    = DB::table('rechnungen')->where('organisation_id', $this->orgId)->count();
+        $this->command->line("Läufe:     {$laufCount} (Dez + Jan) — {$rechnCount} Rechnungen");
     }
 }

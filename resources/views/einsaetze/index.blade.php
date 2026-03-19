@@ -121,9 +121,20 @@
             </div>
             @endif
 
+            @if($ansicht === 'vergangen')
+            <div style="display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.25rem;">
+                <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; cursor: pointer; white-space: nowrap;">
+                    <input type="checkbox" name="nur_unverrechnete" value="1"
+                        {{ request('nur_unverrechnete') ? 'checked' : '' }}
+                        onchange="this.form.submit()">
+                    Nur unverrechnete
+                </label>
+            </div>
+            @endif
+
             <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
                 <button type="submit" class="btn btn-primaer text-klein" style="flex: 1;">Filtern</button>
-                @if(request()->anyFilled(['suche','datum_von','datum_bis','status','leistungsart_id','benutzer_id']))
+                @if(request()->anyFilled(['suche','datum_von','datum_bis','status','leistungsart_id','benutzer_id','nur_unverrechnete']))
                     <a href="{{ route('einsaetze.index', ['ansicht' => $ansicht]) }}" class="btn btn-sekundaer text-klein">×</a>
                 @endif
             </div>
@@ -144,6 +155,9 @@
                     <th class="abschnitt-label" style="padding: 0.625rem 1rem; text-align: left; white-space: nowrap;">Zeit</th>
                     <th class="col-desktop abschnitt-label" style="padding: 0.625rem 1rem; text-align: left;">Mitarbeiter</th>
                     <th class="abschnitt-label" style="padding: 0.625rem 1rem; text-align: left;">Status</th>
+                    @if($ansicht === 'vergangen')
+                    <th class="col-desktop abschnitt-label" style="padding: 0.625rem 1rem; text-align: left;">Abrechnung</th>
+                    @endif
                     <th style="padding: 0.625rem 1rem;"></th>
                 </tr>
             </thead>
@@ -184,6 +198,25 @@
                     <td style="padding: 0.625rem 1rem;">
                         <span class="badge {{ $einsatz->statusBadgeKlasse() }}">{{ $einsatz->statusLabel() }}</span>
                     </td>
+                    @if($ansicht === 'vergangen')
+                    <td class="col-desktop" style="padding: 0.625rem 1rem; white-space: nowrap;">
+                        @if($einsatz->verrechnet && $einsatz->rechnungsPosition?->rechnung?->lauf)
+                            @php $lauf = $einsatz->rechnungsPosition->rechnung->lauf; @endphp
+                            <a href="{{ route('rechnungslauf.show', $lauf) }}"
+                               style="text-decoration: none;">
+                                <span class="badge badge-erfolg" style="font-size: 0.7rem;">
+                                    Lauf #{{ $lauf->id }}
+                                </span>
+                            </a>
+                        @elseif($einsatz->verrechnet)
+                            <span class="badge badge-erfolg" style="font-size: 0.7rem;">Verrechnet</span>
+                        @elseif($einsatz->status === 'abgeschlossen')
+                            <span class="badge badge-warnung" style="font-size: 0.7rem;">Offen</span>
+                        @else
+                            <span class="text-hell text-mini">—</span>
+                        @endif
+                    </td>
+                    @endif
                     <td class="text-rechts" style="padding: 0.625rem 1rem; white-space: nowrap;">
                         <a href="{{ route('einsaetze.show', $einsatz) }}"
                             class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.625rem;">

@@ -256,6 +256,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/klienten/{klient}/verordnungen',                [KlientenController::class, 'verordnungSpeichern'])->name('klienten.verordnung.speichern');
         Route::delete('/klienten/{klient}/verordnungen/{verordnung}', [KlientenController::class, 'verordnungEntfernen'])->name('klienten.verordnung.entfernen');
         Route::post('/klienten/{klient}/bexio/sync',                  [KlientenController::class, 'bexioSync'])->name('klienten.bexio.sync');
+        Route::get('/klienten/{klient}/monatsuebersicht',             [KlientenController::class, 'monatsuebersicht'])->name('klienten.monatsuebersicht');
         Route::post('/klienten/{klient}/angehoerige',                 [KlientenController::class, 'angehoerigZuweisen'])->name('klienten.angehoerig.zuweisen');
         Route::delete('/klienten/{klient}/angehoerige/{zuweisung}',   [KlientenController::class, 'angehoerigEntfernen'])->name('klienten.angehoerig.entfernen');
         Route::get('/schnellerfassung',  [KlientenController::class, 'schnellerfassung'])->name('schnellerfassung');

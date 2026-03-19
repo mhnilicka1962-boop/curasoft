@@ -569,6 +569,91 @@ class KlientenController extends Controller
         );
     }
 
+    public function monatsuebersicht(Request $request, Klient $klient)
+    {
+        $this->autorisiereZugriff($klient);
+
+        $monat = max(1, min(12, (int) $request->input('monat', now()->month)));
+        $jahr  = max(2020, min(2040, (int) $request->input('jahr', now()->year)));
+
+        $von  = \Carbon\Carbon::create($jahr, $monat, 1)->startOfDay();
+        $bis  = $von->copy()->endOfMonth();
+        $tage = $von->daysInMonth;
+
+        $einsaetze = $klient->einsaetze()
+            ->with('aktivitaeten')
+            ->whereNull('tagespauschale_id')
+            ->whereBetween('datum', [$von->toDateString(), $bis->toDateString()])
+            ->get();
+
+        // Tag-Status ermitteln
+        $heute = today();
+        $tagStatus = [];
+        foreach ($einsaetze as $e) {
+            $tag = (int) $e->datum->day;
+            if ($e->status === 'abgeschlossen') {
+                if (!isset($tagStatus[$tag]) || $tagStatus[$tag] !== 'offen') {
+                    $tagStatus[$tag] = 'abgeschlossen';
+                }
+            } elseif ($e->status !== 'storniert') {
+                if ($e->datum->lte($heute)) {
+                    $tagStatus[$tag] = 'offen';
+                } elseif (!isset($tagStatus[$tag])) {
+                    $tagStatus[$tag] = 'geplant_zukunft';
+                }
+            }
+        }
+
+        // Grid aufbauen: [kategorie][aktivitaet][day] = minutes
+        $grid = [];
+        foreach ($einsaetze as $e) {
+            $tag = (int) $e->datum->day;
+            foreach ($e->aktivitaeten as $akt) {
+                $kat  = $akt->kategorie;
+                $name = $akt->aktivitaet;
+                $grid[$kat][$name][$tag] = ($grid[$kat][$name][$tag] ?? 0) + $akt->minuten;
+            }
+        }
+
+        // Fallback: keine Aktivitäten → Einsätze direkt nach Leistungsart anzeigen
+        $fallback = false;
+        if (empty($grid) && $einsaetze->isNotEmpty()) {
+            $fallback = true;
+            foreach ($einsaetze as $e) {
+                $tag = (int) $e->datum->day;
+                $kat  = $e->leistungsart?->bezeichnung ?? 'Einsätze';
+                $name = 'Minuten';
+                // Minuten: aus einsatz.minuten, sonst aus zeit_von/bis, sonst dauerMinuten()
+                $min = $e->minuten;
+                if (!$min && $e->zeit_von && $e->zeit_bis) {
+                    [$h1, $m1] = explode(':', substr($e->zeit_von, 0, 5));
+                    [$h2, $m2] = explode(':', substr($e->zeit_bis, 0, 5));
+                    $min = ($h2 * 60 + $m2) - ($h1 * 60 + $m1);
+                }
+                if (!$min) $min = $e->dauerMinuten() ?? 0;
+                if ($min > 0) {
+                    $grid[$kat][$name][$tag] = ($grid[$kat][$name][$tag] ?? 0) + $min;
+                }
+            }
+        }
+
+        // Master-Liste + zusätzliche Aktivitäten aus Daten
+        $master = \App\Models\EinsatzAktivitaet::$aktivitaeten;
+        foreach ($grid as $kat => $aktivitaeten) {
+            if (!isset($master[$kat])) $master[$kat] = [];
+            foreach (array_keys($aktivitaeten) as $name) {
+                if (!in_array($name, $master[$kat])) $master[$kat][] = $name;
+            }
+        }
+
+        // Nur Kategorien mit Daten anzeigen
+        $masterGefiltert = array_filter($master, fn($kat) => isset($grid[$kat]), ARRAY_FILTER_USE_KEY);
+
+        return view('klienten.monatsuebersicht', compact(
+            'klient', 'monat', 'jahr', 'tage', 'tagStatus', 'grid', 'masterGefiltert', 'von', 'fallback'
+        ));
+    }
+
     private function autorisiereZugriff(Klient $klient): void
     {
         if ($klient->organisation_id !== $this->orgId()) {
