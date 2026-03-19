@@ -239,19 +239,35 @@
         font-size: 0.875rem;
     }
 
+    .chat-sidebar-toggle {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+        padding: 0.2rem 0.4rem;
+        color: var(--cs-text);
+        flex-shrink: 0;
+    }
     @media (max-width: 640px) {
-        .chat-layout { height: calc(100vh - 60px); border-radius: 0; margin: -1rem; margin-bottom: -1.5rem; }
-        .chat-sidebar { width: 200px; position: absolute; z-index: 10; height: 100%; box-shadow: 2px 0 8px rgba(0,0,0,0.1); }
-        .chat-sidebar.versteckt { display: none; }
+        .chat-layout { height: calc(100vh - 60px); border-radius: 0; margin: -1rem; margin-bottom: -1.5rem; position: relative; }
+        .chat-sidebar { display: none; flex-direction: column; width: 240px; position: absolute; z-index: 20; height: 100%; box-shadow: 2px 0 12px rgba(0,0,0,0.15); }
+        .chat-sidebar.sichtbar { display: flex; }
+        .chat-sidebar-overlay { display: none; position: absolute; inset: 0; z-index: 15; background: rgba(0,0,0,0.25); }
+        .chat-sidebar-overlay.sichtbar { display: block; }
         .chat-panel { width: 100%; }
         .chat-msg-wrap { max-width: 88%; }
+        .chat-sidebar-toggle { display: inline-flex; align-items: center; }
     }
 </style>
 @endpush
 
 <div class="chat-layout">
+    {{-- Mobile Overlay --}}
+    <div class="chat-sidebar-overlay" id="chat-overlay" onclick="sidebarToggle(false)"></div>
+
     {{-- Sidebar --}}
-    <div class="chat-sidebar">
+    <div class="chat-sidebar" id="chat-sidebar">
         <div class="chat-sidebar-header">💬 Gespräche</div>
 
         <div class="chat-neu-btn">
@@ -296,6 +312,7 @@
     {{-- Chat-Panel --}}
     <div class="chat-panel">
         <div class="chat-panel-header">
+            <button class="chat-sidebar-toggle" onclick="sidebarToggle()" title="Gespräche">💬</button>
             <span class="chat-panel-titel" id="chat-titel">Team</span>
             <span id="chat-typ-badge"></span>
             <span class="chat-autodelete-info" style="margin-left:auto;">🗑 14 Tage</span>
@@ -304,7 +321,7 @@
             <div class="chat-leer">Chat auswählen…</div>
         </div>
         <div class="chat-input-area">
-            <textarea id="chat-input" placeholder="Nachricht schreiben… (Enter = senden, Shift+Enter = Zeilenumbruch)" rows="1"></textarea>
+            <textarea id="chat-input" placeholder="Nachricht…" rows="1"></textarea>
             <button id="chat-senden" class="btn btn-primaer">Senden</button>
         </div>
     </div>
@@ -330,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.chat-sidebar-item').forEach(item => {
         item.addEventListener('click', function () {
             ladeChat(this.dataset.chatId, this.dataset.chatTitel, this.dataset.chatTyp === 'team');
+            if (window.innerWidth <= 640) sidebarToggle(false);
         });
     });
 
@@ -532,6 +550,7 @@ function aktualisiereSidebar() {
                     item.innerHTML = `<div class="chat-avatar">${chat.initials}</div><span>${chat.name}</span><span class="dm-badge" style="display:none;background:#ef4444;color:white;border-radius:10px;font-size:0.65rem;padding:0 5px;margin-left:auto;">Neu</span>`;
                     item.addEventListener('click', function() {
                         ladeChat(this.dataset.chatId, this.dataset.chatTitel, false);
+                        if (window.innerWidth <= 640) sidebarToggle(false);
                     });
                     (document.getElementById('dm-liste') || document.querySelector('.chat-sidebar')).appendChild(item);
                 }
@@ -555,6 +574,14 @@ function markiereGesehen(chatId, letzteId) {
 function heuteDatum() {
     const h = new Date();
     return String(h.getDate()).padStart(2,'0') + '.' + String(h.getMonth()+1).padStart(2,'0') + '.' + h.getFullYear();
+}
+
+function sidebarToggle(force) {
+    const sidebar  = document.getElementById('chat-sidebar');
+    const overlay  = document.getElementById('chat-overlay');
+    const sichtbar = typeof force !== 'undefined' ? force : !sidebar.classList.contains('sichtbar');
+    sidebar.classList.toggle('sichtbar', sichtbar);
+    overlay.classList.toggle('sichtbar', sichtbar);
 }
 
 function starteDirekt(benutzerId) {

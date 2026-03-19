@@ -132,14 +132,14 @@
         @if($tour->einsaetze->count())
         <div style="display: flex; flex-direction: column; gap: 0.375rem;">
             @foreach($tour->einsaetze as $idx => $e)
-            <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.375rem 0.625rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit;">
-                <span class="text-hell" style="font-size: 0.8rem; min-width: 20px;">{{ $idx + 1 }}.</span>
-                <span class="text-fett">{{ $e->klient?->vollname() }}</span>
-                <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
+            <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.625rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; overflow: hidden;">
+                <span class="text-hell" style="font-size: 0.8rem; min-width: 18px; flex-shrink: 0;">{{ $idx + 1 }}.</span>
+                <span class="text-fett" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->klient?->vollname() }}</span>
+                <span class="text-hell" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->leistungsart?->bezeichnung }}</span>
                 @if($e->zeit_von)
-                    <span class="text-hell" style="margin-left: auto; font-size: 0.8rem;">{{ $e->zeit_von }}</span>
+                    <span class="text-hell" style="flex-shrink: 0; font-size: 0.8rem;">{{ $e->zeit_von }}</span>
                 @endif
-                <span class="badge {{ $e->statusBadgeKlasse() }}" style="font-size: 0.7rem;">{{ $e->statusLabel() }}</span>
+                <span class="badge {{ $e->statusBadgeKlasse() }}" style="font-size: 0.7rem; flex-shrink: 0;">{{ $e->statusLabel() }}</span>
             </a>
             @endforeach
         </div>
@@ -163,13 +163,13 @@
                 <div class="abschnitt-label" style="margin-bottom: 0.75rem;">Deine Einsätze heute</div>
                 <div style="display: flex; flex-direction: column; gap: 0.375rem;">
                     @foreach($eigeneEinsaetze as $e)
-                    <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; border: 1px solid var(--cs-border);">
-                        <span class="text-fett">{{ $e->klient?->vollname() }}</span>
-                        <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
+                    <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; border: 1px solid var(--cs-border); overflow: hidden;">
+                        <span class="text-fett" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->klient?->vollname() }}</span>
+                        <span class="text-hell" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->leistungsart?->bezeichnung }}</span>
                         @if($e->zeit_von)
-                            <span class="text-hell" style="margin-left: auto; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}</span>
+                            <span class="text-hell" style="flex-shrink: 0; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}</span>
                         @endif
-                        <span class="badge {{ $e->statusBadgeKlasse() }}" style="font-size: 0.7rem;">{{ $e->statusLabel() }}</span>
+                        <span class="badge {{ $e->statusBadgeKlasse() }}" style="font-size: 0.7rem; flex-shrink: 0;">{{ $e->statusLabel() }}</span>
                     </a>
                     @endforeach
                 </div>
