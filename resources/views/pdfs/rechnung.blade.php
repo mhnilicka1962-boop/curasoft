@@ -272,41 +272,62 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
         </table>
 
         @else
-        {{-- Einzelleistungen: Datum + Min + Tarife ─────────── --}}
+        {{-- Einzelleistungen: pro Leistungsart kumuliert ────── --}}
+        @php
+            // Positionen nach Leistungsart gruppieren + kumulieren
+            $gruppen = [];
+            foreach ($positionen as $pos) {
+                $la = $pos->einsatz?->leistungsart?->bezeichnung
+                   ?? $pos->leistungstyp?->leistungsart?->bezeichnung
+                   ?? $pos->leistungstyp?->bezeichnung
+                   ?? 'Pflege- und Betreuungsleistung';
+                if (!isset($gruppen[$la])) {
+                    $gruppen[$la] = [
+                        'bezeichnung'   => $la,
+                        'menge'         => 0,
+                        'betrag_patient'=> 0.0,
+                        'betrag_kk'     => 0.0,
+                        'tarif_patient' => (float)$pos->tarif_patient,
+                        'tarif_kk'      => (float)$pos->tarif_kk,
+                        'einheit'       => $pos->einheit ?? 'min',
+                    ];
+                }
+                $gruppen[$la]['menge']          += (float)$pos->menge;
+                $gruppen[$la]['betrag_patient'] += (float)$pos->betrag_patient;
+                $gruppen[$la]['betrag_kk']      += (float)$pos->betrag_kk;
+            }
+        @endphp
         <table class="positionen">
             <thead>
                 <tr>
-                    <th style="width: 11%">Datum</th>
-                    <th style="width: {{ $beide ? '28%' : '40%' }}">Leistung</th>
-                    <th class="r" style="width: 8%">Min.</th>
+                    <th style="width: {{ $beide ? '48%' : '60%' }}">Leistung</th>
+                    <th class="r" style="width: 10%">Minuten</th>
                     @if($beide || $nurPatient)
                     <th class="r" style="width: 11%">Tarif Pat.</th>
-                    <th class="r" style="width: 12%">Betrag Pat.</th>
+                    <th class="r" style="width: 13%">Betrag Pat.</th>
                     @endif
                     @if($beide || $nurKK)
                     <th class="r" style="width: 11%">Tarif {{ $kkLabel }}</th>
-                    <th class="r" style="width: 12%">Betrag {{ $kkLabel }}</th>
+                    <th class="r" style="width: 13%">Betrag {{ $kkLabel }}</th>
                     @endif
                 </tr>
             </thead>
             <tbody>
-                @foreach($positionen as $pos)
+                @foreach($gruppen as $g)
                 @php
-                    $bezeichnung = $pos->einsatz?->leistungsart?->bezeichnung
-                                ?? $pos->leistungstyp?->bezeichnung
-                                ?? 'Pflege- und Betreuungsleistung';
+                    $tarifPatStd = $g['tarif_patient'];
+                    $tarifKkStd  = $g['tarif_kk'];
                 @endphp
                 <tr>
-                    <td style="font-size: 7.5pt;">{{ $pos->datum->format('d.m.Y') }}</td>
-                    <td>{{ $bezeichnung }}</td>
-                    <td class="r">{{ $pos->menge }}</td>
+                    <td>{{ $g['bezeichnung'] }}</td>
+                    <td class="r">{{ (int)$g['menge'] }}</td>
                     @if($beide || $nurPatient)
-                    <td class="r">{{ number_format($pos->tarif_patient, 2, '.', "'") }}</td>
-                    <td class="r">{{ number_format($pos->betrag_patient, 2, '.', "'") }}</td>
+                    <td class="r">{{ number_format($tarifPatStd, 2, '.', "'") }}</td>
+                    <td class="r">{{ number_format($g['betrag_patient'], 2, '.', "'") }}</td>
                     @endif
                     @if($beide || $nurKK)
-                    <td class="r">{{ number_format($pos->tarif_kk, 2, '.', "'") }}</td>
-                    <td class="r">{{ number_format($pos->betrag_kk, 2, '.', "'") }}</td>
+                    <td class="r">{{ number_format($tarifKkStd, 2, '.', "'") }}</td>
+                    <td class="r">{{ number_format($g['betrag_kk'], 2, '.', "'") }}</td>
                     @endif
                 </tr>
                 @endforeach

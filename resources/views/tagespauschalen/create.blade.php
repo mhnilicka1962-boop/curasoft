@@ -7,6 +7,16 @@
     <div class="flash flash-fehler" style="margin-bottom: 1rem;">{{ session('fehler') }}</div>
     @endif
 
+    @if($istTiersPayant)
+    <div style="background: #fef2f2; border: 2px solid #ef4444; border-radius: var(--cs-radius); padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+        <div style="font-size: 1rem; font-weight: 700; color: #b91c1c; margin-bottom: 0.375rem;">⚠ Achtung — Tiers payant</div>
+        <div style="font-size: 0.875rem; color: #7f1d1d;">
+            Diese Organisation arbeitet mit <strong>Tiers payant</strong>. Tagespauschalen sind nur für Tiers garant vorgesehen.
+            Bei Tiers payant werden Leistungsarten immer minutengenau mit der Krankenkasse abgerechnet — eine Tagespauschale ist dort nicht möglich.
+        </div>
+    </div>
+    @endif
+
     <div class="karte">
         <div class="abschnitt-label" style="margin-bottom: 1.25rem;">Neue Tagespauschale</div>
 
@@ -43,23 +53,14 @@
                 </div>
             </div>
 
-            {{-- Rechnungstyp + Ansatz --}}
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; margin-bottom: 0.875rem;">
-                <div>
-                    <label class="feld-label">Rechnungstyp</label>
-                    <select name="rechnungstyp" class="feld" required>
-                        <option value="kvg"      {{ old('rechnungstyp', 'kvg') === 'kvg'      ? 'selected' : '' }}>KVG → Krankenkasse</option>
-                        <option value="klient"   {{ old('rechnungstyp') === 'klient'   ? 'selected' : '' }}>Klient (Selbstbehalt)</option>
-                        <option value="gemeinde" {{ old('rechnungstyp') === 'gemeinde' ? 'selected' : '' }}>Gemeinde / Kanton</option>
-                    </select>
-                    @error('rechnungstyp') <div class="feld-fehler">{{ $message }}</div> @enderror
-                </div>
-                <div>
-                    <label class="feld-label">Ansatz (CHF/Tag)</label>
-                    <input type="number" name="ansatz" id="ansatz" class="feld"
-                        step="0.05" min="0" value="{{ old('ansatz', '0.00') }}" required>
-                    @error('ansatz') <div class="feld-fehler">{{ $message }}</div> @enderror
-                </div>
+            <input type="hidden" name="rechnungstyp" value="klient">
+
+            {{-- Ansatz --}}
+            <div style="margin-bottom: 0.875rem;">
+                <label class="feld-label">Ansatz (CHF/Tag)</label>
+                <input type="number" name="ansatz" id="ansatz" class="feld"
+                    step="0.05" min="0" value="{{ old('ansatz', '0.00') }}" required>
+                @error('ansatz') <div class="feld-fehler">{{ $message }}</div> @enderror
             </div>
 
             {{-- Text für Rechnung --}}

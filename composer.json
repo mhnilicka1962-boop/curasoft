@@ -13,6 +13,7 @@
         "maennchen/zipstream-php": "^2.4",
         "setasign/fpdf": "^1.8",
         "setasign/fpdi": "^2.6",
+        "smalot/pdfparser": "^2.12",
         "spatie/laravel-passkeys": "^1.6",
         "sprain/swiss-qr-bill": "^5.3"
     },

@@ -34,15 +34,7 @@
         </div>
     </div>
 
-    {{-- Klient-Typ --}}
-    <div style="margin-bottom: 0.75rem;">
-        <label class="feld-label" for="klient_typ">Klient-Typ</label>
-        <select id="klient_typ" name="klient_typ" class="feld" style="max-width: 260px;">
-            <option value="patient"          {{ old('klient_typ', $k?->klient_typ ?? 'patient') === 'patient'          ? 'selected' : '' }}>Patient (Standard)</option>
-            <option value="pflegebeduerftig" {{ old('klient_typ', $k?->klient_typ ?? 'patient') === 'pflegebeduerftig' ? 'selected' : '' }}>Pflegebedürftig (KLV)</option>
-            <option value="angehoerig"       {{ old('klient_typ', $k?->klient_typ ?? 'patient') === 'angehoerig'       ? 'selected' : '' }}>Pflegender Angehöriger</option>
-        </select>
-    </div>
+
 
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 80px; gap: 0.75rem;">
         <div>
@@ -100,8 +92,8 @@
         </div>
         <div>
             <label class="feld-label" for="region_id">Kanton <span style="color:var(--cs-fehler);">*</span></label>
-            <select id="region_id" name="region_id" class="feld">
-                <option value="">—</option>
+            <select id="region_id" name="region_id" class="feld" required>
+                <option value="">— wählen —</option>
                 @foreach($regionen ?? [] as $r)
                     <option value="{{ $r->id }}" {{ old('region_id', $k?->region_id) == $r->id ? 'selected' : '' }}>
                         {{ $r->kuerzel }}

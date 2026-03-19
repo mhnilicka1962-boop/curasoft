@@ -12,7 +12,7 @@
             @if(!$klient->aktiv)
                 <span class="badge badge-grau">Inaktiv</span>
             @endif
-            {!! $klient->klientTypBadge() !!}
+
             @if(auth()->user()->organisation->bexio_api_key)
             <form method="POST" action="{{ route('klienten.bexio.sync', $klient) }}" style="display:inline;">
                 @csrf
@@ -152,13 +152,22 @@
                     <input type="number" name="anzahl_kinder" class="feld" min="0" value="{{ old('anzahl_kinder', $klient->anzahl_kinder) }}">
                 </div>
             </div>
-            <div>
-                <label class="feld-label">Klient-Typ</label>
-                <select name="klient_typ" class="feld" style="max-width: 260px;">
-                    <option value="patient"          {{ ($klient->klient_typ ?? 'patient') === 'patient'          ? 'selected' : '' }}>Patient (Standard)</option>
-                    <option value="pflegebeduerftig" {{ ($klient->klient_typ ?? 'patient') === 'pflegebeduerftig' ? 'selected' : '' }}>Pflegebedürftig (KLV)</option>
-                    <option value="angehoerig"       {{ ($klient->klient_typ ?? 'patient') === 'angehoerig'       ? 'selected' : '' }}>Pflegender Angehöriger</option>
-                </select>
+            <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--cs-border);">
+                <label class="feld-label">Kanton Abrechnung <span style="color:var(--cs-fehler);">*</span></label>
+                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                    <select name="region_id" class="feld" style="max-width: 200px;" required>
+                        <option value="">— wählen —</option>
+                        @foreach($regionen as $r)
+                            <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }} — {{ $r->bezeichnung }}</option>
+                        @endforeach
+                    </select>
+                    <span class="text-hell" style="font-size: 0.8125rem;">Bestimmt die Tarife für die Abrechnung</span>
+                </div>
+                @if(!$klient->region_id)
+                <div class="warn-box" style="margin-top: 0.5rem; display: flex; gap: 0.4rem; align-items: flex-start;">
+                    <span>⚠</span><div>Kein Abrechnungskanton gesetzt — Rechnungslauf nicht möglich.</div>
+                </div>
+                @endif
             </div>
         </div>
 
@@ -168,7 +177,7 @@
                 <label class="feld-label">Strasse & Hausnummer</label>
                 <input type="text" name="adresse" class="feld" value="{{ old('adresse', $klient->adresse) }}" placeholder="Musterstrasse 12">
             </div>
-            <div style="display: grid; grid-template-columns: 110px 1fr 90px; gap: 0.625rem; margin-bottom: 0.625rem;">
+            <div style="display: grid; grid-template-columns: 110px 1fr; gap: 0.625rem; margin-bottom: 0.625rem;">
                 <div>
                     <label class="feld-label">PLZ</label>
                     <input type="text" name="plz" class="feld" value="{{ old('plz', $klient->plz) }}">
@@ -176,15 +185,6 @@
                 <div>
                     <label class="feld-label">Ort</label>
                     <input type="text" name="ort" class="feld" value="{{ old('ort', $klient->ort) }}">
-                </div>
-                <div>
-                    <label class="feld-label">Kanton</label>
-                    <select name="region_id" class="feld">
-                        <option value="">—</option>
-                        @foreach($regionen as $r)
-                            <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }}</option>
-                        @endforeach
-                    </select>
                 </div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.625rem;">

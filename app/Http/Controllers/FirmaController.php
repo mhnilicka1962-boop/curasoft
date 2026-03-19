@@ -23,7 +23,9 @@ class FirmaController extends Controller
         $alleRegionen    = Region::orderBy('kuerzel')->get();
         $orgRegionenMap  = $org->regionen->keyBy('region_id');
 
-        return view('stammdaten.firma.index', compact('org', 'alleRegionen', 'orgRegionenMap'));
+        $hatRechnungen = \App\Models\Rechnung::where('organisation_id', $org->id)->exists();
+
+        return view('stammdaten.firma.index', compact('org', 'alleRegionen', 'orgRegionenMap', 'hatRechnungen'));
     }
 
     public function update(Request $request)
@@ -51,6 +53,7 @@ class FirmaController extends Controller
             'logo'                     => ['nullable', 'image', 'max:2048'],
             'theme_farbe_primaer'      => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'theme_layout'             => ['nullable', 'in:sidebar,topnav'],
+            'abrechnungslogik'         => ['nullable', 'in:tiers_garant,tiers_payant'],
         ]);
 
         $org = $this->org();
@@ -60,7 +63,7 @@ class FirmaController extends Controller
                 'name', 'zsr_nr', 'gln', 'mwst_nr', 'adresse', 'postfach', 'adresszusatz',
                 'plz', 'ort', 'telefon', 'fax', 'email', 'website',
                 'bank', 'bankadresse', 'iban', 'postcheckkonto',
-                'rechnungsadresse_position', 'logo_ausrichtung',
+                'rechnungsadresse_position', 'logo_ausrichtung', 'abrechnungslogik',
             ]),
             ['druck_mit_firmendaten' => $request->boolean('druck_mit_firmendaten', true)]
         );

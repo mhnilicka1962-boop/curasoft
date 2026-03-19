@@ -119,7 +119,7 @@
 {{-- Suche --}}
 <div style="margin-bottom: 0.75rem;">
     <input type="text" id="lauf-suche" class="feld" style="max-width: 300px;"
-        placeholder="Name suchen…" oninput="laufSuche(this.value)" autocomplete="off">
+        placeholder="Name oder Nr. suchen…" oninput="laufSuche(this.value)" autocomplete="off">
 </div>
 
 {{-- Tabelle aller Rechnungen --}}

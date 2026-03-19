@@ -269,6 +269,44 @@
             </div>
         </div>
 
+        {{-- Abschnitt: Abrechnungsmodell --}}
+        <div class="karte" style="margin-bottom: 1rem;">
+            <div class="abschnitt-label" style="margin-bottom: 1rem;">Abrechnungsmodell</div>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                @foreach([
+                    'tiers_garant' => [
+                        'label' => 'Tiers garant',
+                        'desc'  => 'Patient zahlt alles an Spitex — fordert KK/Gemeinde selbst ein. Rapportblatt pro Monat.',
+                    ],
+                    'tiers_payant' => [
+                        'label' => 'Tiers payant',
+                        'desc'  => 'Spitex verrechnet KK und Gemeinde direkt. XML 450.100 via MediData.',
+                    ],
+                ] as $wert => $info)
+                    @php $aktiv = old('abrechnungslogik', $org->abrechnungslogik ?? 'tiers_garant') === $wert; @endphp
+                    <label style="cursor: pointer; flex: 1; min-width: 200px;">
+                        <div style="border: 2px solid {{ $aktiv ? 'var(--cs-primaer)' : 'var(--cs-border)' }}; border-radius: var(--cs-radius); padding: 0.875rem 1rem; transition: border-color 0.15s;" class="abrmodell-karte">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                                <input type="radio" name="abrechnungslogik" value="{{ $wert }}"
+                                    {{ $aktiv ? 'checked' : '' }}
+                                    class="abrmodell-radio"
+                                    style="accent-color: var(--cs-primaer);">
+                                <span style="font-weight: 600;">{{ $info['label'] }}</span>
+                            </div>
+                            <div style="font-size: 0.8125rem; color: var(--cs-text-hell);">{{ $info['desc'] }}</div>
+                        </div>
+                    </label>
+                @endforeach
+            </div>
+            @if($hatRechnungen)
+            <div class="warn-box" style="margin-top: 0.875rem; display: flex; gap: 0.5rem; align-items: flex-start;">
+                <span>⚠</span>
+                <div>Es existieren bereits Rechnungen. Eine Umstellung betrifft nur neue Rechnungen — bestehende bleiben unverändert.</div>
+            </div>
+            @endif
+        </div>
+
         <div style="margin-bottom: 2rem;">
             <button type="submit" class="btn btn-primaer">Firmadaten speichern</button>
         </div>
@@ -306,6 +344,14 @@
                 r.closest('label').querySelector('.layout-ausr-karte').style.borderColor = 'var(--cs-border)';
             });
             radio.closest('label').querySelector('.layout-ausr-karte').style.borderColor = 'var(--cs-primaer)';
+        });
+    });
+    document.querySelectorAll('.abrmodell-radio').forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.querySelectorAll('.abrmodell-karte').forEach(k => {
+                k.style.borderColor = 'var(--cs-border)';
+            });
+            radio.closest('label').querySelector('.abrmodell-karte').style.borderColor = 'var(--cs-primaer)';
         });
     });
     </script>

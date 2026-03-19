@@ -76,6 +76,12 @@
             {{-- Verrechnung --}}
             <div style="margin-bottom: 1rem;">
                 <div class="feld-label" style="margin-bottom: 0.5rem;">Verrechnung</div>
+                <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer; margin-bottom: 0.5rem;">
+                    <input type="checkbox" name="verrechnung" value="1"
+                        {{ old('verrechnung', $tarif->verrechnung) ? 'checked' : '' }}
+                        style="width: 1rem; height: 1rem; accent-color: var(--cs-primaer);">
+                    Verrechnung aktiv
+                </label>
                 <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
                     <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; cursor: pointer;">
                         <input type="checkbox" name="einsatz_minuten" value="1"

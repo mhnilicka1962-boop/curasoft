@@ -38,9 +38,10 @@ class TagespauschaleController extends Controller
         $klienten = Klient::where('organisation_id', $this->orgId())
             ->where('aktiv', true)->orderBy('nachname')->get();
 
-        $selectedKlientId = $request->get('klient_id');
+        $selectedKlientId  = $request->get('klient_id');
+        $istTiersPayant    = \App\Models\Organisation::find($this->orgId())?->abrechnungslogik === 'tiers_payant';
 
-        return view('tagespauschalen.create', compact('klienten', 'selectedKlientId'));
+        return view('tagespauschalen.create', compact('klienten', 'selectedKlientId', 'istTiersPayant'));
     }
 
     public function store(Request $request)

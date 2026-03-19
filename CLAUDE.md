@@ -59,6 +59,60 @@ Produktive Tenants (`curapflege.curasoft.ch` und alle zukünftigen) enthalten ec
 
 **Vor jedem Seeder-Aufruf zwingend prüfen: Auf welcher DB bin ich? Ist das lokal oder Demo?**
 
+## Stand: 2026-03-19 (Session 26 — Rapportblatt + SpitexNormalSeeder + PDF-Fixes)
+
+## Neu in Session 26 (2026-03-19)
+
+### Rapportblatt — Seite 3 (Landscape PDF)
+- **Neue Datei:** `resources/views/pdfs/rapportblatt.blade.php` — vollständige Tagesaufstellung
+- **Struktur:** 13 Spalten: Tag | Abkl.Min | Unt.Min | GP.Min | Taxe×3 | KK×3 (col-sep) | Restbetrag | Beitrag VP | Beitrag Total
+- **Alle Tage** der Periode angezeigt (1–28/30/31), leere Tage mit "—" in Restbetrag
+- **VP-Berechnung:** `VP = min(ansatz_kunde, limit_prozent% × Restbetrag)` — `*` wenn Prozent-Limit greift
+- **Beitrag Total** = Restbetrag − VP (= Gemeindeanteil)
+- **Footer:** links=Beilage-Text | mitte=Datum | rechts=Stempel+Org
+
+### PdfExportService — Rapportblatt-Integration
+- **`rapportblattDaten(Rechnung)`:** berechnet Tages-Aggregation aus `rechnungs_positionen` — gibt null zurück bei Pauschale-Rechnungen oder fehlendem `region_id`
+- **`mergePdfs(portrait, landscape)`:** FPDI liest Portrait-PDF (Seite 1+2) + Landscape-PDF (Rapportblatt) und merged zu einem Dokument
+- **`rechnungExportieren()` + `rechnungAlsPdfString()`:** generieren automatisch das Rapportblatt und mergen wenn `tiers_garant`
+- `klient.aktBeitrag` in beiden `loadMissing()` ergänzt
+
+### Rechnung Seite 1 — Positionen gruppiert nach Leistungsart
+- **Vorher:** eine Zeile pro Einsatz (N+1 Zeilen)
+- **Jetzt:** eine Zeile pro Leistungsart, kumuliert (Grundpflege = 1 Zeile mit Summe)
+- Grouping-Logik im `@else`-Block von `rechnung.blade.php`
+
+### Rechnung PDF — Spalten-Fix
+- **Std.-Spalte entfernt** — Abrechnung in Minuten, nicht Stunden
+- **Tarif ×60-Bug behoben** — `tarif_patient/tarif_kk` war in CHF/h gespeichert, Blade hat fälschlich ×60 gerechnet → jetzt direkt verwendet
+- Tabellenspalten: Leistung | Minuten | Tarif Pat. (CHF/h) | Betrag Pat. | Tarif KK | Betrag KK
+
+### SpitexNormalSeeder (`database/seeders/SpitexNormalSeeder.php`)
+- Kleines Normal-Spitex ohne Tagespauschale — reine Minuten-Abrechnung
+- **5 Klienten:** 315 Elisabeth Brunner (AG), 316 Hans Weber (AG), 317 Margrit Schneider (BE), 318 Werner Keller (BE), 319 Josef Gerber (BE)
+- **5 Pflegende + 1 Buchhaltung:** Sandra Meier (123), Peter Keller (124), Anna Brunner (125), Ruth Gerber (126), Sandra Huber (127), Lisa Bauer (137)
+- **4 Perioden:** Dez 2025 (bezahlt), Jan 2026 (gesendet), Feb 2026 (entwurf), Mär 2026 (laufend)
+- **~600 Einsätze** — GP, UB, HWL, AB gemischt je nach Klient
+- **3 Rechnungsläufe** (IDs 28/29/30), 15 Rechnungen RE-2025-0041 bis RE-2026-0055
+- Idempotent — löscht zuerst Einsätze + Rechnungen dieser 5 Klienten, dann neu aufbauen
+- `php artisan db:seed --class=SpitexNormalSeeder`
+
+### Einsatz-Muster SpitexNormalSeeder
+| Klient | Muster |
+|--------|--------|
+| Elisabeth Brunner (AG) | GP Mo–Sa 45min + HWL Di+Fr 30min |
+| Hans Weber (AG) | Injektion täglich 15min + Verband Mo/Mi/Fr 20min |
+| Margrit Schneider (BE) | GP Mo–Sa 50min + Vitalzeichen Mo/Mi/Fr 15min |
+| Werner Keller (BE) | HWL Di/Do/Sa 60min + GP Mo/Mi/Fr 25min |
+| Josef Gerber (BE) | GP Mo–Fr 35min + Beratung am 5. des Monats 60min |
+
+### Kleine Fixes
+- Rapportblatt: "Tag"-Label in leerem Col-Tag-Header ergänzt
+- Rechnungslauf-Detail: Placeholder "Name oder Nr. suchen…" (sucht bereits nach Rechnungsnummer)
+- `docs/ABRECHNUNG_LOGIK.md` erstellt — vollständige Dokumentation Tiers garant vs. Tiers payant
+
+---
+
 ## Stand: 2026-03-16 (Session 25 — Landing Page Marketing + Akquise-Tool)
 
 ## Neu in Session 25 (2026-03-16) — Landing Page + Akquise-Tool
