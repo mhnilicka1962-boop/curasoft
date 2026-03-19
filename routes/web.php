@@ -203,7 +203,7 @@ Route::middleware('auth')->group(function () {
             })
             ->whereNull('cn.geloescht_am')
             ->where('cn.absender_id', '!=', $userId)
-            ->whereRaw('cn.id > ct.letzte_gesehen_id')
+            ->whereRaw('cn.id > COALESCE(ct.letzte_gesehen_id, 0)')
             ->count();
 
         return view('dashboard', compact(
