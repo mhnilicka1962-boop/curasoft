@@ -145,7 +145,12 @@
 
         <a href="{{ route('chat.index') }}" class="stat-chip">
             <span class="stat-chip-label">Chat</span>
-            <span class="stat-chip-zahl">💬</span>
+            <span class="stat-chip-zahl">
+                💬
+                @if($chatUngelesen > 0)
+                    <span style="background:#ef4444; color:white; border-radius:10px; font-size:0.65rem; font-weight:700; padding:1px 6px; margin-left:2px; vertical-align:middle;">{{ $chatUngelesen }}</span>
+                @endif
+            </span>
         </a>
 
     </div>

@@ -197,11 +197,20 @@ Route::middleware('auth')->group(function () {
         }
         $setupFertig = empty($setup) || !in_array(false, $setup, true);
 
+        $chatUngelesen = \DB::table('chat_nachrichten as cn')
+            ->join('chat_teilnehmer as ct', function ($j) use ($userId) {
+                $j->on('ct.chat_id', '=', 'cn.chat_id')->where('ct.benutzer_id', $userId);
+            })
+            ->whereNull('cn.geloescht_am')
+            ->where('cn.absender_id', '!=', $userId)
+            ->whereRaw('cn.id > ct.letzte_gesehen_id')
+            ->count();
+
         return view('dashboard', compact(
             'klientenAktiv', 'einsaetzeHeute', 'einsaetzeGeplant',
             'offeneRechnungen',
             'letzteRapporte', 'einsaetzeListe', 'einsaetzeDatumLabel',
-            'setup', 'setupFertig'
+            'setup', 'setupFertig', 'chatUngelesen'
         ));
     })->name('dashboard');
 
