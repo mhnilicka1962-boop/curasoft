@@ -82,6 +82,30 @@ class TestdatenSeeder extends Seeder
             $this->la[$la->bezeichnung] = $la->id;
         }
         $this->command->info('Leistungsarten geladen: ' . implode(', ', array_keys($this->la)));
+
+        // Pauschale: Eintrag in leistungsregionen mit 0.00 sicherstellen (wie Altsystem)
+        // Tarif kommt beim Klienten aus tagespauschalen — hier nur Platzhalter damit keine Warnung
+        $pauschaleId = $this->la['Pauschale'] ?? null;
+        if ($pauschaleId) {
+            $exists = DB::table('leistungsregionen')
+                ->where('leistungsart_id', $pauschaleId)
+                ->where('region_id', $this->regionId)
+                ->exists();
+            if (!$exists) {
+                DB::table('leistungsregionen')->insert([
+                    'leistungsart_id' => $pauschaleId,
+                    'region_id'       => $this->regionId,
+                    'gueltig_ab'      => '2015-01-01',
+                    'ansatz'          => 0.00,
+                    'kkasse'          => 0.00,
+                    'einsatz_minuten' => false,
+                    'einsatz_stunden' => false,
+                    'einsatz_tage'    => false,
+                    'created_at'      => now(), 'updated_at' => now(),
+                ]);
+                $this->command->info('Pauschale: leistungsregionen-Eintrag mit 0.00 angelegt.');
+            }
+        }
     }
 
     private function setupKrankenkassen(): void

@@ -17,7 +17,7 @@
 
 @php
     $grouped = $tarife->groupBy('leistungsart_id');
-    $alleLeistungsarten = \App\Models\Leistungsart::where('aktiv', true)->orderBy('bezeichnung')->get();
+    $alleLeistungsarten = \App\Models\Leistungsart::where('aktiv', true)->where('einheit', '!=', 'tage')->orderBy('bezeichnung')->get();
     $fehlendeLa = $alleLeistungsarten->filter(fn($la) => !$grouped->has($la->id));
 @endphp
 
