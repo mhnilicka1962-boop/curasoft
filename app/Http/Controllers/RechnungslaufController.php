@@ -432,7 +432,7 @@ class RechnungslaufController extends Controller
 
         $lr = $cache[$cacheKey];
 
-        if (!$lr) {
+        if (!$lr || !$lr->verrechnung) {
             return [0, 0];
         }
 
