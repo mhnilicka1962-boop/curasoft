@@ -12,7 +12,7 @@
         <strong style="font-size:0.85rem; min-width:120px; text-align:center;">{{ $periodeVon->locale('de')->isoFormat('MMMM YYYY') }}</strong>
         <a href="{{ route('klienten.rapportierung', [$klient, $naechMonat->year, $naechMonat->month]) }}" class="btn btn-sekundaer" style="padding:0.2rem 0.6rem; font-size:0.9rem;">›</a>
     </div>
-    @if($verfuegbareMonate->count() > 1)
+    @if($verfuegbareMonate->flatten()->count() > 1)
     <div style="display:flex; align-items:center; gap:0.3rem;">
         <select id="nav-jahr" class="feld" style="padding:0.2rem 0.4rem; font-size:0.78rem; width:auto;">
             @foreach($verfuegbareMonate->keys() as $j)
