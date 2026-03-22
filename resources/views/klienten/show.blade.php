@@ -276,7 +276,11 @@
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
             <div class="abschnitt-label" style="margin-bottom: 0;">Einsätze</div>
             <div style="display: flex; gap: 0.5rem;">
-                <a href="{{ route('klienten.rapportierung', [$klient, now()->year, now()->month]) }}" class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">Rapportierung</a>
+                <a href="{{ route('klienten.rapportierung', [$klient, now()->year, now()->month]) }}"
+                   style="display:inline-flex; flex-direction:column; align-items:flex-start; padding:0.375rem 0.875rem; background:var(--cs-primaer); color:#fff; border-radius:var(--cs-radius); text-decoration:none; line-height:1.3;">
+                    <span style="font-size:0.8125rem; font-weight:600;">📋 Rapportierung verwalten</span>
+                    <span style="font-size:0.7rem; opacity:0.85;">Monatsübersicht</span>
+                </a>
                 <a href="{{ route('klienten.qr', $klient) }}" target="_blank" class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">📱 QR Check-in</a>
             </div>
         </div>
@@ -1261,48 +1265,70 @@
         </div>
     </details>
 
-    {{-- Rechnungen --}}
+    {{-- Einzelleistungen --}}
     @if(in_array(auth()->user()->rolle, ['admin', 'buchhaltung']))
-    @php
-        $rechnungenTotal = $klient->rechnungen()->count();
-        $rechnungen = $klient->rechnungen()
-            ->orderByDesc('rechnungsdatum')
-            ->orderByDesc('id')
-            ->limit(15)
-            ->get();
-    @endphp
-    <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
+    <details id="einzelleistungen" style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;" {{ session('einzelleistung_offen') ? 'open' : '' }}>
         <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
-            <span>Rechnungen</span>
-            <span class="text-hell" style="font-size: 0.75rem;">{{ $rechnungenTotal }} Rechnung/en</span>
+            <span>Einzelleistungen</span>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+                <button type="button"
+                    onclick="event.preventDefault(); event.stopPropagation(); oeffneEinzelleistung({{ $klient->id }}, '{{ addslashes($klient->vorname . ' ' . $klient->nachname) }}')"
+                    class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.6rem;">
+                    + Einzelleistung
+                </button>
+                <span class="text-hell" style="font-size: 0.75rem;">{{ $einzelleistungen->count() }} Einträge</span>
+            </div>
         </summary>
-        <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
-            @forelse($rechnungen as $r)
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem; flex-wrap: wrap;">
-                <div style="display: flex; gap: 0.625rem; align-items: center; flex-wrap: wrap; flex: 1;">
-                    <span class="text-hell" style="min-width: 90px; white-space: nowrap;">{{ $r->rechnungsdatum->format('d.m.Y') }}</span>
-                    <span class="text-fett" style="font-family: monospace; font-size: 0.8rem;">{{ $r->rechnungsnummer }}</span>
-                    {!! $r->typBadge() !!}
-                    {!! $r->statusBadge() !!}
-                    <span style="color: var(--cs-primaer); font-weight: 600;">CHF {{ number_format($r->betrag_total, 2, '.', "'") }}</span>
-                    @if($r->betrag_kk > 0)
-                        <span class="text-hell" style="font-size: 0.8rem;">KK: {{ number_format($r->betrag_kk, 2, '.', "'") }}</span>
-                    @endif
-                </div>
-                <a href="{{ route('rechnungen.show', $r) }}" class="text-mini link-primaer" style="flex-shrink: 0;">Detail →</a>
-            </div>
-            @empty
-            <p class="text-klein text-hell" style="margin: 0;">Noch keine Rechnungen erstellt.</p>
-            @endforelse
-            @if($rechnungenTotal > 0)
-            <div style="margin-top: 0.875rem; display: flex; gap: 1rem; font-size: 0.8125rem;">
-                <a href="{{ route('rechnungen.index') }}" class="link-primaer">→ Alle {{ $rechnungenTotal }} Rechnungen</a>
-                <a href="{{ route('rechnungslauf.index') }}" class="link-gedaempt">Rechnungsläufe</a>
-            </div>
+        <div style="padding: 0.75rem 1rem;">
+            @if($einzelleistungen->isEmpty())
+                <p class="text-klein text-hell" style="margin:0;">Keine Einzelleistungen erfasst.</p>
+            @else
+            <table class="tabelle" style="font-size:0.82rem;">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Beschreibung</th>
+                        <th class="text-rechts">Betrag CHF</th>
+                        <th class="text-mitte">Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach($einzelleistungen as $el)
+                <tr>
+                    <td>{{ $el->datum->format('d.m.Y') }}@if($el->datum_bis && $el->datum_bis != $el->datum) – {{ $el->datum_bis->format('d.m.Y') }}@endif</td>
+                    <td>{{ $el->bemerkung }}</td>
+                    <td class="text-rechts">{{ number_format($el->betrag_fix, 2, '.', "'") }}</td>
+                    <td class="text-mitte">
+                        @if($el->verrechnet)
+                            <span class="badge badge-erfolg">Verrechnet</span>
+                        @else
+                            <span class="badge badge-warnung">Offen</span>
+                        @endif
+                    </td>
+                    <td style="white-space:nowrap;">
+                        <a href="{{ route('rechnungen.einzelleistung.vorschau', $el) }}" target="_blank" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.5rem;">PDF</a>
+                        @if(!$el->verrechnet)
+                        <button type="button" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.5rem;"
+                            onclick="bearbeiteEinzelleistung({{ $el->id }}, '{{ $el->datum->format('Y-m-d') }}', '{{ $el->datum_bis ? $el->datum_bis->format('Y-m-d') : $el->datum->format('Y-m-d') }}', {{ json_encode($el->bemerkung) }}, '{{ $el->betrag_fix }}')">
+                            Bearbeiten</button>
+                        <form method="POST" action="{{ route('rechnungen.einzelleistung.loeschen', $el) }}" style="display:inline;" onsubmit="return confirm('Einzelleistung löschen?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-gefahr" style="font-size:0.75rem; padding:0.2rem 0.5rem;">Löschen</button>
+                        </form>
+                        @endif
+                    </td>
+                </tr>
+                @endforeach
+                </tbody>
+            </table>
             @endif
         </div>
     </details>
+    @endif
 
+    {{-- Tagespauschalen + Rechnungen --}}
+    @if(in_array(auth()->user()->rolle, ['admin', 'buchhaltung']))
     {{-- Tagespauschalen --}}
     @php
         $tagespauschalen = \App\Models\Tagespauschale::where('klient_id', $klient->id)
@@ -1372,6 +1398,47 @@
                 <a href="{{ route('tagespauschalen.create', ['klient_id' => $klient->id]) }}"
                    class="btn btn-sekundaer btn-sm" style="font-size: 0.8125rem;">+ Tagespauschale erfassen</a>
             </div>
+        </div>
+    </details>
+
+    {{-- Rechnungen --}}
+    @php
+        $rechnungenTotal = $klient->rechnungen()->count();
+        $rechnungen = $klient->rechnungen()
+            ->orderByDesc('rechnungsdatum')
+            ->orderByDesc('id')
+            ->limit(15)
+            ->get();
+    @endphp
+    <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
+        <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+            <span>Rechnungen</span>
+            <span class="text-hell" style="font-size: 0.75rem;">{{ $rechnungenTotal }} Rechnung/en</span>
+        </summary>
+        <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
+            @forelse($rechnungen as $r)
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem; flex-wrap: wrap;">
+                <div style="display: flex; gap: 0.625rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                    <span class="text-hell" style="min-width: 90px; white-space: nowrap;">{{ $r->rechnungsdatum->format('d.m.Y') }}</span>
+                    <span class="text-fett" style="font-family: monospace; font-size: 0.8rem;">{{ $r->rechnungsnummer }}</span>
+                    {!! $r->typBadge() !!}
+                    {!! $r->statusBadge() !!}
+                    <span style="color: var(--cs-primaer); font-weight: 600;">CHF {{ number_format($r->betrag_total, 2, '.', "'") }}</span>
+                    @if($r->betrag_kk > 0)
+                        <span class="text-hell" style="font-size: 0.8rem;">KK: {{ number_format($r->betrag_kk, 2, '.', "'") }}</span>
+                    @endif
+                </div>
+                <a href="{{ route('rechnungen.show', $r) }}" class="text-mini link-primaer" style="flex-shrink: 0;">Detail →</a>
+            </div>
+            @empty
+            <p class="text-klein text-hell" style="margin: 0;">Noch keine Rechnungen erstellt.</p>
+            @endforelse
+            @if($rechnungenTotal > 0)
+            <div style="margin-top: 0.875rem; display: flex; gap: 1rem; font-size: 0.8125rem;">
+                <a href="{{ route('rechnungen.index') }}" class="link-primaer">→ Alle {{ $rechnungenTotal }} Rechnungen</a>
+                <a href="{{ route('rechnungslauf.index') }}" class="link-gedaempt">Rechnungsläufe</a>
+            </div>
+            @endif
         </div>
     </details>
     @endif
@@ -1508,5 +1575,71 @@ if (planLa) {
 }
 </script>
 @endpush
+
+{{-- Popup: Einzelleistung erfassen / bearbeiten --}}
+<div id="popup-einzelleistung-klient" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:200; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:8px; padding:1.5rem; width:380px; max-width:95vw; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+        <h3 id="el-titel" style="margin:0 0 0.25rem; font-size:1rem;">Einzelleistung erfassen</h3>
+        <p id="el-klient-name" class="text-hell text-klein" style="margin:0 0 1rem;"></p>
+        <form id="el-form" method="POST" action="{{ route('rechnungen.einzelleistung') }}">
+            @csrf
+            <input type="hidden" name="_method" id="el-method" value="POST">
+            <input type="hidden" name="klient_id" id="el-klient-id">
+            <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1rem;">
+                <div class="form-grid-2" style="gap:0.75rem;">
+                    <div>
+                        <label class="feld-label">Datum von</label>
+                        <input type="date" name="datum" id="el-datum-von" class="feld" value="{{ today()->format('Y-m-d') }}" required>
+                    </div>
+                    <div>
+                        <label class="feld-label">Datum bis</label>
+                        <input type="date" name="datum_bis" id="el-datum-bis" class="feld" value="{{ today()->format('Y-m-d') }}">
+                    </div>
+                </div>
+                <div>
+                    <label class="feld-label">Beschreibung (erscheint auf Rechnung)</label>
+                    <input type="text" name="bemerkung" id="el-beschreibung" class="feld" maxlength="500" placeholder="z.B. Ausflug nach Bern" required>
+                </div>
+                <div>
+                    <label class="feld-label">Betrag CHF</label>
+                    <input type="number" name="betrag_fix" id="el-betrag" class="feld" min="0" step="any" placeholder="0.00" required>
+                </div>
+            </div>
+            <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                <button type="button" onclick="document.getElementById('popup-einzelleistung-klient').style.display='none'" class="btn btn-sekundaer">Abbrechen</button>
+                <button type="submit" id="el-submit-btn" class="btn btn-primaer">Erfassen</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function oeffneEinzelleistung(klientId, klientName) {
+    document.getElementById('el-titel').textContent = 'Einzelleistung erfassen';
+    document.getElementById('el-submit-btn').textContent = 'Erfassen';
+    document.getElementById('el-form').action = '{{ route('rechnungen.einzelleistung') }}';
+    document.getElementById('el-method').value = 'POST';
+    document.getElementById('el-klient-id').value = klientId;
+    document.getElementById('el-klient-name').textContent = klientName;
+    document.getElementById('el-datum-von').value = '{{ today()->format('Y-m-d') }}';
+    document.getElementById('el-datum-bis').value = '{{ today()->format('Y-m-d') }}';
+    document.getElementById('el-beschreibung').value = '';
+    document.getElementById('el-betrag').value = '';
+    document.getElementById('popup-einzelleistung-klient').style.display = 'flex';
+}
+function bearbeiteEinzelleistung(id, datumVon, datumBis, beschreibung, betrag) {
+    document.getElementById('el-titel').textContent = 'Einzelleistung bearbeiten';
+    document.getElementById('el-submit-btn').textContent = 'Speichern';
+    document.getElementById('el-form').action = '/rechnungen/einzelleistung/' + id;
+    document.getElementById('el-method').value = 'PATCH';
+    document.getElementById('el-klient-id').value = '';
+    document.getElementById('el-klient-name').textContent = '';
+    document.getElementById('el-datum-von').value = datumVon;
+    document.getElementById('el-datum-bis').value = datumBis;
+    document.getElementById('el-beschreibung').value = beschreibung;
+    document.getElementById('el-betrag').value = betrag;
+    document.getElementById('popup-einzelleistung-klient').style.display = 'flex';
+}
+</script>
 
 </x-layouts.app>

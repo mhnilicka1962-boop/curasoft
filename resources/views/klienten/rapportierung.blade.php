@@ -65,9 +65,19 @@
     </thead>
     <tbody>
     @foreach($leistungsarten as $la)
-        {{-- Leistungsart-Header --}}
+        {{-- Leistungsart-Header mit Tagessummen --}}
         <tr class="raster-la-header">
-            <td colspan="{{ $tage + 1 }}">{{ $la->bezeichnung }}</td>
+            <td>{{ $la->bezeichnung }}</td>
+            @for($t = 1; $t <= $tage; $t++)
+            @php
+                $appMin  = $appRaster[$la->id][$t]['minuten'] ?? 0;
+                $rapMin  = collect($la->leistungstypen)->sum(fn($lt) => $raster[$lt->id][$t]['minuten'] ?? 0);
+                $sumMin  = $appMin ?: $rapMin;
+            @endphp
+            <td style="text-align:center; font-size:0.65rem; font-weight:600; color:rgba(255,255,255,0.9); padding:1px 2px;">
+                {{ $sumMin ?: '' }}
+            </td>
+            @endfor
         </tr>
 
         {{-- Leistungstypen --}}

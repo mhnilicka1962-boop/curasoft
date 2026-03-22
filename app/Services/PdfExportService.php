@@ -185,7 +185,7 @@ class PdfExportService
     {
         $positionen = $rechnung->positionen;
         if ($positionen->isEmpty()) return null;
-        if ($positionen->every(fn($p) => $p->einheit === 'tage')) return null;
+        if ($positionen->every(fn($p) => in_array($p->einheit, ['tage', 'pauschal']))) return null;
 
         $regionId = $rechnung->klient->region_id;
         if (!$regionId) return null;

@@ -48,7 +48,10 @@ class RechnungenController extends Controller
             ->groupBy('status')
             ->get()->keyBy('status');
 
-        return view('rechnungen.index', compact('rechnungen', 'totale'));
+        $klienten      = Klient::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
+        $leistungsarten = \App\Models\Leistungsart::where('aktiv', true)->orderBy('bezeichnung')->get();
+
+        return view('rechnungen.index', compact('rechnungen', 'totale', 'klienten', 'leistungsarten'));
     }
 
     public function create(Request $request)
@@ -266,6 +269,127 @@ class RechnungenController extends Controller
 
         return back()->with('erfolg',
             "Rechnung {$rechnung->rechnungsnummer} storniert — {$einsatzIds->count()} Einsätze wieder verrechenbar.");
+    }
+
+    public function einzelleistungErfassen(Request $request)
+    {
+        $request->validate([
+            'klient_id'  => 'required|integer',
+            'datum'      => 'required|date',
+            'datum_bis'  => 'nullable|date|after_or_equal:datum',
+            'bemerkung'  => 'required|string|max:500',
+            'betrag_fix' => 'required|numeric|min:0.01',
+        ]);
+
+        $klient = Klient::where('id', $request->klient_id)
+            ->where('organisation_id', $this->orgId())
+            ->firstOrFail();
+
+        $datum    = \Carbon\Carbon::parse($request->datum);
+        $datumBis = $request->filled('datum_bis') ? \Carbon\Carbon::parse($request->datum_bis) : null;
+
+        \App\Models\Einsatz::create([
+            'organisation_id' => $this->orgId(),
+            'klient_id'       => $klient->id,
+            'benutzer_id'     => auth()->id(),
+            'leistungsart_id' => null,
+            'region_id'       => $klient->region_id,
+            'datum'           => $datum,
+            'datum_bis'       => $datumBis,
+            'minuten'         => 0,
+            'bemerkung'       => $request->bemerkung,
+            'betrag_fix'      => $request->betrag_fix,
+            'status'          => 'abgeschlossen',
+            'checkin_methode' => 'manuell',
+            'checkin_zeit'    => $datum->copy()->setTime(0, 0),
+            'checkout_zeit'   => $datum->copy()->setTime(0, 1),
+            'verrechnet'      => false,
+        ]);
+
+        return redirect()->route('klienten.show', $klient)
+            ->with('erfolg', "Einzelleistung erfasst — wird im nächsten Rechnungslauf verrechnet.")
+            ->with('einzelleistung_offen', true);
+    }
+
+    public function einzelleistungAktualisieren(Request $request, \App\Models\Einsatz $einsatz)
+    {
+        abort_if($einsatz->organisation_id !== $this->orgId(), 403);
+        abort_if($einsatz->betrag_fix === null, 404);
+        abort_if($einsatz->verrechnet, 422);
+
+        $request->validate([
+            'datum'      => 'required|date',
+            'datum_bis'  => 'nullable|date|after_or_equal:datum',
+            'bemerkung'  => 'required|string|max:500',
+            'betrag_fix' => 'required|numeric|min:0',
+        ]);
+
+        $einsatz->update([
+            'datum'      => $request->datum,
+            'datum_bis'  => $request->datum_bis ?: $request->datum,
+            'bemerkung'  => $request->bemerkung,
+            'betrag_fix' => round((float) $request->betrag_fix, 2),
+        ]);
+
+        return redirect()->route('klienten.show', $einsatz->klient_id)
+            ->with('erfolg', 'Einzelleistung aktualisiert.')
+            ->with('einzelleistung_offen', true);
+    }
+
+    public function einzelleistungVorschau(\App\Models\Einsatz $einsatz)
+    {
+        abort_if($einsatz->organisation_id !== $this->orgId(), 403);
+        abort_if($einsatz->betrag_fix === null, 404);
+
+        $klient  = $einsatz->klient;
+        $betrag  = round((float) $einsatz->betrag_fix, 2);
+        $rechnung = new Rechnung([
+            'organisation_id' => $this->orgId(),
+            'klient_id'       => $klient->id,
+            'rechnungsnummer' => 'VORSCHAU',
+            'periode_von'     => $einsatz->datum,
+            'periode_bis'     => $einsatz->datum_bis ?? $einsatz->datum,
+            'rechnungsdatum'  => today(),
+            'status'          => 'entwurf',
+            'rechnungstyp'    => 'klient',
+            'betrag_patient'  => $betrag,
+            'betrag_kk'       => 0,
+            'betrag_total'    => $betrag,
+        ]);
+        $rechnung->setRelation('klient', $klient);
+
+        $position = new \App\Models\RechnungsPosition([
+            'datum'          => $einsatz->datum,
+            'menge'          => 1,
+            'einheit'        => 'pauschal',
+            'beschreibung'   => $einsatz->bemerkung,
+            'tarif_patient'  => $betrag,
+            'tarif_kk'       => 0,
+            'betrag_patient' => $betrag,
+            'betrag_kk'      => 0,
+        ]);
+        $rechnung->setRelation('positionen', collect([$position]));
+
+        $pdfService = app(\App\Services\PdfExportService::class);
+        $pdf = $pdfService->rechnungAlsPdfString($rechnung);
+
+        return response($pdf, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="vorschau-einzelleistung.pdf"',
+        ]);
+    }
+
+    public function einzelleistungLoeschen(\App\Models\Einsatz $einsatz)
+    {
+        abort_if($einsatz->organisation_id !== $this->orgId(), 403);
+        abort_if($einsatz->betrag_fix === null, 404);
+        abort_if($einsatz->verrechnet, 422);
+
+        $klientId = $einsatz->klient_id;
+        $einsatz->delete();
+
+        return redirect()->route('klienten.show', $klientId)
+            ->with('erfolg', 'Einzelleistung gelöscht.');
     }
 
     private function autorisiereZugriff(Rechnung $rechnung): void

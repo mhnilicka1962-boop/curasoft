@@ -27,6 +27,7 @@
         @endif
     </form>
     <div style="display: flex; gap: 0.5rem;">
+        <button type="button" onclick="document.getElementById('popup-einzelleistung').style.display='flex'" class="btn btn-sekundaer">+ Einzelleistung</button>
         <a href="{{ route('rechnungen.create') }}" class="btn btn-primaer">+ Neue Rechnung</a>
     </div>
 </div>
@@ -55,7 +56,7 @@
                     </a>
                 </td>
                 <td>{!! $r->typBadge() !!}</td>
-                <td>{{ $r->klient->nachname }} {{ $r->klient->vorname }}</td>
+                <td><a href="{{ route('klienten.show', $r->klient) }}" class="link-primaer">{{ $r->klient->nachname }} {{ $r->klient->vorname }}</a></td>
                 <td class="text-hell" style="font-size: 0.8125rem;">
                     {{ $r->periode_von->format('d.m.Y') }} – {{ $r->periode_bis->format('d.m.Y') }}
                 </td>
@@ -80,5 +81,42 @@
 @if($rechnungen->hasPages())
 <div style="margin-top: 1rem;">{{ $rechnungen->links() }}</div>
 @endif
+
+{{-- Popup: Einzelleistung erfassen --}}
+<div id="popup-einzelleistung" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:8px; padding:1.5rem; width:380px; max-width:95vw; box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+        <h3 style="margin:0 0 1rem; font-size:1rem;">Einzelleistung erfassen</h3>
+        <form method="POST" action="{{ route('rechnungen.einzelleistung') }}">
+            @csrf
+            <div class="form-grid-2" style="gap:0.75rem; margin-bottom:0.75rem;">
+                <div style="grid-column:1/-1;">
+                    <label class="feld-label">Klient</label>
+                    <select name="klient_id" class="feld" required>
+                        <option value="">— wählen —</option>
+                        @foreach($klienten as $k)
+                        <option value="{{ $k->id }}">{{ $k->nachname }} {{ $k->vorname }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="feld-label">Datum</label>
+                    <input type="date" name="datum" class="feld" value="{{ today()->format('Y-m-d') }}" required>
+                </div>
+                <div>
+                    <label class="feld-label">Betrag CHF</label>
+                    <input type="number" name="betrag_fix" class="feld" min="0" step="any" placeholder="0.00" required>
+                </div>
+                <div style="grid-column:1/-1;">
+                    <label class="feld-label">Beschreibung (erscheint auf Rechnung)</label>
+                    <input type="text" name="bemerkung" class="feld" maxlength="500" placeholder="z.B. Ausflug nach Bern" required>
+                </div>
+            </div>
+            <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                <button type="button" onclick="document.getElementById('popup-einzelleistung').style.display='none'" class="btn btn-sekundaer">Abbrechen</button>
+                <button type="submit" class="btn btn-primaer">Erfassen</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 </x-layouts.app>

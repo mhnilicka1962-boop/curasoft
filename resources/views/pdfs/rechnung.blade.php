@@ -158,7 +158,7 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
 
     // Positionen: Pauschale (alle einheit=tage) vs. Einzelleistungen
     $positionen  = $rechnung->positionen->sortBy('datum');
-    $istPauschale = $positionen->isNotEmpty() && $positionen->every(fn($p) => $p->einheit === 'tage');
+    $istPauschale = $positionen->isNotEmpty() && $positionen->every(fn($p) => in_array($p->einheit, ['tage', 'pauschal']));
 @endphp
 
 <div class="seite">
@@ -249,19 +249,26 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
             <tbody>
                 @foreach($positionen as $pos)
                 @php
-                    $bezeichnung = $pos->einsatz?->leistungsart?->bezeichnung
+                    $bezeichnung = $pos->einheit === 'pauschal'
+                                ? ($pos->beschreibung ?? 'Einzelleistung')
+                                : ($pos->einsatz?->leistungsart?->bezeichnung
                                 ?? $pos->leistungstyp?->bezeichnung
-                                ?? 'Tagespauschale';
+                                ?? 'Tagespauschale');
                     $betrag = $pos->betrag_patient + $pos->betrag_kk;
                     $ansatz = $pos->menge > 0 ? round($betrag / $pos->menge, 2) : 0;
                 @endphp
                 <tr>
                     <td>
                         {{ $bezeichnung }}<br>
+                        @if($pos->einheit !== 'pauschal')
                         <span style="font-size: 7.5pt; color: #555;">
-                            {{ $pos->datum->format('d.m.Y') }}
-                            @if($pos->einsatz?->datum_bis) – {{ $pos->einsatz->datum_bis->format('d.m.Y') }}@endif
+                            @if($pos->beschreibung)
+                                {{ $pos->beschreibung }}
+                            @else
+                                {{ $pos->datum->format('d.m.Y') }}
+                            @endif
                         </span>
+                        @endif
                     </td>
                     <td class="r">{{ number_format($pos->menge, 0) }}</td>
                     <td class="r">{{ number_format($ansatz, 2, '.', "'") }}</td>

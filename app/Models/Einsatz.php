@@ -14,6 +14,7 @@ class Einsatz extends Model
         'datum', 'datum_bis', 'tagespauschale_id', 'zeit_von', 'zeit_bis', 'minuten', 'bemerkung', 'admin_kommentar', 'verrechnet',
         'checkin_zeit', 'checkin_lat', 'checkin_lng', 'checkin_methode', 'checkin_distanz_meter',
         'checkout_zeit', 'checkout_lat', 'checkout_lng', 'checkout_methode', 'checkout_distanz_meter',
+        'betrag_fix',
     ];
 
     protected $casts = [

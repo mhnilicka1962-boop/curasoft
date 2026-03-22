@@ -39,6 +39,8 @@ class KlientenController extends Controller
             $query->where(fn($q) => $q
                 ->where('vorname', 'ilike', "%{$s}%")
                 ->orWhere('nachname', 'ilike', "%{$s}%")
+                ->orWhereRaw("(nachname || ' ' || vorname) ilike ?", ["%{$s}%"])
+                ->orWhereRaw("(vorname || ' ' || nachname) ilike ?", ["%{$s}%"])
                 ->orWhere('ort', 'ilike', "%{$s}%")
                 ->orWhere('id', is_numeric($s) ? (int)$s : 0)
             );
@@ -222,7 +224,13 @@ class KlientenController extends Controller
 
         $regionen = Region::orderBy('kuerzel')->get();
 
-        return view('klienten.show', compact('klient', 'leistungsarten', 'mitarbeiter', 'pflegendeAngehoerige', 'regionen'));
+        $einzelleistungen = \App\Models\Einsatz::where('klient_id', $klient->id)
+            ->where('organisation_id', $this->orgId())
+            ->whereNotNull('betrag_fix')
+            ->orderByDesc('datum')
+            ->get();
+
+        return view('klienten.show', compact('klient', 'leistungsarten', 'mitarbeiter', 'pflegendeAngehoerige', 'regionen', 'einzelleistungen'));
     }
 
     public function edit(Klient $klient)

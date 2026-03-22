@@ -43,6 +43,7 @@ class RapportierungController extends Controller
             ->where('klient_id', $klient->id)
             ->whereBetween('datum', [$periodeVon, $periodeBis])
             ->whereNull('tagespauschale_id')
+            ->whereNull('betrag_fix')
             ->with('aktivitaeten', 'benutzer')
             ->get();
 

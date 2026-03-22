@@ -142,9 +142,12 @@
                     <a href="{{ route('rechnungen.show', $r) }}" class="link-primaer">{{ $r->rechnungsnummer }}</a>
                 </td>
                 <td>
-                    {{ $r->klient->nachname }} {{ $r->klient->vorname }}
+                    <a href="{{ route('klienten.show', $r->klient) }}" class="link-primaer">{{ $r->klient->nachname }} {{ $r->klient->vorname }}</a>
                     @if($r->hat_pauschale)
                         <span class="badge badge-info" style="font-size:0.7rem; margin-left:0.25rem;">Pauschale</span>
+                    @endif
+                    @if($r->hat_einzelleistung)
+                        <span class="badge badge-warnung" style="font-size:0.7rem; margin-left:0.25rem;">Einzelleistung</span>
                     @endif
                 </td>
                 <td class="text-rechts text-fett">{{ number_format($r->betrag_total, 2, '.', "'") }}</td>

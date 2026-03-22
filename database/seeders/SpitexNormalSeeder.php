@@ -37,6 +37,18 @@ class SpitexNormalSeeder extends Seeder
         ],
     ];
 
+    // Leistungstyp-Namen (aus DB verifiziert)
+    private const LT_NAMEN = [
+        2  => ['aktivitaet' => 'Vitalzeichen (Puls, BD, T, Gewicht)', 'kategorie' => 'Untersuchung/Behandlung'],
+        6  => ['aktivitaet' => 'Verbandwechsel',                       'kategorie' => 'Untersuchung/Behandlung'],
+        9  => ['aktivitaet' => 'HWL-Leistungen',                       'kategorie' => 'Hauswirtschaft'],
+        10 => ['aktivitaet' => 'Grundpflege',                          'kategorie' => 'Grundpflege'],
+        13 => ['aktivitaet' => 'Duschen',                              'kategorie' => 'Grundpflege'],
+        22 => ['aktivitaet' => 'An-/Auskleiden',                       'kategorie' => 'Grundpflege'],
+        28 => ['aktivitaet' => 'Beratungsgespräch',                    'kategorie' => 'Abklärung/Beratung'],
+        31 => ['aktivitaet' => 'Injektion subcutan',                   'kategorie' => 'Untersuchung/Behandlung'],
+    ];
+
     /**
      * Einsatz-Muster pro Klient.
      * [laId, ltId, benutzerId, minuten, wochentage (0=So..6=Sa), nurAm5ten, startStunde, startMinute]
@@ -146,6 +158,19 @@ class SpitexNormalSeeder extends Seeder
                             'created_at'             => $now,
                             'updated_at'             => $now,
                         ]);
+
+                        // Aktivität eintragen
+                        if (isset(self::LT_NAMEN[$ltId])) {
+                            DB::table('einsatz_aktivitaeten')->insert([
+                                'einsatz_id'      => $eid,
+                                'organisation_id' => self::ORG_ID,
+                                'kategorie'       => self::LT_NAMEN[$ltId]['kategorie'],
+                                'aktivitaet'      => self::LT_NAMEN[$ltId]['aktivitaet'],
+                                'minuten'         => $min,
+                                'created_at'      => $now,
+                                'updated_at'      => $now,
+                            ]);
+                        }
 
                         $idx[$pi][$klientId][$laId][] = [
                             'id'    => $eid,
