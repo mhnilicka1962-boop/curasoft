@@ -611,11 +611,11 @@ class CurasoftDemoSeeder extends Seeder
         $regionBe      = $this->regionen['BE'];
 
         $konfigurationen = [
-            'brunner'   => ['benutzer' => 'sandra', 'wochentage' => [1,2,3,4,5],       'von' => '08:00', 'bis' => '08:45', 'min' => 45, 'region' => $regionAg, 'tour' => true,  'le_typ' => 'fachperson'],
-            'weber'     => ['benutzer' => 'sandra', 'wochentage' => [1,3,5],            'von' => '09:30', 'bis' => '10:15', 'min' => 45, 'region' => $regionAg, 'tour' => true,  'le_typ' => 'fachperson'],
-            'schneider' => ['benutzer' => 'peter',  'wochentage' => [1,2,3,4,5,6,0],   'von' => '09:00', 'bis' => '10:00', 'min' => 60, 'region' => $regionBe, 'tour' => true,  'le_typ' => 'fachperson'],
-            'keller'    => ['benutzer' => 'peter',  'wochentage' => [2,4],              'von' => '14:00', 'bis' => '14:30', 'min' => 30, 'region' => $regionBe, 'tour' => true,  'le_typ' => 'fachperson'],
-            'gerber'    => ['benutzer' => 'ruth',   'wochentage' => [1,3,5],            'von' => '10:00', 'bis' => '10:30', 'min' => 30, 'region' => $regionBe, 'tour' => false, 'le_typ' => 'angehoerig'],
+            'brunner'   => ['benutzer' => 'sandra', 'wochentage' => [1,2,3,4,5],       'von' => '08:00', 'bis' => '08:45', 'min' => 45, 'region' => $regionAg, 'tour' => true,  'le_typ' => 'fachperson', 'aktivitaet' => 'Duschen'],
+            'weber'     => ['benutzer' => 'sandra', 'wochentage' => [1,3,5],            'von' => '09:30', 'bis' => '10:15', 'min' => 45, 'region' => $regionAg, 'tour' => true,  'le_typ' => 'fachperson', 'aktivitaet' => 'Waschen im Bett'],
+            'schneider' => ['benutzer' => 'peter',  'wochentage' => [1,2,3,4,5,6,0],   'von' => '09:00', 'bis' => '10:00', 'min' => 60, 'region' => $regionBe, 'tour' => true,  'le_typ' => 'fachperson', 'aktivitaet' => 'Grundpflege'],
+            'keller'    => ['benutzer' => 'peter',  'wochentage' => [2,4],              'von' => '14:00', 'bis' => '14:30', 'min' => 30, 'region' => $regionBe, 'tour' => true,  'le_typ' => 'fachperson', 'aktivitaet' => 'An-/Auskleiden'],
+            'gerber'    => ['benutzer' => 'ruth',   'wochentage' => [1,3,5],            'von' => '10:00', 'bis' => '10:30', 'min' => 30, 'region' => $regionBe, 'tour' => false, 'le_typ' => 'angehoerig', 'aktivitaet' => 'Mobilisation'],
         ];
 
         // Touren-Cache: "benutzer_id_datum" => tour_id
@@ -648,7 +648,7 @@ class CurasoftDemoSeeder extends Seeder
                 $rkKey   = ($tourId ?? 0) . '_' . $datumStr;
                 $reihenfolge[$rkKey] = ($reihenfolge[$rkKey] ?? 0) + 1;
 
-                DB::table('einsaetze')->insert([
+                $eid = DB::table('einsaetze')->insertGetId([
                     'organisation_id'        => $this->orgId,
                     'klient_id'              => $klientId,
                     'benutzer_id'            => $benutzerId,
@@ -670,6 +670,16 @@ class CurasoftDemoSeeder extends Seeder
                     'tour_reihenfolge'       => $reihenfolge[$rkKey],
                     'created_at'             => now(),
                     'updated_at'             => now(),
+                ]);
+
+                DB::table('einsatz_aktivitaeten')->insert([
+                    'einsatz_id'      => $eid,
+                    'organisation_id' => $this->orgId,
+                    'kategorie'       => 'Grundpflege',
+                    'aktivitaet'      => $cfg['aktivitaet'],
+                    'minuten'         => $cfg['min'],
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
                 ]);
 
                 $current->addDay();
@@ -731,12 +741,13 @@ class CurasoftDemoSeeder extends Seeder
             $klientId     = ($week === 1) ? $brunnerId : $weberId;
             $von          = ($week === 1) ? '08:00' : '09:30';
             $bis          = ($week === 1) ? '08:45' : '10:15';
+            $aktivitaet   = ($week === 1) ? 'Duschen' : 'Waschen im Bett';
 
             $tourId = $this->holeTourId($tourenCache, true, $annaId, $datumStr, $istVergangen, $istHeute);
             $rkKey  = ($tourId ?? 0) . '_' . $datumStr;
             $reihenfolge[$rkKey] = ($reihenfolge[$rkKey] ?? 0) + 1;
 
-            DB::table('einsaetze')->insert([
+            $eid = DB::table('einsaetze')->insertGetId([
                 'organisation_id'        => $this->orgId,
                 'klient_id'              => $klientId,
                 'benutzer_id'            => $annaId,
@@ -760,6 +771,16 @@ class CurasoftDemoSeeder extends Seeder
                 'updated_at'             => now(),
             ]);
 
+            DB::table('einsatz_aktivitaeten')->insert([
+                'einsatz_id'      => $eid,
+                'organisation_id' => $this->orgId,
+                'kategorie'       => 'Grundpflege',
+                'aktivitaet'      => $aktivitaet,
+                'minuten'         => 45,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+
             $current->addDay();
         }
     }
@@ -774,32 +795,38 @@ class CurasoftDemoSeeder extends Seeder
             ['klient' => 'brunner',   'benutzer' => 'sandra', 'region' => $regionAg,
              'datum' => $heute->copy()->subMonths(4)->addDays(3)->format('Y-m-d'),
              'von' => '10:00', 'bis' => '11:00', 'min' => 60, 'la' => $laAbkl,
-             'bemerkung' => 'Erstbesuch und Bedarfsabklärung'],
+             'bemerkung' => 'Erstbesuch und Bedarfsabklärung',
+             'aktivitaet' => 'Beratungsgespräch', 'kategorie' => 'Abklärung/Beratung'],
             ['klient' => 'brunner',   'benutzer' => 'sandra', 'region' => $regionAg,
              'datum' => $heute->copy()->subWeeks(3)->format('Y-m-d'),
              'von' => '13:00', 'bis' => '14:00', 'min' => 60, 'la' => $laGrundpflege,
-             'bemerkung' => 'Begleitung Arzttermin Dr. Weber'],
+             'bemerkung' => 'Begleitung Arzttermin Dr. Weber',
+             'aktivitaet' => 'Duschen', 'kategorie' => 'Grundpflege'],
             ['klient' => 'weber',     'benutzer' => 'sandra', 'region' => $regionAg,
              'datum' => $heute->copy()->subMonths(4)->addDays(5)->format('Y-m-d'),
              'von' => '11:00', 'bis' => '12:00', 'min' => 60, 'la' => $laAbkl,
-             'bemerkung' => 'Erstbesuch und Bedarfsabklärung'],
+             'bemerkung' => 'Erstbesuch und Bedarfsabklärung',
+             'aktivitaet' => 'Beratungsgespräch', 'kategorie' => 'Abklärung/Beratung'],
             ['klient' => 'schneider', 'benutzer' => 'peter',  'region' => $regionBe,
              'datum' => $heute->copy()->subMonths(4)->addDays(2)->format('Y-m-d'),
              'von' => '09:00', 'bis' => '10:30', 'min' => 90, 'la' => $laAbkl,
-             'bemerkung' => 'Erstbesuch, Assessment und Pflegeplanung'],
+             'bemerkung' => 'Erstbesuch, Assessment und Pflegeplanung',
+             'aktivitaet' => 'Bedarfsanalyse', 'kategorie' => 'Abklärung/Beratung'],
             ['klient' => 'keller',    'benutzer' => 'peter',  'region' => $regionBe,
              'datum' => $heute->copy()->subMonths(3)->format('Y-m-d'),
              'von' => '15:00', 'bis' => '16:00', 'min' => 60, 'la' => $laAbkl,
-             'bemerkung' => 'Erstbesuch'],
+             'bemerkung' => 'Erstbesuch',
+             'aktivitaet' => 'Beratungsgespräch', 'kategorie' => 'Abklärung/Beratung'],
             ['klient' => 'gerber',    'benutzer' => 'admin',  'region' => $regionBe,
              'datum' => $heute->copy()->subMonths(4)->addDays(7)->format('Y-m-d'),
              'von' => '10:00', 'bis' => '11:00', 'min' => 60, 'la' => $laAbkl,
-             'bemerkung' => 'Erstbesuch und Abklärung Angehörigenpflege'],
+             'bemerkung' => 'Erstbesuch und Abklärung Angehörigenpflege',
+             'aktivitaet' => 'Beratungsgespräch', 'kategorie' => 'Abklärung/Beratung'],
         ];
 
         foreach ($einmalige as $e) {
             $datum = Carbon::parse($e['datum']);
-            DB::table('einsaetze')->insert([
+            $eid = DB::table('einsaetze')->insertGetId([
                 'organisation_id'        => $this->orgId,
                 'klient_id'              => $this->klienten[$e['klient']],
                 'benutzer_id'            => $this->mitarbeiter[$e['benutzer']],
@@ -822,6 +849,16 @@ class CurasoftDemoSeeder extends Seeder
                 'tour_reihenfolge'       => null,
                 'created_at'             => now(),
                 'updated_at'             => now(),
+            ]);
+
+            DB::table('einsatz_aktivitaeten')->insert([
+                'einsatz_id'      => $eid,
+                'organisation_id' => $this->orgId,
+                'kategorie'       => $e['kategorie'],
+                'aktivitaet'      => $e['aktivitaet'],
+                'minuten'         => $e['min'],
+                'created_at'      => now(),
+                'updated_at'      => now(),
             ]);
         }
     }
