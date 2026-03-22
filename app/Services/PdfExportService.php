@@ -139,6 +139,9 @@ class PdfExportService
     /**
      * Zwei PDF-Byte-Strings (Portrait + Landscape) via FPDI zusammenführen.
      */
+    /** Kaufmännische Rundung auf 0.05 CHF */
+    private function r5(float $x): float { return round($x * 20) / 20; }
+
     private function mergePdfs(string $portraitBytes, string $landscapeBytes): string
     {
         // Temp-Dateien — FPDI benötigt Dateipfade
@@ -253,19 +256,19 @@ class PdfExportService
             $dateStr  = $current->format('Y-m-d');
             $minuten  = $tagesMin[$dateStr] ?? ['abkl' => 0, 'unt' => 0, 'gp' => 0];
 
-            $taxeAbkl = round($minuten['abkl'] * $tarife['abkl']['ansatz'] / 60, 2);
-            $taxeUnt  = round($minuten['unt']  * $tarife['unt']['ansatz']  / 60, 2);
-            $taxeGp   = round($minuten['gp']   * $tarife['gp']['ansatz']   / 60, 2);
-            $kvgAbkl  = round($minuten['abkl'] * $tarife['abkl']['kkasse'] / 60, 2);
-            $kvgUnt   = round($minuten['unt']  * $tarife['unt']['kkasse']  / 60, 2);
-            $kvgGp    = round($minuten['gp']   * $tarife['gp']['kkasse']   / 60, 2);
-            $netto    = round(($taxeAbkl + $taxeUnt + $taxeGp) - ($kvgAbkl + $kvgUnt + $kvgGp), 2);
+            $taxeAbkl = $this->r5($minuten['abkl'] * $tarife['abkl']['ansatz'] / 60);
+            $taxeUnt  = $this->r5($minuten['unt']  * $tarife['unt']['ansatz']  / 60);
+            $taxeGp   = $this->r5($minuten['gp']   * $tarife['gp']['ansatz']   / 60);
+            $kvgAbkl  = $this->r5($minuten['abkl'] * $tarife['abkl']['kkasse'] / 60);
+            $kvgUnt   = $this->r5($minuten['unt']  * $tarife['unt']['kkasse']  / 60);
+            $kvgGp    = $this->r5($minuten['gp']   * $tarife['gp']['kkasse']   / 60);
+            $netto    = $this->r5(($taxeAbkl + $taxeUnt + $taxeGp) - ($kvgAbkl + $kvgUnt + $kvgGp));
 
-            $limitBetrag = round($limitProzent / 100 * $netto, 2);
+            $limitBetrag = $this->r5($limitProzent / 100 * $netto);
             $patLimit    = $ansatzKunde > 0 && $limitBetrag < $ansatzKunde;
             $pat         = $ansatzKunde > 0 ? ($patLimit ? $limitBetrag : $ansatzKunde) : 0.0;
-            $pat         = max(0.0, min(round($pat, 2), $netto));
-            $gemeinde    = max(0.0, round($netto - $pat, 2));
+            $pat         = max(0.0, min($this->r5($pat), $netto));
+            $gemeinde    = max(0.0, $this->r5($netto - $pat));
 
             $tage[] = [
                 'datum'     => $current->copy(),
@@ -301,7 +304,7 @@ class PdfExportService
         }
 
         foreach (['taxe_abkl','taxe_unt','taxe_gp','kvg_abkl','kvg_unt','kvg_gp','netto','pat','gemeinde'] as $f) {
-            $summen[$f] = round($summen[$f], 2);
+            $summen[$f] = $this->r5($summen[$f]);
         }
 
         return [
