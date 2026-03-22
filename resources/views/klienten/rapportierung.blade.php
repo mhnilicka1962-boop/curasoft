@@ -179,44 +179,44 @@
 <style>
 .raster-tabelle {
     border-collapse: collapse;
-    font-size: 0.68rem;
+    font-size: 0.78rem;
     width: 100%;
     table-layout: fixed;
 }
 .raster-label-col {
-    width: 150px;
-    min-width: 150px;
+    width: 170px;
+    min-width: 170px;
     text-align: left;
-    padding: 0.15rem 0.4rem;
+    padding: 0.2rem 0.5rem;
     background: var(--cs-hintergrund);
     border: 1px solid var(--cs-border);
     position: sticky;
     left: 0;
     z-index: 2;
     font-weight: 600;
-    font-size: 0.66rem;
+    font-size: 0.76rem;
 }
 .raster-tag-col {
     text-align: center;
-    padding: 0.1rem 0;
+    padding: 0.15rem 0;
     background: var(--cs-hintergrund);
     border: 1px solid var(--cs-border);
     font-weight: 500;
-    font-size: 0.64rem;
-    width: calc((100% - 150px) / {{ $tage }});
+    font-size: 0.74rem;
+    width: calc((100% - 170px) / {{ $tage }});
 }
 .raster-la-header td {
     background: var(--cs-primaer);
     color: white;
-    padding: 0.15rem 0.4rem;
+    padding: 0.2rem 0.5rem;
     font-weight: 600;
-    font-size: 0.66rem;
+    font-size: 0.76rem;
     position: sticky;
     left: 0;
 }
 .raster-zeile:hover td { background: #f8f9fa; }
 .raster-label {
-    padding: 0.1rem 0.4rem;
+    padding: 0.2rem 0.5rem;
     border: 1px solid var(--cs-border);
     background: white;
     position: sticky;
@@ -225,18 +225,18 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 150px;
+    max-width: 170px;
 }
 .raster-app-zeile .raster-label {
     font-style: italic;
     color: var(--cs-text-hell);
-    font-size: 0.64rem;
+    font-size: 0.72rem;
 }
 .raster-zelle {
     border: 1px solid var(--cs-border);
     padding: 0;
     text-align: center;
-    height: 20px;
+    height: 24px;
     position: relative;
 }
 .raster-gefuellt { background: #d4edda; }
@@ -244,11 +244,11 @@
 .raster-app      { background: #e8f4fd; }
 .raster-input {
     width: 100%;
-    height: 20px;
+    height: 24px;
     border: none;
     background: transparent;
     text-align: center;
-    font-size: 0.66rem;
+    font-size: 0.76rem;
     padding: 0;
     -moz-appearance: textfield;
 }
@@ -257,11 +257,11 @@
 .raster-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .raster-btn {
     width: 100%;
-    height: 26px;
+    height: 28px;
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     padding: 0;
 }
 .raster-btn-aktiv { color: #e67e22; font-weight: 700; }
