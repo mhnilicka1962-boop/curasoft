@@ -271,7 +271,7 @@ table.rapport tfoot td.col-tot  { background: #c4d8c4; }
     <div class="footer-rechts">
         Stempel und Unterschrift<br>
         {{ $org->name }}<br>
-        {{ $org->postfach ? $org->postfach . '<br>' : '' }}{{ $org->plz }} {{ $org->ort }}
+        {!! $org->postfach ? $org->postfach . '<br>' : '' !!}{{ $org->plz }} {{ $org->ort }}
     </div>
 </div>
 
