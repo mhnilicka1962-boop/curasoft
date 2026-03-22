@@ -65,6 +65,7 @@
                 <th class="text-rechts">KVG</th>
                 <th class="text-rechts">Ansatz akut</th>
                 <th class="text-rechts">KVG akut</th>
+                <th class="text-mitte">Verr.</th>
                 <th class="text-mitte">Min</th>
                 <th class="text-mitte">Std</th>
                 <th class="text-mitte">Tag</th>
@@ -89,6 +90,7 @@
                 <td class="text-rechts text-hell" style="font-size: 0.8125rem;">{{ number_format($t->kkasse, 2) }}</td>
                 <td class="text-rechts" style="font-size: 0.8125rem;">{{ number_format($t->ansatz_akut, 2) }}</td>
                 <td class="text-rechts text-hell" style="font-size: 0.8125rem;">{{ number_format($t->kkasse_akut, 2) }}</td>
+                <td class="text-mitte">{{ $t->verrechnung ? '✓' : '' }}</td>
                 <td class="text-mitte">{{ $t->einsatz_minuten ? '✓' : '' }}</td>
                 <td class="text-mitte">{{ $t->einsatz_stunden ? '✓' : '' }}</td>
                 <td class="text-mitte">{{ $t->einsatz_tage ? '✓' : '' }}</td>
@@ -145,6 +147,12 @@
             </div>
 
             <div style="display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 0.875rem;">
+                <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; cursor: pointer;">
+                    <input type="checkbox" name="verrechnung" value="1"
+                        {{ ($aktuell?->verrechnung ?? true) ? 'checked' : '' }}
+                        style="accent-color: var(--cs-primaer);">
+                    Verrechnung aktiv
+                </label>
                 <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; cursor: pointer;">
                     <input type="checkbox" name="einsatz_minuten" value="1"
                         {{ $aktuell?->einsatz_minuten ? 'checked' : '' }}

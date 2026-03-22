@@ -41,7 +41,7 @@ class RegionenController extends Controller
             'ansatz_akut'      => $request->ansatz_akut,
             'kkasse_akut'      => $request->kkasse_akut,
             'kassenpflichtig'  => $request->boolean('kassenpflichtig', true),
-            'verrechnung'      => true,
+            'verrechnung'      => $request->boolean('verrechnung', true),
             'einsatz_minuten'  => $request->boolean('einsatz_minuten'),
             'einsatz_stunden'  => $request->boolean('einsatz_stunden', true),
             'einsatz_tage'     => $request->boolean('einsatz_tage'),
