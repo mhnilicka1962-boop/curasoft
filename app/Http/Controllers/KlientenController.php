@@ -53,11 +53,11 @@ class KlientenController extends Controller
 
         $klienten = $query
             ->withCount('beitraege')
-            ->withExists('einsaetze as ohne_tour', fn($q) => $q
+            ->withExists(['einsaetze as ohne_tour' => fn($q) => $q
                 ->where('status', 'geplant')
-                ->whereDate('datum', '>=', today())
+                ->where('datum', '>=', today()->toDateString())
                 ->whereNull('tour_id')
-            )
+            ])
             ->paginate(25)->withQueryString();
 
         return view('klienten.index', compact('klienten'));
