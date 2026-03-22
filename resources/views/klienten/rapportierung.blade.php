@@ -214,6 +214,10 @@
     position: sticky;
     left: 0;
 }
+thead .raster-label-col {
+    background: #1a1a1a;
+    color: white;
+}
 .raster-zeile:hover td { background: #f8f9fa; }
 .raster-label {
     padding: 0.2rem 0.5rem;
