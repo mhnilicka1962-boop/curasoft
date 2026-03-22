@@ -125,8 +125,8 @@ class RechnungslaufController extends Controller
                                     \Carbon\Carbon::parse($bisDatum)->format('d.m.Y'),
                 'tarif_patient'  => $tarifPat,
                 'tarif_kk'       => $tarifKk,
-                'betrag_patient' => round($tarifPat * $anzahl, 2),
-                'betrag_kk'      => round($tarifKk * $anzahl, 2),
+                'betrag_patient' => $this->r5($tarifPat * $anzahl),
+                'betrag_kk' => $this->r5($tarifKk * $anzahl),
             ]);
             $positionen->push($pos);
         } else {
@@ -142,8 +142,8 @@ class RechnungslaufController extends Controller
                     'beschreibung'   => null,
                     'tarif_patient'  => $tarifPat,
                     'tarif_kk'       => $tarifKk,
-                    'betrag_patient' => round($m / 60 * $tarifPat, 2),
-                    'betrag_kk'      => round($m / 60 * $tarifKk, 2),
+                    'betrag_patient' => $this->r5($m / 60 * $tarifPat),
+                    'betrag_kk' => $this->r5($m / 60 * $tarifKk),
                 ]);
                 $pos->setRelation('einsatz', $einsatz);
                 $positionen->push($pos);
@@ -504,12 +504,12 @@ class RechnungslaufController extends Controller
                     [$tp, $tk] = $this->tarifeFuerEinsatz($einsatz, $klient, $rechnungstyp, $tarifCache);
                     if ($istTage) {
                         $tage       = $einsatz->anzahlTage() ?? 1;
-                        $betragPat += round($tage * $tp, 2);
-                        $betragKk  += round($tage * $tk, 2);
+                        $betragPat += $this->r5($tage * $tp);
+                        $betragKk  += $this->r5($tage * $tk);
                     } else {
                         $m          = $einsatz->minuten ?? 0;
-                        $betragPat += round($m / 60 * $tp, 2);
-                        $betragKk  += round($m / 60 * $tk, 2);
+                        $betragPat += $this->r5($m / 60 * $tp);
+                        $betragKk  += $this->r5($m / 60 * $tk);
                         $minuten   += $m;
                     }
                     if (!$einsatz->leistungsart_id) $ohneTypCount++;
@@ -901,7 +901,7 @@ class RechnungslaufController extends Controller
                         // Einzelleistung mit Fixbetrag — kein Tarif-Lookup
                         $menge     = 1;
                         $einheit   = 'pauschal';
-                        $betragFix = round((float) $einsatz->betrag_fix, 2);
+                        $betragFix = $this->r5((float) $einsatz->betrag_fix);
                         $betragPat = $betragFix;
                         $betragKk  = 0.0;
                         $tarifPat  = $betragFix;
@@ -924,13 +924,13 @@ class RechnungslaufController extends Controller
                         if ($istTage) {
                             $menge     = $einsatz->anzahlTage() ?? 1;
                             $einheit   = 'tage';
-                            $betragPat = round($menge * $tarifPat, 2);
-                            $betragKk  = round($menge * $tarifKk, 2);
+                            $betragPat = $this->r5($menge * $tarifPat);
+                            $betragKk  = $this->r5($menge * $tarifKk);
                         } else {
                             $menge     = $einsatz->minuten ?? 0;
                             $einheit   = 'minuten';
-                            $betragPat = round($menge / 60 * $tarifPat, 2);
-                            $betragKk  = round($menge / 60 * $tarifKk, 2);
+                            $betragPat = $this->r5($menge / 60 * $tarifPat);
+                            $betragKk  = $this->r5($menge / 60 * $tarifKk);
                         }
                         RechnungsPosition::create([
                             'rechnung_id'    => $rechnung->id,
@@ -993,8 +993,8 @@ class RechnungslaufController extends Controller
                                         \Carbon\Carbon::parse($bisDatum)->format('d.m.Y'),
                     'tarif_patient'  => $tarifPat,
                     'tarif_kk'       => $tarifKk,
-                    'betrag_patient' => round($tarifPat * $anzahl, 2),
-                    'betrag_kk'      => round($tarifKk * $anzahl, 2),
+                    'betrag_patient' => $this->r5($tarifPat * $anzahl),
+                    'betrag_kk' => $this->r5($tarifKk * $anzahl),
                 ]);
                 $daten['tagespauschalen']->each->update(['verrechnet' => true]);
 
@@ -1020,7 +1020,7 @@ class RechnungslaufController extends Controller
                 ]);
 
                 foreach ($daten['einzelleistungen'] as $einsatz) {
-                    $betrag = round((float) $einsatz->betrag_fix, 2);
+                    $betrag = $this->r5((float) $einsatz->betrag_fix);
                     RechnungsPosition::create([
                         'rechnung_id'    => $rechnung->id,
                         'einsatz_id'     => $einsatz->id,
@@ -1085,6 +1085,9 @@ class RechnungslaufController extends Controller
 
         return 'Keine verrechenbaren Einsätze gefunden';
     }
+
+    /** Kaufmännische Rundung auf 0.05 CHF */
+    private function r5(float $x): float { return round($x * 20) / 20; }
 
     private function autorisiereZugriff(Rechnungslauf $lauf): void
     {
