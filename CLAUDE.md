@@ -59,6 +59,41 @@ Produktive Tenants (`curapflege.curasoft.ch` und alle zukünftigen) enthalten ec
 
 **Vor jedem Seeder-Aufruf zwingend prüfen: Auf welcher DB bin ich? Ist das lokal oder Demo?**
 
+## Stand: 2026-03-22 (Session 31 — Abrechnung-Qualität: Rundung, verrechnung-Flag, PDF-Fixes)
+
+## Neu in Session 31 (2026-03-22)
+
+### Abrechnung — Qualitätskorrekturen
+
+**1. Kaufmännische Rundung auf 0.05 CHF**
+- Helper `r5(float $x): float { return round($x * 20) / 20; }` in `RechnungslaufController` + `PdfExportService`
+- Alle Betragsberechnungen nutzen `r5()` statt `round($x, 2)` — sowohl in Vorschau wie in effektiver Rechnung
+- `ABRECHNUNG_LOGIK.md` + `BETRIEBSANWEISUNG.md` aktualisiert
+
+**2. `verrechnung` Flag wird jetzt respektiert**
+- `tarifeFuerEinsatz()`: wenn `!$lr->verrechnung` → `return [0, 0]` (Leistungsart nicht verrechnet)
+- Bug behoben: `$request->boolean('verrechnung', true)` → `$request->boolean('verrechnung')` — Default `true` überschrieb leere Checkbox immer
+
+**3. Badge-Korrektur**
+- "aktuell" → "aktiv" (grün)
+- Neu: rotes "nicht verrechnet" Badge wenn `verrechnung = false`
+
+**4. Rapportblatt PDF-Fixes**
+- `th.col-tag` hat jetzt dunklen Hintergrund (war weiss auf grau — nicht lesbar)
+- Schriftgrösse von 6.5pt auf 8pt erhöht
+- Postfach im Footer: `{!! ... !!}` statt `{{ ... }}` — `<br>` wird als HTML gerendert
+
+**5. Rapportierung Browser-Grid**
+- Schriftgrösse erhöht (~10pt)
+- Erste Spalte Header: schwarz
+
+**⚠ Bekanntes Datenproblem — `gueltig_ab` zu spät gesetzt**
+Wenn `leistungsregionen.gueltig_ab` in der Zukunft liegt (z.B. 10.03.2026) aber die Rechnung für einen vergangenen Monat (Jan 2026) läuft, findet `tarifeFuerEinsatz()` keinen gültigen Tarif → Betrag = CHF 0.00.
+**Lösung für prod:** Tarife in Stammdaten → Regionen bearbeiten, `gültig ab` auf 01.01.2025 setzen.
+Dokumentiert in `docs/BETRIEBSANWEISUNG.md` Kapitel 6 + `docs/ABRECHNUNG_LOGIK.md` Kapitel 9.
+
+---
+
 ## Stand: 2026-03-22 (Session 30 — CurasoftDemoSeeder konsolidiert + withExists-Fix)
 
 ## Neu in Session 30 (2026-03-22)

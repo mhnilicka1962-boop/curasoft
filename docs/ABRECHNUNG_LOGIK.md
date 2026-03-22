@@ -163,17 +163,23 @@ Rechnung 3 → Gemeinde/Kanton:
 
 ---
 
-## 9. Fehler im aktuellen System (zu beheben)
+## 9. Status bekannter Punkte
 
-| Fehler | Beschreibung | Priorität |
+| Punkt | Beschreibung | Status |
 |---|---|---|
-| `verrechnung` Flag ignoriert | Billing-Logik prüft nie ob verrechnung=true/false | hoch |
-| `einsatz_minuten/stunden/tage` ignoriert | Immer Stundenberechnung, Flags wirkungslos | mittel |
-| `tiers_payant` in PDF ignoriert | QR-Zahlteil zeigt immer betrag_total | hoch |
-| `kassenpflichtig` ignoriert | Feld existiert aber nie geprüft | mittel |
-| Tagespauschale nur kvg/klient | Kein kombiniert möglich | mittel |
-| **Rapportblatt fehlt komplett** | Muss neu gebaut werden | **kritisch für CuraPflege** |
-| Keine Organisations-Einstellung | Logik 1 vs. 2 nicht steuerbar | hoch |
+| `verrechnung` Flag | Billing-Logik prüft verrechnung=true/false | ✅ behoben (Session 31) |
+| Rapportblatt Seite 3 | Tagesaufstellung PDF (Landscape) | ✅ implementiert (Session 26) |
+| Kfm. Rundung 0.05 CHF | Alle Beträge in Vorschau + Rechnung | ✅ implementiert (Session 31) |
+| `einsatz_minuten/stunden/tage` ignoriert | Immer Stundenberechnung, Flags wirkungslos | offen |
+| `tiers_payant` in PDF ignoriert | QR-Zahlteil zeigt immer betrag_total | offen |
+| `kassenpflichtig` ignoriert | Feld existiert aber nie geprüft | offen |
+| Keine Organisations-Einstellung | Logik 1 vs. 2 nicht steuerbar | offen |
+
+### ⚠ Betriebshinweis: «Gültig ab» bei Tarifen
+
+Das System sucht den Tarif mit dem **höchsten `gueltig_ab` ≤ Einsatzdatum**. Wenn der einzige Tarif ein `gueltig_ab` in der Zukunft hat (z.B. 10.03.2026), findet das System für vergangene Perioden (Jan/Feb 2026) **keinen Tarif → Betrag = CHF 0.00**.
+
+**Regel:** `gueltig_ab` immer auf ein Datum setzen, das vor dem ersten geplanten Abrechnungsmonat liegt (z.B. 01.01.2025 für alles ab 2025).
 
 ---
 

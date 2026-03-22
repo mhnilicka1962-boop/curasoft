@@ -148,6 +148,20 @@ Funktioniert auf jedem Gerät, keine Konfiguration nötig.
 
 ---
 
+### ⚠ Wichtig: Tarif-Datum «gültig ab» korrekt setzen
+
+Wenn ein Tarif in Stammdaten → Regionen / Kantone erfasst wird, muss das Feld **«Gültig ab»** auf ein Datum gesetzt werden, das **vor oder gleich dem ersten Abrechnungsmonat** liegt.
+
+**Beispiel:**
+- Abrechnung für Januar 2026 → «Gültig ab» muss ≤ 01.01.2026 sein (z.B. 01.01.2025)
+- Wenn «Gültig ab» = 10.03.2026, findet das System für Januar 2026 **keinen gültigen Tarif** → Betrag = CHF 0.00
+
+**Kontrolle:** Stammdaten → Regionen → Kanton wählen → Grünes «aktiv»-Badge bei jeder Leistungsart prüfen. Wenn «nicht verrechnet» in rot erscheint, ist diese Leistungsart bewusst von der Abrechnung ausgenommen.
+
+**Korrektur:** Tarif bearbeiten (✏) → «Gültig ab» auf früheres Datum setzen → Speichern.
+
+---
+
 ## Kapitel 7 — Häufige Fragen
 
 **Einsatz falsch zugewiesen?**
