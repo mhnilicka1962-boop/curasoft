@@ -22,6 +22,7 @@
             <a href="#script-angehoerig" class="badge badge-info" style="text-decoration: none;">▶ Angehörigenpflege</a>
             <a href="#script-lohnabrechnung" class="badge badge-info" style="text-decoration: none;">▶ Lohnabrechnung</a>
             <a href="#script-einsatz" class="badge badge-info" style="text-decoration: none;">▶ Einsatz erfassen</a>
+            <a href="#kap-rapportierung" class="badge badge-info" style="text-decoration: none;">▶ Rapportierung</a>
         </div>
     </div>
 
@@ -551,6 +552,61 @@
             </div>
         </div>
 
+        {{-- SCRIPT 10: Monatsrapportierung --}}
+        <div class="karte script-karte" id="script-rapportierung" style="margin-bottom: 1.5rem;">
+            <div class="script-kopf" onclick="toggleScript('s10')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 1rem; font-weight: 600;">📋 Monatsrapportierung erfassen</span>
+                    <span class="text-klein text-hell" style="margin-left: 0.75rem;">Minuten pro Leistungstyp und Tag eintragen (Büro-Modus)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span class="badge badge-grau text-klein" id="fortschritt-s10">0 / 5</span>
+                    <span id="pfeil-s10">▼</span>
+                </div>
+            </div>
+            <div id="body-s10" style="display: none; margin-top: 1rem;">
+                <div class="info-box" style="margin-bottom: 0.75rem; font-size: 0.875rem;">
+                    <strong>Rapportierung = Büro-Modus:</strong> Admin trägt Minuten nachträglich im Monatsraster ein — kein Check-in/out nötig.
+                    Die Einsätze werden automatisch erstellt und im nächsten Rechnungslauf normal abgerechnet.
+                </div>
+                <ol class="script-liste" data-script="s10">
+                    <li data-step="0">
+                        <label><input type="checkbox" data-script="s10" data-step="0">
+                            Klient öffnen → Sektion «Einsätze» → <strong>«Rapportierung»</strong>-Button klicken
+                        </label>
+                        <a href="{{ route('klienten.index') }}" class="script-link" target="_blank">Klienten →</a>
+                    </li>
+                    <li data-step="1">
+                        <label><input type="checkbox" data-script="s10" data-step="1">
+                            Monat und Jahr wählen — Navigation mit <strong>‹ ›</strong> Buttons oder Dropdown
+                        </label>
+                    </li>
+                    <li data-step="2">
+                        <label><input type="checkbox" data-script="s10" data-step="2">
+                            Minuten pro Leistungstyp und Tag eintragen — grüne Felder = bereits erfasst, blaue Buttons = App-Einsatz vorhanden
+                        </label>
+                        <div class="text-klein text-hell" style="margin: 0.2rem 0 0 1.5rem;">
+                            App-Einsätze (blau) können bei Bedarf korrigiert werden — Popup öffnet sich beim Klick.
+                        </div>
+                    </li>
+                    <li data-step="3">
+                        <label><input type="checkbox" data-script="s10" data-step="3">
+                            <strong>«Speichern»</strong> klicken — Einsätze werden automatisch als Rapportierung erstellt
+                        </label>
+                    </li>
+                    <li data-step="4">
+                        <label><input type="checkbox" data-script="s10" data-step="4">
+                            Beim nächsten Rechnungslauf werden diese Einsätze automatisch einbezogen — keine weitere Aktion nötig
+                        </label>
+                        <a href="{{ route('rechnungslauf.create') }}" class="script-link" target="_blank">Rechnungslauf erstellen →</a>
+                    </li>
+                </ol>
+                <div style="margin-top: 0.75rem;">
+                    <button onclick="resetScript('s10')" class="btn btn-sekundaer" style="font-size: 0.8125rem;">Script zurücksetzen</button>
+                </div>
+            </div>
+        </div>
+
     </div>
     {{-- Ende Scripts --}}
 
@@ -728,6 +784,32 @@
         <div class="info-box">Solange keine Rechnung im Status «Gesendet» oder «Bezahlt» ist, kann der ganze Lauf storniert werden.</div>
     </div>
 
+    {{-- Kapitel Rapportierung --}}
+    <div class="karte" id="kap-rapportierung" style="margin-bottom: 1.25rem;">
+        <div class="abschnitt-label" style="margin-bottom: 1rem;">Rapportierung — Büro-Modus (ohne App-Check-in)</div>
+        <p style="font-size: 0.9375rem; margin-bottom: 0.75rem;">→ Vollständiger Ablauf: <a href="#script-rapportierung" onclick="toggleScript('s10'); document.getElementById('script-rapportierung').scrollIntoView({behavior:'smooth'});" class="link-primaer">▶ Script «Monatsrapportierung erfassen» oben</a></p>
+        <p style="font-size: 0.9375rem; margin-bottom: 1rem;">Die Rapportierung ist der Erfassungsweg für Spitex-Organisationen die ohne App-Einsatz arbeiten. Admin füllt monatlich ein Raster aus — Zeilen sind Leistungstypen, Spalten sind Tage 1–31, Zellen enthalten Minuten.</p>
+        <div class="tabelle-wrapper" style="margin-bottom: 1rem;">
+        <table class="tabelle">
+            <thead><tr><th>Farbe / Anzeige</th><th>Bedeutung</th><th>Aktion</th></tr></thead>
+            <tbody>
+                <tr><td><span class="badge badge-primaer">Zahl</span> (blau)</td><td>App-Einsatz vorhanden (Check-in/out)</td><td>Klick → Popup zum Korrigieren</td></tr>
+                <tr><td>Grünes Eingabefeld mit Zahl</td><td>Rapportierung gespeichert</td><td>Direkt bearbeiten</td></tr>
+                <tr><td>Leeres Eingabefeld</td><td>Noch nicht erfasst</td><td>Minuten eintragen</td></tr>
+                <tr><td>Orange ● (blinkend)</td><td>App-Einsatz aktiv — Mitarbeiter noch vor Ort</td><td>Klick → Checkout-Zeit eintragen</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <div class="abschnitt-trenn"></div>
+        <div style="font-weight: 600; margin: 1rem 0 0.5rem;">Wichtige Hinweise</div>
+        <ul style="margin: 0 0 0 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
+            <li>Rapportierungs-Einsätze werden beim <strong>Rechnungslauf automatisch einbezogen</strong> — kein spezieller Filter nötig</li>
+            <li>Die Tagessummen pro Leistungsart erscheinen als weisse Zahl im blauen Leistungsart-Header</li>
+            <li>Korrekturen an App-Einsätzen werden mit Zeitstempel in der History protokolliert (ℹ-Button)</li>
+            <li>URL: Klient-Detail → Einsätze → <strong>«Rapportierung»</strong>-Button</li>
+        </ul>
+    </div>
+
     {{-- Kapitel 7: FAQ --}}
     <div class="karte" id="kap7" style="margin-bottom: 1.25rem;">
         <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 7 — Häufige Fragen</div>
@@ -796,7 +878,7 @@ function resetScript(id) {
 }
 
 // Event-Listener für alle Checkboxen
-['s1','s2','s3','s4','s5','s6','s7','s8','s9'].forEach(id => {
+['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10'].forEach(id => {
     ladeScript(id);
     document.querySelectorAll('[data-script="' + id + '"]').forEach(cb => {
         cb.addEventListener('change', () => speichereSchritt(id, cb.dataset.step, cb.checked));
