@@ -6,7 +6,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: DejaVu Sans, Arial, sans-serif;
-    font-size: 6.5pt;
+    font-size: 8pt;
     color: #1a1a1a;
     line-height: 1.3;
 }
@@ -65,12 +65,12 @@ td.col-tag, th.col-tag {
     text-align: center !important;
     font-family: DejaVu Sans, Arial, sans-serif !important;
     font-weight: 600;
-    background: #e2e9f2 !important;
     border-right: 1.5pt solid #5a7a9a !important;
     width: 4%;
     white-space: nowrap;
 }
 td.col-tag {
+    background: #e2e9f2 !important;
     color: #1a1a1a !important;
 }
 
