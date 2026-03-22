@@ -59,6 +59,60 @@ Produktive Tenants (`curapflege.curasoft.ch` und alle zukünftigen) enthalten ec
 
 **Vor jedem Seeder-Aufruf zwingend prüfen: Auf welcher DB bin ich? Ist das lokal oder Demo?**
 
+## Stand: 2026-03-22 (Session 30 — CurasoftDemoSeeder konsolidiert + withExists-Fix)
+
+## Neu in Session 30 (2026-03-22)
+
+### Ein Seeder ersetzt alle drei
+
+**Vorher:** TestdatenSeeder + RechnungslaufTestSeeder + SpitexNormalSeeder (3 separate Seeder, inkonsistent)
+**Jetzt:** Nur noch `CurasoftDemoSeeder` — ein einziger Seeder für lokal + Demo.
+
+**Befehl:**
+```bash
+php artisan db:seed --class=CurasoftDemoSeeder
+```
+
+**Was er enthält:**
+- 5 Klienten mit **mehreren Leistungsarten** pro Klient:
+  - Brunner (AG): GP Mo–Fr + HWL Di/Fr — Sandra
+  - Weber (AG): UB Injektion Mo–Fr + UB Verband Mo/Mi/Fr — Sandra
+  - Schneider (BE): GP tägl. + UB Vitalzeichen Mo/Mi/Fr — Peter, tiers_payant
+  - Keller (BE): HWL Di/Do + GP Mo/Mi/Fr — Peter
+  - Gerber (BE): GP Mo–Fr — Ruth (Angehörige, kein Tour)
+- **930 Einsätze**, alle mit `einsatz_aktivitaeten` (Rapportierung-Grid funktioniert)
+- **326 Touren** für Sandra + Peter + Anna (Vertretung Di 1./3. Woche)
+- **10 Rapporte** (je 2 pro Klient)
+- **3 Rechnungsläufe** (-3M bezahlt, -2M gesendet, -1M entwurf), 12 Rechnungen
+- Einmalige AB-Einsätze (Erstbesuche, Beratungen)
+- Tarife pro Rechnungsposition aus `leistungsregionen` per LA + Region nachgeschlagen
+- Kein Tagespauschalen, keine Einzelleistungen
+
+**Idempotent** — kann beliebig oft neu ausgeführt werden.
+
+### Fix: KlientenController `withExists` Closure-Syntax
+
+`withExists('relation', fn)` ignoriert die Closure — alle Klienten zeigten ⚠ Keine Tour.
+Fix: Array-Syntax `withExists(['relation' => fn])` + `->where('datum', '>=', ...)` statt `whereDate`.
+
+### DB-Stand lokal + Demo nach Session 30
+
+| Tabelle | Anzahl |
+|---------|--------|
+| klienten | 5 |
+| einsaetze | 930 |
+| einsatz_aktivitaeten | 930 |
+| touren | 326 |
+| rapporte | 10 |
+| rechnungslaeufe | 3 |
+| rechnungen | 12 |
+| rechnungs_positionen | 396 |
+| benutzer | 6 (mhn@itjob.ch + 5 @curasoft-demo.ch) |
+
+Demo-DB: `devitjob_curasoft` — synchronisiert 2026-03-22.
+
+---
+
 ## Stand: 2026-03-22 (Session 29 — Einzelleistungen + Tagespauschale konsolidiert + Rapportierung UX)
 
 ## Neu in Session 29 (2026-03-22)
@@ -434,29 +488,39 @@ POST /rapportierung/einsatz/{einsatz}/korrigieren          → rapportierung.kor
 | `2026_02_26_220000` | rechnungs_positionen: beschreibung (TEXT nullable); leistungstyp_id nullable |
 | `2026_03_21_100000` | einsaetze: admin_kommentar (TEXT nullable) — Begründungsfeld bei Minuten-Korrektur |
 
-### Seeders (bereits eingespielt)
+### Seeders
+
+**Basis-Seeders** (einmalig bei neuem Tenant, via `tenant:create` automatisch):
 - `LeistungsartenSeeder` — 5 Leistungsarten mit Default-Ansätzen
 - `EinsatzartenSeeder` — 30 Einsatzarten, je einer Leistungsart zugeordnet
-- `KrankenkassenSeeder` — 39 Schweizer KVG-Krankenkassen (BAG-Nr + EAN) — per Tinker eingespielt
+- `KrankenkassenSeeder` — 39 Schweizer KVG-Krankenkassen (BAG-Nr + EAN)
+- `QualifikationenSeeder` — Pflegequalifikationen
 
-### DB-Inhalt (Testdaten — lokal + Demo identisch, Stand 2026-03-10)
+**Demo/Test-Seeder** (lokal + Demo, NUR EINER):
+- `CurasoftDemoSeeder` — vollständiger Demo-Datensatz, ersetzt TestdatenSeeder + SpitexNormalSeeder + RechnungslaufTestSeeder
+
+```bash
+php artisan db:seed --class=CurasoftDemoSeeder
+```
+
+### DB-Inhalt (lokal + Demo identisch, Stand 2026-03-22)
 
 | Tabelle | Anzahl |
 |---------|--------|
-| klienten | 58 (50 normal + 38 TEST, davon 4 Pausch + 4 Mix) |
-| einsaetze | ~1541 |
-| tagespauschalen | 8 (4 Pausch + 4 Mix, Feb 2026) |
-| rechnungslaeufe | 1 |
-| rechnungen | 24 |
-| rechnungs_positionen | 78 |
-| regionen | 4 (AG, BE, SG, ZH) |
-| leistungsregionen | 19 |
-| benutzer | ~16 |
-| krankenkassen | 5 |
-| touren | 8 |
-| rapporte | 90 |
+| klienten | 5 |
+| einsaetze | 930 |
+| einsatz_aktivitaeten | 930 |
+| touren | 326 |
+| rapporte | 10 |
+| rechnungslaeufe | 3 |
+| rechnungen | 12 |
+| rechnungs_positionen | 396 |
+| regionen | 2 (AG, BE) |
+| leistungsregionen | 10 |
+| benutzer | 6 |
+| krankenkassen | 42 |
 
-Demo-DB: `devitjob_curasoft` — zuletzt synchronisiert 2026-03-10 via `./deploy.sh db`.
+Demo-DB: `devitjob_curasoft` — synchronisiert 2026-03-22.
 
 ---
 
@@ -1929,7 +1993,9 @@ php artisan key:generate
 php artisan migrate
 php artisan db:seed --class=LeistungsartenSeeder
 php artisan db:seed --class=EinsatzartenSeeder
-php artisan db:seed --class=TestdatenSeeder
+php artisan db:seed --class=KrankenkassenSeeder
+php artisan db:seed --class=QualifikationenSeeder
+php artisan db:seed --class=CurasoftDemoSeeder
 
 # 7. Storage verlinken
 php artisan storage:link
