@@ -104,27 +104,33 @@ class RechnungslaufController extends Controller
         $tarifCache = [];
         $positionen = collect();
 
-        foreach ($einsaetze as $einsatz) {
-            if ($nurPauschale) {
-                $tp     = $einsatz->tagespauschale;
-                $ansatz = (float) $tp->ansatz;
-                [$tarifPat, $tarifKk] = match($tp->rechnungstyp) {
-                    'kvg'  => [0.0, $ansatz],
-                    default=> [$ansatz, 0.0],
-                };
-                $pos = new RechnungsPosition([
-                    'rechnung_id'    => 0,
-                    'einsatz_id'     => $einsatz->id,
-                    'datum'          => $einsatz->datum,
-                    'menge'          => 1,
-                    'einheit'        => 'tage',
-                    'beschreibung'   => $tp->text,
-                    'tarif_patient'  => $tarifPat,
-                    'tarif_kk'       => $tarifKk,
-                    'betrag_patient' => round($tarifPat, 2),
-                    'betrag_kk'      => round($tarifKk, 2),
-                ]);
-            } else {
+        if ($nurPauschale) {
+            $tp      = $einsaetze->first()->tagespauschale;
+            $ansatz  = (float) $tp->ansatz;
+            [$tarifPat, $tarifKk] = match($tp->rechnungstyp) {
+                'kvg'  => [0.0, $ansatz],
+                default=> [$ansatz, 0.0],
+            };
+            $anzahl   = $einsaetze->count();
+            $vonDatum = $einsaetze->min('datum');
+            $bisDatum = $einsaetze->max('datum');
+            $pos = new RechnungsPosition([
+                'rechnung_id'    => 0,
+                'einsatz_id'     => null,
+                'datum'          => $vonDatum,
+                'menge'          => $anzahl,
+                'einheit'        => 'tage',
+                'beschreibung'   => ($tp->text ? $tp->text . ' ' : '') .
+                                    \Carbon\Carbon::parse($vonDatum)->format('d.m.Y') . ' – ' .
+                                    \Carbon\Carbon::parse($bisDatum)->format('d.m.Y'),
+                'tarif_patient'  => $tarifPat,
+                'tarif_kk'       => $tarifKk,
+                'betrag_patient' => round($tarifPat * $anzahl, 2),
+                'betrag_kk'      => round($tarifKk * $anzahl, 2),
+            ]);
+            $positionen->push($pos);
+        } else {
+            foreach ($einsaetze as $einsatz) {
                 [$tarifPat, $tarifKk] = $this->tarifeFuerEinsatz($einsatz, $klient, $rechnungstyp, $tarifCache);
                 $m = $einsatz->minuten ?? 0;
                 $pos = new RechnungsPosition([
@@ -139,9 +145,9 @@ class RechnungslaufController extends Controller
                     'betrag_patient' => round($m / 60 * $tarifPat, 2),
                     'betrag_kk'      => round($m / 60 * $tarifKk, 2),
                 ]);
+                $pos->setRelation('einsatz', $einsatz);
+                $positionen->push($pos);
             }
-            $pos->setRelation('einsatz', $einsatz);
-            $positionen->push($pos);
         }
 
         $rechnung->setRelation('positionen', $positionen);
