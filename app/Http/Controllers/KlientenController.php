@@ -40,6 +40,7 @@ class KlientenController extends Controller
                 ->where('vorname', 'ilike', "%{$s}%")
                 ->orWhere('nachname', 'ilike', "%{$s}%")
                 ->orWhere('ort', 'ilike', "%{$s}%")
+                ->orWhere('id', is_numeric($s) ? (int)$s : 0)
             );
         }
 

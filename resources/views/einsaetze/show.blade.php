@@ -94,6 +94,33 @@
         @endif
     </div>
 
+    {{-- Aktivitäten (Leistungstypen) bei Rapportierungs-Einsätzen --}}
+    @if($einsatz->aktivitaeten->isNotEmpty())
+    <div class="karte" style="margin-bottom: 1rem;">
+        <div class="abschnitt-label" style="margin-bottom: 0.75rem;">
+            Erfasste Leistungen
+            @if($einsatz->checkin_methode === 'rapportierung')
+                <span class="badge badge-info" style="margin-left: 0.5rem; font-weight: 400;">Rapportierung</span>
+            @endif
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+            @foreach($einsatz->aktivitaeten as $akt)
+            <tr style="border-bottom: 1px solid var(--cs-border);">
+                <td style="padding: 0.3rem 0; color: var(--cs-text-hell); font-size: 0.8rem; width: 40%;">{{ $akt->kategorie }}</td>
+                <td style="padding: 0.3rem 0; font-weight: 500;">{{ $akt->aktivitaet }}</td>
+                <td style="padding: 0.3rem 0; text-align: right; color: var(--cs-primaer); font-weight: 600;">{{ $akt->minuten }} Min.</td>
+            </tr>
+            @endforeach
+            @if($einsatz->aktivitaeten->count() > 1)
+            <tr>
+                <td colspan="2" style="padding: 0.4rem 0; font-weight: 600; font-size: 0.8rem;">Total</td>
+                <td style="padding: 0.4rem 0; text-align: right; font-weight: 700; color: var(--cs-primaer);">{{ $einsatz->aktivitaeten->sum('minuten') }} Min.</td>
+            </tr>
+            @endif
+        </table>
+    </div>
+    @endif
+
     {{-- Check-in/out Status --}}
     @if($einsatz->status !== 'storniert')
     <div class="karte" style="margin-bottom: 1rem;">

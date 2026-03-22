@@ -59,6 +59,118 @@ Produktive Tenants (`curapflege.curasoft.ch` und alle zukünftigen) enthalten ec
 
 **Vor jedem Seeder-Aufruf zwingend prüfen: Auf welcher DB bin ich? Ist das lokal oder Demo?**
 
+## Stand: 2026-03-22 (Session 28 — Rapportierung UX + Verrechnung verifiziert)
+
+## Neu in Session 28 (2026-03-22)
+
+### Rapportierung — UX-Verbesserungen
+
+#### Info-Button bei Admin-Korrekturen
+- Orangen Zellen (Admin hat Minuten eingetragen/korrigiert) erhalten einen blauen **ℹ**-Button
+- Klick → Popup mit Korrektur-History (Datum, Leistungstyp, alt→neu Minuten)
+- Nur sichtbar wenn `history`-Einträge vorhanden
+- Datei: `resources/views/klienten/rapportierung.blade.php`
+
+#### Jahr/Monat-Dropdowns für Navigation
+- Zusätzlich zu ‹ › Buttons: Jahr- und Monat-Dropdown
+- Nur Perioden mit vorhandenen Einsätzen werden angezeigt
+- Monat-Dropdown aktualisiert sich automatisch bei Jahr-Wechsel (JS)
+- Dropdowns erscheinen nur wenn mehr als 1 Monat vorhanden
+- Controller: `verfuegbareMonate` via `EXTRACT(YEAR/MONTH FROM datum)` gruppiert
+- Datei: `RapportierungController::show()` + `rapportierung.blade.php`
+
+#### Verrechnung verifiziert
+- Rapportierungs-Einsätze haben `checkout_zeit` gesetzt → werden von `whereNotNull('checkout_zeit')` im Rechnungslauf erfasst
+- **Kein Code-Änderung nötig** — Rechnungslauf verrechnet Rapportierungs-Einsätze bereits korrekt
+- Rapportblatt (Seite 3, Landscape) funktioniert ebenfalls — basiert auf `rechnungs_positionen`
+
+---
+
+## Stand: 2026-03-21 (Session 27 — Rapportierung Monatsraster)
+
+## Neu in Session 27 (2026-03-21)
+
+### Rapportierung — Monatsraster pro Klient
+
+**Zweck:** Alternativer Erfassungsweg für Spitex-Organisationen ohne App-Check-in. Admin füllt monatliches Grid aus (Zeilen = Leistungstypen, Spalten = Tage 1–31, Zellen = Minuten). System speichert als Einsätze → Rechnungslauf rechnet normal ab.
+
+### Neue Dateien
+| Datei | Zweck |
+|-------|-------|
+| `app/Http/Controllers/RapportierungController.php` | show, speichern, checkout, korrigieren |
+| `resources/views/klienten/rapportierung.blade.php` | Monatsraster-View mit Navigation, Popups |
+| `database/migrations/2026_03_21_100000_add_admin_kommentar_to_einsaetze.php` | `admin_kommentar TEXT nullable` auf einsaetze |
+
+### Geänderte Dateien Session 27
+| Datei | Was |
+|-------|-----|
+| `app/Models/Einsatz.php` | `admin_kommentar` in `$fillable` ergänzt |
+| `resources/views/klienten/show.blade.php` | "Rapportierung"-Button in Einsätze-Sektion |
+| `app/Http/Controllers/KlientenController.php` | Suche nach numerischer ID (`orWhere('id', ...)`) |
+| `routes/web.php` | 4 Rapportierung-Routen + Import |
+
+### Routen
+```
+GET  /klienten/{klient}/rapportierung/{jahr}/{monat}       → klienten.rapportierung
+POST /klienten/{klient}/rapportierung/{jahr}/{monat}       → klienten.rapportierung.speichern
+POST /rapportierung/einsatz/{einsatz}/checkout             → rapportierung.checkout
+POST /rapportierung/einsatz/{einsatz}/korrigieren          → rapportierung.korrigieren
+```
+
+### Datenmodell — Kern-Entscheid
+
+**Kein neues Feld auf `einsaetze`** — stattdessen bestehende Struktur genutzt:
+
+| Feld | Wert |
+|------|------|
+| `checkin_methode` | `'rapportierung'` — Markierung, kein neuer Wert |
+| `leistungsart_id` | von Leistungstyp abgeleitet |
+| `minuten` | Summe aller Leistungstypen des Tages für diese LA |
+| `status` | `'abgeschlossen'` |
+| `checkout_zeit` | `datum 23:59` — damit Rechnungslauf-Filter `whereNotNull('checkout_zeit')` unverändert funktioniert |
+| `admin_kommentar` | Begründung bei manueller Minuten-Korrektur |
+
+**Aktivitäten-Struktur (bestehende Tabelle `einsatz_aktivitaeten`):**
+- `kategorie` = Leistungsart-Name (z.B. "Grundpflege")
+- `aktivitaet` = Leistungstyp-Name (z.B. "Duschen")
+- `minuten` = Minuten für diesen Leistungstyp
+
+→ **Ein Einsatz pro Leistungsart pro Tag** (total minuten), plus Aktivitäten-Einträge pro Leistungstyp.
+
+### Datenzugriff im Controller
+
+**show() — Raster aufbauen:**
+- Lookup `$ltByName[bezeichnung] => id` aus DB-Leistungstypen
+- Rapportierungs-Einsätze: `aktivitaeten`-Einträge → Text-Matching `aktivitaet.aktivitaet` ↔ `leistungstyp.bezeichnung` → `$raster[$ltId][$tag]`
+- App-Einsätze: `$e->minuten` direkt → `$appRaster[$laId][$tag]`
+
+**speichern() — Raster speichern:**
+1. Alle Rapportierungs-Einsätze des Monats löschen (`checkin_methode = 'rapportierung'`)
+2. Leistungstypen einmalig laden (`whereIn` statt N×`find`)
+3. Gruppieren nach `[tag][leistungsart_id]`
+4. Pro Gruppe: einen Einsatz + Aktivitäten-Einträge erstellen
+
+### Raster-Zustände im View
+
+| Zustand | Darstellung | Aktion |
+|---------|-------------|--------|
+| App-Einsatz (abgeschlossen) | Blauer Button mit Minuten | Popup → Minuten korrigieren |
+| App-Einsatz aktiv (eingecheckt) | Orange ● Button | Popup → Checkout eintragen |
+| App-Einsatz korrigiert | Minuten + ✏️ | Popup → weiter korrigieren |
+| Rapportierung (gespeichert) | Grünes Input-Feld mit Zahl | Direkt editierbar |
+| Leer | Leeres Input-Feld | Direkt eingeben |
+
+### ⛔ GEROLLBACK — Falscher Ansatz Session 27
+- Migration `2026_03_21_110000_add_leistungstyp_id_to_einsaetze` erstellt und sofort wieder zurückgerollt
+- **NIEMALS** `leistungstyp_id` auf `einsaetze` hinzufügen — `einsatz_aktivitaeten` ist die richtige Struktur
+- Mapping Leistungstyp → Einsatz läuft immer über `einsatz_aktivitaeten.aktivitaet` (Text-Name)
+
+### Klienten-Suche nach ID
+- `KlientenController::index()`: `->orWhere('id', is_numeric($s) ? (int)$s : 0)` ergänzt
+- Suche nach "316" findet Klient ID 316
+
+---
+
 ## Stand: 2026-03-19 (Session 26 — Rapportblatt + SpitexNormalSeeder + PDF-Fixes)
 
 ## Neu in Session 26 (2026-03-19)
@@ -262,6 +374,7 @@ Produktive Tenants (`curapflege.curasoft.ch` und alle zukünftigen) enthalten ec
 | `2026_02_26_200000` | tagespauschalen: id, organisation_id, klient_id, rechnungstyp, datum_von, datum_bis, ansatz (decimal 10,4), text, erstellt_von |
 | `2026_02_26_210000` | einsaetze: tagespauschale_id (nullable FK → tagespauschalen, nullOnDelete) |
 | `2026_02_26_220000` | rechnungs_positionen: beschreibung (TEXT nullable); leistungstyp_id nullable |
+| `2026_03_21_100000` | einsaetze: admin_kommentar (TEXT nullable) — Begründungsfeld bei Minuten-Korrektur |
 
 ### Seeders (bereits eingespielt)
 - `LeistungsartenSeeder` — 5 Leistungsarten mit Default-Ansätzen
@@ -768,6 +881,7 @@ DB-Sync: ./deploy.sh db → lokal ausführen, manuell, niemals automatisch
 | Check-In/Out | `/checkin/{token}` | CheckInController | admin, pflege |
 | Rapporte | `/rapporte` | RapporteController | admin, pflege |
 | Tourenplanung | `/touren` | TourenController | admin, pflege |
+| Rapportierung | `/klienten/{id}/rapportierung/{jahr}/{monat}` | RapportierungController | admin |
 | Einsatzplanung Kalender | `/kalender` | KalenderController | admin |
 | Kalender JSON-API | `GET /kalender/einsaetze` | KalenderController | admin |
 | Route optimieren | `POST /touren/{id}/route-optimieren` | TourenController | admin |
@@ -1606,6 +1720,7 @@ app/
     LeistungsartenController.php ← +tarmed_code Validierung
     NachrichtenController.php
     RapporteController.php
+    RapportierungController.php  ← show(), speichern(), checkout(), korrigieren()
     RechnungenController.php     ← +xmlExport() +bexioSync()
     RegionenController.php
     TourenController.php
@@ -1616,7 +1731,7 @@ app/
     Benutzer.php                 ← +organisation(), +anstellungsart, +erlaubteLeistungsarten(), +darfLeistungsart()
     BexioSync.php
     Dokument.php
-    Einsatz.php                  ← +verordnung_id, +verordnung() Relationship, +leistungserbringer_typ
+    Einsatz.php                  ← +verordnung_id, +verordnung() Relationship, +leistungserbringer_typ, +admin_kommentar
     KlientBenutzer.php           ← +beziehungstyp
     Klient.php                   ← +verordnungen() Relationship, +klient_typ, +klientTypBadge()
     KlientAdresse.php

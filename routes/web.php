@@ -29,6 +29,7 @@ use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\VertretungController;
 use App\Http\Controllers\PersonalabrechnungController;
 use App\Http\Controllers\AngehoerigenpflegeController;
+use App\Http\Controllers\RapportierungController;
 use Illuminate\Support\Facades\Route;
 
 // Setup-Wizard (nur wenn noch kein Benutzer existiert)
@@ -261,6 +262,12 @@ Route::middleware('auth')->group(function () {
         Route::delete('/klienten/{klient}/angehoerige/{zuweisung}',   [KlientenController::class, 'angehoerigEntfernen'])->name('klienten.angehoerig.entfernen');
         Route::get('/schnellerfassung',  [KlientenController::class, 'schnellerfassung'])->name('schnellerfassung');
         Route::post('/schnellerfassung', [KlientenController::class, 'schnellSpeichern'])->name('schnellerfassung.speichern');
+
+        // Rapportierung
+        Route::get('/klienten/{klient}/rapportierung/{jahr}/{monat}', [RapportierungController::class, 'show'])->name('klienten.rapportierung');
+        Route::post('/klienten/{klient}/rapportierung/{jahr}/{monat}', [RapportierungController::class, 'speichern'])->name('klienten.rapportierung.speichern');
+        Route::post('/rapportierung/einsatz/{einsatz}/checkout', [RapportierungController::class, 'checkout'])->name('rapportierung.checkout');
+        Route::post('/rapportierung/einsatz/{einsatz}/korrigieren', [RapportierungController::class, 'korrigieren'])->name('rapportierung.korrigieren');
         Route::resource('/einsaetze', EinsaetzeController::class)->only(['index','create','store','show','edit','update'])->parameters(['einsaetze' => 'einsatz']);
         Route::get('/einsaetze/{einsatz}/vor-ort', [EinsaetzeController::class, 'vorOrt'])->name('einsaetze.vor-ort');
         Route::post('/einsaetze/{einsatz}/aktivitaeten', [EinsaetzeController::class, 'aktivitaetenSpeichern'])->name('einsaetze.aktivitaeten.speichern');

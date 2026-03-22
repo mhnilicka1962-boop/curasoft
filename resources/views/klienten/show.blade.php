@@ -275,7 +275,10 @@
     <div class="karte" id="einsaetze-section" style="margin-bottom: 1rem;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
             <div class="abschnitt-label" style="margin-bottom: 0;">Einsätze</div>
-            <a href="{{ route('klienten.qr', $klient) }}" target="_blank" class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">📱 QR Check-in</a>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{{ route('klienten.rapportierung', [$klient, now()->year, now()->month]) }}" class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">Rapportierung</a>
+                <a href="{{ route('klienten.qr', $klient) }}" target="_blank" class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">📱 QR Check-in</a>
+            </div>
         </div>
 
         {{-- Tabs --}}
@@ -356,6 +359,9 @@
                 </div>
                 <div style="display: flex; gap: 0.375rem; align-items: center; flex-shrink: 0;">
                     <span class="badge {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
+                    @if($e->checkin_methode === 'rapportierung')
+                        <span class="badge badge-info" title="Manuell vom Admin erfasst">Rapportierung</span>
+                    @endif
                     <a href="{{ route('einsaetze.show', $e) }}" class="text-mini link-primaer">Detail →</a>
                 </div>
             </div>

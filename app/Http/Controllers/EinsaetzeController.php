@@ -262,7 +262,7 @@ class EinsaetzeController extends Controller
     public function show(Einsatz $einsatz)
     {
         $this->autorisiereZugriff($einsatz);
-        $einsatz->load('klient', 'benutzer', 'helfer', 'leistungsart', 'region');
+        $einsatz->load('klient', 'benutzer', 'helfer', 'leistungsart', 'region', 'aktivitaeten');
         return view('einsaetze.show', compact('einsatz'));
     }
 
