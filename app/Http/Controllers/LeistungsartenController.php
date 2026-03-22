@@ -80,7 +80,7 @@ class LeistungsartenController extends Controller
             'ansatz_akut'      => $request->ansatz_akut,
             'kkasse_akut'      => $request->kkasse_akut,
             'gueltig_ab'       => $request->gueltig_ab,
-            'verrechnung'      => $request->boolean('verrechnung', true),
+            'verrechnung'      => $request->boolean('verrechnung'),
             'einsatz_minuten'  => $request->boolean('einsatz_minuten'),
             'einsatz_stunden'  => $request->boolean('einsatz_stunden'),
             'einsatz_tage'     => $request->boolean('einsatz_tage'),

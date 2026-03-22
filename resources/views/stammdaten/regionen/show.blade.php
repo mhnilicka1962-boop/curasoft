@@ -83,7 +83,10 @@
                 <td style="font-size: 0.875rem;">
                     {{ $t->gueltig_ab?->format('d.m.Y') ?? '—' }}
                     @if($istAktuell)
-                        <span class="badge badge-erfolg" style="font-size: 0.65rem; margin-left: 0.25rem;">aktuell</span>
+                        <span class="badge badge-erfolg" style="font-size: 0.65rem; margin-left: 0.25rem;">aktiv</span>
+                        @if(!$t->verrechnung)
+                            <span class="badge badge-fehler" style="font-size: 0.65rem; margin-left: 0.25rem;">nicht verrechnet</span>
+                        @endif
                     @endif
                 </td>
                 <td class="text-rechts" style="font-weight: {{ $istAktuell ? '600' : '400' }};">{{ number_format($t->ansatz, 2) }}</td>
