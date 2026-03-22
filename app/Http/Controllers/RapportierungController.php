@@ -26,7 +26,7 @@ class RapportierungController extends Controller
 
         // Leistungsarten + Leistungstypen
         $leistungsarten = Leistungsart::where('aktiv', true)
-            ->orderBy('id')
+            ->orderBy('bezeichnung')
             ->with(['leistungstypen' => fn($q) => $q->where('aktiv', true)->orderBy('bezeichnung')])
             ->get();
 
