@@ -59,7 +59,65 @@ Produktive Tenants (`curapflege.curasoft.ch` und alle zukünftigen) enthalten ec
 
 **Vor jedem Seeder-Aufruf zwingend prüfen: Auf welcher DB bin ich? Ist das lokal oder Demo?**
 
-## Stand: 2026-03-22 (Session 28 — Rapportierung UX + Verrechnung verifiziert)
+## Stand: 2026-03-22 (Session 29 — Einzelleistungen + Tagespauschale konsolidiert + Rapportierung UX)
+
+## Neu in Session 29 (2026-03-22)
+
+### Einzelleistungen — Manuelle Rechnungserfassung
+
+**Zweck:** Admin kann für einen Klienten eine Einzelrechnung erfassen (z.B. Ausflug, Begleitung) ohne Leistungsart, mit Freitext und Fixbetrag.
+
+**Datenmodell:** Einsatz mit `betrag_fix` (DECIMAL nullable) + `bemerkung` als Beschreibung. Keine `leistungsart_id`.
+
+**Migration:** `2026_03_22_100000_add_betrag_fix_to_einsaetze.php`
+
+**Ablauf:**
+- Erfassen: Popup auf Klient-Detail (Datum von/bis, Beschreibung, Betrag)
+- Bearbeiten: gleicher Popup, vorausgefüllt (nur wenn noch nicht verrechnet)
+- Löschen: nur wenn nicht verrechnet
+- PDF-Vorschau: ohne Rechnungsnummer, ohne Rapportblatt
+- Rechnungslauf: eigene Rechnung (rechnungstyp=klient, einheit=pauschal), getrennt von normalen Einsätzen
+
+**Neues auf Klient-Detail:**
+- Sektion "Einzelleistungen" (details/summary) mit Tabelle + Popup
+- Reihenfolge: Einzelleistungen → Tagespauschalen → Rechnungen
+- Nach Erfassen/Bearbeiten: Sektion bleibt offen (session flash `einzelleistung_offen`)
+
+**Neue Routen:**
+```
+POST   /rechnungen/einzelleistung                    → rechnungen.einzelleistung
+PATCH  /rechnungen/einzelleistung/{einsatz}          → rechnungen.einzelleistung.aktualisieren
+GET    /rechnungen/einzelleistung/{einsatz}/vorschau → rechnungen.einzelleistung.vorschau
+DELETE /rechnungen/einzelleistung/{einsatz}          → rechnungen.einzelleistung.loeschen
+```
+
+**PDF:** `einheit='pauschal'` → `$bezeichnung` = `beschreibung` direkt, kein Untertitel, kein Rapportblatt
+
+### Tagespauschale — Konsolidierte Position
+
+- **Vorher:** 1 Position pro Tag (28 Zeilen für Februar)
+- **Jetzt:** 1 Position mit Beschreibung "Tagespauschale 01.02.2026 – 28.02.2026 (28 Tage)"
+- **Stornierung-Fix:** Reset über `klient_id + periode` statt `einsatz_id` (consolidated hat einsatz_id=null)
+
+### Rapportierung UX (Session 29)
+
+- **Leistungsart-Header:** zeigt Tagessummen (weisse Zahl auf blauem Hintergrund)
+- **Berechnung:** `$appMin ?: $rapMin` — kein Doppelzählen wenn beide Quellen vorhanden
+- **SpitexNormalSeeder:** `einsatz_aktivitaeten` für alle 5 Klienten (315–319) ergänzt
+- **LT_NAMEN Konstante:** ltId → aktivitaet + kategorie (aus DB verifiziert)
+
+### Sonstige Fixes Session 29
+
+- **Klienten-Suche:** Kombination Vor+Nachname (`nachname || ' ' || vorname ilike`)
+- **Klientenname anklickbar** in Rechnungen-Index und Rechnungslauf-Detail
+- **Rapportierung-Button** auf Klient-Detail: blauer Button mit Untertitel "Monatsübersicht"
+
+### Migrationen Session 29
+| Migration | Inhalt |
+|-----------|--------|
+| `2026_03_22_100000` | `einsaetze.betrag_fix` DECIMAL(10,2) nullable |
+
+---
 
 ## Neu in Session 28 (2026-03-22)
 
