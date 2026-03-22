@@ -512,10 +512,46 @@
                         <td class="text-rechts" style="padding: 0.375rem 0.5rem;">{{ number_format($b->limit_restbetrag_prozent, 2, '.', "'") }}</td>
                         <td class="text-rechts" style="padding: 0.375rem 0.5rem;">{{ number_format($b->ansatz_spitex, 2, '.', "'") }}</td>
                         <td class="text-rechts" style="padding: 0.375rem 0.5rem;">{{ number_format($b->kanton_abrechnung, 2, '.', "'") }}</td>
-                        <td class="text-rechts" style="padding: 0.375rem 0.5rem;">
-                            <form method="POST" action="{{ route('klienten.beitrag.loeschen', [$klient, $b]) }}" style="margin: 0;" onsubmit="return confirm('Beitrag entfernen?')">
+                        <td class="text-rechts" style="padding: 0.375rem 0.5rem; white-space: nowrap;">
+                            <button type="button" onclick="beitragBearbeiten({{ $b->id }})"
+                                style="background: none; border: none; color: var(--cs-primaer); cursor: pointer; font-size: 0.75rem; padding: 0; margin-right: 0.75rem;">bearbeiten</button>
+                            <form method="POST" action="{{ route('klienten.beitrag.loeschen', [$klient, $b]) }}" style="margin: 0; display: inline;" onsubmit="return confirm('Beitrag entfernen?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" style="background: none; border: none; color: var(--cs-fehler); cursor: pointer; font-size: 0.75rem; padding: 0;">entfernen</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{-- Inline-Bearbeitungsformular --}}
+                    <tr id="beitrag-edit-{{ $b->id }}" style="display: none;">
+                        <td colspan="6" style="padding: 0.5rem;">
+                            <form method="POST" action="{{ route('klienten.beitrag.aktualisieren', [$klient, $b]) }}" style="background: var(--cs-hintergrund); border-radius: 6px; padding: 0.75rem;">
+                                @csrf @method('PATCH')
+                                <div class="form-grid" style="margin-bottom: 0.75rem;">
+                                    <div>
+                                        <label class="feld-label" style="font-size: 0.75rem;">Gültig ab *</label>
+                                        <input type="date" name="gueltig_ab" class="feld" required value="{{ $b->gueltig_ab->format('Y-m-d') }}" style="font-size: 0.875rem;">
+                                    </div>
+                                    <div>
+                                        <label class="feld-label" style="font-size: 0.75rem;">Ansatz Kunde (CHF) *</label>
+                                        <input type="number" name="ansatz_kunde" class="feld" step="0.05" min="0" required value="{{ $b->ansatz_kunde }}" style="font-size: 0.875rem;">
+                                    </div>
+                                    <div>
+                                        <label class="feld-label" style="font-size: 0.75rem;">Limit Restbetrag %</label>
+                                        <input type="number" name="limit_restbetrag_prozent" class="feld" step="0.01" min="0" max="100" value="{{ $b->limit_restbetrag_prozent }}" style="font-size: 0.875rem;">
+                                    </div>
+                                    <div>
+                                        <label class="feld-label" style="font-size: 0.75rem;">Ansatz SPITEX (CHF)</label>
+                                        <input type="number" name="ansatz_spitex" class="feld" step="0.05" min="0" value="{{ $b->ansatz_spitex }}" style="font-size: 0.875rem;">
+                                    </div>
+                                    <div>
+                                        <label class="feld-label" style="font-size: 0.75rem;">Kanton Abrechnung (CHF)</label>
+                                        <input type="number" name="kanton_abrechnung" class="feld" step="0.05" min="0" value="{{ $b->kanton_abrechnung }}" style="font-size: 0.875rem;">
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">Speichern</button>
+                                    <button type="button" onclick="beitragBearbeiten({{ $b->id }})" class="btn btn-sekundaer" style="font-size: 0.875rem;">Abbrechen</button>
+                                </div>
                             </form>
                         </td>
                     </tr>
@@ -1515,6 +1551,10 @@
 
 @push('scripts')
 <script>
+function beitragBearbeiten(id) {
+    const row = document.getElementById('beitrag-edit-' + id);
+    if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
+}
 function toggleKlientEdit() {
     const form = document.getElementById('klient-edit-form');
     const btn  = document.getElementById('btn-klient-edit');

@@ -488,6 +488,21 @@ class KlientenController extends Controller
         return back()->with('erfolg', 'Beitrag wurde erfasst.');
     }
 
+    public function beitragAktualisieren(Request $request, Klient $klient, KlientBeitrag $beitrag)
+    {
+        $this->autorisiereZugriff($klient);
+        if ($beitrag->klient_id !== $klient->id) abort(403);
+        $daten = $request->validate([
+            'gueltig_ab'               => ['required', 'date'],
+            'ansatz_kunde'             => ['required', 'numeric', 'min:0'],
+            'limit_restbetrag_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'ansatz_spitex'            => ['nullable', 'numeric', 'min:0'],
+            'kanton_abrechnung'        => ['nullable', 'numeric', 'min:0'],
+        ]);
+        $beitrag->update($daten);
+        return back()->with('erfolg', 'Beitrag wurde aktualisiert.');
+    }
+
     public function beitragLoeschen(Klient $klient, KlientBeitrag $beitrag)
     {
         $this->autorisiereZugriff($klient);

@@ -250,6 +250,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/klienten/{klient}/kontakte',                    [KlientenController::class, 'kontaktSpeichern'])->name('klienten.kontakt.speichern');
         Route::delete('/klienten/{klient}/kontakte/{kontakt}',        [KlientenController::class, 'kontaktEntfernen'])->name('klienten.kontakt.entfernen');
         Route::post('/klienten/{klient}/beitraege',                   [KlientenController::class, 'beitragSpeichern'])->name('klienten.beitrag.speichern');
+        Route::patch('/klienten/{klient}/beitraege/{beitrag}',        [KlientenController::class, 'beitragAktualisieren'])->name('klienten.beitrag.aktualisieren');
         Route::delete('/klienten/{klient}/beitraege/{beitrag}',       [KlientenController::class, 'beitragLoeschen'])->name('klienten.beitrag.loeschen');
         Route::post('/klienten/{klient}/pflegestufen',                [KlientenController::class, 'pflegestufeSpeichern'])->name('klienten.pflegestufe.speichern');
         Route::post('/klienten/{klient}/diagnosen',                   [KlientenController::class, 'diagnoseSpeichern'])->name('klienten.diagnose.speichern');
