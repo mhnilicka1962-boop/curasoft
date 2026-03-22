@@ -70,6 +70,9 @@ td.col-tag, th.col-tag {
     width: 4%;
     white-space: nowrap;
 }
+td.col-tag {
+    color: #1a1a1a !important;
+}
 
 /* Trennlinie nach Min-Gruppe */
 td.col-sep, th.col-sep {
