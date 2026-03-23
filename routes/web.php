@@ -268,6 +268,7 @@ Route::middleware('auth')->group(function () {
         // Rapportierung
         Route::get('/klienten/{klient}/rapportierung/{jahr}/{monat}', [RapportierungController::class, 'show'])->name('klienten.rapportierung');
         Route::post('/klienten/{klient}/rapportierung/{jahr}/{monat}', [RapportierungController::class, 'speichern'])->name('klienten.rapportierung.speichern');
+        Route::get('/klienten/{klient}/rapportierung/{jahr}/{monat}/vorschau', [RapportierungController::class, 'vorschauPdf'])->name('klienten.rapportierung.vorschau');
         Route::post('/rapportierung/einsatz/{einsatz}/checkout', [RapportierungController::class, 'checkout'])->name('rapportierung.checkout');
         Route::post('/rapportierung/einsatz/{einsatz}/korrigieren', [RapportierungController::class, 'korrigieren'])->name('rapportierung.korrigieren');
         Route::resource('/einsaetze', EinsaetzeController::class)->only(['index','create','store','show','edit','update'])->parameters(['einsaetze' => 'einsatz']);

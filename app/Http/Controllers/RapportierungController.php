@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Einsatz;
 use App\Models\Klient;
 use App\Models\Leistungsart;
+use App\Models\Leistungsregion;
 use App\Models\Leistungstyp;
+use App\Models\Rechnung;
+use App\Services\PdfExportService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -275,6 +278,116 @@ class RapportierungController extends Controller
         ]);
 
         return response()->json(['ok' => true]);
+    }
+
+    public function vorschauPdf(Klient $klient, int $jahr, int $monat)
+    {
+        abort_if($klient->organisation_id !== $this->orgId(), 403);
+
+        $periodeVon = Carbon::create($jahr, $monat, 1)->startOfMonth();
+        $periodeBis = $periodeVon->copy()->endOfMonth();
+        $org        = auth()->user()->organisation;
+
+        $klient->load(['region', 'krankenkassen.krankenkasse', 'adressen', 'aktBeitrag']);
+
+        $einsaetze = Einsatz::where('organisation_id', $this->orgId())
+            ->where('klient_id', $klient->id)
+            ->whereBetween('datum', [$periodeVon, $periodeBis])
+            ->whereNull('tagespauschale_id')
+            ->whereNull('betrag_fix')
+            ->whereNotNull('checkout_zeit')
+            ->with('leistungsart')
+            ->get();
+
+        $rechnungstyp = $klient->rechnungstyp ?? 'kombiniert';
+        $tarifCache   = [];
+        $positionen   = collect();
+
+        foreach ($einsaetze as $einsatz) {
+            $m = (float)($einsatz->minuten ?? 0);
+            if ($m <= 0) continue;
+            [$tarifPat, $tarifKk] = $this->tarifeFuerVorschau($einsatz, $klient, $rechnungstyp, $tarifCache);
+            $positionen->push((object)[
+                'einheit'        => 'minuten',
+                'beschreibung'   => null,
+                'datum'          => $einsatz->datum,
+                'menge'          => $m,
+                'tarif_patient'  => $tarifPat,
+                'tarif_kk'       => $tarifKk,
+                'betrag_patient' => round($m / 60 * $tarifPat, 5),
+                'betrag_kk'      => round($m / 60 * $tarifKk, 5),
+                'einsatz'        => $einsatz,
+                'leistungstyp'   => null,
+            ]);
+        }
+
+        $betragPat = $positionen->sum('betrag_patient');
+        $betragKk  = $positionen->sum('betrag_kk');
+
+        $rechnung = new Rechnung();
+        $rechnung->forceFill([
+            'rechnungstyp'    => $rechnungstyp,
+            'rechnungsnummer' => 'VORSCHAU',
+            'rechnungsdatum'  => today(),
+            'periode_von'     => $periodeVon,
+            'periode_bis'     => $periodeBis,
+            'betrag_patient'  => $betragPat,
+            'betrag_kk'       => $betragKk,
+            'betrag_total'    => $betragPat + $betragKk,
+        ]);
+        $rechnung->setRelation('klient', $klient);
+        $rechnung->setRelation('positionen', $positionen);
+
+        $pdfService = new PdfExportService($org);
+        $pdfBytes   = $pdfService->provisorischExportieren($rechnung);
+
+        $klientName = $klient->vorname . '_' . $klient->nachname;
+        $filename   = 'vorschau_' . $klientName . '_' . $periodeVon->format('Y-m') . '.pdf';
+
+        return response($pdfBytes, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
+    }
+
+    private function tarifeFuerVorschau(Einsatz $einsatz, Klient $klient, string $rechnungstyp, array &$cache): array
+    {
+        $regionId       = $einsatz->region_id ?? $klient->region_id;
+        $leistungsartId = $einsatz->leistungsart_id;
+        if (!$leistungsartId) return [0, 0];
+
+        $datum    = $einsatz->datum ?? today();
+        $cacheKey = "{$leistungsartId}-{$regionId}-{$datum}";
+
+        if (!isset($cache[$cacheKey])) {
+            $lr = Leistungsregion::where('leistungsart_id', $leistungsartId)
+                ->where('region_id', $regionId)
+                ->where(fn($q) => $q->whereNull('gueltig_ab')->orWhere('gueltig_ab', '<=', $datum))
+                ->where(fn($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $datum))
+                ->orderByDesc('gueltig_ab')
+                ->first();
+            if (!$lr && $regionId) {
+                $lr = Leistungsregion::where('leistungsart_id', $leistungsartId)
+                    ->whereNull('region_id')
+                    ->where(fn($q) => $q->whereNull('gueltig_ab')->orWhere('gueltig_ab', '<=', $datum))
+                    ->orderByDesc('gueltig_ab')
+                    ->first();
+            }
+            $cache[$cacheKey] = $lr;
+        }
+
+        $lr = $cache[$cacheKey];
+        if (!$lr || !$lr->verrechnung) return [0, 0];
+
+        $ansatz = (float)$lr->ansatz;
+        $kkasse = (float)$lr->kkasse;
+
+        return match($rechnungstyp) {
+            'kvg'      => [0, $ansatz],
+            'klient'   => [$ansatz, 0],
+            'gemeinde' => [$ansatz, 0],
+            default    => [max(0, $ansatz - $kkasse), $kkasse],
+        };
     }
 
     public function korrigieren(Request $request, Einsatz $einsatz)

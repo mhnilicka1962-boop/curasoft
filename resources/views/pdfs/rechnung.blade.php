@@ -163,6 +163,12 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
 
 <div class="seite">
 
+    @if($provisorisch ?? false)
+    <div style="background:#dc2626; color:white; text-align:center; font-size:9pt; font-weight:bold; padding:2mm 4mm; margin-bottom:4mm; letter-spacing:1pt;">
+        PROVISORISCHE VORSCHAU — KEINE GÜLTIGE RECHNUNG
+    </div>
+    @endif
+
     {{-- 1. Kopfzeile ───────────────────────────────────────── --}}
     <div class="kopf">
         <div class="kopf-links">

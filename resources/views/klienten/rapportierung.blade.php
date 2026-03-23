@@ -27,6 +27,7 @@
         <button type="button" onclick="navigiereZuMonat()" class="btn btn-sekundaer" style="padding:0.2rem 0.6rem; font-size:0.78rem;">→</button>
     </div>
     @endif
+    <a href="{{ route('klienten.rapportierung.vorschau', [$klient, $jahr, $monat]) }}" target="_blank" class="btn btn-sekundaer" style="font-size: 0.8rem; padding: 0.3rem 0.9rem;">PDF Vorschau</a>
     <button type="submit" class="btn btn-primaer" style="font-size: 0.8rem; padding: 0.3rem 0.9rem;">Speichern</button>
 </div>
 

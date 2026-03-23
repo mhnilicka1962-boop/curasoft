@@ -179,6 +179,7 @@ class CurasoftDemoSeeder extends Seeder
 
             if (!DB::table('leistungsregionen')->where('region_id', $id)->exists()) {
                 foreach (DB::table('leistungsarten')->where('aktiv', true)->get() as $la) {
+                    $isGp = stripos($la->bezeichnung, 'Grundpflege') !== false;
                     DB::table('leistungsregionen')->insert([
                         'leistungsart_id' => $la->id,
                         'region_id'       => $id,
@@ -189,7 +190,7 @@ class CurasoftDemoSeeder extends Seeder
                         'ansatz_akut'     => $la->ansatz_akut_default ?? 0,
                         'kkasse_akut'     => $la->kvg_akut_default ?? 0,
                         'kassenpflichtig' => true,
-                        'verrechnung'     => true,
+                        'verrechnung'     => !$isGp,
                         'einsatz_minuten' => false,
                         'einsatz_stunden' => true,
                         'einsatz_tage'    => false,
@@ -199,6 +200,15 @@ class CurasoftDemoSeeder extends Seeder
                     ]);
                 }
             }
+
+        }
+
+        // Grundpflege in ALLEN Regionen auf nicht verrechenbar setzen
+        $gpId = DB::table('leistungsarten')->where('bezeichnung', 'Grundpflege')->value('id');
+        if ($gpId) {
+            DB::table('leistungsregionen')
+                ->where('leistungsart_id', $gpId)
+                ->update(['verrechnung' => false, 'updated_at' => now()]);
         }
     }
 

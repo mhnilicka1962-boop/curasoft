@@ -137,6 +137,55 @@ class PdfExportService
     }
 
     /**
+     * Provisorische Vorschau-PDF für eine nicht gespeicherte Rechnung.
+     * Gibt die PDF-Bytes zurück (kein Speichern, kein QR-Code).
+     */
+    public function provisorischExportieren(Rechnung $rechnung): string
+    {
+        $logoBase64 = null;
+        if ($this->org->logo_pfad) {
+            $logoPfad = public_path($this->org->logo_pfad);
+            if (file_exists($logoPfad)) {
+                $mime       = mime_content_type($logoPfad);
+                $logoBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($logoPfad));
+            }
+        }
+
+        $regionDaten = $rechnung->klient->region_id
+            ? $this->org->datenFuerRegion($rechnung->klient->region_id)
+            : ['zsr_nr' => $this->org->zsr_nr ?? '', 'iban' => '', 'bank' => '', 'bankadresse' => '', 'postcheckkonto' => '', 'esr' => '', 'qr_iban' => ''];
+
+        $html = view('pdfs.rechnung', [
+            'rechnung'         => $rechnung,
+            'org'              => $this->org,
+            'regionDaten'      => $regionDaten,
+            'logoBase64'       => $logoBase64,
+            'logoAusrichtung'  => $this->org->logo_ausrichtung ?? 'links_anschrift_rechts',
+            'qrCodeDataUri'    => null,
+            'qrIbanFormatiert' => null,
+            'provisorisch'     => true,
+        ])->render();
+
+        $portraitBytes = Pdf::loadHTML($html)->setPaper('A4', 'portrait')->output();
+
+        $rapportblattDaten = $this->rapportblattDaten($rechnung);
+        if ($rapportblattDaten !== null) {
+            $klientName = trim($rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
+            $rbHtml = view('pdfs.rapportblatt', [
+                'rechnung'          => $rechnung,
+                'org'               => $this->org,
+                'regionDaten'       => $regionDaten,
+                'klientName'        => $klientName,
+                'rapportblattDaten' => $rapportblattDaten,
+            ])->render();
+            $landscapeBytes = Pdf::loadHTML($rbHtml)->setPaper('A4', 'landscape')->output();
+            return $this->mergePdfs($portraitBytes, $landscapeBytes);
+        }
+
+        return $portraitBytes;
+    }
+
+    /**
      * Zwei PDF-Byte-Strings (Portrait + Landscape) via FPDI zusammenführen.
      */
     /** Kaufmännische Rundung auf 0.05 CHF */
