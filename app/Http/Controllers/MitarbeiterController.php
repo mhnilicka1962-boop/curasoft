@@ -106,7 +106,7 @@ class MitarbeiterController extends Controller
             return redirect()->route('angehoerigenpflege.index')->with('erfolg', $msg);
         }
 
-        return redirect()->route('mitarbeiter.show', $benutzer)->with('erfolg', $msg);
+        return redirect()->route('mitarbeiter.index')->with('erfolg', $msg);
     }
 
     public function einladungSenden(Benutzer $mitarbeiter)
