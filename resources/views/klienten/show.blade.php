@@ -65,7 +65,7 @@
                         <span>{{ ['m' => 'Männl.', 'w' => 'Weibl.', 'x' => 'Div.'][$klient->geschlecht] }}</span>
                     @endif
                     @if($klient->zustaendig)
-                        <span>Zuständig: <strong style="color: var(--cs-text);">{{ $klient->zustaendig->name }}</strong></span>
+                        <span>Bezugsperson: <strong style="color: var(--cs-text);">{{ $klient->zustaendig->name }}</strong></span>
                     @endif
                     @if($klient->einsatz_geplant_von)
                         <span>Einsatz ab: <strong style="color: var(--cs-text);">{{ $klient->einsatz_geplant_von->format('d.m.Y') }}</strong></span>
@@ -100,8 +100,11 @@
     <form method="POST" action="{{ route('klienten.update', $klient) }}">
         @csrf @method('PUT')
         <div class="karte" style="margin-bottom: 0.75rem;">
-            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Persönliche Daten</div>
-            <div style="display: grid; grid-template-columns: 130px 1fr 1fr; gap: 0.625rem; margin-bottom: 0.625rem;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+                <div class="abschnitt-label" style="margin-bottom:0;">Persönliche Daten</div>
+                <button type="submit" class="btn btn-primaer" style="padding:0.3rem 0.875rem; font-size:0.8125rem;">Speichern</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 130px 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
                 <div>
                     <label class="feld-label">Anrede</label>
                     <select name="anrede" class="feld">
@@ -120,7 +123,7 @@
                     <input type="text" name="nachname" class="feld" required value="{{ old('nachname', $klient->nachname) }}">
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 70px; gap: 0.625rem; margin-bottom: 0.625rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 70px; gap: 0.5rem; margin-bottom: 0.5rem;">
                 <div>
                     <label class="feld-label">Geburtsdatum</label>
                     <input type="date" name="geburtsdatum" class="feld" value="{{ old('geburtsdatum', $klient->geburtsdatum?->format('Y-m-d')) }}">
@@ -150,17 +153,15 @@
                     <input type="number" name="anzahl_kinder" class="feld" min="0" value="{{ old('anzahl_kinder', $klient->anzahl_kinder) }}">
                 </div>
             </div>
-            <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--cs-border); display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--cs-border); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
                 <div>
                     <label class="feld-label">Kanton Abrechnung <span style="color:var(--cs-fehler);">*</span></label>
-                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-                        <select name="region_id" class="feld" style="max-width: 200px;" required>
-                            <option value="">— wählen —</option>
-                            @foreach($regionen as $r)
-                                <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }} — {{ $r->bezeichnung }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <select name="region_id" class="feld" required>
+                        <option value="">— wählen —</option>
+                        @foreach($regionen as $r)
+                            <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }} — {{ $r->bezeichnung }}</option>
+                        @endforeach
+                    </select>
                     @if(!$klient->region_id)
                     <div class="warn-box" style="margin-top: 0.5rem; display: flex; gap: 0.4rem; align-items: flex-start;">
                         <span>⚠</span><div>Kein Abrechnungskanton gesetzt — Rechnungslauf nicht möglich.</div>
@@ -168,13 +169,34 @@
                     @endif
                 </div>
                 <div>
-                    <label class="feld-label">Zuständig</label>
+                    <label class="feld-label">Bezugsperson</label>
                     <select name="zustaendig_id" class="feld">
-                        <option value="">— keiner —</option>
+                        <option value="">— keine —</option>
                         @foreach($mitarbeiter as $m)
                             <option value="{{ $m->id }}" {{ $klient->zustaendig_id == $m->id ? 'selected' : '' }}>{{ $m->nachname }} {{ $m->vorname }}</option>
                         @endforeach
                     </select>
+                </div>
+                <div>
+                    <label class="feld-label">AHV-Nummer</label>
+                    <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr', $klient->ahv_nr) }}" placeholder="756.XXXX.XXXX.XX">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+                <div>
+                    <label class="feld-label">Typ</label>
+                    <select name="klient_typ" class="feld">
+                        <option value="patient"         {{ ($klient->klient_typ ?? 'patient') === 'patient'         ? 'selected' : '' }}>Patient</option>
+                        <option value="pflegebeduerftig" {{ ($klient->klient_typ ?? '') === 'pflegebeduerftig'       ? 'selected' : '' }}>Pflegebedürftig</option>
+                        <option value="angehoerig"       {{ ($klient->klient_typ ?? '') === 'angehoerig'             ? 'selected' : '' }}>Pflegender Angehöriger</option>
+                    </select>
+                </div>
+                <div style="padding-top: 1.375rem;">
+                    <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; font-weight: 500; cursor: pointer; white-space: nowrap;">
+                        <input type="hidden" name="aktiv" value="0">
+                        <input type="checkbox" name="aktiv" value="1" {{ $klient->aktiv ? 'checked' : '' }}>
+                        Aktiv
+                    </label>
                 </div>
             </div>
         </div>
@@ -212,12 +234,8 @@
         </div>
 
         <div class="karte" style="margin-bottom: 0.75rem;">
-            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">AHV & Abrechnung</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.625rem; margin-bottom: 0.625rem;">
-                <div>
-                    <label class="feld-label">AHV-Nummer</label>
-                    <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr', $klient->ahv_nr) }}" placeholder="756.XXXX.XXXX.XX">
-                </div>
+            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Abrechnung</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; margin-bottom: 0.625rem;">
                 <div>
                     <label class="feld-label">Zahlbar (Tage)</label>
                     <input type="number" name="zahlbar_tage" class="feld" min="1" value="{{ old('zahlbar_tage', $klient->zahlbar_tage ?? 30) }}">
@@ -249,15 +267,7 @@
             </div>
         </div>
 
-        <div class="karte" style="margin-bottom: 0.75rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
-                <input type="hidden" name="aktiv" value="0">
-                <input type="checkbox" name="aktiv" value="1" {{ $klient->aktiv ? 'checked' : '' }}>
-                Klient aktiv
-            </label>
-        </div>
-
-        <div style="display: flex; gap: 0.75rem;">
+<div style="display: flex; gap: 0.75rem;">
             <button type="submit" class="btn btn-primaer">Speichern</button>
         </div>
     </form>
