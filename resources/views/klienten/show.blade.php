@@ -269,9 +269,10 @@
     {{-- Einsätze (immer sichtbar) --}}
     @php
         $heute = today();
-        $alleEinsaetze = $klient->einsaetze()->with('leistungsart', 'benutzer', 'tour')->whereNull('tagespauschale_id')->orderBy('datum')->orderBy('zeit_von')->get();
+        $alleEinsaetze = $klient->einsaetze()->with('leistungsart', 'benutzer', 'tour')->orderBy('datum')->orderBy('zeit_von')->get();
         $anstehend = $alleEinsaetze->filter(fn($e) => $e->datum >= $heute && !in_array($e->status, ['abgeschlossen','storniert']))->values();
         $vergangen  = $alleEinsaetze->filter(fn($e) => $e->datum < $heute || in_array($e->status, ['abgeschlossen','storniert']))->sortByDesc('datum')->values();
+        $monatEinsaetze = $alleEinsaetze->filter(fn($e) => $e->datum->month === $heute->month && $e->datum->year === $heute->year)->values();
     @endphp
     <div class="karte" id="einsaetze-section" style="margin-bottom: 1rem;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
@@ -298,39 +299,42 @@
             </button>
             <button onclick="einsatzTab('monat')" id="tab-monat"
                 style="padding: 0.375rem 0.875rem; font-size: 0.8125rem; font-weight: 600; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; color: var(--cs-text-hell);">
-                Monatsübersicht
+                {{ now()->format('F Y') }} ({{ $monatEinsaetze->count() }})
             </button>
         </div>
 
         {{-- Anstehend --}}
-        <div id="panel-anstehend">
+        <div id="panel-anstehend" style="max-height: 320px; overflow-y: auto;">
             @forelse($anstehend as $e)
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.5rem; flex-wrap: wrap;">
+            @php $istHeute = $e->datum->isToday(); @endphp
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0.25rem; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.5rem; flex-wrap: wrap; {{ $istHeute ? 'background: #eff6ff; border-radius: 4px;' : '' }}">
                 <div style="display: flex; gap: 0.625rem; align-items: center; flex-wrap: wrap; flex: 1;">
-                    <span style="color: {{ $e->datum->isToday() ? 'var(--cs-primaer)' : 'var(--cs-text-hell)' }}; min-width: 80px; font-weight: {{ $e->datum->isToday() ? '700' : '400' }}; white-space: nowrap;">
-                        {{ $e->datum->format('d.m.Y') }}@if($e->datum_bis) – {{ $e->datum_bis->format('d.m.Y') }}@endif
+                    <span style="color: {{ $istHeute ? 'var(--cs-primaer)' : 'var(--cs-text-hell)' }}; min-width: 80px; font-weight: {{ $istHeute ? '700' : '400' }}; white-space: nowrap;">
+                        {{ $e->datum->format('d.m.Y') }}
                     </span>
                     @if($e->zeit_von)
                         <span class="text-hell" style="white-space: nowrap; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
                     @endif
-                    <span>{{ $e->leistungsart?->bezeichnung ?? '—' }}</span>
+                    <span>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
                     @if($e->benutzer)
                         <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
                     @endif
                     @if($e->tour)
                         <a href="{{ route('touren.show', $e->tour) }}" class="badge badge-primaer" style="font-size: 0.7rem; text-decoration: none;">{{ $e->tour->bezeichnung }}</a>
-                    @elseif($e->status === 'geplant')
+                    @elseif(!$e->tagespauschale_id && $e->status === 'geplant')
                         <span class="badge badge-warnung" style="font-size: 0.7rem;">⚠ Keine Tour</span>
                     @endif
                 </div>
                 <div style="display: flex; gap: 0.375rem; align-items: center; flex-shrink: 0;">
                     <span class="badge {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
-                    <a href="{{ route('einsaetze.show', $e) }}" class="text-mini link-primaer">Detail →</a>
-                    @if($e->status === 'geplant' && !$e->tour_id)
-                    <form method="POST" action="{{ route('einsaetze.destroy', $e) }}" style="margin: 0;" onsubmit="return confirm('Einsatz löschen?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-fehler); font-size: 0.8rem; padding: 0; line-height: 1.4;">× löschen</button>
-                    </form>
+                    @if(!$e->tagespauschale_id)
+                        <a href="{{ route('einsaetze.show', $e) }}" class="text-mini link-primaer">Detail →</a>
+                        @if($e->status === 'geplant' && !$e->tour_id)
+                        <form method="POST" action="{{ route('einsaetze.destroy', $e) }}" style="margin: 0;" onsubmit="return confirm('Einsatz löschen?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-fehler); font-size: 0.8rem; padding: 0; line-height: 1.4;">× löschen</button>
+                        </form>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -339,25 +343,47 @@
             @endforelse
         </div>
 
-        {{-- Monatsübersicht --}}
-        <div id="panel-monat" style="display: none;">
-            <div id="monat-inhalt" style="min-height: 60px;">
-                <p class="text-klein text-hell" style="padding: 0.5rem 0;">Wird geladen…</p>
-            </div>
-        </div>
-
-        {{-- Vergangen --}}
-        <div id="panel-vergangen" style="display: none;">
-            @forelse($vergangen as $e)
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.5rem; flex-wrap: wrap;">
+        {{-- Monat --}}
+        <div id="panel-monat" style="display: none; max-height: 320px; overflow-y: auto;">
+            @forelse($monatEinsaetze as $e)
+            @php $istHeute = $e->datum->isToday(); @endphp
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0.25rem; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.5rem; flex-wrap: wrap; {{ $istHeute ? 'background: #eff6ff; border-radius: 4px;' : '' }}">
                 <div style="display: flex; gap: 0.625rem; align-items: center; flex-wrap: wrap; flex: 1;">
-                    <span class="text-hell" style="min-width: 80px; white-space: nowrap;">
-                        {{ $e->datum->format('d.m.Y') }}@if($e->datum_bis) – {{ $e->datum_bis->format('d.m.Y') }}@endif
+                    <span style="color: {{ $istHeute ? 'var(--cs-primaer)' : 'var(--cs-text-hell)' }}; min-width: 80px; font-weight: {{ $istHeute ? '700' : '400' }}; white-space: nowrap;">
+                        {{ $e->datum->format('d.m.Y') }}
                     </span>
                     @if($e->zeit_von)
                         <span class="text-hell" style="white-space: nowrap; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
                     @endif
-                    <span>{{ $e->leistungsart?->bezeichnung ?? '—' }}</span>
+                    <span>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
+                    @if($e->benutzer)
+                        <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
+                    @endif
+                </div>
+                <div style="display: flex; gap: 0.375rem; align-items: center; flex-shrink: 0;">
+                    <span class="badge {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
+                    @if(!$e->tagespauschale_id)
+                        <a href="{{ route('einsaetze.show', $e) }}" class="text-mini link-primaer">Detail →</a>
+                    @endif
+                </div>
+            </div>
+            @empty
+            <p class="text-klein text-hell" style="padding: 0.5rem 0; margin: 0;">Keine Einsätze in diesem Monat.</p>
+            @endforelse
+        </div>
+
+        {{-- Vergangen --}}
+        <div id="panel-vergangen" style="display: none; max-height: 320px; overflow-y: auto;">
+            @forelse($vergangen as $e)
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.4375rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.5rem; flex-wrap: wrap;">
+                <div style="display: flex; gap: 0.625rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                    <span class="text-hell" style="min-width: 80px; white-space: nowrap;">
+                        {{ $e->datum->format('d.m.Y') }}
+                    </span>
+                    @if($e->zeit_von)
+                        <span class="text-hell" style="white-space: nowrap; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
+                    @endif
+                    <span>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
                     @if($e->benutzer)
                         <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
                     @endif
@@ -367,7 +393,9 @@
                     @if($e->checkin_methode === 'rapportierung')
                         <span class="badge badge-info" title="Manuell vom Admin erfasst">Rapportierung</span>
                     @endif
-                    <a href="{{ route('einsaetze.show', $e) }}" class="text-mini link-primaer">Detail →</a>
+                    @if(!$e->tagespauschale_id)
+                        <a href="{{ route('einsaetze.show', $e) }}" class="text-mini link-primaer">Detail →</a>
+                    @endif
                 </div>
             </div>
             @empty
