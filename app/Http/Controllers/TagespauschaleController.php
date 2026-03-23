@@ -55,6 +55,12 @@ class TagespauschaleController extends Controller
             'text'         => ['nullable', 'string', 'max:500'],
         ]);
 
+        $klient = \App\Models\Klient::findOrFail($request->klient_id);
+        if (!$klient->zustaendig_id) {
+            return back()->withInput()->with('fehler',
+                'Kein Zuständiger auf dem Klienten gesetzt — bitte zuerst in den Klient-Stammdaten zuweisen.');
+        }
+
         if (Tagespauschale::hatUeberlappung(
             $request->klient_id, $this->orgId(),
             $request->datum_von, $request->datum_bis
@@ -181,17 +187,18 @@ class TagespauschaleController extends Controller
 
     private function generiereBereich(Tagespauschale $tp, \Carbon\Carbon $von, \Carbon\Carbon $bis): void
     {
+        $zustaendigId = $tp->klient?->zustaendig_id ?? $tp->erstellt_von;
         $current = $von->copy();
         while ($current <= $bis) {
             Einsatz::create([
                 'organisation_id'   => $tp->organisation_id,
                 'klient_id'         => $tp->klient_id,
-                'benutzer_id'       => $tp->erstellt_von,
+                'benutzer_id'       => $zustaendigId,
                 'tagespauschale_id' => $tp->id,
                 'datum'             => $current->copy(),
                 'datum_bis'         => $current->copy(),
                 'verrechnet'        => false,
-                'status'            => 'abgeschlossen',
+                'status'            => $current->lt(today()) ? 'abgeschlossen' : 'geplant',
             ]);
             $current->addDay();
         }

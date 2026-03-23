@@ -34,16 +34,18 @@ class Tagespauschale extends Model
         $bis     = $this->datum_bis->copy();
         $anzahl  = 0;
 
+        $zustaendigId = $this->klient?->zustaendig_id ?? $this->erstellt_von;
+
         while ($current <= $bis) {
             Einsatz::create([
                 'organisation_id'   => $this->organisation_id,
                 'klient_id'         => $this->klient_id,
-                'benutzer_id'       => $this->erstellt_von,
+                'benutzer_id'       => $zustaendigId,
                 'tagespauschale_id' => $this->id,
                 'datum'             => $current->copy(),
                 'datum_bis'         => $current->copy(),
                 'verrechnet'        => false,
-                'status'            => 'abgeschlossen',
+                'status'            => $current->lt(today()) ? 'abgeschlossen' : 'geplant',
             ]);
             $current->addDay();
             $anzahl++;

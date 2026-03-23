@@ -152,22 +152,32 @@
                     <input type="number" name="anzahl_kinder" class="feld" min="0" value="{{ old('anzahl_kinder', $klient->anzahl_kinder) }}">
                 </div>
             </div>
-            <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--cs-border);">
-                <label class="feld-label">Kanton Abrechnung <span style="color:var(--cs-fehler);">*</span></label>
-                <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-                    <select name="region_id" class="feld" style="max-width: 200px;" required>
-                        <option value="">— wählen —</option>
-                        @foreach($regionen as $r)
-                            <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }} — {{ $r->bezeichnung }}</option>
+            <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--cs-border); display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div>
+                    <label class="feld-label">Kanton Abrechnung <span style="color:var(--cs-fehler);">*</span></label>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                        <select name="region_id" class="feld" style="max-width: 200px;" required>
+                            <option value="">— wählen —</option>
+                            @foreach($regionen as $r)
+                                <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }} — {{ $r->bezeichnung }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @if(!$klient->region_id)
+                    <div class="warn-box" style="margin-top: 0.5rem; display: flex; gap: 0.4rem; align-items: flex-start;">
+                        <span>⚠</span><div>Kein Abrechnungskanton gesetzt — Rechnungslauf nicht möglich.</div>
+                    </div>
+                    @endif
+                </div>
+                <div>
+                    <label class="feld-label">Zuständig</label>
+                    <select name="zustaendig_id" class="feld">
+                        <option value="">— keiner —</option>
+                        @foreach($mitarbeiter as $m)
+                            <option value="{{ $m->id }}" {{ $klient->zustaendig_id == $m->id ? 'selected' : '' }}>{{ $m->nachname }} {{ $m->vorname }}</option>
                         @endforeach
                     </select>
-                    <span class="text-hell" style="font-size: 0.8125rem;">Bestimmt die Tarife für die Abrechnung</span>
                 </div>
-                @if(!$klient->region_id)
-                <div class="warn-box" style="margin-top: 0.5rem; display: flex; gap: 0.4rem; align-items: flex-start;">
-                    <span>⚠</span><div>Kein Abrechnungskanton gesetzt — Rechnungslauf nicht möglich.</div>
-                </div>
-                @endif
             </div>
         </div>
 
@@ -205,7 +215,7 @@
 
         <div class="karte" style="margin-bottom: 0.75rem;">
             <div class="abschnitt-label" style="margin-bottom: 0.875rem;">AHV & Abrechnung</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.625rem; margin-bottom: 0.625rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.625rem; margin-bottom: 0.625rem;">
                 <div>
                     <label class="feld-label">AHV-Nummer</label>
                     <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr', $klient->ahv_nr) }}" placeholder="756.XXXX.XXXX.XX">
@@ -222,15 +232,6 @@
                         <option value="kvg"        {{ $klient->rechnungstyp === 'kvg'        ? 'selected' : '' }}>Nur KVG</option>
                         <option value="klient"     {{ $klient->rechnungstyp === 'klient'     ? 'selected' : '' }}>Nur Patient</option>
                         <option value="gemeinde"   {{ $klient->rechnungstyp === 'gemeinde'   ? 'selected' : '' }}>Gemeinde</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="feld-label">Zuständig</label>
-                    <select name="zustaendig_id" class="feld">
-                        <option value="">— keiner —</option>
-                        @foreach($mitarbeiter as $m)
-                            <option value="{{ $m->id }}" {{ $klient->zustaendig_id == $m->id ? 'selected' : '' }}>{{ $m->nachname }} {{ $m->vorname }}</option>
-                        @endforeach
                     </select>
                 </div>
             </div>
