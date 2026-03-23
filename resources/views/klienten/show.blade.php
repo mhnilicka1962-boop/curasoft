@@ -98,6 +98,7 @@
                         <span class="badge badge-grau" style="font-size:0.7rem;">Keine aktiven Einsätze</span>
                     @endif
                     <button onclick="oeffneEinsaetzePopup()" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.25rem 0.75rem;">Einsätze anzeigen</button>
+                    <a href="{{ route('klienten.rapportierung', [$klient, now()->year, now()->month]) }}" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.25rem 0.75rem;">Rapportierung</a>
                 </div>
             </div>
         </div>
