@@ -53,7 +53,7 @@
                 </div>
             </div>
 
-            <input type="hidden" name="rechnungstyp" value="klient">
+            <input type="hidden" name="rechnungstyp" value="kvg">
 
             {{-- Ansatz --}}
             <div style="margin-bottom: 0.875rem;">

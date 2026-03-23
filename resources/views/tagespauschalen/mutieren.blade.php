@@ -41,16 +41,8 @@
                 @error('datum_bis') <div class="feld-fehler">{{ $message }}</div> @enderror
             </div>
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; margin-bottom: 0.875rem;">
-                <div>
-                    <label class="feld-label">Rechnungstyp</label>
-                    <select name="rechnungstyp" class="feld" required>
-                        <option value="kvg"      {{ old('rechnungstyp', $tagespauschale->rechnungstyp) === 'kvg'      ? 'selected' : '' }}>KVG → Krankenkasse</option>
-                        <option value="klient"   {{ old('rechnungstyp', $tagespauschale->rechnungstyp) === 'klient'   ? 'selected' : '' }}>Klient (Selbstbehalt)</option>
-                        <option value="gemeinde" {{ old('rechnungstyp', $tagespauschale->rechnungstyp) === 'gemeinde' ? 'selected' : '' }}>Gemeinde / Kanton</option>
-                    </select>
-                    @error('rechnungstyp') <div class="feld-fehler">{{ $message }}</div> @enderror
-                </div>
+            <input type="hidden" name="rechnungstyp" value="kvg">
+            <div style="margin-bottom: 0.875rem;">
                 <div>
                     <label class="feld-label">Neuer Ansatz (CHF/Tag)</label>
                     <input type="number" name="ansatz" class="feld"

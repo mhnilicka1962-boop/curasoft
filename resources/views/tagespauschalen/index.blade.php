@@ -37,7 +37,6 @@
                 <th>Klient</th>
                 <th>Zeitraum</th>
                 <th class="text-rechts">Ansatz/Tag</th>
-                <th>Typ</th>
                 <th>Einsätze</th>
                 <th>Text</th>
                 <th></th>
@@ -70,7 +69,6 @@
                     </div>
                 </td>
                 <td class="text-rechts text-fett">CHF {{ number_format($tp->ansatz, 2, '.', "'") }}</td>
-                <td><span class="badge badge-grau">{{ $tp->rechnungstypLabel() }}</span></td>
                 <td style="font-size: 0.8125rem;">
                     @php $anzVerr = $tp->anzahlVerrechnet(); @endphp
                     <span class="text-hell">{{ $anzVerr }} / {{ $tp->anzahlTage() }}</span>

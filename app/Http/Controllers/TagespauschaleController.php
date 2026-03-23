@@ -50,7 +50,6 @@ class TagespauschaleController extends Controller
             'klient_id'    => ['required', 'exists:klienten,id'],
             'datum_von'    => ['required', 'date'],
             'datum_bis'    => ['required', 'date', 'after_or_equal:datum_von'],
-            'rechnungstyp' => ['required', 'in:kvg,klient,gemeinde'],
             'ansatz'       => ['required', 'numeric', 'min:0'],
             'text'         => ['nullable', 'string', 'max:500'],
         ]);
@@ -73,7 +72,7 @@ class TagespauschaleController extends Controller
             $tp = Tagespauschale::create([
                 'organisation_id' => $this->orgId(),
                 'klient_id'       => $request->klient_id,
-                'rechnungstyp'    => $request->rechnungstyp,
+                'rechnungstyp'    => 'kvg',
                 'datum_von'       => $request->datum_von,
                 'datum_bis'       => $request->datum_bis,
                 'ansatz'          => $request->ansatz,
@@ -116,7 +115,6 @@ class TagespauschaleController extends Controller
         $request->validate([
             'datum_von'    => ['required', 'date'],
             'datum_bis'    => ['required', 'date', 'after_or_equal:datum_von'],
-            'rechnungstyp' => ['required', 'in:kvg,klient,gemeinde'],
             'ansatz'       => ['required', 'numeric', 'min:0'],
             'text'         => ['nullable', 'string', 'max:500'],
         ]);
@@ -172,7 +170,6 @@ class TagespauschaleController extends Controller
             $tagespauschale->update([
                 'datum_von'    => $request->datum_von,
                 'datum_bis'    => $request->datum_bis,
-                'rechnungstyp' => $request->rechnungstyp,
                 'ansatz'       => $request->ansatz,
                 'text'         => $request->text,
             ]);
