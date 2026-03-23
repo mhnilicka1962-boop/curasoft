@@ -123,7 +123,7 @@ class PdfExportService
                 'rapportblattDaten' => $rapportblattDaten,
             ])->render();
 
-            $landscapeBytes = Pdf::loadHTML($rbHtml)->setPaper('A4', 'landscape')->output();
+            $landscapeBytes = Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output();
             $finalBytes     = $this->mergePdfs($portraitBytes, $landscapeBytes);
         } else {
             $finalBytes = $portraitBytes;
@@ -178,7 +178,7 @@ class PdfExportService
                 'klientName'        => $klientName,
                 'rapportblattDaten' => $rapportblattDaten,
             ])->render();
-            $landscapeBytes = Pdf::loadHTML($rbHtml)->setPaper('A4', 'landscape')->output();
+            $landscapeBytes = Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output();
             return $this->mergePdfs($portraitBytes, $landscapeBytes);
         }
 
@@ -431,7 +431,7 @@ class PdfExportService
                 'rapportblattDaten' => $rapportblattDaten,
             ])->render();
 
-            $landscapeBytes = Pdf::loadHTML($rbHtml)->setPaper('A4', 'landscape')->output();
+            $landscapeBytes = Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output();
             return $this->mergePdfs($portraitBytes, $landscapeBytes);
         }
 

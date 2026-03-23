@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: DejaVu Sans, Arial, sans-serif; }
 body {
     font-family: DejaVu Sans, Arial, sans-serif;
     font-size: 8pt;
@@ -14,10 +14,10 @@ body {
 
 /* ── Kopf ─────────────────────────────────────────────────── */
 .kopf-titel { font-size: 8.5pt; font-weight: bold; margin-bottom: 1.5mm; }
-table.meta { font-size: 6pt; border-collapse: collapse; margin-bottom: 3mm; width: 100%; }
-table.meta td { padding: 0.2mm 4mm 0.2mm 0; vertical-align: top; }
-table.meta td.lbl { color: #555; white-space: nowrap; min-width: 30mm; }
-table.meta td.val { font-weight: 500; }
+table.meta { font-size: 7pt; border-collapse: collapse; margin-bottom: 3mm; width: 100%; }
+table.meta td { font-family: DejaVu Sans, Arial, sans-serif; padding: 0.2mm 4mm 0.2mm 0; vertical-align: top; }
+table.meta td.lbl { font-family: DejaVu Sans, Arial, sans-serif; color: #555; white-space: nowrap; min-width: 30mm; }
+table.meta td.val { font-family: DejaVu Sans, Arial, sans-serif; font-weight: 500; }
 
 /* ── Haupttabelle ─────────────────────────────────────────── */
 table.rapport {
@@ -27,9 +27,10 @@ table.rapport {
 
 /* Kopfzeilen */
 table.rapport thead tr.kopf1 th {
+    font-family: DejaVu Sans, Arial, sans-serif;
     background: #1a3a5c;
     color: #fff;
-    font-size: 5.5pt;
+    font-size: 7pt;
     font-weight: bold;
     text-align: center;
     padding: 1mm 1mm;
@@ -37,9 +38,10 @@ table.rapport thead tr.kopf1 th {
     line-height: 1.4;
 }
 table.rapport thead tr.kopf2 th {
+    font-family: DejaVu Sans, Arial, sans-serif;
     background: #cdd5e0;
     color: #111;
-    font-size: 5pt;
+    font-size: 6.5pt;
     font-weight: bold;
     text-align: center;
     padding: 0.5mm 1mm;
@@ -51,23 +53,22 @@ table.rapport thead tr.kopf2 th {
 table.rapport tbody tr { border-bottom: 0.2pt solid #d0d8e4; }
 table.rapport tbody tr:nth-child(even) { background: #f4f7fb; }
 table.rapport tbody td {
-    padding: 0.15mm 0.8mm;
+    font-family: DejaVu Sans, Arial, sans-serif;
+    padding: 0.2mm 0.8mm;
     text-align: right;
     vertical-align: middle;
-    font-family: DejaVu Sans Mono, monospace;
-    font-size: 5pt;
+    font-size: 6.5pt;
     border-right: 0.2pt solid #dde3ea;
     line-height: 1.2;
 }
 
 /* Tag-Spalte */
 td.col-tag, th.col-tag {
+    font-family: DejaVu Sans, Arial, sans-serif;
     text-align: center !important;
-    font-family: DejaVu Sans, Arial, sans-serif !important;
-    font-weight: 600;
+    font-weight: bold;
     border-right: 1.5pt solid #5a7a9a !important;
     width: 4%;
-    white-space: nowrap;
 }
 td.col-tag {
     background: #e2e9f2 !important;
@@ -93,17 +94,17 @@ table.rapport tfoot tr {
     background: #cdd5e0;
 }
 table.rapport tfoot td {
+    font-family: DejaVu Sans, Arial, sans-serif;
     padding: 0.4mm 0.8mm;
     font-weight: bold;
     text-align: right;
-    font-size: 5pt;
-    font-family: DejaVu Sans Mono, monospace;
+    font-size: 6.5pt;
     border-right: 0.2pt solid #a0aabb;
     line-height: 1.2;
 }
 table.rapport tfoot td.col-tag {
+    font-family: DejaVu Sans, Arial, sans-serif;
     text-align: left !important;
-    font-family: DejaVu Sans, Arial, sans-serif !important;
     background: #b8c4d4 !important;
     border-right: 1.5pt solid #5a7a9a !important;
     font-size: 6pt;
@@ -155,7 +156,7 @@ table.rapport tfoot td.col-tot  { background: #c4d8c4; }
 @endphp
 
 {{-- Kopf ─────────────────────────────────────────────────── --}}
-<div class="kopf-titel">Pflegeleistungen — Leistungsdetail (Rapportblatt)</div>
+<div class="kopf-titel" style="font-family: DejaVu Sans, Arial, sans-serif;">Pflegeleistungen — Leistungsdetail (Rapportblatt)</div>
 
 <table class="meta">
     <tr>
@@ -177,48 +178,38 @@ table.rapport tfoot td.col-tot  { background: #c4d8c4; }
     <thead>
         {{-- Zeile 1: Gruppen --}}
         <tr class="kopf1">
-            <th class="col-tag" rowspan="2">Tag</th>
-            <th colspan="3">
+            <td class="col-tag" rowspan="2" style="font-family: DejaVu Sans, Arial, sans-serif; font-weight: bold;">Tag</td>
+            <td colspan="3" style="font-family: DejaVu Sans, Arial, sans-serif; font-weight: bold; background:#1a3a5c; color:#fff; font-size:7pt; text-align:center; padding:1mm; border:0.3pt solid #0f2540;">
                 Minuten
-            </th>
-            <th colspan="3">
-                Taxe CHF/h
-                <span style="font-size:4.5pt; font-weight:normal; display:block;">
-                    {{ number_format($tar['abkl']['ansatz'],2) }} /
-                    {{ number_format($tar['unt']['ansatz'],2) }} /
-                    {{ number_format($tar['gp']['ansatz'],2) }}
-                </span>
-            </th>
-            <th class="col-sep" colspan="3">
-                Krankenkasse CHF/h
-                <span style="font-size:4.5pt; font-weight:normal; display:block;">
-                    {{ number_format($tar['abkl']['kkasse'],2) }} /
-                    {{ number_format($tar['unt']['kkasse'],2) }} /
-                    {{ number_format($tar['gp']['kkasse'],2) }}
-                </span>
-            </th>
-            <th rowspan="2" class="col-rest" style="width:7%;">Restbetrag<br><span style="font-size:4.5pt;font-weight:normal;">(Taxe−KK)</span></th>
-            <th rowspan="2" class="col-vp" style="width:9%;">Beitrag VP<br><span style="font-size:4.5pt;font-weight:normal;">{{ $vpLabel }}</span></th>
-            <th rowspan="2" class="col-tot" style="width:7%;">Beitrag<br>Total</th>
+            </td>
+            <td colspan="3" style="font-family: DejaVu Sans, Arial, sans-serif; font-weight: bold; background:#1a3a5c; color:#fff; font-size:7pt; text-align:center; padding:1mm; border:0.3pt solid #0f2540; line-height:1.4;">
+                Taxe CHF/h<br><span style="font-size:5pt; font-weight:normal; font-family: DejaVu Sans, Arial, sans-serif;">{{ number_format($tar['abkl']['ansatz'],2) }} / {{ number_format($tar['unt']['ansatz'],2) }} / {{ number_format($tar['gp']['ansatz'],2) }}</span>
+            </td>
+            <td class="col-sep" colspan="3" style="font-family: DejaVu Sans, Arial, sans-serif; font-weight: bold; background:#1a3a5c; color:#fff; font-size:7pt; text-align:center; padding:1mm; border:0.3pt solid #0f2540; line-height:1.4;">
+                Krankenkasse CHF/h<br><span style="font-size:5pt; font-weight:normal; font-family: DejaVu Sans, Arial, sans-serif;">{{ number_format($tar['abkl']['kkasse'],2) }} / {{ number_format($tar['unt']['kkasse'],2) }} / {{ number_format($tar['gp']['kkasse'],2) }}</span>
+            </td>
+            <td rowspan="2" class="col-rest" style="width:7%; font-family: DejaVu Sans, Arial, sans-serif; font-weight: bold; background:#1a3a5c; color:#fff; font-size:7pt; text-align:center; padding:1mm; border:0.3pt solid #0f2540;">Restbetrag<br><span style="font-size:5pt; font-weight:normal; font-family: DejaVu Sans, Arial, sans-serif;">(Taxe-KK)</span></td>
+            <td rowspan="2" class="col-vp" style="width:9%; font-family: DejaVu Sans, Arial, sans-serif; font-weight: bold; background:#1a3a5c; color:#fff; font-size:7pt; text-align:center; padding:1mm; border:0.3pt solid #0f2540;">Beitrag VP<br><span style="font-size:5pt; font-weight:normal; font-family: DejaVu Sans, Arial, sans-serif;">{{ $vpLabel }}</span></td>
+            <td rowspan="2" class="col-tot" style="width:7%; font-family: DejaVu Sans, Arial, sans-serif; font-weight: bold; background:#1a3a5c; color:#fff; font-size:7pt; text-align:center; padding:1mm; border:0.3pt solid #0f2540;">Beitrag<br>Total</td>
         </tr>
         {{-- Zeile 2: Unter-Header --}}
         <tr class="kopf2">
-            <th style="width:5%;">Abkl.<br>Beratung</th>
-            <th style="width:5%;">Unt.<br>Behand.</th>
-            <th style="width:5%;">Grund-<br>pflege</th>
-            <th style="width:7%;">Abkl.<br>Beratung</th>
-            <th style="width:7%;">Unt.<br>Behand.</th>
-            <th style="width:7%;">Grund-<br>pflege</th>
-            <th style="width:7%;">Abkl.<br>Beratung</th>
-            <th style="width:7%;">Unt.<br>Behand.</th>
-            <th class="col-sep" style="width:7%;">Grund-<br>pflege</th>
+            <td style="width:5%; font-family: DejaVu Sans, Arial, sans-serif; font-weight:bold; font-style:italic; background:#cdd5e0; color:#111; font-size:6.5pt; text-align:center; padding:0.5mm 1mm; border:0.3pt solid #a0aabb;">Abkl.<br>Beratung</td>
+            <td style="width:5%; font-family: DejaVu Sans, Arial, sans-serif; font-weight:bold; font-style:italic; background:#cdd5e0; color:#111; font-size:6.5pt; text-align:center; padding:0.5mm 1mm; border:0.3pt solid #a0aabb;">Unt.<br>Behand.</td>
+            <td style="width:5%; font-family: DejaVu Sans, Arial, sans-serif; font-weight:bold; font-style:italic; background:#cdd5e0; color:#111; font-size:6.5pt; text-align:center; padding:0.5mm 1mm; border:0.3pt solid #a0aabb;">Grund-<br>pflege</td>
+            <td style="width:7%; font-family: DejaVu Sans, Arial, sans-serif; font-weight:bold; font-style:italic; background:#cdd5e0; color:#111; font-size:6.5pt; text-align:center; padding:0.5mm 1mm; border:0.3pt solid #a0aabb;">Abkl.<br>Beratung</td>
+            <td style="width:7%; font-family: DejaVu Sans, Arial, sans-serif; font-weight:bold; font-style:italic; background:#cdd5e0; color:#111; font-size:6.5pt; text-align:center; padding:0.5mm 1mm; border:0.3pt solid #a0aabb;">Unt.<br>Behand.</td>
+            <td style="width:7%; font-family: DejaVu Sans, Arial, sans-serif; font-weight:bold; font-style:italic; background:#cdd5e0; color:#111; font-size:6.5pt; text-align:center; padding:0.5mm 1mm; border:0.3pt solid #a0aabb;">Grund-<br>pflege</td>
+            <td style="width:7%; font-family: DejaVu Sans, Arial, sans-serif; font-weight:bold; font-style:italic; background:#cdd5e0; color:#111; font-size:6.5pt; text-align:center; padding:0.5mm 1mm; border:0.3pt solid #a0aabb;">Abkl.<br>Beratung</td>
+            <td style="width:7%; font-family: DejaVu Sans, Arial, sans-serif; font-weight:bold; font-style:italic; background:#cdd5e0; color:#111; font-size:6.5pt; text-align:center; padding:0.5mm 1mm; border:0.3pt solid #a0aabb;">Unt.<br>Behand.</td>
+            <td class="col-sep" style="width:7%; font-family: DejaVu Sans, Arial, sans-serif; font-weight:bold; font-style:italic; background:#cdd5e0; color:#111; font-size:6.5pt; text-align:center; padding:0.5mm 1mm; border:0.3pt solid #a0aabb;">Grund-<br>pflege</td>
         </tr>
     </thead>
     <tbody>
         @foreach($rb['tage'] as $tag)
         @php $leer = $tag['abkl_min'] + $tag['unt_min'] + $tag['gp_min'] === 0; @endphp
         <tr>
-            <td class="col-tag">{{ $tag['datum']->day }}</td>
+            <td class="col-tag" style="font-family: DejaVu Sans, Arial, sans-serif;">{{ $tag['datum']->day }}</td>
             <td>{{ $fmtZ($tag['abkl_min']) }}</td>
             <td>{{ $fmtZ($tag['unt_min']) }}</td>
             <td>{{ $fmtZ($tag['gp_min']) }}</td>
@@ -242,7 +233,7 @@ table.rapport tfoot td.col-tot  { background: #c4d8c4; }
     </tbody>
     <tfoot>
         <tr>
-            <td class="col-tag">Total</td>
+            <td class="col-tag" style="font-family: DejaVu Sans, Arial, sans-serif;">Total</td>
             <td>{{ $s['abkl_min'] ?: '' }}</td>
             <td>{{ $s['unt_min']  ?: '' }}</td>
             <td>{{ $s['gp_min']   ?: '' }}</td>
