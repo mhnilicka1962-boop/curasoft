@@ -1,23 +1,17 @@
-<x-layouts.app :titel="$mitarbeiter->exists ? $mitarbeiter->nachname . ' ' . $mitarbeiter->vorname : 'Neuer Mitarbeiter'">
+<x-layouts.app :titel="$mitarbeiter->nachname . ' ' . $mitarbeiter->vorname">
 
 <div class="seiten-kopf">
     <div>
         <a href="{{ route('mitarbeiter.index') }}" class="link-gedaempt" style="font-size: 0.875rem;">← Mitarbeitende</a>
         <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0.25rem 0 0;">
-            @if($mitarbeiter->exists)
-                {{ $mitarbeiter->anrede ? $mitarbeiter->anrede . ' ' : '' }}{{ $mitarbeiter->vorname }} {{ $mitarbeiter->nachname }}
-            @else
-                Neuer Mitarbeiter
-            @endif
+            {{ $mitarbeiter->anrede ? $mitarbeiter->anrede . ' ' : '' }}{{ $mitarbeiter->vorname }} {{ $mitarbeiter->nachname }}
         </h1>
-        @if($mitarbeiter->exists)
         <div class="text-klein text-hell" style="margin-top: 0.2rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
             @php $rolleKlasse = match($mitarbeiter->rolle) { 'admin' => 'badge-fehler', 'buchhaltung' => 'badge-info', default => 'badge-primaer' }; @endphp
             <span class="badge {{ $rolleKlasse }}">{{ ucfirst($mitarbeiter->rolle) }}</span>
             @if(!$mitarbeiter->aktiv)<span class="badge badge-grau">Inaktiv</span>@endif
             <span>{{ $mitarbeiter->pensum }}% Pensum</span>
         </div>
-        @endif
     </div>
 </div>
 
@@ -180,19 +174,16 @@
             </div>
         </div>
 
-        @if($mitarbeiter->exists)
         <div style="margin-bottom: 0.75rem;">
             <label class="feld-label">Neues Passwort (leer lassen = unverändert)</label>
             <input type="password" name="password" class="feld" autocomplete="new-password" style="max-width: 300px;">
         </div>
-        @endif
 
         <div style="margin-bottom: 0.75rem;">
             <label class="feld-label">Notizen</label>
             <textarea name="notizen" class="feld" rows="3" style="resize: vertical;">{{ old('notizen', $mitarbeiter->notizen) }}</textarea>
         </div>
 
-        @if($mitarbeiter->exists)
         <div style="margin-bottom: 0.75rem;">
             <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer;">
                 <input type="hidden" name="aktiv" value="0">
@@ -200,17 +191,13 @@
                 Aktiv
             </label>
         </div>
-        @endif
 
         <div class="abschnitt-trenn" style="padding-top: 0.75rem;">
-            <button type="submit" class="btn btn-primaer">
-                {{ $mitarbeiter->exists ? 'Speichern' : 'Speichern & Einladen' }}
-            </button>
+            <button type="submit" class="btn btn-primaer">{{ $mitarbeiter->exists ? 'Speichern' : 'Speichern & Einladen' }}</button>
         </div>
     </form>
 </div>
 
-@if($mitarbeiter->exists)
 {{-- ═══ 2. QUALIFIKATIONEN ═══ --}}
 <div class="karte" style="margin-bottom: 1.25rem;" id="qualifikationen">
     <div class="abschnitt-label">Ausbildung / Qualifikationen</div>
@@ -356,8 +343,6 @@ $istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
         <button type="submit" class="btn btn-sekundaer">Zuweisen</button>
     </form>
 </div>
-
-@endif
 
 <script>
 document.getElementById('anstellungsart')?.addEventListener('change', function() {

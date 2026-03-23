@@ -59,10 +59,10 @@ class MitarbeiterController extends Controller
 
     public function create()
     {
-        $mitarbeiter     = new \App\Models\Benutzer();
-        $qualifikationen = collect();
-        $leistungsarten  = collect();
-        $klienten        = collect();
+        $mitarbeiter     = new \App\Models\Benutzer(['aktiv' => true, 'pensum' => 100]);
+        $qualifikationen = Qualifikation::where('aktiv', true)->orderBy('sort_order')->get();
+        $leistungsarten  = Leistungsart::where('aktiv', true)->orderBy('id')->get();
+        $klienten        = Klient::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
         return view('stammdaten.mitarbeiter.show', compact('mitarbeiter', 'qualifikationen', 'leistungsarten', 'klienten'));
     }
 
