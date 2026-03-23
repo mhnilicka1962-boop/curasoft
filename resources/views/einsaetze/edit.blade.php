@@ -11,10 +11,17 @@
     <div class="karte">
         <div class="abschnitt-label" style="margin-bottom: 1.25rem;">Einsatz bearbeiten</div>
 
+        @if($einsatz->tagespauschale_id)
+        <div class="alert alert-info" style="margin-bottom: 1.25rem; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.875rem;">
+            Tagespauschalen-Einsatz — nur die Bemerkung kann bearbeitet werden.
+        </div>
+        @endif
+
         <form method="POST" action="{{ route('einsaetze.update', $einsatz) }}">
             @csrf
             @method('PUT')
 
+            @if($einsatz->tagespauschale_id)<fieldset disabled style="border:none; padding:0; margin:0; opacity:0.6;">@endif
             {{-- Klient --}}
             <div style="margin-bottom: 1rem;">
                 <label class="feld-label" for="klient_id">Klient <span style="color:var(--cs-fehler);">*</span></label>
@@ -134,6 +141,8 @@
                 </select>
                 <p style="font-size: 0.75rem; color: var(--cs-text-hell); margin-top: 0.25rem;">Relevant für KVG-Abrechnung und XML 450.100.</p>
             </div>
+
+            @if($einsatz->tagespauschale_id)</fieldset>@endif
 
             {{-- Bemerkung --}}
             <div style="margin-bottom: 1.5rem;">

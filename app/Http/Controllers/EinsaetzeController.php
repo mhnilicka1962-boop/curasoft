@@ -344,6 +344,12 @@ class EinsaetzeController extends Controller
     {
         $this->autorisiereZugriff($einsatz);
 
+        if ($einsatz->tagespauschale_id) {
+            $request->validate(['bemerkung' => ['nullable', 'string', 'max:1000']]);
+            $einsatz->update(['bemerkung' => $request->bemerkung]);
+            return redirect()->route('einsaetze.show', $einsatz)->with('erfolg', 'Bemerkung gespeichert.');
+        }
+
         $regeln = [
             'klient_id'       => ['required', 'exists:klienten,id'],
             'leistungsart_id' => ['required', 'exists:leistungsarten,id'],
