@@ -50,8 +50,11 @@ class AngehoerigenpflegeController extends Controller
             ->groupBy('benutzer_id')
             ->map->first();
 
+        $klienten = \App\Models\Klient::where('organisation_id', $orgId)
+            ->where('aktiv', true)->orderBy('nachname')->get();
+
         return view('angehoerigenpflege.index', compact(
-            'verhaeltnisse', 'monatsStats', 'letzteEinsaetze'
+            'verhaeltnisse', 'monatsStats', 'letzteEinsaetze', 'klienten'
         ));
     }
 }

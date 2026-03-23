@@ -90,9 +90,21 @@ class MitarbeiterController extends Controller
             $mailErfolg = false;
         }
 
+        // Klient direkt zuweisen (z.B. aus Angehörigenpflege-Formular)
+        if ($request->filled('klient_id')) {
+            KlientBenutzer::updateOrCreate(
+                ['klient_id' => $request->klient_id, 'benutzer_id' => $benutzer->id],
+                ['rolle' => 'betreuer', 'beziehungstyp' => 'angehoerig_pflegend', 'aktiv' => true]
+            );
+        }
+
         $msg = $mailErfolg
             ? 'Mitarbeiter angelegt. Einladungs-E-Mail wurde gesendet.'
             : 'Mitarbeiter angelegt. E-Mail konnte nicht gesendet werden — bitte Einladung manuell versenden.';
+
+        if ($request->input('_redirect') === 'angehoerige') {
+            return redirect()->route('angehoerigenpflege.index')->with('erfolg', $msg);
+        }
 
         return redirect()->route('mitarbeiter.show', $benutzer)->with('erfolg', $msg);
     }
