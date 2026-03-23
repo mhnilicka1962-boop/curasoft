@@ -418,6 +418,7 @@ Route::middleware('auth')->group(function () {
 
         // Mitarbeitende
         Route::get('/mitarbeiter', [MitarbeiterController::class, 'index'])->name('mitarbeiter.index');
+        Route::get('/mitarbeiter/neu', [MitarbeiterController::class, 'create'])->name('mitarbeiter.create');
         Route::post('/mitarbeiter', [MitarbeiterController::class, 'store'])->name('mitarbeiter.store');
         Route::get('/mitarbeiter/{mitarbeiter}', [MitarbeiterController::class, 'show'])->name('mitarbeiter.show');
         Route::put('/mitarbeiter/{mitarbeiter}', [MitarbeiterController::class, 'update'])->name('mitarbeiter.update');

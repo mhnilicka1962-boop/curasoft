@@ -57,6 +57,11 @@ class MitarbeiterController extends Controller
         return view('stammdaten.mitarbeiter.show', compact('mitarbeiter', 'qualifikationen', 'leistungsarten', 'klienten'));
     }
 
+    public function create()
+    {
+        return view('stammdaten.mitarbeiter.create');
+    }
+
     public function store(Request $request)
     {
         $daten = $request->validate([
@@ -64,12 +69,19 @@ class MitarbeiterController extends Controller
             'geschlecht'      => ['nullable', 'in:m,f,d'],
             'vorname'         => ['required', 'string', 'max:100'],
             'nachname'        => ['required', 'string', 'max:100'],
+            'geburtsdatum'    => ['nullable', 'date'],
             'email'           => ['required', 'email', 'unique:benutzer,email'],
+            'telefon'         => ['nullable', 'string', 'max:30'],
+            'strasse'         => ['nullable', 'string', 'max:150'],
+            'plz'             => ['nullable', 'string', 'max:10'],
+            'ort'             => ['nullable', 'string', 'max:100'],
             'rolle'           => ['required', 'in:admin,pflege,buchhaltung'],
             'anstellungsart'  => ['nullable', 'in:fachperson,angehoerig,freiwillig,praktikum'],
-            'telefon'         => ['nullable', 'string', 'max:30'],
             'pensum'          => ['nullable', 'integer', 'min:0', 'max:100'],
             'eintrittsdatum'  => ['nullable', 'date'],
+            'ahv_nr'          => ['nullable', 'string', 'max:20'],
+            'iban'            => ['nullable', 'string', 'max:25'],
+            'bank'            => ['nullable', 'string', 'max:100'],
         ]);
 
         $token = Str::random(48);
@@ -106,7 +118,7 @@ class MitarbeiterController extends Controller
             return redirect()->route('angehoerigenpflege.index')->with('erfolg', $msg);
         }
 
-        return redirect()->route('mitarbeiter.index')->with('erfolg', $msg);
+        return redirect()->route('mitarbeiter.show', $benutzer)->with('erfolg', $msg);
     }
 
     public function einladungSenden(Benutzer $mitarbeiter)

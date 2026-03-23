@@ -2,7 +2,7 @@
 
 <div class="seiten-kopf">
     <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Mitarbeitende</h1>
-    <button type="button" onclick="toggleNeu()" class="btn btn-primaer">+ Neu</button>
+    <a href="{{ route('mitarbeiter.create') }}" class="btn btn-primaer">+ Neu</a>
 </div>
 
 @if(session('erfolg'))
@@ -11,80 +11,6 @@
     </div>
 @endif
 
-{{-- Formular Neu --}}
-<div id="form-neu" style="display:none;">
-<div class="karte" style="margin-bottom:1.25rem; background:#fafafa;">
-    <div class="abschnitt-label" style="margin-bottom:0.875rem;">Neuer Mitarbeiter</div>
-    @if($errors->any())
-    <div class="fehler-box" style="margin-bottom:0.75rem;">
-        <ul style="margin:0; padding-left:1.25rem;">
-            @foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach
-        </ul>
-    </div>
-    @endif
-    <form method="POST" action="{{ route('mitarbeiter.store') }}">
-        @csrf
-        <div class="form-grid" style="margin-bottom:0.75rem;">
-            <div>
-                <label class="feld-label">Anrede</label>
-                <select name="anrede" class="feld">
-                    <option value="">—</option>
-                    <option value="Herr" {{ old('anrede') === 'Herr' ? 'selected' : '' }}>Herr</option>
-                    <option value="Frau" {{ old('anrede') === 'Frau' ? 'selected' : '' }}>Frau</option>
-                </select>
-            </div>
-            <div>
-                <label class="feld-label">Vorname *</label>
-                <input type="text" name="vorname" class="feld" required value="{{ old('vorname') }}">
-                @error('vorname')<div class="feld-fehler">{{ $message }}</div>@enderror
-            </div>
-            <div>
-                <label class="feld-label">Nachname *</label>
-                <input type="text" name="nachname" class="feld" required value="{{ old('nachname') }}">
-                @error('nachname')<div class="feld-fehler">{{ $message }}</div>@enderror
-            </div>
-            <div>
-                <label class="feld-label">E-Mail *</label>
-                <input type="email" name="email" class="feld" required value="{{ old('email') }}">
-                @error('email')<div class="feld-fehler">{{ $message }}</div>@enderror
-            </div>
-            <div>
-                <label class="feld-label">Telefon</label>
-                <input type="text" name="telefon" class="feld" value="{{ old('telefon') }}">
-            </div>
-            <div>
-                <label class="feld-label">Rolle *</label>
-                <select name="rolle" class="feld" required>
-                    <option value="pflege"      {{ old('rolle', 'pflege') === 'pflege'      ? 'selected' : '' }}>Pflege</option>
-                    <option value="buchhaltung" {{ old('rolle') === 'buchhaltung'           ? 'selected' : '' }}>Buchhaltung</option>
-                    <option value="admin"       {{ old('rolle') === 'admin'                 ? 'selected' : '' }}>Admin</option>
-                </select>
-            </div>
-            <div>
-                <label class="feld-label">Anstellungsart</label>
-                <select name="anstellungsart" class="feld">
-                    <option value="fachperson" {{ old('anstellungsart', 'fachperson') === 'fachperson' ? 'selected' : '' }}>Fachperson</option>
-                    <option value="angehoerig" {{ old('anstellungsart') === 'angehoerig'               ? 'selected' : '' }}>Pflegender Angehöriger</option>
-                    <option value="freiwillig" {{ old('anstellungsart') === 'freiwillig'               ? 'selected' : '' }}>Freiwillig</option>
-                    <option value="praktikum"  {{ old('anstellungsart') === 'praktikum'                ? 'selected' : '' }}>Praktikum</option>
-                </select>
-            </div>
-            <div>
-                <label class="feld-label">Pensum %</label>
-                <input type="number" name="pensum" class="feld" min="0" max="100" value="{{ old('pensum', 100) }}">
-            </div>
-            <div>
-                <label class="feld-label">Eintrittsdatum</label>
-                <input type="date" name="eintrittsdatum" class="feld" value="{{ old('eintrittsdatum') }}">
-            </div>
-        </div>
-        <div style="display:flex; gap:0.5rem;">
-            <button type="submit" class="btn btn-primaer">Speichern & Einladen</button>
-            <button type="button" onclick="toggleNeu()" class="btn btn-sekundaer">Abbrechen</button>
-        </div>
-    </form>
-</div>
-</div>
 
 {{-- Filter --}}
 <div class="karte" style="padding: 0.75rem 1rem; margin-bottom: 1rem;">
@@ -187,14 +113,5 @@
     <div style="margin-top: 1rem;">{{ $mitarbeiter->links() }}</div>
 @endif
 
-@push('scripts')
-<script>
-function toggleNeu() {
-    const el = document.getElementById('form-neu');
-    el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-@if($errors->any()) document.getElementById('form-neu').style.display = 'block'; @endif
-</script>
-@endpush
 
 </x-layouts.app>
