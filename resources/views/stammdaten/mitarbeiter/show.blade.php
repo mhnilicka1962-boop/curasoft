@@ -198,6 +198,7 @@
     </form>
 </div>
 
+@if($mitarbeiter->exists)
 {{-- ═══ 2. QUALIFIKATIONEN ═══ --}}
 <div class="karte" style="margin-bottom: 1.25rem;" id="qualifikationen">
     <div class="abschnitt-label">Ausbildung / Qualifikationen</div>
@@ -343,6 +344,8 @@ $istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
         <button type="submit" class="btn btn-sekundaer">Zuweisen</button>
     </form>
 </div>
+
+@endif
 
 <script>
 document.getElementById('anstellungsart')?.addEventListener('change', function() {
