@@ -80,6 +80,17 @@ window.KalenderInit = function(mitarbeiter, klienten) {
             },
         },
 
+        eventContent: function(arg) {
+            const p    = arg.event.extendedProps;
+            const text = ansicht === 'klienten'
+                ? (p.benutzer_name ?? '—') + (p.zeit_von ? ' ' + p.zeit_von : '')
+                : arg.event.title;
+            const div = document.createElement('div');
+            div.className = 'fc-event-title fc-sticky';
+            div.textContent = text;
+            return { domNodes: [div] };
+        },
+
         eventClick: function(info) {
             zeigePopup(info.event, info.jsEvent);
         },
