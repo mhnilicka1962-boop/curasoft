@@ -59,7 +59,11 @@ class MitarbeiterController extends Controller
 
     public function create()
     {
-        return view('stammdaten.mitarbeiter.create');
+        $mitarbeiter     = new \App\Models\Benutzer();
+        $qualifikationen = collect();
+        $leistungsarten  = collect();
+        $klienten        = collect();
+        return view('stammdaten.mitarbeiter.show', compact('mitarbeiter', 'qualifikationen', 'leistungsarten', 'klienten'));
     }
 
     public function store(Request $request)
