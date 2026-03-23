@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR-Code — {{ $klient->vorname }} {{ $klient->nachname }}</title>
     @vite(['resources/css/app.css'])
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @media print {
             .no-print { display: none !important; }
@@ -29,7 +28,9 @@
     </div>
 
     {{-- QR-Code --}}
-    <div id="qrcode" style="display: inline-block; padding: 1rem; border: 2px solid #e5e7eb; border-radius: 0.75rem; margin-bottom: 1.5rem;"></div>
+    <div style="display: inline-block; padding: 1rem; border: 2px solid #e5e7eb; border-radius: 0.75rem; margin-bottom: 1.5rem;">
+        <img src="{{ $qrDataUri }}" width="200" height="200" alt="QR-Code">
+    </div>
 
     <div style="font-size: 0.8125rem; color: #6b7280; margin-bottom: 2rem;">
         Diesen Code beim Klienten anbringen.<br>
@@ -42,15 +43,5 @@
     </div>
 </div>
 
-<script>
-new QRCode(document.getElementById('qrcode'), {
-    text: '{{ route('checkin.scan', $klient->qr_token) }}',
-    width: 200,
-    height: 200,
-    colorDark: '#1f2937',
-    colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.M
-});
-</script>
 </body>
 </html>

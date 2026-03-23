@@ -20,6 +20,8 @@ use App\Models\Organisation;
 use App\Models\Region;
 use App\Services\BexioService;
 use App\Services\GeocodingService;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Http\Request;
 
 class KlientenController extends Controller
@@ -346,11 +348,13 @@ class KlientenController extends Controller
     public function qr(Klient $klient)
     {
         $this->autorisiereZugriff($klient);
-        // qr_token sicherstellen (falls bei alten Klienten nicht gesetzt)
         if (!$klient->qr_token) {
             $klient->update(['qr_token' => \Illuminate\Support\Str::random(32)]);
         }
-        return view('klienten.qr', compact('klient'));
+        $url    = route('checkin.scan', $klient->qr_token);
+        $result = (new PngWriter())->write(new QrCode($url, size: 200, margin: 10));
+        $qrDataUri = $result->getDataUri();
+        return view('klienten.qr', compact('klient', 'qrDataUri'));
     }
 
     public function adresseSpeichern(Request $request, Klient $klient)
