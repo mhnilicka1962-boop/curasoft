@@ -78,7 +78,7 @@ class EinsaetzeController extends Controller
             ->paginate(30)
             ->withQueryString();
 
-        $leistungsarten = Leistungsart::where('aktiv', true)->orderBy('bezeichnung')->get();
+        $leistungsarten = Leistungsart::where('aktiv', true)->where('einheit', '!=', 'tage')->orderBy('bezeichnung')->get();
 
         $mitarbeiter = ($rolle === 'admin')
             ? Benutzer::where('organisation_id', $this->orgId())
@@ -114,7 +114,7 @@ class EinsaetzeController extends Controller
             ->orderBy('nachname')
             ->get();
 
-        $leistungsarten = Leistungsart::where('aktiv', true)->orderBy('bezeichnung')->get();
+        $leistungsarten = Leistungsart::where('aktiv', true)->where('einheit', '!=', 'tage')->orderBy('bezeichnung')->get();
 
         $mitarbeiter = (auth()->user()->rolle === 'admin')
             ? Benutzer::where('organisation_id', $this->orgId())
@@ -317,7 +317,7 @@ class EinsaetzeController extends Controller
             ->orderBy('nachname')
             ->get();
 
-        $leistungsarten = Leistungsart::where('aktiv', true)->orderBy('bezeichnung')->get();
+        $leistungsarten = Leistungsart::where('aktiv', true)->where('einheit', '!=', 'tage')->orderBy('bezeichnung')->get();
 
         $mitarbeiter = (auth()->user()->rolle === 'admin')
             ? Benutzer::where('organisation_id', $this->orgId())
