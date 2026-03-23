@@ -27,11 +27,12 @@ class MitarbeiterController extends Controller
         if ($request->filled('rolle')) {
             $query->where('rolle', $request->rolle);
         }
-        if ($request->has('aktiv') && $request->aktiv !== '') {
-            $query->where('aktiv', $request->boolean('aktiv'));
-        } else {
+        if ($request->aktiv === '0') {
+            $query->where('aktiv', false);
+        } elseif ($request->aktiv !== '') {
             $query->where('aktiv', true);
         }
+        // aktiv='' → kein Filter → alle anzeigen
         if ($request->filled('suche')) {
             $query->where(function ($q) use ($request) {
                 $q->where('vorname', 'ilike', '%' . $request->suche . '%')
