@@ -21,8 +21,6 @@
                 </button>
             </form>
             @endif
-            <button type="button" onclick="toggleKlientEdit()" id="btn-klient-edit" class="btn btn-sekundaer">✏ Bearbeiten</button>
-            <a href="{{ route('einsaetze.create', ['klient_id' => $klient->id]) }}" class="btn btn-primaer">+ Einsatz</a>
         </div>
     </div>
 
@@ -98,7 +96,7 @@
     </div>
 
     {{-- Inline-Bearbeitungsformular (versteckt, ausser bei Validation-Fehler) --}}
-    <div id="klient-edit-form" style="display:{{ $errors->any() ? 'block' : 'none' }}; margin-bottom: 1rem;">
+    <div id="klient-edit-form" style="display:block; margin-bottom: 1rem;">
     <form method="POST" action="{{ route('klienten.update', $klient) }}">
         @csrf @method('PUT')
         <div class="karte" style="margin-bottom: 0.75rem;">
@@ -261,7 +259,6 @@
 
         <div style="display: flex; gap: 0.75rem;">
             <button type="submit" class="btn btn-primaer">Speichern</button>
-            <button type="button" onclick="toggleKlientEdit()" class="btn btn-sekundaer">Abbrechen</button>
         </div>
     </form>
     </div>
