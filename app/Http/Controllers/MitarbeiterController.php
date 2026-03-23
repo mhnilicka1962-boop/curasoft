@@ -79,9 +79,17 @@ class MitarbeiterController extends Controller
             'anstellungsart'  => ['nullable', 'in:fachperson,angehoerig,freiwillig,praktikum'],
             'pensum'          => ['nullable', 'integer', 'min:0', 'max:100'],
             'eintrittsdatum'  => ['nullable', 'date'],
+            'nationalitaet'   => ['nullable', 'string', 'max:60'],
+            'zivilstand'      => ['nullable', 'string', 'max:40'],
+            'telefax'         => ['nullable', 'string', 'max:30'],
+            'email_privat'    => ['nullable', 'email', 'max:100'],
             'ahv_nr'          => ['nullable', 'string', 'max:20'],
+            'gln'             => ['nullable', 'digits:13'],
+            'nareg_nr'        => ['nullable', 'string', 'max:20'],
             'iban'            => ['nullable', 'string', 'max:25'],
             'bank'            => ['nullable', 'string', 'max:100'],
+            'austrittsdatum'  => ['nullable', 'date'],
+            'notizen'         => ['nullable', 'string', 'max:5000'],
         ]);
 
         $token = Str::random(48);
