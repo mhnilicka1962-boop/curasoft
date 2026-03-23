@@ -275,13 +275,24 @@ class KlientenController extends Controller
             'aktiv'               => ['boolean'],
         ]);
 
-        $adresseGeaendert = isset($daten['adresse']) && (
+        $adresseGeaendert    = isset($daten['adresse']) && (
             $daten['adresse'] !== $klient->adresse ||
             ($daten['plz'] ?? null) !== $klient->plz ||
             ($daten['ort'] ?? null) !== $klient->ort
         );
+        $zustaendigGeaendert = isset($daten['zustaendig_id']) &&
+            (int) $daten['zustaendig_id'] !== (int) $klient->zustaendig_id;
 
         $klient->update($daten);
+
+        // Zuständige Person geändert → zukünftige Tagespauschale-Einsätze umschreiben
+        if ($zustaendigGeaendert && $daten['zustaendig_id']) {
+            \App\Models\Einsatz::where('klient_id', $klient->id)
+                ->whereNotNull('tagespauschale_id')
+                ->where('verrechnet', false)
+                ->whereDate('datum', '>=', today())
+                ->update(['benutzer_id' => $daten['zustaendig_id']]);
+        }
 
         // Koordinaten neu holen wenn Adresse geändert
         if ($adresseGeaendert && $klient->adresse && $klient->plz && $klient->ort) {
