@@ -68,7 +68,11 @@ class EinsaetzeController extends Controller
             $q->where('status', $request->status);
         }
         if ($request->filled('leistungsart_id')) {
-            $q->where('leistungsart_id', $request->leistungsart_id);
+            if ($request->leistungsart_id === 'tagespauschale') {
+                $q->whereNotNull('tagespauschale_id');
+            } else {
+                $q->where('leistungsart_id', $request->leistungsart_id);
+            }
         }
 
         $sortRichtung = ($ansicht === 'vergangen') ? 'desc' : 'asc';
@@ -404,6 +408,9 @@ class EinsaetzeController extends Controller
     {
         $this->autorisiereZugriff($einsatz);
 
+        if ($einsatz->tagespauschale_id) {
+            return back()->with('fehler', 'Tagespauschalen-Einsätze können nicht manuell gelöscht werden.');
+        }
         if ($einsatz->status !== 'geplant') {
             return back()->with('fehler', 'Nur geplante Einsätze können gelöscht werden.');
         }

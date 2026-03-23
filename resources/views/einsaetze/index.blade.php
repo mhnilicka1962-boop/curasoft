@@ -36,7 +36,7 @@
                                 {{ $e->klient->nachname }} {{ $e->klient->vorname }}
                             </a>
                         </span>
-                        <span class="text-klein text-hell">{{ $e->leistungsart?->bezeichnung ?? '' }}</span>
+                        <span class="text-klein text-hell">{{ $e->tagespauschale_id ? 'Tagespauschale' : ($e->leistungsart?->bezeichnung ?? '') }}</span>
                         <span class="badge {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
                     </div>
                     @endforeach
@@ -99,6 +99,7 @@
                 <label class="feld-label text-mini">Leistungsart</label>
                 <select name="leistungsart_id" class="feld text-klein">
                     <option value="">Alle</option>
+                    <option value="tagespauschale" {{ request('leistungsart_id') === 'tagespauschale' ? 'selected' : '' }}>Tagespauschale</option>
                     @foreach($leistungsarten as $la)
                         <option value="{{ $la->id }}" {{ request('leistungsart_id') == $la->id ? 'selected' : '' }}>
                             {{ $la->bezeichnung }}
@@ -177,7 +178,7 @@
                         </a>
                     </td>
                     <td class="col-desktop text-hell" style="padding: 0.625rem 1rem;">
-                        {{ $einsatz->leistungsart?->bezeichnung ?? '—' }}
+                        {{ $einsatz->tagespauschale_id ? 'Tagespauschale' : ($einsatz->leistungsart?->bezeichnung ?? '—') }}
                     </td>
                     <td class="text-hell" style="padding: 0.625rem 1rem; white-space: nowrap;">
                         @if($einsatz->checkin_zeit && $einsatz->checkout_zeit)
