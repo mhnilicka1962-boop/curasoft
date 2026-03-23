@@ -237,6 +237,8 @@ function aktualisiereLeistungsart() {
     blockDatumBis.style.display = istPauschale ? 'block' : 'none';
     blockZeit.style.display     = istPauschale ? 'none'  : 'grid';
     datumBisInput.required      = istPauschale;
+    document.getElementById('zeit_von').disabled = istPauschale;
+    document.getElementById('zeit_bis').disabled = istPauschale;
     labelDatum.querySelector('label') ??
         (labelDatum.textContent = istPauschale ? 'Datum von *' : 'Datum *');
 
