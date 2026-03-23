@@ -101,8 +101,7 @@
                         min="0" max="999"
                         class="raster-input"
                         style="flex:1; min-width:0;"
-                        {{ isset($aktivTage[$t]) ? 'disabled' : '' }}
-                        onchange="this.closest('td').classList.toggle('raster-gefuellt', this.value > 0)">
+                        {{ isset($aktivTage[$t]) ? 'disabled' : '' }}>
                     @if($hatKommentar)
                     <button type="button"
                         class="raster-info-btn"

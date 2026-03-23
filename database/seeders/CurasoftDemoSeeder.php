@@ -836,7 +836,7 @@ class CurasoftDemoSeeder extends Seeder
             $klientId      = ($week === 1) ? $brunnerId : $weberId;
             $von           = ($week === 1) ? '08:00' : '09:00';
             $bis           = ($week === 1) ? '08:45' : '09:15';
-            $aktivitaet    = ($week === 1) ? 'Duschen' : 'Injektion subcutan';
+            $aktivitaet    = ($week === 1) ? 'Mobilisation' : 'Verbandwechsel';
             $laId          = ($week === 1) ? $laGp : $this->laId('ub');
             $kat           = ($week === 1) ? 'Grundpflege' : 'Untersuchung/Behandlung';
 
@@ -899,7 +899,7 @@ class CurasoftDemoSeeder extends Seeder
              'datum' => $heute->copy()->subWeeks(3)->format('Y-m-d'),
              'von' => '13:00', 'bis' => '14:00', 'min' => 60, 'la' => $laGp,
              'bemerkung' => 'Begleitung Arzttermin Dr. Weber',
-             'kat' => 'Grundpflege', 'akt' => 'Duschen'],
+             'kat' => 'Grundpflege', 'akt' => 'An-/Auskleiden'],
             ['klient' => 'weber',     'benutzer' => 'sandra', 'region' => $regionAg,
              'datum' => $heute->copy()->subMonths(4)->addDays(5)->format('Y-m-d'),
              'von' => '11:00', 'bis' => '12:00', 'min' => 60, 'la' => $laAb ?? $laGp,

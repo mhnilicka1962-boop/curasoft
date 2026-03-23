@@ -55,76 +55,55 @@ class RapportierungController extends Controller
         $appRaster = [];
 
         foreach ($einsaetze as $e) {
-            $tag = $e->datum->day;
+            $tag  = $e->datum->day;
+            $laId = $e->leistungsart_id;
 
-            if ($e->checkin_methode === 'rapportierung') {
-                // Rapportierungs-Einsatz → History aus admin_kommentar lesen
-                $rapHistoryNachLt = [];
-                if ($e->admin_kommentar) {
-                    $zeilen = explode("\n", $e->admin_kommentar);
-                    foreach (array_slice($zeilen, 1) as $zeile) {
-                        if (preg_match('/\| (.+?): \d/', $zeile, $m)) {
-                            $rapHistoryNachLt[$m[1]][] = $zeile;
-                        }
+            // Leistungsart-Header Summe
+            if (!isset($appRaster[$laId][$tag])) {
+                $appRaster[$laId][$tag] = ['minuten' => 0, 'aktiv' => false, 'einsatz_id' => null, 'kommentar' => null];
+            }
+            $appRaster[$laId][$tag]['minuten'] += $e->minuten ?? 0;
+            if ($e->status === 'aktiv') {
+                $appRaster[$laId][$tag]['aktiv']      = true;
+                $appRaster[$laId][$tag]['einsatz_id'] = $e->id;
+            } elseif (!$appRaster[$laId][$tag]['einsatz_id']) {
+                $appRaster[$laId][$tag]['einsatz_id'] = $e->id;
+                $appRaster[$laId][$tag]['kommentar']  = $e->admin_kommentar;
+            }
+
+            // Admin-Protokoll lesen
+            $isAdminEntry  = ($e->checkin_methode === 'rapportierung');
+            $changedAkt    = [];
+            $historyNachLt = [];
+            if ($e->admin_kommentar) {
+                $komZeilen = explode("\n", $e->admin_kommentar);
+                if (str_starts_with($komZeilen[0], 'Admin: ')) {
+                    foreach (explode(', ', substr($komZeilen[0], 7)) as $name) {
+                        $changedAkt[trim($name)] = true;
                     }
                 }
-
-                foreach ($e->aktivitaeten as $akt) {
-                    $ltId = $ltByName[$akt->aktivitaet] ?? null;
-                    if (!$ltId) continue;
-                    if (!isset($raster[$ltId][$tag])) {
-                        $raster[$ltId][$tag] = ['minuten' => 0, 'admin_override' => false, 'admin_entry' => false, 'kommentar' => null, 'history' => []];
+                foreach (array_slice($komZeilen, 1) as $zeile) {
+                    if (preg_match('/\| (.+?): \d/', $zeile, $m)) {
+                        $historyNachLt[$m[1]][] = $zeile;
                     }
-                    $raster[$ltId][$tag]['minuten']    += $akt->minuten;
+                }
+            }
+
+            // Aktivitäten in Leistungstyp-Raster einlesen
+            foreach ($e->aktivitaeten as $akt) {
+                $ltId = $ltByName[$akt->aktivitaet] ?? null;
+                if (!$ltId) continue;
+                if (!isset($raster[$ltId][$tag])) {
+                    $raster[$ltId][$tag] = ['minuten' => 0, 'admin_override' => false, 'admin_entry' => false, 'kommentar' => null, 'history' => []];
+                }
+                $raster[$ltId][$tag]['minuten'] += $akt->minuten;
+                if ($isAdminEntry) {
                     $raster[$ltId][$tag]['admin_entry'] = true;
-                    $raster[$ltId][$tag]['history']     = $rapHistoryNachLt[$akt->aktivitaet] ?? [];
-                }
-            } else {
-                // App-Einsatz → in Leistungsart-Summe
-                $laId = $e->leistungsart_id;
-                if (!isset($appRaster[$laId][$tag])) {
-                    $appRaster[$laId][$tag] = ['minuten' => 0, 'aktiv' => false, 'einsatz_id' => null, 'kommentar' => null];
-                }
-                $appRaster[$laId][$tag]['minuten'] += $e->minuten ?? 0;
-
-                if ($e->status === 'aktiv') {
-                    $appRaster[$laId][$tag]['aktiv']      = true;
-                    $appRaster[$laId][$tag]['einsatz_id'] = $e->id;
-                } elseif (!$appRaster[$laId][$tag]['einsatz_id']) {
-                    $appRaster[$laId][$tag]['einsatz_id'] = $e->id;
-                    $appRaster[$laId][$tag]['kommentar']  = $e->admin_kommentar;
-                }
-
-                // Welche Aktivitäten wurden vom Admin geändert? Format: "Admin: LT1, LT2\nHistory..."
-                $changedAkt    = [];
-                $historyNachLt = [];
-                if ($e->admin_kommentar) {
-                    $komZeilen = explode("\n", $e->admin_kommentar);
-                    if (str_starts_with($komZeilen[0], 'Admin: ')) {
-                        foreach (explode(', ', substr($komZeilen[0], 7)) as $name) {
-                            $changedAkt[trim($name)] = true;
-                        }
-                    }
-                    foreach (array_slice($komZeilen, 1) as $zeile) {
-                        if (preg_match('/\| (.+?): \d/', $zeile, $m)) {
-                            $historyNachLt[$m[1]][] = $zeile;
-                        }
-                    }
-                }
-
-                // App-Aktivitäten auch in Leistungstyp-Raster einlesen
-                foreach ($e->aktivitaeten as $akt) {
-                    $ltId = $ltByName[$akt->aktivitaet] ?? null;
-                    if (!$ltId) continue;
-                    if (!isset($raster[$ltId][$tag])) {
-                        $raster[$ltId][$tag] = ['minuten' => 0, 'admin_override' => false, 'admin_entry' => false, 'kommentar' => null, 'history' => []];
-                    }
-                    $raster[$ltId][$tag]['minuten'] += $akt->minuten;
-                    if (isset($changedAkt[$akt->aktivitaet])) {
-                        $raster[$ltId][$tag]['admin_override'] = true;
-                        $raster[$ltId][$tag]['kommentar']      = $e->admin_kommentar;
-                        $raster[$ltId][$tag]['history']        = $historyNachLt[$akt->aktivitaet] ?? [];
-                    }
+                    $raster[$ltId][$tag]['history']     = $historyNachLt[$akt->aktivitaet] ?? [];
+                } elseif (isset($changedAkt[$akt->aktivitaet])) {
+                    $raster[$ltId][$tag]['admin_override'] = true;
+                    $raster[$ltId][$tag]['kommentar']      = $e->admin_kommentar;
+                    $raster[$ltId][$tag]['history']        = $historyNachLt[$akt->aktivitaet] ?? [];
                 }
             }
         }
@@ -178,76 +157,49 @@ class RapportierungController extends Controller
         $hauptbetreuer = $klient->betreuungspersonen()->where('rolle', 'hauptbetreuer')->first();
         $benutzerId    = $hauptbetreuer?->benutzer_id ?? $klient->zustaendig_id ?? auth()->id();
 
-        // Bestehende Rapportierungs-Einsätze: History + alte Werte merken, dann löschen
-        $alteEinsaetze = Einsatz::where('organisation_id', $this->orgId())
-            ->where('klient_id', $klient->id)
-            ->whereBetween('datum', [$periodeVon, $periodeBis])
-            ->where('checkin_methode', 'rapportierung')
-            ->with('aktivitaeten')
-            ->get();
-
-        // [tag][leistungsart_id] = ['history' => [...], 'minuten' => [lt_name => min]]
-        $alteDaten = [];
-        foreach ($alteEinsaetze as $ae) {
-            $tag  = $ae->datum->day;
-            $laId = $ae->leistungsart_id;
-            $alteDaten[$tag][$laId] = [
-                'history'  => [],
-                'minuten'  => [],
-            ];
-            if ($ae->admin_kommentar) {
-                $zeilen = explode("\n", $ae->admin_kommentar);
-                $alteDaten[$tag][$laId]['history'] = array_values(array_filter(array_slice($zeilen, 1)));
-            }
-            foreach ($ae->aktivitaeten as $akt) {
-                $alteDaten[$tag][$laId]['minuten'][$akt->aktivitaet] = $akt->minuten;
-            }
-        }
-
-        $alteEinsaetze->each->delete();
-
         $eintraege = $request->input('eintraege', []);
 
         // Alle benötigten Leistungstypen einmalig laden
         $ltIds = array_keys($eintraege);
         $ltMap = Leistungstyp::with('leistungsart')->whereIn('id', $ltIds)->get()->keyBy('id');
 
-        // Gruppieren: [tag][leistungsart_id] = [['lt' => $lt, 'minuten' => X], ...]
-        $grouped = [];
+        $jetzt = now()->format('d.m.Y H:i');
+
         foreach ($eintraege as $ltId => $tage) {
             $lt = $ltMap[$ltId] ?? null;
             if (!$lt) continue;
+
             foreach ($tage as $tag => $minuten) {
                 $minuten = (int) $minuten;
-                if ($minuten <= 0) continue;
-                $grouped[(int) $tag][$lt->leistungsart_id][] = ['lt' => $lt, 'minuten' => $minuten];
-            }
-        }
+                $datum = Carbon::create($jahr, $monat, (int) $tag);
 
-        // Pro Tag + Leistungsart: App-Einsatz überschreiben oder neuen Rapportierungs-Einsatz erstellen
-        foreach ($grouped as $tag => $laGroups) {
-            foreach ($laGroups as $laId => $entries) {
-                $totalMinuten = array_sum(array_column($entries, 'minuten'));
-                $datum        = Carbon::create($jahr, $monat, $tag);
-
-                // Prüfen ob App-Einsatz für diesen Tag + Leistungsart existiert
-                $appEinsatz = Einsatz::where('organisation_id', $this->orgId())
+                // Einsatz suchen der diese Aktivität bereits enthält (App oder Admin, egal)
+                $einsatz = Einsatz::where('organisation_id', $this->orgId())
                     ->where('klient_id', $klient->id)
                     ->where('datum', $datum->toDateString())
-                    ->where('leistungsart_id', $laId)
-                    ->where(fn($q) => $q->where('checkin_methode', '!=', 'rapportierung')->orWhereNull('checkin_methode'))
                     ->whereNull('tagespauschale_id')
+                    ->whereNull('betrag_fix')
+                    ->whereHas('aktivitaeten', fn($q) => $q->where('aktivitaet', $lt->bezeichnung))
+                    ->with('aktivitaeten')
                     ->first();
 
-                if ($appEinsatz) {
-                    // Alte Aktivitäten merken
-                    $oldAkt = $appEinsatz->aktivitaeten->keyBy('aktivitaet');
+                if ($einsatz) {
+                    $oldAkt = $einsatz->aktivitaeten->firstWhere('aktivitaet', $lt->bezeichnung);
+                    $oldMin = $oldAkt?->minuten ?? 0;
 
-                    // Vorherig geänderte LT-Namen + History aus bestehendem Kommentar
+                    // Aktivität direkt überschreiben
+                    $einsatz->aktivitaeten()
+                        ->where('aktivitaet', $lt->bezeichnung)
+                        ->update(['minuten' => $minuten]);
+
+                    // Gesamtminuten des Einsatzes neu aus DB summieren
+                    $neueTotal = $einsatz->aktivitaeten()->sum('minuten');
+
+                    // History aufbauen
                     $adminGeaendert = [];
                     $historyZeilen  = [];
-                    if ($appEinsatz->admin_kommentar) {
-                        $komZeilen = explode("\n", $appEinsatz->admin_kommentar);
+                    if ($einsatz->admin_kommentar) {
+                        $komZeilen = explode("\n", $einsatz->admin_kommentar);
                         if (str_starts_with($komZeilen[0], 'Admin: ')) {
                             foreach (explode(', ', substr($komZeilen[0], 7)) as $n) {
                                 $adminGeaendert[trim($n)] = true;
@@ -255,29 +207,11 @@ class RapportierungController extends Controller
                         }
                         $historyZeilen = array_values(array_filter(array_slice($komZeilen, 1)));
                     }
-
-                    // Neu geänderte LT-Namen + History-Einträge
-                    $jetzt = now()->format('d.m.Y H:i');
-                    foreach ($entries as $entry) {
-                        $oldMin = $oldAkt[$entry['lt']->bezeichnung]->minuten ?? 0;
-                        if ($oldMin != $entry['minuten']) {
-                            $ltName = $entry['lt']->bezeichnung;
-                            $adminGeaendert[$ltName] = true;
-                            $historyZeilen[] = $jetzt . ' | ' . $ltName . ': ' . $oldMin . '→' . $entry['minuten'] . ' Min.';
-                        }
+                    if ($oldMin !== $minuten) {
+                        $adminGeaendert[$lt->bezeichnung] = true;
+                        $historyZeilen[] = $jetzt . ' | ' . $lt->bezeichnung . ': ' . $oldMin . '→' . $minuten . ' Min.';
                     }
 
-                    // Nur betroffene Aktivitäten aktualisieren — Rest unangetastet
-                    foreach ($entries as $entry) {
-                        $appEinsatz->aktivitaeten()->updateOrCreate(
-                            ['aktivitaet' => $entry['lt']->bezeichnung],
-                            [
-                                'organisation_id' => $this->orgId(),
-                                'kategorie'       => $entry['lt']->leistungsart->bezeichnung,
-                                'minuten'         => $entry['minuten'],
-                            ]
-                        );
-                    }
                     $neuerKommentar = null;
                     if (!empty($adminGeaendert)) {
                         $neuerKommentar = 'Admin: ' . implode(', ', array_keys($adminGeaendert));
@@ -285,53 +219,37 @@ class RapportierungController extends Controller
                             $neuerKommentar .= "\n" . implode("\n", $historyZeilen);
                         }
                     }
-                    $appEinsatz->update([
-                        'minuten'         => $totalMinuten,
+                    $einsatz->update([
+                        'minuten'         => $neueTotal,
                         'admin_kommentar' => $neuerKommentar,
                     ]);
-                } else {
-                    // Neuen Rapportierungs-Einsatz erstellen
-                    $jetzt       = now()->format('d.m.Y H:i');
-                    $alteMin     = $alteDaten[$tag][$laId]['minuten'] ?? [];
-                    $alteHistory = $alteDaten[$tag][$laId]['history'] ?? [];
 
-                    $ltNamen    = [];
-                    $neueZeilen = [];
-                    foreach ($entries as $entry) {
-                        $ltName  = $entry['lt']->bezeichnung;
-                        $vorher  = $alteMin[$ltName] ?? 0;
-                        $ltNamen[] = $ltName;
-                        if ($vorher != $entry['minuten']) {
-                            $neueZeilen[] = $jetzt . ' | ' . $ltName . ': ' . $vorher . '→' . $entry['minuten'] . ' Min.';
-                        }
-                    }
-                    $allHistory = array_merge($alteHistory, $neueZeilen);
-                    $kommentar  = 'Admin: ' . implode(', ', $ltNamen)
-                        . (!empty($allHistory) ? "\n" . implode("\n", $allHistory) : '');
+                } elseif ($minuten > 0) {
+                    // Kein Einsatz mit dieser Aktivität → neuen Rapportierungs-Einsatz erstellen
+                    $kommentar   = 'Admin: ' . $lt->bezeichnung . "\n"
+                        . $jetzt . ' | ' . $lt->bezeichnung . ': 0→' . $minuten . ' Min.';
 
-                    $einsatz = Einsatz::create([
+                    $neuerEinsatz = Einsatz::create([
                         'organisation_id' => $this->orgId(),
                         'klient_id'       => $klient->id,
                         'benutzer_id'     => $benutzerId,
-                        'leistungsart_id' => $laId,
+                        'leistungsart_id' => $lt->leistungsart_id,
                         'region_id'       => $klient->region_id,
                         'datum'           => $datum,
-                        'minuten'         => $totalMinuten,
+                        'minuten'         => $minuten,
                         'status'          => 'abgeschlossen',
                         'checkin_methode' => 'rapportierung',
                         'checkin_zeit'    => $datum->copy()->setTime(0, 0),
-                        'checkout_zeit'   => $datum->copy()->setTime(0, 0)->addMinutes($totalMinuten),
+                        'checkout_zeit'   => $datum->copy()->setTime(0, 0)->addMinutes($minuten),
                         'verrechnet'      => false,
                         'admin_kommentar' => $kommentar,
                     ]);
-                    foreach ($entries as $entry) {
-                        $einsatz->aktivitaeten()->create([
-                            'organisation_id' => $this->orgId(),
-                            'kategorie'       => $entry['lt']->leistungsart->bezeichnung,
-                            'aktivitaet'      => $entry['lt']->bezeichnung,
-                            'minuten'         => $entry['minuten'],
-                        ]);
-                    }
+                    $neuerEinsatz->aktivitaeten()->create([
+                        'organisation_id' => $this->orgId(),
+                        'kategorie'       => $lt->leistungsart->bezeichnung,
+                        'aktivitaet'      => $lt->bezeichnung,
+                        'minuten'         => $minuten,
+                    ]);
                 }
             }
         }
