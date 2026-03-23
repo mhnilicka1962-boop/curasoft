@@ -198,14 +198,13 @@
     </form>
 </div>
 
-@if($mitarbeiter->exists)
 {{-- ═══ 2. QUALIFIKATIONEN ═══ --}}
 <div class="karte" style="margin-bottom: 1.25rem;" id="qualifikationen">
     <div class="abschnitt-label">Ausbildung / Qualifikationen</div>
     @if(session('erfolg_qual'))
         <div class="meldung meldung-erfolg" style="margin-bottom: 0.75rem;">{{ session('erfolg_qual') }}</div>
     @endif
-    <form method="POST" action="{{ route('mitarbeiter.qualifikationen', $mitarbeiter) }}">
+    <form method="POST" action="{{ $mitarbeiter->exists ? route('mitarbeiter.qualifikationen', $mitarbeiter) : '#' }}">
         @csrf
         <div style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 1rem;">
             @foreach($qualifikationen as $q)
@@ -233,7 +232,7 @@ $istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
     <div id="hinweis-klv" style="display: {{ $istAngehoerig ? 'block' : 'none' }}; margin-bottom: 0.75rem; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.8125rem; color: #92400e;">
         <strong>KLV-Einschränkung:</strong> Pflegende Angehörige dürfen keine medizinischen Leistungen erbringen (Untersuchung/Behandlung, Abklärung/Beratung).
     </div>
-    <form method="POST" action="{{ route('mitarbeiter.leistungsarten', $mitarbeiter) }}">
+    <form method="POST" action="{{ $mitarbeiter->exists ? route('mitarbeiter.leistungsarten', $mitarbeiter) : '#' }}">
         @csrf
         <div id="leistungsarten-grid" style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 1rem;">
             @foreach($leistungsarten as $la)
@@ -301,7 +300,7 @@ $istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
                     @if($zuw->aktiv)<span class="badge badge-erfolg">Aktiv</span>@else<span class="badge badge-grau">Inaktiv</span>@endif
                 </td>
                 <td>
-                    <form method="POST" action="{{ route('mitarbeiter.klient.entfernen', [$mitarbeiter, $zuw]) }}" style="display: inline;" onsubmit="return confirm('Zuweisung entfernen?')">
+                    <form method="POST" action="{{ $mitarbeiter->exists ? route('mitarbeiter.klient.entfernen', [$mitarbeiter, $zuw]) : '#' }}" style="display: inline;" onsubmit="return confirm('Zuweisung entfernen?')">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-sekundaer" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">✕</button>
                     </form>
@@ -314,7 +313,7 @@ $istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
     <div class="text-klein text-hell" style="margin-bottom: 1rem;">Keine Klienten zugewiesen.</div>
     @endif
 
-    <form method="POST" action="{{ route('mitarbeiter.klient.zuweisen', $mitarbeiter) }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+    <form method="POST" action="{{ $mitarbeiter->exists ? route('mitarbeiter.klient.zuweisen', $mitarbeiter) : '#' }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
         @csrf
         <div>
             <label class="feld-label">Klient</label>
@@ -344,8 +343,6 @@ $istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
         <button type="submit" class="btn btn-sekundaer">Zuweisen</button>
     </form>
 </div>
-
-@endif
 
 <script>
 document.getElementById('anstellungsart')?.addEventListener('change', function() {
