@@ -230,7 +230,35 @@ class KlientenController extends Controller
             ->orderByDesc('datum')
             ->get();
 
-        return view('klienten.show', compact('klient', 'leistungsarten', 'mitarbeiter', 'pflegendeAngehoerige', 'regionen', 'einzelleistungen'));
+        $einsaetzeAnzahl = $klient->einsaetze()
+            ->where('datum', '>=', today())
+            ->whereNotIn('status', ['abgeschlossen', 'storniert'])
+            ->count();
+
+        return view('klienten.show', compact('klient', 'leistungsarten', 'mitarbeiter', 'pflegendeAngehoerige', 'regionen', 'einzelleistungen', 'einsaetzeAnzahl'));
+    }
+
+    public function einsaetzePopup(Klient $klient)
+    {
+        $this->autorisiereZugriff($klient);
+
+        $heute = today();
+        $alle  = $klient->einsaetze()
+            ->with('leistungsart', 'benutzer', 'tour')
+            ->orderBy('datum')
+            ->orderBy('zeit_von')
+            ->get();
+
+        $anstehend = $alle->filter(fn($e) => $e->datum >= $heute && !in_array($e->status, ['abgeschlossen','storniert']))->values();
+        $vergangen  = $alle->filter(fn($e) => $e->datum < $heute || in_array($e->status, ['abgeschlossen','storniert']))->sortByDesc('datum')->values();
+        $monat      = $alle->filter(fn($e) => $e->datum->month === $heute->month && $e->datum->year === $heute->year)->values();
+
+        $leistungsarten = Leistungsart::where('aktiv', true)->where('einheit', '!=', 'tage')->orderBy('bezeichnung')->get();
+        $mitarbeiter    = auth()->user()->rolle === 'admin'
+            ? Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get()
+            : collect();
+
+        return view('klienten.einsaetze_popup', compact('klient', 'anstehend', 'vergangen', 'monat', 'leistungsarten', 'mitarbeiter', 'heute'));
     }
 
     public function edit(Klient $klient)

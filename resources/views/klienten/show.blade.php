@@ -91,6 +91,14 @@
                         <span><span style="color: var(--cs-text-hell);">AHV</span> {{ $klient->ahv_nr }}</span>
                     @endif
                 </div>
+                <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                    @if($einsaetzeAnzahl > 0)
+                        <span class="badge badge-erfolg" style="font-size:0.7rem;">● {{ $einsaetzeAnzahl }} aktive Einsätze</span>
+                    @else
+                        <span class="badge badge-grau" style="font-size:0.7rem;">Keine aktiven Einsätze</span>
+                    @endif
+                    <button onclick="oeffneEinsaetzePopup()" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.25rem 0.75rem;">Einsätze anzeigen</button>
+                </div>
             </div>
         </div>
     </div>
@@ -273,15 +281,18 @@
     </form>
     </div>
 
-    {{-- Einsätze (immer sichtbar) --}}
-    @php
-        $heute = today();
-        $alleEinsaetze = $klient->einsaetze()->with('leistungsart', 'benutzer', 'tour')->orderBy('datum')->orderBy('zeit_von')->get();
-        $anstehend = $alleEinsaetze->filter(fn($e) => $e->datum >= $heute && !in_array($e->status, ['abgeschlossen','storniert']))->values();
-        $vergangen  = $alleEinsaetze->filter(fn($e) => $e->datum < $heute || in_array($e->status, ['abgeschlossen','storniert']))->sortByDesc('datum')->values();
-        $monatEinsaetze = $alleEinsaetze->filter(fn($e) => $e->datum->month === $heute->month && $e->datum->year === $heute->year)->values();
-    @endphp
-    <div class="karte" id="einsaetze-section" style="margin-bottom: 1rem;">
+    {{-- Einsätze-Modal --}}
+    <div id="einsaetze-modal" style="display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.45); overflow-y:auto;" onclick="if(event.target===this)schliesseEinsaetzePopup()">
+        <div style="margin:2rem auto; max-width:860px; background:#fff; border-radius:8px; padding:1.5rem; position:relative; min-height:200px;">
+            <button onclick="schliesseEinsaetzePopup()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.25rem; cursor:pointer; color:var(--cs-text-hell); line-height:1;">×</button>
+            <div id="einsaetze-popup-inhalt">
+                <p class="text-hell text-klein">Wird geladen…</p>
+            </div>
+        </div>
+    </div>
+    {{-- Einsätze: via Popup (Button in erster Kachel) --}}
+    @if(false)
+    <div style="display:none;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
             <div class="abschnitt-label" style="margin-bottom: 0;">Einsätze</div>
             <div style="display: flex; gap: 0.5rem;">
@@ -479,6 +490,7 @@
             </div>
         </details>
     </div>
+    @endif
 
     {{-- Abrechnung & Beiträge --}}
     @php $beitraege = $klient->beitraege()->with('erfasstVon')->get(); @endphp
@@ -1600,55 +1612,43 @@ function toggleKlientEdit() {
     if (open) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-var monatGeladen = false;
-var aktuellerMonat = {{ now()->month }};
-var aktuellesJahr  = {{ now()->year }};
+var einsaetzePopupGeladen = false;
 
-function einsatzTab(tab) {
-    document.getElementById('panel-anstehend').style.display = tab === 'anstehend' ? 'block' : 'none';
-    document.getElementById('panel-vergangen').style.display  = tab === 'vergangen'  ? 'block' : 'none';
-    document.getElementById('panel-monat').style.display      = tab === 'monat'      ? 'block' : 'none';
-
-    ['anstehend','vergangen','monat'].forEach(function(t) {
-        var btn = document.getElementById('tab-' + t);
-        btn.style.borderBottomColor = t === tab ? 'var(--cs-primaer)' : 'transparent';
-        btn.style.color             = t === tab ? 'var(--cs-primaer)' : 'var(--cs-text-hell)';
-    });
-
-    if (tab === 'monat' && !monatGeladen) {
-        ladeMonate(aktuellerMonat, aktuellesJahr);
-    }
-}
-
-function ladeMonate(monat, jahr) {
-    monatGeladen = true;
-    aktuellerMonat = monat;
-    aktuellesJahr  = jahr;
-    var url = '{{ route('klienten.monatsuebersicht', $klient) }}?monat=' + monat + '&jahr=' + jahr;
-    document.getElementById('monat-inhalt').innerHTML = '<p class="text-klein text-hell" style="padding:0.5rem 0;">Wird geladen…</p>';
-    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+function oeffneEinsaetzePopup() {
+    document.getElementById('einsaetze-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    if (einsaetzePopupGeladen) return;
+    fetch('{{ route('klienten.einsaetze-popup', $klient) }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(function(r) { return r.text(); })
-        .then(function(html) { document.getElementById('monat-inhalt').innerHTML = html; })
-        .catch(function() { document.getElementById('monat-inhalt').innerHTML = '<p class="text-klein" style="color:var(--cs-fehler);">Fehler beim Laden.</p>'; });
+        .then(function(html) {
+            document.getElementById('einsaetze-popup-inhalt').innerHTML = html;
+            einsaetzePopupGeladen = true;
+        })
+        .catch(function() {
+            document.getElementById('einsaetze-popup-inhalt').innerHTML = '<p style="color:var(--cs-fehler);">Fehler beim Laden.</p>';
+        });
 }
 
-const planLa       = document.getElementById('plan-la');
-const planDatumBis = document.getElementById('plan-block-datum-bis');
-const planVon      = document.getElementById('plan-block-von');
-const planBis      = document.getElementById('plan-block-bis');
-
-function aktualisierePlanForm() {
-    const opt = planLa ? planLa.options[planLa.selectedIndex] : null;
-    const istTage = opt && opt.dataset.einheit === 'tage';
-    if (planDatumBis) planDatumBis.style.display = istTage ? 'block' : 'none';
-    if (planVon)      planVon.style.display      = istTage ? 'none'  : 'block';
-    if (planBis)      planBis.style.display      = istTage ? 'none'  : 'block';
+function schliesseEinsaetzePopup() {
+    document.getElementById('einsaetze-modal').style.display = 'none';
+    document.body.style.overflow = '';
 }
 
-if (planLa) {
-    planLa.addEventListener('change', aktualisierePlanForm);
-    aktualisierePlanForm();
+function einsatzTabPopup(tab) {
+    ['anstehend','vergangen','monat'].forEach(function(t) {
+        var panel = document.getElementById('ppanel-' + t);
+        var btn   = document.getElementById('ptab-' + t);
+        if (panel) panel.style.display = t === tab ? 'block' : 'none';
+        if (btn) {
+            btn.style.borderBottomColor = t === tab ? 'var(--cs-primaer)' : 'transparent';
+            btn.style.color             = t === tab ? 'var(--cs-primaer)' : 'var(--cs-text-hell)';
+        }
+    });
 }
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') schliesseEinsaetzePopup();
+});
 </script>
 @endpush
 
