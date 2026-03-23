@@ -191,16 +191,8 @@
                     <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr', $klient->ahv_nr) }}" placeholder="756.XXXX.XXXX.XX">
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
-                <div>
-                    <label class="feld-label">Typ</label>
-                    <select name="klient_typ" class="feld">
-                        <option value="patient"         {{ ($klient->klient_typ ?? 'patient') === 'patient'         ? 'selected' : '' }}>Patient</option>
-                        <option value="pflegebeduerftig" {{ ($klient->klient_typ ?? '') === 'pflegebeduerftig'       ? 'selected' : '' }}>Pflegebedürftig</option>
-                        <option value="angehoerig"       {{ ($klient->klient_typ ?? '') === 'angehoerig'             ? 'selected' : '' }}>Pflegender Angehöriger</option>
-                    </select>
-                </div>
-                <div style="padding-top: 1.375rem;">
+            <div style="display: flex; align-items: center; margin-top: 0.25rem;">
+                <div style="padding-top: 0.25rem;">
                     <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; font-weight: 500; cursor: pointer; white-space: nowrap;">
                         <input type="hidden" name="aktiv" value="0">
                         <input type="checkbox" name="aktiv" value="1" {{ $klient->aktiv ? 'checked' : '' }}>
