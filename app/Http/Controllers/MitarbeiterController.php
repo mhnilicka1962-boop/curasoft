@@ -60,15 +60,16 @@ class MitarbeiterController extends Controller
     public function store(Request $request)
     {
         $daten = $request->validate([
-            'anrede'         => ['nullable', 'string', 'max:20'],
-            'geschlecht'     => ['nullable', 'in:m,f,d'],
-            'vorname'        => ['required', 'string', 'max:100'],
-            'nachname'       => ['required', 'string', 'max:100'],
-            'email'          => ['required', 'email', 'unique:benutzer,email'],
-            'rolle'          => ['required', 'in:admin,pflege,buchhaltung'],
-            'telefon'        => ['nullable', 'string', 'max:30'],
-            'pensum'         => ['nullable', 'integer', 'min:0', 'max:100'],
-            'eintrittsdatum' => ['nullable', 'date'],
+            'anrede'          => ['nullable', 'string', 'max:20'],
+            'geschlecht'      => ['nullable', 'in:m,f,d'],
+            'vorname'         => ['required', 'string', 'max:100'],
+            'nachname'        => ['required', 'string', 'max:100'],
+            'email'           => ['required', 'email', 'unique:benutzer,email'],
+            'rolle'           => ['required', 'in:admin,pflege,buchhaltung'],
+            'anstellungsart'  => ['nullable', 'in:fachperson,angehoerig,freiwillig,praktikum'],
+            'telefon'         => ['nullable', 'string', 'max:30'],
+            'pensum'          => ['nullable', 'integer', 'min:0', 'max:100'],
+            'eintrittsdatum'  => ['nullable', 'date'],
         ]);
 
         $token = Str::random(48);
@@ -81,11 +82,19 @@ class MitarbeiterController extends Controller
             'einladungs_token_ablauf' => now()->addHours(48),
         ]));
 
-        $link = route('einladung.show', $token);
-        Mail::to($benutzer->email)->send(new EinladungMail($benutzer, $link));
+        $mailErfolg = true;
+        try {
+            $link = route('einladung.show', $token);
+            Mail::to($benutzer->email)->send(new EinladungMail($benutzer, $link));
+        } catch (\Throwable $e) {
+            $mailErfolg = false;
+        }
 
-        return redirect()->route('mitarbeiter.show', $benutzer)
-            ->with('erfolg', 'Mitarbeiter wurde angelegt. Einladungs-E-Mail wurde gesendet.');
+        $msg = $mailErfolg
+            ? 'Mitarbeiter angelegt. Einladungs-E-Mail wurde gesendet.'
+            : 'Mitarbeiter angelegt. E-Mail konnte nicht gesendet werden — bitte Einladung manuell versenden.';
+
+        return redirect()->route('mitarbeiter.show', $benutzer)->with('erfolg', $msg);
     }
 
     public function einladungSenden(Benutzer $mitarbeiter)
