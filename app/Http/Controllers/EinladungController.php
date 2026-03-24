@@ -11,9 +11,15 @@ class EinladungController extends Controller
     /** Einladungslink öffnen */
     public function show(string $token)
     {
-        $benutzer = Benutzer::where('einladungs_token', $token)
-            ->where('einladungs_token_ablauf', '>', now())
-            ->firstOrFail();
+        $benutzer = Benutzer::where('einladungs_token', $token)->first();
+
+        if (!$benutzer) {
+            return view('einladung.passwort', ['fehler' => 'Dieser Einladungslink ist ungültig.', 'token' => $token, 'benutzer' => null]);
+        }
+
+        if ($benutzer->einladungs_token_ablauf < now()) {
+            return view('einladung.passwort', ['fehler' => 'Dieser Einladungslink ist abgelaufen. Bitte einen Administrator bitten, eine neue Einladung zu senden.', 'token' => $token, 'benutzer' => null]);
+        }
 
         return view('einladung.passwort', compact('benutzer', 'token'));
     }
@@ -21,9 +27,12 @@ class EinladungController extends Controller
     /** Passwort speichern */
     public function store(Request $request, string $token)
     {
-        $benutzer = Benutzer::where('einladungs_token', $token)
-            ->where('einladungs_token_ablauf', '>', now())
-            ->firstOrFail();
+        $benutzer = Benutzer::where('einladungs_token', $token)->first();
+
+        if (!$benutzer || $benutzer->einladungs_token_ablauf < now()) {
+            return redirect()->route('einladung.show', $token)
+                ->with('fehler', 'Dieser Einladungslink ist abgelaufen. Bitte einen Administrator bitten, eine neue Einladung zu senden.');
+        }
 
         $request->validate([
             'password'              => ['required', 'string', 'min:8', 'confirmed'],

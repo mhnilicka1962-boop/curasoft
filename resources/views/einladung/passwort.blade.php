@@ -17,9 +17,18 @@
             </svg>
         </div>
         <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--cs-text); margin: 0 0 0.25rem;">{{ config('theme.app_name', 'Spitex') }}</h1>
+        @if(!isset($fehler))
         <p style="color: var(--cs-text-hell); font-size: 0.875rem; margin: 0;">Willkommen, {{ $benutzer->vorname }}!</p>
+        @endif
     </div>
 
+    @if(isset($fehler))
+    <div class="karte" style="padding: 2rem; text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">⏱</div>
+        <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.75rem;">Einladungslink abgelaufen</h2>
+        <p style="color: var(--cs-text-hell); font-size: 0.875rem;">{{ $fehler }}</p>
+    </div>
+    @else
     <div class="karte" style="padding: 2rem;">
         <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.375rem;">Passwort festlegen</h2>
         <p class="text-hell text-klein" style="margin: 0 0 1.5rem;">
@@ -52,6 +61,7 @@
             </button>
         </form>
     </div>
+    @endif
 
     <p style="text-align: center; margin-top: 1.5rem; font-size: 0.75rem; color: var(--cs-text-hell);">
         &copy; {{ date('Y') }} {{ config('theme.app_name', 'Spitex') }}
