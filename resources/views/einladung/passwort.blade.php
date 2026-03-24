@@ -18,7 +18,7 @@
         </div>
         <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--cs-text); margin: 0 0 0.25rem;">{{ config('theme.app_name', 'Spitex') }}</h1>
         @if(!isset($fehler))
-        <p style="color: var(--cs-text-hell); font-size: 0.875rem; margin: 0;">Willkommen, {{ $benutzer->vorname }}!</p>
+        <p style="color: var(--cs-text-hell); font-size: 0.875rem; margin: 0;">Hallo, {{ $benutzer->vorname }}!</p>
         @endif
     </div>
 
@@ -30,9 +30,11 @@
     </div>
     @else
     <div class="karte" style="padding: 2rem;">
-        <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.375rem;">Passwort festlegen</h2>
+        <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.375rem;">
+            {{ $benutzer->password ? 'Passwort ändern' : 'Passwort festlegen' }}
+        </h2>
         <p class="text-hell text-klein" style="margin: 0 0 1.5rem;">
-            Wähle ein sicheres Passwort für deinen Zugang.
+            {{ $benutzer->password ? 'Wähle ein neues Passwort für deinen Zugang.' : 'Wähle ein sicheres Passwort für deinen Zugang.' }}
         </p>
 
         @if($errors->any())
