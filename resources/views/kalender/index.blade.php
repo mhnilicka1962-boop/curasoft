@@ -30,7 +30,9 @@
     .fc .fc-timeline-slot-label { font-size: 0.7rem !important; font-weight: 400 !important; color: #6b7280 !important; text-align: center !important; }
     .fc .fc-timeline-slot-label-cushion { display: block !important; text-align: center !important; }
     .fc .fc-toolbar-title { font-size: 1rem !important; font-weight: 700; }
-    .fc .fc-button { font-size: 0.8125rem !important; padding: 0.3rem 0.65rem !important; }
+    .fc .fc-button { font-size: 0.8125rem !important; padding: 0.3rem 0.65rem !important; background-color: var(--cs-primaer) !important; border-color: var(--cs-primaer) !important; }
+    .fc .fc-button:hover { filter: brightness(0.9) !important; }
+    .fc .fc-button-active { background-color: var(--cs-primaer-dunkel, #1a4a7a) !important; border-color: var(--cs-primaer-dunkel, #1a4a7a) !important; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important; }
     .fc-resource-unzugeteilt .fc-datagrid-cell { background: #fefce8; }
 </style>
 @endpush
