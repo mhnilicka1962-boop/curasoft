@@ -19,7 +19,7 @@ body {
     display: table-cell; vertical-align: middle; width: 50%;
     text-align: right; font-size: 6.5pt; line-height: 1.4; color: #555;
 }
-.kopf-logo { max-height: 10mm; max-width: 45mm; display: block; }
+.kopf-logo { max-height: 20mm; max-width: 70mm; display: block; }
 .kopf-firma { font-size: 7.5pt; font-weight: bold; color: #1a1a1a; }
 
 /* ── Anschrift ───────────────────────────────────────────── */
@@ -169,26 +169,70 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
     </div>
     @endif
 
-    {{-- 1. Kopfzeile ───────────────────────────────────────── --}}
-    <div class="kopf">
-        <div class="kopf-links">
+    {{-- 1. Kopfzeile — Layout-abhängig ────────────────────── --}}
+    @php
+        $layout       = $logoAusrichtung ?? 'links_anschrift_rechts';
+        $mitFirmadaten = $org->druck_mit_firmendaten ?? true;
+        $anschrPos    = $org->rechnungsadresse_position ?? 'links';
+    @endphp
+
+    @if($layout === 'mitte_anschrift_fusszeile')
+        {{-- Logo zentriert, Firmadaten in Fusszeile --}}
+        <div style="text-align:center; margin-bottom:5mm;">
             @if($logoBase64)
-                <img src="{{ $logoBase64 }}" class="kopf-logo" alt="Logo">
+                <img src="{{ $logoBase64 }}" class="kopf-logo" style="display:inline-block;" alt="Logo">
             @else
                 <div class="kopf-firma">{{ $org->name }}</div>
             @endif
         </div>
-        <div class="kopf-rechts">
-            @if($org->adresse){{ $org->adresse }}<br>@endif
-            @if($org->postfach){{ $org->postfach }}<br>@endif
-            {{ $org->plz }} {{ $org->ort }}
-            @if($org->telefon)<br>Tel. {{ $org->telefon }}@endif
-            @if($org->email) · {{ $org->email }}@endif
+    @elseif($layout === 'rechts_anschrift_links')
+        {{-- Logo rechts, Firmadaten links --}}
+        <div class="kopf">
+            <div class="kopf-links" style="font-size:6.5pt; color:#555; line-height:1.4;">
+                @if($mitFirmadaten)
+                    <div class="kopf-firma" style="margin-bottom:0.5mm;">{{ $org->name }}</div>
+                    @if($org->adresse){{ $org->adresse }}<br>@endif
+                    {{ $org->plz }} {{ $org->ort }}
+                    @if($org->telefon)<br>Tel. {{ $org->telefon }}@endif
+                    @if($org->email)<br>{{ $org->email }}@endif
+                @endif
+            </div>
+            <div class="kopf-rechts">
+                @if($logoBase64)
+                    <img src="{{ $logoBase64 }}" class="kopf-logo" style="display:inline-block;" alt="Logo">
+                @else
+                    <div class="kopf-firma">{{ $org->name }}</div>
+                @endif
+            </div>
         </div>
-    </div>
+    @else
+        {{-- Standard: Logo links, Firmadaten rechts --}}
+        <div class="kopf">
+            <div class="kopf-links">
+                @if($logoBase64)
+                    <img src="{{ $logoBase64 }}" class="kopf-logo" alt="Logo">
+                @else
+                    <div class="kopf-firma">{{ $org->name }}</div>
+                @endif
+            </div>
+            <div class="kopf-rechts">
+                @if($mitFirmadaten)
+                    @if($org->adresse){{ $org->adresse }}<br>@endif
+                    @if($org->postfach){{ $org->postfach }}<br>@endif
+                    {{ $org->plz }} {{ $org->ort }}
+                    @if($org->telefon)<br>Tel. {{ $org->telefon }}@endif
+                    @if($org->email) · {{ $org->email }}@endif
+                @endif
+            </div>
+        </div>
+    @endif
 
     {{-- 3. Anschrift ────────────────────────────────────────── --}}
+    @if($anschrPos === 'rechts')
+    <div style="text-align:right; margin-top:7mm; margin-bottom:8mm; min-height:14mm; font-size:7.5pt; line-height:1.4;">
+    @else
     <div class="anschrift">
+    @endif
         @if($anschriftAnrede ?? null)<span>{{ $anschriftAnrede }}</span><br>@endif
         <strong>{{ $anschriftName }}</strong><br>
         @if($anschriftStr){{ $anschriftStr }}<br>@endif
@@ -393,10 +437,15 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
 
 {{-- Fusszeile ──────────────────────────────────────────────── --}}
 <div class="fusszeile">
-    {{ $org->name }}
-    @if($org->adresse) · {{ $org->adresse }}, {{ $org->plz }} {{ $org->ort }}@endif
-    @if($org->telefon) · Tel. {{ $org->telefon }}@endif
-    @if($org->email) · {{ $org->email }}@endif
+    @if(($logoAusrichtung ?? '') === 'mitte_anschrift_fusszeile')
+        {{ $org->name }}
+        @if($org->adresse) · {{ $org->adresse }}, {{ $org->plz }} {{ $org->ort }}@endif
+        @if($org->telefon) · Tel. {{ $org->telefon }}@endif
+        @if($org->email) · {{ $org->email }}@endif
+    @else
+        {{ $org->name }}
+        @if($org->adresse) · {{ $org->adresse }}, {{ $org->plz }} {{ $org->ort }}@endif
+    @endif
 </div>
 
 {{-- Seite 2: QR-Zahlteil ───────────────────────────────────── --}}
