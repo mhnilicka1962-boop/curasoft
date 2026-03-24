@@ -103,8 +103,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
 // Einladung (kein Auth erforderlich)
-Route::get('/einladung/{token}',  [EinladungController::class, 'show'])->name('einladung.show');
-Route::post('/einladung/{token}', [EinladungController::class, 'store'])->name('einladung.store');
+Route::get('/einladung/{token}', [EinladungController::class, 'show'])->name('einladung.show');
 
 // WebAuthn — Login (kein Auth nötig)
 Route::get('/webauthn/authenticate-options', [WebAuthnController::class, 'authenticateOptions'])->name('webauthn.authenticate.options');
