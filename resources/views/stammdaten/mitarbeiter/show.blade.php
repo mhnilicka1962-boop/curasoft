@@ -1,17 +1,35 @@
-<x-layouts.app :titel="$mitarbeiter->nachname . ' ' . $mitarbeiter->vorname">
+<x-layouts.app :titel="$mitarbeiter->exists ? $mitarbeiter->nachname . ' ' . $mitarbeiter->vorname : 'Neuer Mitarbeiter'">
+
+@if(!$mitarbeiter->exists)
+<form method="POST" action="{{ route('mitarbeiter.store') }}" id="form-neu-ma">
+@csrf
+@endif
 
 <div class="seiten-kopf">
     <div>
         <a href="{{ route('mitarbeiter.index') }}" class="link-gedaempt" style="font-size: 0.875rem;">← Mitarbeitende</a>
         <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0.25rem 0 0;">
-            {{ $mitarbeiter->anrede ? $mitarbeiter->anrede . ' ' : '' }}{{ $mitarbeiter->vorname }} {{ $mitarbeiter->nachname }}
+            {{ $mitarbeiter->exists ? ($mitarbeiter->anrede ? $mitarbeiter->anrede . ' ' : '') . $mitarbeiter->vorname . ' ' . $mitarbeiter->nachname : 'Neuer Mitarbeiter' }}
         </h1>
+        @if($mitarbeiter->exists)
         <div class="text-klein text-hell" style="margin-top: 0.2rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
             @php $rolleKlasse = match($mitarbeiter->rolle) { 'admin' => 'badge-fehler', 'buchhaltung' => 'badge-info', default => 'badge-primaer' }; @endphp
             <span class="badge {{ $rolleKlasse }}">{{ ucfirst($mitarbeiter->rolle) }}</span>
             @if(!$mitarbeiter->aktiv)<span class="badge badge-grau">Inaktiv</span>@endif
             <span>{{ $mitarbeiter->pensum }}% Pensum</span>
         </div>
+        @endif
+    </div>
+    <div style="display:flex; gap:0.5rem;">
+        @if($mitarbeiter->exists)
+        <form method="POST" action="{{ route('mitarbeiter.einladung', $mitarbeiter) }}" style="display:inline;"
+            onsubmit="return confirm('Neue Einladungs-Email an {{ $mitarbeiter->email }} senden?')">
+            @csrf
+            <button type="submit" class="btn btn-sekundaer">Zugang mailen</button>
+        </form>
+        @else
+        <button type="submit" form="form-neu-ma" class="btn btn-primaer">Speichern & Einladen</button>
+        @endif
     </div>
 </div>
 
@@ -27,9 +45,6 @@
     @if($mitarbeiter->exists)
     <form method="POST" action="{{ route('mitarbeiter.update', $mitarbeiter) }}">
         @csrf @method('PUT')
-    @else
-    <form method="POST" action="{{ route('mitarbeiter.store') }}">
-        @csrf
     @endif
 
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
@@ -37,17 +52,17 @@
                 <label class="feld-label">Anrede</label>
                 <select name="anrede" class="feld">
                     <option value="">—</option>
-                    <option value="Herr" {{ $mitarbeiter->anrede === 'Herr' ? 'selected' : '' }}>Herr</option>
-                    <option value="Frau" {{ $mitarbeiter->anrede === 'Frau' ? 'selected' : '' }}>Frau</option>
+                    <option value="Herr" {{ old('anrede', $mitarbeiter->anrede) === 'Herr' ? 'selected' : '' }}>Herr</option>
+                    <option value="Frau" {{ old('anrede', $mitarbeiter->anrede) === 'Frau' ? 'selected' : '' }}>Frau</option>
                 </select>
             </div>
             <div>
                 <label class="feld-label">Geschlecht</label>
                 <select name="geschlecht" class="feld">
                     <option value="">—</option>
-                    <option value="m" {{ $mitarbeiter->geschlecht === 'm' ? 'selected' : '' }}>Männlich</option>
-                    <option value="f" {{ $mitarbeiter->geschlecht === 'f' ? 'selected' : '' }}>Weiblich</option>
-                    <option value="d" {{ $mitarbeiter->geschlecht === 'd' ? 'selected' : '' }}>Divers</option>
+                    <option value="m" {{ old('geschlecht', $mitarbeiter->geschlecht) === 'm' ? 'selected' : '' }}>Männlich</option>
+                    <option value="f" {{ old('geschlecht', $mitarbeiter->geschlecht) === 'f' ? 'selected' : '' }}>Weiblich</option>
+                    <option value="d" {{ old('geschlecht', $mitarbeiter->geschlecht) === 'd' ? 'selected' : '' }}>Divers</option>
                 </select>
             </div>
             <div>
@@ -73,7 +88,7 @@
                 <select name="zivilstand" class="feld">
                     <option value="">—</option>
                     @foreach(['Ledig','Verheiratet','Geschieden','Verwitwet','Eingetragene Partnerschaft'] as $zs)
-                        <option value="{{ $zs }}" {{ $mitarbeiter->zivilstand === $zs ? 'selected' : '' }}>{{ $zs }}</option>
+                        <option value="{{ $zs }}" {{ old('zivilstand', $mitarbeiter->zivilstand) === $zs ? 'selected' : '' }}>{{ $zs }}</option>
                     @endforeach
                 </select>
             </div>
@@ -142,7 +157,7 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
             <div>
                 <label class="feld-label">Pensum %</label>
-                <input type="number" name="pensum" class="feld" min="0" max="100" value="{{ old('pensum', $mitarbeiter->pensum) }}">
+                <input type="number" name="pensum" class="feld" min="0" max="100" value="{{ old('pensum', $mitarbeiter->pensum ?? 100) }}">
             </div>
             <div>
                 <label class="feld-label">Eintritt</label>
@@ -155,18 +170,18 @@
             <div>
                 <label class="feld-label">Rolle *</label>
                 <select name="rolle" class="feld" required>
-                    <option value="pflege"      {{ $mitarbeiter->rolle === 'pflege'      ? 'selected' : '' }}>Pflege</option>
-                    <option value="buchhaltung" {{ $mitarbeiter->rolle === 'buchhaltung' ? 'selected' : '' }}>Buchhaltung</option>
-                    <option value="admin"       {{ $mitarbeiter->rolle === 'admin'       ? 'selected' : '' }}>Admin</option>
+                    <option value="pflege"      {{ old('rolle', $mitarbeiter->rolle ?? 'pflege') === 'pflege'      ? 'selected' : '' }}>Pflege</option>
+                    <option value="buchhaltung" {{ old('rolle', $mitarbeiter->rolle) === 'buchhaltung' ? 'selected' : '' }}>Buchhaltung</option>
+                    <option value="admin"       {{ old('rolle', $mitarbeiter->rolle) === 'admin'       ? 'selected' : '' }}>Admin</option>
                 </select>
             </div>
             <div>
                 <label class="feld-label">Anstellungsart</label>
                 <select id="anstellungsart" name="anstellungsart" class="feld">
-                    <option value="fachperson"  {{ ($mitarbeiter->anstellungsart ?? 'fachperson') === 'fachperson'  ? 'selected' : '' }}>Fachperson</option>
-                    <option value="angehoerig"  {{ ($mitarbeiter->anstellungsart ?? '') === 'angehoerig'  ? 'selected' : '' }}>Pflegender Angehöriger</option>
-                    <option value="freiwillig"  {{ ($mitarbeiter->anstellungsart ?? '') === 'freiwillig'  ? 'selected' : '' }}>Freiwillig</option>
-                    <option value="praktikum"   {{ ($mitarbeiter->anstellungsart ?? '') === 'praktikum'   ? 'selected' : '' }}>Praktikum</option>
+                    <option value="fachperson"  {{ old('anstellungsart', $mitarbeiter->anstellungsart ?? 'fachperson') === 'fachperson'  ? 'selected' : '' }}>Fachperson</option>
+                    <option value="angehoerig"  {{ old('anstellungsart', $mitarbeiter->anstellungsart) === 'angehoerig'  ? 'selected' : '' }}>Pflegender Angehöriger</option>
+                    <option value="freiwillig"  {{ old('anstellungsart', $mitarbeiter->anstellungsart) === 'freiwillig'  ? 'selected' : '' }}>Freiwillig</option>
+                    <option value="praktikum"   {{ old('anstellungsart', $mitarbeiter->anstellungsart) === 'praktikum'   ? 'selected' : '' }}>Praktikum</option>
                 </select>
                 <div id="hinweis-angehoerig" style="display: {{ ($mitarbeiter->anstellungsart ?? '') === 'angehoerig' ? 'block' : 'none' }}; margin-top: 0.5rem; background: #fffbeb; border: 1px solid #f59e0b; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.8125rem; color: #92400e;">
                     ↓ Bitte unten unter <strong>«Zugewiesene Klienten»</strong> den gepflegten Klienten zuweisen.
@@ -174,16 +189,19 @@
             </div>
         </div>
 
+        @if($mitarbeiter->exists)
         <div style="margin-bottom: 0.75rem;">
             <label class="feld-label">Neues Passwort (leer lassen = unverändert)</label>
             <input type="password" name="password" class="feld" autocomplete="new-password" style="max-width: 300px;">
         </div>
+        @endif
 
         <div style="margin-bottom: 0.75rem;">
             <label class="feld-label">Notizen</label>
             <textarea name="notizen" class="feld" rows="3" style="resize: vertical;">{{ old('notizen', $mitarbeiter->notizen) }}</textarea>
         </div>
 
+        @if($mitarbeiter->exists)
         <div style="margin-bottom: 0.75rem;">
             <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer;">
                 <input type="hidden" name="aktiv" value="0">
@@ -193,9 +211,13 @@
         </div>
 
         <div class="abschnitt-trenn" style="padding-top: 0.75rem;">
-            <button type="submit" class="btn btn-primaer">{{ $mitarbeiter->exists ? 'Speichern' : 'Speichern & Einladen' }}</button>
+            <button type="submit" class="btn btn-primaer">Speichern</button>
         </div>
+        @endif
+
+    @if($mitarbeiter->exists)
     </form>
+    @endif
 </div>
 
 {{-- ═══ 2. QUALIFIKATIONEN ═══ --}}
@@ -204,8 +226,10 @@
     @if(session('erfolg_qual'))
         <div class="meldung meldung-erfolg" style="margin-bottom: 0.75rem;">{{ session('erfolg_qual') }}</div>
     @endif
-    <form method="POST" action="{{ $mitarbeiter->exists ? route('mitarbeiter.qualifikationen', $mitarbeiter) : '#' }}">
+    @if($mitarbeiter->exists)
+    <form method="POST" action="{{ route('mitarbeiter.qualifikationen', $mitarbeiter) }}">
         @csrf
+    @endif
         <div style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 1rem;">
             @foreach($qualifikationen as $q)
             <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.875rem; cursor: pointer; background: {{ $mitarbeiter->qualifikationen->contains($q->id) ? 'var(--cs-primaer)' : 'var(--cs-hintergrund)' }}; color: {{ $mitarbeiter->qualifikationen->contains($q->id) ? '#fff' : 'var(--cs-text)' }}; border: 1px solid {{ $mitarbeiter->qualifikationen->contains($q->id) ? 'var(--cs-primaer)' : 'var(--cs-border)' }}; padding: 0.3rem 0.65rem; border-radius: 999px; transition: all 0.1s;">
@@ -217,8 +241,12 @@
             </label>
             @endforeach
         </div>
+        @if($mitarbeiter->exists)
         <button type="submit" class="btn btn-primaer">Qualifikationen speichern</button>
+        @endif
+    @if($mitarbeiter->exists)
     </form>
+    @endif
 </div>
 
 {{-- ═══ 3. ERLAUBTE LEISTUNGSARTEN ═══ --}}
@@ -232,8 +260,10 @@ $istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
     <div id="hinweis-klv" style="display: {{ $istAngehoerig ? 'block' : 'none' }}; margin-bottom: 0.75rem; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.8125rem; color: #92400e;">
         <strong>KLV-Einschränkung:</strong> Pflegende Angehörige dürfen keine medizinischen Leistungen erbringen (Untersuchung/Behandlung, Abklärung/Beratung).
     </div>
-    <form method="POST" action="{{ $mitarbeiter->exists ? route('mitarbeiter.leistungsarten', $mitarbeiter) : '#' }}">
+    @if($mitarbeiter->exists)
+    <form method="POST" action="{{ route('mitarbeiter.leistungsarten', $mitarbeiter) }}">
         @csrf
+    @endif
         <div id="leistungsarten-grid" style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 1rem;">
             @foreach($leistungsarten as $la)
             @php
@@ -258,91 +288,135 @@ $istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
             </label>
             @endforeach
         </div>
+        @if($mitarbeiter->exists)
         <button type="submit" class="btn btn-primaer">Leistungsarten speichern</button>
+        @endif
+    @if($mitarbeiter->exists)
     </form>
+    @endif
 </div>
 
 {{-- ═══ 4. KLIENTENZUWEISUNG ═══ --}}
 <div class="karte" style="margin-bottom: 1.25rem;">
     <div class="abschnitt-label">Zugewiesene Klienten</div>
 
-    @if($mitarbeiter->klientZuweisungen->isNotEmpty())
-    <table class="tabelle" style="margin-bottom: 1rem;">
-        <thead>
-            <tr>
-                <th>Klient</th>
-                <th>Rolle</th>
-                <th>Beziehung</th>
-                <th class="text-mitte">Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($mitarbeiter->klientZuweisungen as $zuw)
-            <tr style="{{ !$zuw->aktiv ? 'opacity: 0.5;' : '' }}">
-                <td>
-                    <a href="{{ route('klienten.show', $zuw->klient) }}" class="link-primaer">
-                        {{ $zuw->klient->vollname() }}
-                    </a>
-                </td>
-                <td>
-                    @php $rolleKlasse = match($zuw->rolle) { 'hauptbetreuer' => 'badge-erfolg', 'betreuer' => 'badge-primaer', default => 'badge-grau' }; @endphp
-                    <span class="badge {{ $rolleKlasse }}">{{ \App\Models\KlientBenutzer::$rollen[$zuw->rolle] }}</span>
-                </td>
-                <td>
-                    @if($zuw->beziehungstyp === 'angehoerig_pflegend')
-                        <span class="badge badge-info">Pflegender Angehöriger</span>
-                    @elseif($zuw->beziehungstyp === 'freiwillig')
-                        <span class="badge badge-grau">Freiwillig</span>
-                    @endif
-                </td>
-                <td class="text-mitte">
-                    @if($zuw->aktiv)<span class="badge badge-erfolg">Aktiv</span>@else<span class="badge badge-grau">Inaktiv</span>@endif
-                </td>
-                <td>
-                    <form method="POST" action="{{ $mitarbeiter->exists ? route('mitarbeiter.klient.entfernen', [$mitarbeiter, $zuw]) : '#' }}" style="display: inline;" onsubmit="return confirm('Zuweisung entfernen?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-sekundaer" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">✕</button>
-                    </form>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    @else
-    <div class="text-klein text-hell" style="margin-bottom: 1rem;">Keine Klienten zugewiesen.</div>
-    @endif
+    @if($mitarbeiter->exists)
 
-    <form method="POST" action="{{ $mitarbeiter->exists ? route('mitarbeiter.klient.zuweisen', $mitarbeiter) : '#' }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
-        @csrf
-        <div>
-            <label class="feld-label">Klient</label>
-            <select name="klient_id" class="feld" required style="min-width: 220px;">
-                <option value="">— wählen —</option>
-                @foreach($klienten as $k)
-                    <option value="{{ $k->id }}">{{ $k->vollname() }}</option>
+        @if($mitarbeiter->klientZuweisungen->isNotEmpty())
+        <table class="tabelle" style="margin-bottom: 1rem;">
+            <thead>
+                <tr>
+                    <th>Klient</th>
+                    <th>Rolle</th>
+                    <th>Beziehung</th>
+                    <th class="text-mitte">Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($mitarbeiter->klientZuweisungen as $zuw)
+                <tr style="{{ !$zuw->aktiv ? 'opacity: 0.5;' : '' }}">
+                    <td>
+                        <a href="{{ route('klienten.show', $zuw->klient) }}" class="link-primaer">
+                            {{ $zuw->klient->vollname() }}
+                        </a>
+                    </td>
+                    <td>
+                        @php $rolleKlasse = match($zuw->rolle) { 'hauptbetreuer' => 'badge-erfolg', 'betreuer' => 'badge-primaer', default => 'badge-grau' }; @endphp
+                        <span class="badge {{ $rolleKlasse }}">{{ \App\Models\KlientBenutzer::$rollen[$zuw->rolle] }}</span>
+                    </td>
+                    <td>
+                        @if($zuw->beziehungstyp === 'angehoerig_pflegend')
+                            <span class="badge badge-info">Pflegender Angehöriger</span>
+                        @elseif($zuw->beziehungstyp === 'freiwillig')
+                            <span class="badge badge-grau">Freiwillig</span>
+                        @endif
+                    </td>
+                    <td class="text-mitte">
+                        @if($zuw->aktiv)<span class="badge badge-erfolg">Aktiv</span>@else<span class="badge badge-grau">Inaktiv</span>@endif
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ route('mitarbeiter.klient.entfernen', [$mitarbeiter, $zuw]) }}" style="display: inline;" onsubmit="return confirm('Zuweisung entfernen?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-sekundaer" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">✕</button>
+                        </form>
+                    </td>
+                </tr>
                 @endforeach
-            </select>
+            </tbody>
+        </table>
+        @else
+        <div class="text-klein text-hell" style="margin-bottom: 1rem;">Keine Klienten zugewiesen.</div>
+        @endif
+
+        <form method="POST" action="{{ route('mitarbeiter.klient.zuweisen', $mitarbeiter) }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+            @csrf
+            <div>
+                <label class="feld-label">Klient</label>
+                <select name="klient_id" class="feld" required style="min-width: 220px;">
+                    <option value="">— wählen —</option>
+                    @foreach($klienten as $k)
+                        <option value="{{ $k->id }}">{{ $k->vollname() }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="feld-label">Rolle</label>
+                <select name="rolle" class="feld">
+                    @foreach(\App\Models\KlientBenutzer::$rollen as $wert => $lbl)
+                        <option value="{{ $wert }}">{{ $lbl }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="feld-label">Beziehungstyp</label>
+                <select id="beziehungstyp" name="beziehungstyp" class="feld">
+                    <option value="fachperson" {{ ($mitarbeiter->anstellungsart ?? '') !== 'angehoerig' ? 'selected' : '' }}>Fachperson</option>
+                    <option value="angehoerig_pflegend" {{ ($mitarbeiter->anstellungsart ?? '') === 'angehoerig' ? 'selected' : '' }}>Pflegender Angehöriger</option>
+                    <option value="freiwillig">Freiwillig</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-sekundaer">Zuweisen</button>
+        </form>
+
+    @else
+
+        {{-- Neue Erfassung: optionale Klientzuweisung --}}
+        <p class="text-klein text-hell" style="margin: 0 0 0.75rem;">Optional: Klient direkt zuweisen (z.B. bei Pflegendem Angehörigen)</p>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+            <div>
+                <label class="feld-label">Klient (optional)</label>
+                <select name="klient_id" class="feld" style="min-width: 220px;">
+                    <option value="">— nicht zuweisen —</option>
+                    @foreach($klienten as $k)
+                        <option value="{{ $k->id }}">{{ $k->vollname() }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="feld-label">Rolle</label>
+                <select name="klient_rolle" class="feld">
+                    @foreach(\App\Models\KlientBenutzer::$rollen as $wert => $lbl)
+                        <option value="{{ $wert }}">{{ $lbl }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="feld-label">Beziehungstyp</label>
+                <select id="beziehungstyp" name="beziehungstyp" class="feld">
+                    <option value="fachperson">Fachperson</option>
+                    <option value="angehoerig_pflegend">Pflegender Angehöriger</option>
+                    <option value="freiwillig">Freiwillig</option>
+                </select>
+            </div>
         </div>
-        <div>
-            <label class="feld-label">Rolle</label>
-            <select name="rolle" class="feld">
-                @foreach(\App\Models\KlientBenutzer::$rollen as $wert => $lbl)
-                    <option value="{{ $wert }}">{{ $lbl }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div>
-            <label class="feld-label">Beziehungstyp</label>
-            <select id="beziehungstyp" name="beziehungstyp" class="feld">
-                <option value="fachperson" {{ ($mitarbeiter->anstellungsart ?? '') !== 'angehoerig' ? 'selected' : '' }}>Fachperson</option>
-                <option value="angehoerig_pflegend" {{ ($mitarbeiter->anstellungsart ?? '') === 'angehoerig' ? 'selected' : '' }}>Pflegender Angehöriger</option>
-                <option value="freiwillig">Freiwillig</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-sekundaer">Zuweisen</button>
-    </form>
+
+    @endif
 </div>
+
+@if(!$mitarbeiter->exists)
+</form>
+@endif
 
 <script>
 document.getElementById('anstellungsart')?.addEventListener('change', function() {
@@ -354,7 +428,8 @@ document.getElementById('anstellungsart')?.addEventListener('change', function()
 
     // Beziehungstyp auto-setzen
     if (istAngehoerig) {
-        document.getElementById('beziehungstyp').value = 'angehoerig_pflegend';
+        const btyp = document.getElementById('beziehungstyp');
+        if (btyp) btyp.value = 'angehoerig_pflegend';
     }
 
     // Leistungsarten-Checkboxen einschränken
