@@ -193,6 +193,7 @@ class BexioService
                 $rechnung->update([
                     'status'           => 'bezahlt',
                     'bexio_bezahlt_am' => now(),
+                    'bezahlt_am'       => today(),
                 ]);
                 return ['aktualisiert' => true, 'status' => 'bezahlt'];
             }

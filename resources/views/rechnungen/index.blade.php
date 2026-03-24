@@ -13,18 +13,30 @@
 
 {{-- Filter + Neu --}}
 <div class="seiten-kopf" style="margin-bottom: 1rem;">
-    <form id="filter-form" method="GET" action="{{ route('rechnungen.index') }}" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <input type="text" name="suche" class="feld" style="width: 200px;" placeholder="Nr. oder Name…" value="{{ request('suche') }}">
-        <select name="status" class="feld" style="width: 140px;" onchange="this.form.submit()">
+    <form id="filter-form" method="GET" action="{{ route('rechnungen.index') }}" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+        <input type="text" name="suche" class="feld" style="width: 180px;" placeholder="Nr. oder Name…" value="{{ request('suche') }}">
+        <select name="jahr" class="feld" style="width: 90px;" onchange="this.form.submit()">
+            <option value="">Jahr</option>
+            @foreach(range(date('Y'), date('Y') - 4) as $j)
+                <option value="{{ $j }}" {{ request('jahr') == $j ? 'selected' : '' }}>{{ $j }}</option>
+            @endforeach
+        </select>
+        <select name="monat" class="feld" style="width: 110px;" onchange="this.form.submit()">
+            <option value="">Monat</option>
+            @foreach(['1'=>'Januar','2'=>'Februar','3'=>'März','4'=>'April','5'=>'Mai','6'=>'Juni','7'=>'Juli','8'=>'August','9'=>'September','10'=>'Oktober','11'=>'November','12'=>'Dezember'] as $m => $name)
+                <option value="{{ $m }}" {{ request('monat') == $m ? 'selected' : '' }}>{{ $name }}</option>
+            @endforeach
+        </select>
+        <select name="status" class="feld" style="width: 130px;" onchange="this.form.submit()">
             <option value="">Alle Status</option>
             @foreach(['entwurf' => 'Entwurf', 'gesendet' => 'Gesendet', 'bezahlt' => 'Bezahlt', 'storniert' => 'Storniert'] as $val => $lab)
                 <option value="{{ $val }}" {{ request('status') === $val ? 'selected' : '' }}>{{ $lab }}</option>
             @endforeach
         </select>
         <button type="submit" class="btn btn-sekundaer">Suchen</button>
-        @if(request('suche') || request('status'))
-            <a href="{{ route('rechnungen.index') }}" class="btn btn-sekundaer">✕</a>
-        @endif
+        <a href="{{ route('rechnungen.index') }}" class="btn btn-sekundaer">Reset</a>
+        <a href="{{ route('rechnungen.csv', request()->only(['suche','status','jahr','monat'])) }}" class="btn btn-sekundaer" title="Aktuelle Auswahl als CSV exportieren">↓ Auswertung CSV</a>
+        <a href="{{ route('rechnungen.auswertung-pdf', request()->only(['suche','status','jahr','monat'])) }}" class="btn btn-sekundaer" title="Aktuelle Auswahl als PDF exportieren">↓ Auswertung PDF</a>
     </form>
     <div style="display: flex; gap: 0.5rem;">
         <button type="button" onclick="document.getElementById('popup-einzelleistung').style.display='flex'" class="btn btn-sekundaer">+ Einzelleistung</button>

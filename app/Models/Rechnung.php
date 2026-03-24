@@ -21,7 +21,7 @@ class Rechnung extends Model
         'betrag_patient', 'betrag_kk', 'betrag_total',
         'status', 'rechnungstyp', 'rechnungslauf_id', 'pdf_pfad',
         'email_versand_datum', 'email_versand_an', 'email_fehler',
-        'bexio_rechnung_id', 'bexio_bezahlt_am',
+        'bexio_rechnung_id', 'bexio_bezahlt_am', 'bezahlt_am',
     ];
 
     protected $casts = [
@@ -30,6 +30,7 @@ class Rechnung extends Model
         'rechnungsdatum'      => 'date',
         'email_versand_datum' => 'datetime',
         'bexio_bezahlt_am'    => 'datetime',
+        'bezahlt_am'          => 'date',
         'betrag_patient'      => 'decimal:2',
         'betrag_kk'           => 'decimal:2',
         'betrag_total'        => 'decimal:2',

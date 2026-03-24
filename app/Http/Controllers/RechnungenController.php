@@ -30,6 +30,12 @@ class RechnungenController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+        if ($request->filled('jahr')) {
+            $query->whereYear('rechnungsdatum', $request->jahr);
+        }
+        if ($request->filled('monat')) {
+            $query->whereMonth('rechnungsdatum', $request->monat);
+        }
         if ($request->filled('suche')) {
             $s = $request->suche;
             $query->where(fn($q) => $q
@@ -124,7 +130,7 @@ class RechnungenController extends Controller
     public function show(Rechnung $rechnung)
     {
         $this->autorisiereZugriff($rechnung);
-        $rechnung->load(['klient', 'positionen.einsatz']);
+        $rechnung->load(['klient', 'positionen.einsatz.leistungsart', 'positionen.leistungstyp']);
         return view('rechnungen.show', compact('rechnung'));
     }
 
@@ -133,11 +139,22 @@ class RechnungenController extends Controller
         $this->autorisiereZugriff($rechnung);
 
         $request->validate([
-            'status' => ['required', 'in:entwurf,gesendet,bezahlt,storniert'],
+            'status'     => ['required', 'in:entwurf,gesendet,bezahlt,storniert'],
+            'bezahlt_am' => ['nullable', 'date'],
         ]);
 
         $alterStatus = $rechnung->status;
-        $rechnung->update(['status' => $request->status]);
+
+        $update = ['status' => $request->status];
+        if ($request->status === 'bezahlt') {
+            $update['bezahlt_am'] = $request->filled('bezahlt_am')
+                ? $request->bezahlt_am
+                : today()->toDateString();
+        } elseif ($alterStatus === 'bezahlt') {
+            $update['bezahlt_am'] = null;
+        }
+
+        $rechnung->update($update);
 
         AuditLog::schreiben('geaendert', 'Rechnung', $rechnung->id,
             "Status: {$alterStatus} → {$request->status}");
@@ -390,6 +407,156 @@ class RechnungenController extends Controller
 
         return redirect()->route('klienten.show', $klientId)
             ->with('erfolg', 'Einzelleistung gelöscht.');
+    }
+
+    public function auswertungPdf(Request $request)
+    {
+        $query = Rechnung::with('klient')
+            ->where('organisation_id', $this->orgId())
+            ->orderBy('rechnungsdatum')
+            ->orderBy('id');
+
+        if ($request->filled('status')) $query->where('status', $request->status);
+        if ($request->filled('jahr'))   $query->whereYear('rechnungsdatum', $request->jahr);
+        if ($request->filled('monat'))  $query->whereMonth('rechnungsdatum', $request->monat);
+        if ($request->filled('suche')) {
+            $s = $request->suche;
+            $query->where(fn($q) => $q
+                ->where('rechnungsnummer', 'ilike', "%{$s}%")
+                ->orWhereHas('klient', fn($k) => $k
+                    ->where('nachname', 'ilike', "%{$s}%")
+                    ->orWhere('vorname', 'ilike', "%{$s}%")
+                )
+            );
+        }
+
+        $rechnungen = $query->get();
+        $org        = Organisation::findOrFail($this->orgId());
+
+        $monate = ['1'=>'Januar','2'=>'Februar','3'=>'März','4'=>'April','5'=>'Mai','6'=>'Juni',
+                   '7'=>'Juli','8'=>'August','9'=>'September','10'=>'Oktober','11'=>'November','12'=>'Dezember'];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdfs.rechnungen_auswertung', [
+            'rechnungen'    => $rechnungen,
+            'org'           => $org,
+            'filterJahr'    => $request->jahr,
+            'filterMonat'   => $request->monat,
+            'filterStatus'  => $request->status,
+            'filterSuche'   => $request->suche,
+            'monatsname'    => $monate[$request->monat] ?? '',
+            'summePatient'  => $rechnungen->sum('betrag_patient'),
+            'summeKk'       => $rechnungen->sum('betrag_kk'),
+            'summeTotal'    => $rechnungen->sum('betrag_total'),
+        ])->setPaper('a4', 'landscape')->setOptions(['defaultFont' => 'DejaVu Sans']);
+
+        $filename = 'rechnungen_auswertung_' . date('Y-m-d') . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    public function bezahltAmUpdate(Request $request, Rechnung $rechnung)
+    {
+        $this->autorisiereZugriff($rechnung);
+
+        $request->validate([
+            'bezahlt_am' => ['nullable', 'date'],
+        ]);
+
+        $rechnung->update(['bezahlt_am' => $request->bezahlt_am ?: null]);
+
+        return back()->with('erfolg', 'Zahlungseingang gespeichert.');
+    }
+
+    public function csvExport(Request $request)
+    {
+        $query = Rechnung::with('klient')
+            ->where('organisation_id', $this->orgId())
+            ->orderBy('rechnungsdatum')
+            ->orderBy('id');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('jahr')) {
+            $query->whereYear('rechnungsdatum', $request->jahr);
+        }
+        if ($request->filled('monat')) {
+            $query->whereMonth('rechnungsdatum', $request->monat);
+        }
+        if ($request->filled('suche')) {
+            $s = $request->suche;
+            $query->where(fn($q) => $q
+                ->where('rechnungsnummer', 'ilike', "%{$s}%")
+                ->orWhereHas('klient', fn($k) => $k
+                    ->where('nachname', 'ilike', "%{$s}%")
+                    ->orWhere('vorname', 'ilike', "%{$s}%")
+                )
+            );
+        }
+
+        $rechnungen = $query->get();
+
+        $filename = 'rechnungen_' . date('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma'              => 'no-cache',
+            'Expires'             => '0',
+        ];
+
+        $callback = function () use ($rechnungen) {
+            $out = fopen('php://output', 'w');
+            // BOM für Excel UTF-8
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($out, [
+                'Rechnungsnummer',
+                'Rechnungsdatum',
+                'Jahr',
+                'Monat',
+                'Periode von',
+                'Periode bis',
+                'Typ',
+                'Status',
+                'Betrag Patient CHF',
+                'Betrag KK CHF',
+                'Betrag Total CHF',
+                'Zahlungseingang',
+                'Klient Name',
+                'Klient Vorname',
+                'Klient Geburtsdatum',
+                'Email Versand am',
+                'Erfasst am',
+                'Mutiert am',
+            ], ';');
+
+            foreach ($rechnungen as $r) {
+                fputcsv($out, [
+                    $r->rechnungsnummer,
+                    $r->rechnungsdatum?->format('d.m.Y') ?? '',
+                    $r->rechnungsdatum?->format('Y') ?? '',
+                    $r->rechnungsdatum?->format('n') ?? '',
+                    $r->periode_von?->format('d.m.Y') ?? '',
+                    $r->periode_bis?->format('d.m.Y') ?? '',
+                    $r->rechnungstyp ?? '',
+                    $r->status ?? '',
+                    number_format((float) $r->betrag_patient, 2, '.', ''),
+                    number_format((float) $r->betrag_kk, 2, '.', ''),
+                    number_format((float) $r->betrag_total, 2, '.', ''),
+                    $r->bezahlt_am?->format('d.m.Y') ?? '',
+                    $r->klient?->nachname ?? '',
+                    $r->klient?->vorname ?? '',
+                    $r->klient?->geburtsdatum?->format('d.m.Y') ?? '',
+                    $r->email_versand_datum?->format('d.m.Y') ?? '',
+                    $r->created_at?->format('d.m.Y H:i') ?? '',
+                    $r->updated_at?->format('d.m.Y H:i') ?? '',
+                ], ';');
+            }
+
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     private function autorisiereZugriff(Rechnung $rechnung): void

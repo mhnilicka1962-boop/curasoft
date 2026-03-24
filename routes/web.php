@@ -340,12 +340,15 @@ Route::middleware('auth')->group(function () {
         // Personalabrechnung — Übersicht nur admin/buchhaltung
         Route::get('/personalabrechnung', [PersonalabrechnungController::class, 'index'])->name('personalabrechnung.index');
 
+        Route::get('/rechnungen/export/csv', [RechnungenController::class, 'csvExport'])->name('rechnungen.csv');
+        Route::get('/rechnungen/export/pdf', [RechnungenController::class, 'auswertungPdf'])->name('rechnungen.auswertung-pdf');
         Route::resource('/rechnungen', RechnungenController::class)->only(['index','create','store','show'])->parameters(['rechnungen' => 'rechnung']);
         Route::post('/rechnungen/einzelleistung', [RechnungenController::class, 'einzelleistungErfassen'])->name('rechnungen.einzelleistung');
         Route::get('/rechnungen/einzelleistung/{einsatz}/vorschau', [RechnungenController::class, 'einzelleistungVorschau'])->name('rechnungen.einzelleistung.vorschau');
         Route::patch('/rechnungen/einzelleistung/{einsatz}', [RechnungenController::class, 'einzelleistungAktualisieren'])->name('rechnungen.einzelleistung.aktualisieren');
         Route::delete('/rechnungen/einzelleistung/{einsatz}', [RechnungenController::class, 'einzelleistungLoeschen'])->name('rechnungen.einzelleistung.loeschen');
         Route::patch('/rechnungen/{rechnung}/status', [RechnungenController::class, 'statusUpdate'])->name('rechnungen.status');
+        Route::patch('/rechnungen/{rechnung}/bezahlt-am', [RechnungenController::class, 'bezahltAmUpdate'])->name('rechnungen.bezahlt-am');
         Route::patch('/rechnungen/positionen/{position}', [RechnungenController::class, 'positionUpdate'])->name('rechnungen.position.update');
         Route::get('/rechnungen/{rechnung}/xml',        [RechnungenController::class, 'xmlExport'])->name('rechnungen.xml');
         Route::get('/rechnungen/{rechnung}/pdf',        [RechnungenController::class, 'pdfExport'])->name('rechnungen.pdf');
