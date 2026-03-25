@@ -209,8 +209,14 @@
             @if($org->logo_pfad)
             <div style="margin-bottom: 1rem;">
                 <div class="feld-label">Aktuelles Logo</div>
-                <img src="{{ asset($org->logo_pfad) }}" alt="Logo"
-                    style="max-height: 48px; max-width: 200px; object-fit: contain; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.5rem; background: #fff; margin-top: 0.375rem; display: block;">
+                <div style="display:flex; align-items:center; gap:1rem; margin-top:0.375rem;">
+                    <img src="{{ asset($org->logo_pfad) }}" alt="Logo"
+                        style="max-height: 48px; max-width: 200px; object-fit: contain; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.5rem; background: #fff; display: block;">
+                    <form method="POST" action="{{ route('firma.logo.loeschen') }}" onsubmit="return confirm('Logo wirklich löschen?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-gefahr" style="font-size:.8rem; padding:.25rem .6rem;">✕ Logo löschen</button>
+                    </form>
+                </div>
             </div>
             @endif
 

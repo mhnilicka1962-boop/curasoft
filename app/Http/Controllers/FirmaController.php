@@ -72,6 +72,9 @@ class FirmaController extends Controller
         if ($request->hasFile('logo')) {
             $file      = $request->file('logo');
             $dateiname = 'logo.' . $file->getClientOriginalExtension();
+            if (!is_dir(public_path('uploads'))) {
+                mkdir(public_path('uploads'), 0755, true);
+            }
             $file->move(public_path('uploads'), $dateiname);
             $updates['logo_pfad'] = 'uploads/' . $dateiname;
         }
@@ -170,6 +173,17 @@ class FirmaController extends Controller
             return back()->with('erfolg', 'Bexio-Verbindung OK: ' . ($result['info'] ?? ''));
         }
         return back()->with('fehler', 'Bexio-Verbindung fehlgeschlagen: ' . ($result['fehler'] ?? 'Unbekannter Fehler'));
+    }
+
+    /** Logo löschen */
+    public function logoLoeschen()
+    {
+        $org = $this->org();
+        if ($org->logo_pfad && file_exists(public_path($org->logo_pfad))) {
+            unlink(public_path($org->logo_pfad));
+        }
+        $org->update(['logo_pfad' => null]);
+        return back()->with('erfolg', 'Logo wurde gelöscht.');
     }
 
     /** Kanton aus Org entfernen */

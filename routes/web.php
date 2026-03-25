@@ -380,6 +380,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/firma', [FirmaController::class, 'update'])->name('firma.update');
         Route::post('/firma/regionen', [FirmaController::class, 'regionSpeichern'])->name('firma.region.speichern');
         Route::delete('/firma/regionen/{region}', [FirmaController::class, 'regionEntfernen'])->name('firma.region.entfernen');
+        Route::delete('/firma/logo', [FirmaController::class, 'logoLoeschen'])->name('firma.logo.loeschen');
         Route::post('/firma/bexio', [FirmaController::class, 'bexioSpeichern'])->name('firma.bexio.speichern');
         Route::get('/firma/bexio/testen', [FirmaController::class, 'bexioTesten'])->name('firma.bexio.testen');
 
