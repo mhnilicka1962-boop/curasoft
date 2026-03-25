@@ -287,7 +287,7 @@ class PersonalabrechnungController extends Controller
         $suche = trim($request->input('suche', '')) ?: null;
         [$von, $bis] = $this->vonBis($jahr, $monat);
 
-        $mitarbeiter = $this->mitarbeiterMitStats($von, $bis, $suche)->filter(fn($b) => $b->stat_anzahl > 0 && $b->email_privat);
+        $mitarbeiter = $this->mitarbeiterMitStats($von, $bis, $suche)->filter(fn($b) => ($b->stat_plan_min > 0 || $b->stat_ist_min > 0) && $b->email_privat);
 
         if ($mitarbeiter->isEmpty()) {
             return back()->with('fehler', 'Keine Mitarbeitenden mit Einsätzen und hinterlegter E-Mail gefunden.');
@@ -319,7 +319,7 @@ class PersonalabrechnungController extends Controller
         $suche = trim($request->input('suche', '')) ?: null;
         [$von, $bis] = $this->vonBis($jahr, $monat);
 
-        $mitarbeiter = $this->mitarbeiterMitStats($von, $bis, $suche)->filter(fn($b) => $b->stat_anzahl > 0);
+        $mitarbeiter = $this->mitarbeiterMitStats($von, $bis, $suche)->filter(fn($b) => $b->stat_plan_min > 0 || $b->stat_ist_min > 0);
 
         $monatStr = $jahr . '-' . str_pad($monat, 2, '0', STR_PAD_LEFT);
         $filename = 'personalabrechnung_alle_' . $monatStr . '.csv';
@@ -395,7 +395,7 @@ class PersonalabrechnungController extends Controller
         $suche = trim($request->input('suche', '')) ?: null;
         [$von, $bis] = $this->vonBis($jahr, $monat);
 
-        $mitarbeiter = $this->mitarbeiterMitStats($von, $bis, $suche)->filter(fn($b) => $b->stat_anzahl > 0);
+        $mitarbeiter = $this->mitarbeiterMitStats($von, $bis, $suche)->filter(fn($b) => $b->stat_plan_min > 0 || $b->stat_ist_min > 0);
 
         if ($mitarbeiter->isEmpty()) {
             return back()->with('fehler', 'Keine Mitarbeitenden mit Einsätzen gefunden.');
