@@ -40,13 +40,13 @@
         <a href="{{ route('personalabrechnung.index') }}" class="btn btn-sekundaer">Reset</a>
         <a href="{{ route('personalabrechnung.sammel-csv', ['jahr' => $jahr, 'monat' => $monat, 'suche' => $suche]) }}" class="btn btn-sekundaer">↓ Alle CSV</a>
         <a href="{{ route('personalabrechnung.sammel-pdf', ['jahr' => $jahr, 'monat' => $monat, 'suche' => $suche]) }}" class="btn btn-sekundaer">↓ Alle PDF</a>
-        <form method="POST" action="{{ route('personalabrechnung.sammel-mail') }}" style="display:inline;">
-            @csrf
-            <input type="hidden" name="jahr" value="{{ $jahr }}">
-            <input type="hidden" name="monat" value="{{ $monat }}">
-            <input type="hidden" name="suche" value="{{ $suche }}">
-            <button type="submit" class="btn btn-sekundaer" onclick="return confirm('Zeitnachweis an alle Mitarbeitenden mit hinterlegter privater E-Mail senden?')">✉ Alle mailen</button>
-        </form>
+    </form>
+    <form method="POST" action="{{ route('personalabrechnung.sammel-mail') }}" style="display:inline;">
+        @csrf
+        <input type="hidden" name="jahr" value="{{ $jahr }}">
+        <input type="hidden" name="monat" value="{{ $monat }}">
+        <input type="hidden" name="suche" value="{{ $suche }}">
+        <button type="submit" class="btn btn-sekundaer" onclick="return confirm('Zeitnachweis an alle Mitarbeitenden mit hinterlegter privater E-Mail senden?')">✉ Alle mailen</button>
     </form>
     <span class="text-hell text-klein">{{ $von->format('d.m.Y') }} – {{ $bis->format('d.m.Y') }}</span>
 </div>
