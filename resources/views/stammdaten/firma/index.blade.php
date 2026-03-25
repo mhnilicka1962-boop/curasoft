@@ -210,7 +210,7 @@
             <div style="margin-bottom: 1rem;">
                 <div class="feld-label">Aktuelles Logo</div>
                 <div style="display:flex; align-items:center; gap:1rem; margin-top:0.375rem;">
-                    <img src="{{ asset($org->logo_pfad) }}" alt="Logo"
+                    <img src="{{ asset($org->logo_pfad) }}?v={{ filemtime(public_path($org->logo_pfad)) }}" alt="Logo"
                         style="max-height: 48px; max-width: 200px; object-fit: contain; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.5rem; background: #fff; display: block;">
                     <button type="submit" form="logo-delete-form" class="btn btn-gefahr" style="font-size:.8rem; padding:.25rem .6rem;" onclick="return confirm('Logo wirklich löschen?')">✕ Logo löschen</button>
                 </div>
