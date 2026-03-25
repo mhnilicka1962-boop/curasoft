@@ -109,7 +109,7 @@
                 @foreach($mitarbeiter as $ma)
                 <tr style="{{ $ma->stat_anzahl === 0 ? 'opacity:.5;' : '' }}">
                     <td>
-                        <div class="text-fett">{{ $ma->vorname }} {{ $ma->nachname }}</div>
+                        <a href="{{ route('mitarbeiter.show', $ma->id) }}" class="link-gedaempt text-fett">{{ $ma->vorname }} {{ $ma->nachname }}</a>
                         <div class="text-mini text-hell mobile-meta">
                             {{ ucfirst($ma->rolle) }}
                             @if($ma->pensum) · {{ $ma->pensum }}% @endif
