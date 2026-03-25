@@ -106,5 +106,7 @@ return [
     'url'                  => ':attribute muss eine gültige URL sein.',
     'uuid'                 => ':attribute muss eine gültige UUID sein.',
 
-    'attributes' => [],
+    'attributes' => [
+        'region_id' => 'Kanton',
+    ],
 ];

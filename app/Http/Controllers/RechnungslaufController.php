@@ -30,12 +30,14 @@ class RechnungslaufController extends Controller
 
     public function index(Request $request)
     {
-        $jahr = $request->input('jahr');
+        $jahr  = $request->input('jahr');
+        $monat = $request->input('monat');
 
         $laeufe = Rechnungslauf::where('organisation_id', $this->orgId())
             ->with('ersteller')
             ->withSum('rechnungen', 'betrag_total')
-            ->when($jahr, fn($q) => $q->whereYear('periode_von', $jahr))
+            ->when($jahr,  fn($q) => $q->whereYear('periode_von', $jahr))
+            ->when($monat, fn($q) => $q->whereMonth('periode_von', $monat))
             ->orderByDesc('id')
             ->paginate(20)
             ->withQueryString();
@@ -47,7 +49,7 @@ class RechnungslaufController extends Controller
             ->orderByDesc('jahr')
             ->pluck('jahr');
 
-        return view('rechnungen.lauf.index', compact('laeufe', 'jahre', 'jahr'));
+        return view('rechnungen.lauf.index', compact('laeufe', 'jahre', 'jahr', 'monat'));
     }
 
     public function vorschauPdf(Request $request)
@@ -1063,7 +1065,14 @@ class RechnungslaufController extends Controller
 
         $bereitsVerrechnet = (clone $basis)->where('verrechnet', true)->count();
         if ($bereitsVerrechnet === $total) {
-            return "Alle {$bereitsVerrechnet} Einsätze bereits verrechnet (anderer Lauf?)";
+            $einsatzIds = (clone $basis)->where('verrechnet', true)->pluck('id');
+            $laufId = \DB::table('rechnungs_positionen')
+                ->join('rechnungen', 'rechnungen.id', '=', 'rechnungs_positionen.rechnung_id')
+                ->whereIn('rechnungs_positionen.einsatz_id', $einsatzIds)
+                ->whereNotNull('rechnungen.rechnungslauf_id')
+                ->value('rechnungen.rechnungslauf_id');
+            $laufHinweis = $laufId ? " (Lauf #{$laufId})" : "";
+            return "Alle {$bereitsVerrechnet} Einsätze bereits verrechnet{$laufHinweis}";
         }
         if ($bereitsVerrechnet > 0) {
             return "{$bereitsVerrechnet} von {$total} Einsätzen bereits verrechnet";

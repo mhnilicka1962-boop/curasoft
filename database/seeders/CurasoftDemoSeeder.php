@@ -18,7 +18,7 @@ use Illuminate\Support\Str;
  *   Keller    (BE): Hauswirtschaft Di/Do + Grundpflege Mo/Mi/Fr, Peter
  *   Gerber    (BE): Grundpflege Mo–Fr, Angehörigenpflege Ruth
  *
- * Enthält: einsatz_aktivitaeten, Touren, Rapporte, 3 Rechnungsläufe.
+ * Enthält: einsatz_aktivitaeten, Touren, Rapporte, 4 Rechnungsläufe.
  * Idempotent: kann beliebig oft ausgeführt werden.
  */
 class CurasoftDemoSeeder extends Seeder
@@ -66,8 +66,11 @@ class CurasoftDemoSeeder extends Seeder
             $this->rechnungslaeufe();
         });
 
+        $klienten  = DB::table('klienten')->where('organisation_id', $this->orgId)->count();
+        $mitarbeit = DB::table('benutzer')->where('organisation_id', $this->orgId)->count();
+        $laeufe    = DB::table('rechnungslaeufe')->where('organisation_id', $this->orgId)->count();
         $this->command->info('CurasoftDemoSeeder abgeschlossen.');
-        $this->command->info('  5 Klienten · 5 Mitarbeiter · 3 Rechnungsläufe · mehrere Leistungsarten');
+        $this->command->info("  {$klienten} Klienten · {$mitarbeit} Mitarbeiter · {$laeufe} Rechnungsläufe · mehrere Leistungsarten");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -1038,6 +1041,12 @@ class CurasoftDemoSeeder extends Seeder
 
         $perioden = [
             [
+                'von'             => $heute->copy()->startOfMonth()->subMonths(4),
+                'bis'             => $heute->copy()->startOfMonth()->subMonths(4)->endOfMonth(),
+                'lauf_status'     => 'abgeschlossen',
+                'rechnung_status' => 'bezahlt',
+            ],
+            [
                 'von'             => $heute->copy()->startOfMonth()->subMonths(3),
                 'bis'             => $heute->copy()->startOfMonth()->subMonths(3)->endOfMonth(),
                 'lauf_status'     => 'abgeschlossen',
@@ -1150,9 +1159,10 @@ class CurasoftDemoSeeder extends Seeder
                         ->first();
                 }
 
-                $lr      = $lrCache[$lrKey];
-                $ansatz  = $lr ? (float) $lr->ansatz : 63.0;
-                $kkasse  = $lr ? (float) $lr->kkasse : 50.40;
+                $lr = $lrCache[$lrKey];
+                if (!$lr) throw new \RuntimeException("Keine Leistungsregion für leistungsart_id={$einsatz->leistungsart_id}, region_id={$klient->region_id}");
+                $ansatz = (float) $lr->ansatz;
+                $kkasse = (float) $lr->kkasse;
                 $minuten = $einsatz->minuten ?? 0;
                 $bPat    = round($minuten / 60.0 * max(0, $ansatz - $kkasse), 2);
                 $bKk     = round($minuten / 60.0 * $kkasse, 2);

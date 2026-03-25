@@ -11,13 +11,19 @@
 
 {{-- Filter --}}
 <form method="GET" action="{{ route('rechnungslauf.index') }}" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;">
-    <select name="jahr" class="feld" style="width: 130px;" onchange="this.form.submit()">
+    <select name="jahr" class="feld" style="width: 100px;" onchange="this.form.submit()">
         <option value="">Alle Jahre</option>
         @foreach($jahre as $j)
             <option value="{{ $j }}" @selected($j == $jahr)>{{ $j }}</option>
         @endforeach
     </select>
-    @if($jahr)
+    <select name="monat" class="feld" style="width: 120px;" onchange="this.form.submit()">
+        <option value="">Alle Monate</option>
+        @foreach(['1'=>'Januar','2'=>'Februar','3'=>'März','4'=>'April','5'=>'Mai','6'=>'Juni','7'=>'Juli','8'=>'August','9'=>'September','10'=>'Oktober','11'=>'November','12'=>'Dezember'] as $m => $name)
+            <option value="{{ $m }}" @selected($m == $monat)>{{ $name }}</option>
+        @endforeach
+    </select>
+    @if($jahr || $monat)
         <a href="{{ route('rechnungslauf.index') }}" class="btn btn-sekundaer">× Zurücksetzen</a>
     @endif
 </form>
