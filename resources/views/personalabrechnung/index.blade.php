@@ -106,8 +106,8 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($mitarbeiter as $ma)
-                <tr style="{{ $ma->stat_anzahl === 0 ? 'opacity:.5;' : '' }}">
+                @foreach($mitarbeiter->filter(fn($ma) => $ma->stat_plan_min > 0 || $ma->stat_ist_min > 0) as $ma)
+                <tr>
                     <td>
                         <a href="{{ route('mitarbeiter.show', $ma->id) }}" class="link-gedaempt text-fett">{{ $ma->vorname }} {{ $ma->nachname }}</a>
                         <div class="text-mini text-hell mobile-meta">
