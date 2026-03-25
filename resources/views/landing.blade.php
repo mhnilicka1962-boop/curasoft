@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CuraSoft ist die Spitex-Software für alle Kantone der Schweiz. Automatische Kantonstariife, XML 450.100 Export, Einsatzplanung. Ab CHF 150/Monat. Jetzt testen.">
-    <meta name="keywords" content="Spitex Software Schweiz, Spitex Abrechnung, KVG Abrechnung, XML 450.100, Spitex Einsatzplanung, Spitex Klientenverwaltung">
+    <meta name="description" content="CuraSoft ist die Spitex-Software für alle Kantone der Schweiz. Automatische Kantonstarife, direkte KK- und Gemeindeabrechnung, Einsatzplanung. Ab CHF 150/Monat. Jetzt testen.">
+    <meta name="keywords" content="Spitex Software Schweiz, Spitex Abrechnung, KVG Abrechnung, Spitex Einsatzplanung, Spitex Klientenverwaltung">
     <title>CuraSoft — Spitex-Software für die Schweiz | Alle 26 Kantone</title>
 
     {{-- ── SEO: Canonical + Robots ──────────────────────────────────────── --}}
@@ -16,13 +16,13 @@
     <meta property="og:locale"      content="de_CH">
     <meta property="og:url"         content="https://curasoft.ch/">
     <meta property="og:title"       content="CuraSoft — Die Spitex-Software für die ganze Schweiz">
-    <meta property="og:description" content="Kantonsübergreifende Einsatzplanung, automatische KK-Abrechnung nach XML 450.100, Bexio-Integration — für alle Spitex-Dienste in der Schweiz.">
+    <meta property="og:description" content="Kantonsübergreifende Einsatzplanung, direkte KK- und Gemeindeabrechnung, Bexio-Integration — für alle Spitex-Dienste in der Schweiz.">
     <meta property="og:image"       content="https://curasoft.ch/og-image.png">
 
     {{-- ── Twitter Card ──────────────────────────────────────────────────── --}}
     <meta name="twitter:card"        content="summary_large_image">
     <meta name="twitter:title"       content="CuraSoft — Die Spitex-Software für die ganze Schweiz">
-    <meta name="twitter:description" content="Kantonsübergreifende Einsatzplanung, KK-Abrechnung XML 450.100, Bexio-Integration — einfach, sicher, schweizweit.">
+    <meta name="twitter:description" content="Kantonsübergreifende Einsatzplanung, direkte KK- und Gemeindeabrechnung, Bexio-Integration — einfach, sicher, schweizweit.">
     <meta name="twitter:image"       content="https://curasoft.ch/og-image.png">
 
     {{-- ── Schema.org Structured Data ──────────────────────────────────── --}}
@@ -36,7 +36,7 @@
                 "@id": "https://curasoft.ch/#organization",
                 "name": "CuraSoft",
                 "url": "https://curasoft.ch",
-                "description": "CuraSoft ist die moderne Spitex-Software für alle 26 Schweizer Kantone — mit Einsatzplanung, KK-Abrechnung nach XML 450.100 und Bexio-Integration.",
+                "description": "CuraSoft ist die moderne Spitex-Software für alle 26 Schweizer Kantone — mit Einsatzplanung, direkter KK- und Gemeindeabrechnung und Bexio-Integration.",
                 "email": "mhn@itjob.ch",
                 "address": {
                     "@type": "PostalAddress",
@@ -56,7 +56,7 @@
                 "name": "CuraSoft",
                 "applicationCategory": "BusinessApplication",
                 "operatingSystem": "Web",
-                "description": "Spitex-Verwaltungssoftware für Schweizer Spitex-Dienste: Einsatzplanung, Klientenverwaltung, KVG-Abrechnung, XML 450.100 Export, Bexio-Integration, Face ID Login.",
+                "description": "Spitex-Verwaltungssoftware für Schweizer Spitex-Dienste: Einsatzplanung, Klientenverwaltung, direkte KK- und Gemeindeabrechnung, Bexio-Integration, Face ID Login.",
                 "url": "https://curasoft.ch",
                 "offers": [
                     {
@@ -754,8 +754,8 @@
         </div>
         <h1>Die Spitex-Software<br><span>für die ganze Schweiz</span></h1>
         <p class="hero-lead">
-            Einsatzplanung, Klientenverwaltung und KK-Abrechnung — mit automatischen Kantonstarifen,
-            XML 450.100-Export und Bexio-Integration. Einfach. Sicher. Schweizweit.
+            Einsatzplanung, Klientenverwaltung, Verrechnung — mit automatischen Kantonstarifen
+            und Bexio-Integration. Einfach. Sicher. Schweizweit.
         </p>
         <div class="hero-cta">
             <a href="#kontakt" class="btn-primaer">
@@ -817,7 +817,7 @@
             <div class="problem-card">
                 <div class="problem-icon">🧾</div>
                 <h3>KK-Abrechnung als Zeitfresser</h3>
-                <p>XML 450.100 manuell erstellen, Übermittlung per Post oder Portal — Stunden pro Woche für Verwaltung.</p>
+                <p>Rechnungen manuell erstellen, Übermittlung per Post oder Portal — Stunden pro Woche für reine Verwaltung.</p>
             </div>
             <div class="problem-card">
                 <div class="problem-icon">📋</div>
@@ -854,8 +854,8 @@
             <div class="feature-card highlight">
                 <span class="feature-tag">Kernfunktion</span>
                 <div class="feature-icon">📄</div>
-                <h3>XML 450.100 Export</h3>
-                <p>Rechnungen an Krankenkassen auf Knopfdruck als XML 450.100 exportieren — der Schweizer Standard für KVG-Abrechnungen.</p>
+                <h3>Direkte KK- & Gemeindeabrechnung</h3>
+                <p>Spitex verrechnet KK und Gemeinde direkt — Rechnungen auf Knopfdruck, automatische Tarifaufteilung garant/payant. XML 450.100 via MediData folgt.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📅</div>
@@ -988,19 +988,19 @@
         <div class="schnitt-grid">
             <div class="schnitt-card">
                 <div class="schnitt-logo">
-                    <span class="schnitt-logo-text" style="color: var(--blau);">XML 450.100</span>
+                    <span class="schnitt-logo-text" style="color: var(--blau);">KK + Gemeinde</span>
                 </div>
-                <h3>Krankenkassen-Abrechnung</h3>
-                <p>Export im Schweizer Standard XML 450.100 für KVG-Leistungen — kompatibel mit allen Schweizer Krankenkassen.</p>
+                <h3>Direkte Abrechnung</h3>
+                <p>Spitex verrechnet KK und Gemeinde direkt — automatische Tarifaufteilung garant/payant, PDF-Rechnungen auf Knopfdruck.</p>
                 <span class="schnitt-badge">✓ Verfügbar</span>
             </div>
             <div class="schnitt-card">
                 <div class="schnitt-logo">
                     <span class="schnitt-logo-text" style="color: #6366f1;">MediData</span>
                 </div>
-                <h3>Elektronische Übermittlung</h3>
-                <p>Direkte Übermittlung an Krankenkassen via MediData — dem Schweizer Standard-Übermittlungskanal.</p>
-                <span class="schnitt-badge" style="background: #fefce8; color: #ca8a04; border-color: #fef08a;">→ In Entwicklung</span>
+                <h3>XML 450.100 via MediData</h3>
+                <p>Elektronische Übermittlung an Krankenkassen via MediData im Standard XML 450.100.</p>
+                <span class="schnitt-badge" style="background: #fefce8; color: #ca8a04; border-color: #fef08a;">→ Folgt</span>
             </div>
             <div class="schnitt-card">
                 <div class="schnitt-logo">
@@ -1147,7 +1147,7 @@
             <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                 <div style="color: #f59e0b; font-size: 1.125rem; margin-bottom: 1rem;">★★★★★</div>
                 <p style="font-size: 0.9375rem; color: #374151; line-height: 1.7; margin-bottom: 1.25rem;">
-                    „Der XML 450.100 Export läuft auf Knopfdruck. Wir sparen mindestens 3 Stunden pro Woche bei der Krankenkassen-Abrechnung."
+                    „Die Abrechnung läuft auf Knopfdruck — KK und Gemeinde direkt, Tarifaufteilung automatisch. Wir sparen mindestens 3 Stunden pro Woche."
                 </p>
                 <p style="font-size: 0.8125rem; font-weight: 700; color: #111827;">Geschäftsführerin, private Spitex ZH</p>
             </div>
@@ -1289,7 +1289,7 @@
                 </button>
                 <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                     <div class="faq-antwort-inner" itemprop="text">
-                        Sie starten am Monatsende einen Rechnungslauf — CuraSoft berechnet alle Einsätze, wendet die korrekten Kantonstariife an und erstellt Rechnungen für Patienten und Krankenkassen. Jede Rechnung kann als XML 450.100 exportiert werden — dem Schweizer Standard für die elektronische KVG-Abrechnung, kompatibel mit allen Krankenkassen. Auf Knopfdruck, ohne manuelle Nachbearbeitung.
+                        Sie starten am Monatsende einen Rechnungslauf — CuraSoft berechnet alle Einsätze, wendet die korrekten Kantonstariife an und erstellt Rechnungen für Patienten, Krankenkassen und Gemeinden. Die Tarifaufteilung garant/payant erfolgt automatisch. Rechnungen werden als PDF erstellt und können per Post, E-Mail oder manuell versandt werden. XML 450.100 via MediData folgt.
                     </div>
                 </div>
             </div>

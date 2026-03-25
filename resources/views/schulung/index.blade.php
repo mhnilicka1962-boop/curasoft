@@ -160,18 +160,6 @@
 
 </div>
 
-{{-- Live-Schulung --}}
-<div class="karte" style="border-left: 4px solid var(--cs-warnung); margin-bottom: 1.25rem;">
-    <div class="abschnitt-label" style="margin-bottom: 0.5rem;">Live-Schulung buchen (60 Min. via Zoom)</div>
-    <div class="text-klein" style="color: var(--cs-text-hell); line-height: 1.6; margin-bottom: 0.75rem;">
-        Für neue Kunden empfehlen wir eine <strong>kostenlose Einführungsschulung</strong> via Zoom — 60 Minuten, alles live im System.
-        Themen: Ersteinrichtung · Erster Klient · Erster Einsatz · Rechnungslauf · Fragen.
-    </div>
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <a href="mailto:info@curasoft.ch?subject=Schulung%20anfragen" class="btn btn-primaer">Schulung anfragen →</a>
-        <a href="{{ route('hilfe') }}" class="btn btn-sekundaer">Hilfe & Scripts</a>
-    </div>
-</div>
 
 {{-- FAQ --}}
 <div class="karte">
