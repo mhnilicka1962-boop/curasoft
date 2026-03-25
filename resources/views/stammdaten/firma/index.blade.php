@@ -212,10 +212,7 @@
                 <div style="display:flex; align-items:center; gap:1rem; margin-top:0.375rem;">
                     <img src="{{ asset($org->logo_pfad) }}" alt="Logo"
                         style="max-height: 48px; max-width: 200px; object-fit: contain; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.5rem; background: #fff; display: block;">
-                    <form method="POST" action="{{ route('firma.logo.loeschen') }}" onsubmit="return confirm('Logo wirklich löschen?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-gefahr" style="font-size:.8rem; padding:.25rem .6rem;">✕ Logo löschen</button>
-                    </form>
+                    <button type="submit" form="logo-delete-form" class="btn btn-gefahr" style="font-size:.8rem; padding:.25rem .6rem;" onclick="return confirm('Logo wirklich löschen?')">✕ Logo löschen</button>
                 </div>
             </div>
             @endif
@@ -316,6 +313,9 @@
         <div style="margin-bottom: 2rem;">
             <button type="submit" class="btn btn-primaer">Firmadaten speichern</button>
         </div>
+    </form>
+    <form id="logo-delete-form" method="POST" action="{{ route('firma.logo.loeschen') }}">
+        @csrf @method('DELETE')
     </form>
 
     <script>
