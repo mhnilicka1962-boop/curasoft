@@ -1024,35 +1024,46 @@
         <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
 
             {{-- Pflegender Angehöriger --}}
-            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Pflegender Angehöriger</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.625rem;">
+                <div class="abschnitt-label" style="margin-bottom: 0;">Pflegender Angehöriger</div>
+                @if(auth()->user()->rolle === 'admin')
+                <button type="button" onclick="oeffneAPKlientModal()" class="btn btn-primaer" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">+ Neu</button>
+                @endif
+            </div>
             @if($pflegendeAngehoerige->isNotEmpty())
                 @foreach($pflegendeAngehoerige as $pa)
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; background: var(--cs-hintergrund); border-radius: 6px; margin-bottom: 0.375rem;">
                     <div>
-                        <span class="text-fett" style="font-size: 0.875rem;">{{ $pa->benutzer->vorname }} {{ $pa->benutzer->nachname }}</span>
+                        <a href="{{ route('mitarbeiter.show', $pa->benutzer_id) }}" class="link-primaer text-fett" style="font-size: 0.875rem;">{{ $pa->benutzer->vorname }} {{ $pa->benutzer->nachname }}</a>
                         <span class="badge badge-info" style="font-size: 0.7rem; margin-left: 0.5rem;">Pflegend</span>
+                        @if($pa->benutzer->telefon)<div class="text-mini text-hell">{{ $pa->benutzer->telefon }}</div>@endif
                     </div>
-                    <form method="POST" action="{{ route('klienten.angehoerig.entfernen', [$klient, $pa]) }}" onsubmit="return confirm('Zuweisung entfernen?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-text-hell); font-size: 0.875rem; padding: 0;">×</button>
-                    </form>
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        <a href="{{ route('einsaetze.create', ['klient_id' => $klient->id, 'benutzer_id' => $pa->benutzer_id]) }}" class="btn btn-sekundaer" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">+ Einsatz</a>
+                        @if(auth()->user()->rolle === 'admin')
+                        <form method="POST" action="{{ route('klienten.angehoerig.entfernen', [$klient, $pa]) }}" onsubmit="return confirm('Zuweisung entfernen?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-text-hell); font-size: 0.875rem; padding: 0;">×</button>
+                        </form>
+                        @endif
+                    </div>
                 </div>
                 @endforeach
             @else
                 <p class="text-klein text-hell" style="margin: 0 0 0.5rem;">Kein pflegender Angehöriger zugewiesen.</p>
             @endif
             @if(auth()->user()->rolle === 'admin' && $mitarbeiter->count())
-            <form method="POST" action="{{ route('klienten.angehoerig.zuweisen', $klient) }}" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <form method="POST" action="{{ route('klienten.angehoerig.zuweisen', $klient) }}" style="display: flex; gap: 0.5rem; margin-top: 0.375rem; margin-bottom: 1rem; flex-wrap: wrap;">
                 @csrf
                 <select name="benutzer_id" class="feld" required style="min-width: 200px; font-size: 0.875rem;">
-                    <option value="">— Person wählen —</option>
+                    <option value="">— Bestehende Person zuweisen —</option>
                     @foreach($mitarbeiter as $m)
                         @if(!$pflegendeAngehoerige->contains('benutzer_id', $m->id))
                         <option value="{{ $m->id }}">{{ $m->nachname }} {{ $m->vorname }}</option>
                         @endif
                     @endforeach
                 </select>
-                <button type="submit" class="btn btn-sekundaer">+ Zuweisen</button>
+                <button type="submit" class="btn btn-sekundaer">Zuweisen</button>
             </form>
             @endif
 
@@ -1682,6 +1693,66 @@ document.addEventListener('keydown', function(e) {
     </div>
 </div>
 
+{{-- Modal: Neuer Angehöriger --}}
+<div id="ap-klient-modal" style="display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.45); overflow-y:auto;">
+    <div style="margin:2rem auto; max-width:560px; background:#fff; border-radius:var(--cs-radius); box-shadow:0 8px 40px rgba(0,0,0,.18); padding:1.5rem;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem;">
+            <div style="font-size:1rem; font-weight:700;">Neuer Angehöriger für {{ $klient->vorname }} {{ $klient->nachname }}</div>
+            <button onclick="schliesseAPKlientModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--cs-text-hell); line-height:1;">×</button>
+        </div>
+        @if($errors->any() && old('_redirect') === 'klient_angehoerig')
+        <div class="fehler-box" style="margin-bottom:1rem;">
+            <ul style="margin:0; padding-left:1.25rem;">
+                @foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach
+            </ul>
+        </div>
+        @endif
+        <form method="POST" action="{{ route('mitarbeiter.store') }}">
+            @csrf
+            <input type="hidden" name="anstellungsart" value="angehoerig">
+            <input type="hidden" name="rolle" value="pflege">
+            <input type="hidden" name="klient_id" value="{{ $klient->id }}">
+            <input type="hidden" name="klient_rolle" value="betreuer">
+            <input type="hidden" name="beziehungstyp" value="angehoerig_pflegend">
+            <input type="hidden" name="_redirect" value="klient_angehoerig">
+            <div class="form-grid" style="margin-bottom:0.75rem;">
+                <div>
+                    <label class="feld-label">Anrede</label>
+                    <select name="anrede" class="feld">
+                        <option value="">—</option>
+                        <option value="Herr" {{ old('anrede') === 'Herr' ? 'selected' : '' }}>Herr</option>
+                        <option value="Frau" {{ old('anrede') === 'Frau' ? 'selected' : '' }}>Frau</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="feld-label">Vorname *</label>
+                    <input type="text" name="vorname" class="feld" required value="{{ old('vorname') }}">
+                </div>
+                <div>
+                    <label class="feld-label">Nachname *</label>
+                    <input type="text" name="nachname" class="feld" required value="{{ old('nachname') }}">
+                </div>
+                <div>
+                    <label class="feld-label">E-Mail *</label>
+                    <input type="email" name="email" class="feld" required value="{{ old('email') }}">
+                </div>
+                <div>
+                    <label class="feld-label">Telefon</label>
+                    <input type="text" name="telefon" class="feld" value="{{ old('telefon') }}">
+                </div>
+                <div>
+                    <label class="feld-label">Eintrittsdatum</label>
+                    <input type="date" name="eintrittsdatum" class="feld" value="{{ old('eintrittsdatum') }}">
+                </div>
+            </div>
+            <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                <button type="submit" class="btn btn-primaer">Speichern & Einladen</button>
+                <button type="button" onclick="schliesseAPKlientModal()" class="btn btn-sekundaer">Abbrechen</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function oeffneEinzelleistung(klientId, klientName) {
     document.getElementById('el-titel').textContent = 'Einzelleistung erfassen';
@@ -1709,6 +1780,19 @@ function bearbeiteEinzelleistung(id, datumVon, datumBis, beschreibung, betrag) {
     document.getElementById('el-betrag').value = betrag;
     document.getElementById('popup-einzelleistung-klient').style.display = 'flex';
 }
+</script>
+
+<script>
+function oeffneAPKlientModal() {
+    document.getElementById('ap-klient-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+function schliesseAPKlientModal() {
+    document.getElementById('ap-klient-modal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') schliesseAPKlientModal(); });
+@if($errors->any() && old('_redirect') === 'klient_angehoerig') oeffneAPKlientModal(); @endif
 </script>
 
 </x-layouts.app>

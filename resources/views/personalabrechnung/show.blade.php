@@ -13,7 +13,7 @@
 
 <div class="seiten-kopf">
     <div>
-        <a href="{{ route('personalabrechnung.index', ['monat' => $monat]) }}" class="link-gedaempt">← Personalabrechnung</a>
+        <a href="{{ route('personalabrechnung.index', ['jahr' => $jahr, 'monat' => $monat]) }}" class="link-gedaempt">← Personalabrechnung</a>
         <h1 style="margin-top:.25rem;">{{ $benutzer->vorname }} {{ $benutzer->nachname }}</h1>
         <div class="text-klein text-hell">
             <span class="badge badge-grau">{{ ucfirst($benutzer->rolle) }}</span>
@@ -26,29 +26,30 @@
         </div>
     </div>
     <div style="display:flex; gap:.5rem;">
-        <a href="{{ route('personalabrechnung.pdf', [$benutzer->id, 'monat' => $monat]) }}"
+        <a href="{{ route('personalabrechnung.pdf', [$benutzer->id, 'jahr' => $jahr, 'monat' => $monat]) }}"
            class="btn btn-primaer" target="_blank">
             PDF Zeitnachweis
         </a>
-        <a href="{{ route('personalabrechnung.export', [$benutzer->id, 'monat' => $monat]) }}"
+        <a href="{{ route('personalabrechnung.export', [$benutzer->id, 'jahr' => $jahr, 'monat' => $monat]) }}"
            class="btn btn-sekundaer">
             CSV Export
         </a>
     </div>
 </div>
 
-{{-- Monat-Filter --}}
-<form method="GET" action="{{ route('personalabrechnung.show', $benutzer->id) }}" style="margin-bottom:1.5rem;">
-    <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
-        <select name="monat" class="feld" style="width:auto;" onchange="this.form.submit()">
-            @foreach($monate as $m)
-                <option value="{{ $m }}" {{ $m === $monat ? 'selected' : '' }}>
-                    {{ \Carbon\Carbon::createFromFormat('Y-m', $m)->locale('de')->isoFormat('MMMM YYYY') }}
-                </option>
-            @endforeach
-        </select>
-        <span class="text-hell text-klein">{{ $von->format('d.m.Y') }} – {{ $bis->format('d.m.Y') }}</span>
-    </div>
+{{-- Filter --}}
+<form method="GET" action="{{ route('personalabrechnung.show', $benutzer->id) }}" style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; margin-bottom:1.5rem;">
+    <select name="jahr" class="feld" style="width:90px;" onchange="this.form.submit()">
+        @foreach($jahre as $j)
+            <option value="{{ $j }}" {{ $j === $jahr ? 'selected' : '' }}>{{ $j }}</option>
+        @endforeach
+    </select>
+    <select name="monat" class="feld" style="width:120px;" onchange="this.form.submit()">
+        @foreach(['1'=>'Januar','2'=>'Februar','3'=>'März','4'=>'April','5'=>'Mai','6'=>'Juni','7'=>'Juli','8'=>'August','9'=>'September','10'=>'Oktober','11'=>'November','12'=>'Dezember'] as $m => $name)
+            <option value="{{ $m }}" {{ (int)$m === $monat ? 'selected' : '' }}>{{ $name }}</option>
+        @endforeach
+    </select>
+    <span class="text-hell text-klein">{{ $von->format('d.m.Y') }} – {{ $bis->format('d.m.Y') }}</span>
 </form>
 
 {{-- Zusammenfassung --}}

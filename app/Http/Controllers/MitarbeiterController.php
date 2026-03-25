@@ -114,11 +114,23 @@ class MitarbeiterController extends Controller
             $mailErfolg = false;
         }
 
-        // Klient direkt zuweisen (z.B. aus Angehörigenpflege-Formular)
+        // Qualifikationen + Leistungsarten aus Neuerfassungsformular
+        if ($request->has('qualifikation_ids')) {
+            $benutzer->qualifikationen()->sync($request->input('qualifikation_ids', []));
+        }
+        if ($request->has('leistungsart_ids')) {
+            $benutzer->erlaubteLeistungsarten()->sync($request->input('leistungsart_ids', []));
+        }
+
+        // Klient direkt zuweisen
         if ($request->filled('klient_id')) {
             KlientBenutzer::updateOrCreate(
                 ['klient_id' => $request->klient_id, 'benutzer_id' => $benutzer->id],
-                ['rolle' => 'betreuer', 'beziehungstyp' => 'angehoerig_pflegend', 'aktiv' => true]
+                [
+                    'rolle'           => $request->input('klient_rolle', 'betreuer'),
+                    'beziehungstyp'   => $request->input('beziehungstyp', 'fachperson'),
+                    'aktiv'           => true,
+                ]
             );
         }
 
@@ -128,6 +140,9 @@ class MitarbeiterController extends Controller
 
         if ($request->input('_redirect') === 'angehoerige') {
             return redirect()->route('angehoerigenpflege.index')->with('erfolg', $msg);
+        }
+        if ($request->input('_redirect') === 'klient_angehoerig' && $request->filled('klient_id')) {
+            return redirect()->route('klienten.show', $request->klient_id)->with('erfolg', $msg);
         }
 
         return redirect()->route('mitarbeiter.show', $benutzer)->with('erfolg', $msg);

@@ -337,7 +337,10 @@ Route::middleware('auth')->group(function () {
         Route::patch('/tagespauschalen/{tagespauschale}', [TagespauschaleController::class, 'update'])->name('tagespauschalen.update');
 
         // Personalabrechnung — Übersicht nur admin/buchhaltung
-        Route::get('/personalabrechnung', [PersonalabrechnungController::class, 'index'])->name('personalabrechnung.index');
+        Route::get('/personalabrechnung',              [PersonalabrechnungController::class, 'index'])->name('personalabrechnung.index');
+        Route::get('/personalabrechnung/sammel-csv',   [PersonalabrechnungController::class, 'sammelCsv'])->name('personalabrechnung.sammel-csv');
+        Route::get('/personalabrechnung/sammel-pdf',   [PersonalabrechnungController::class, 'sammelPdf'])->name('personalabrechnung.sammel-pdf');
+        Route::post('/personalabrechnung/sammel-mail', [PersonalabrechnungController::class, 'sammelMail'])->name('personalabrechnung.sammel-mail');
 
         Route::get('/rechnungen/export/csv', [RechnungenController::class, 'csvExport'])->name('rechnungen.csv');
         Route::get('/rechnungen/export/pdf', [RechnungenController::class, 'auswertungPdf'])->name('rechnungen.auswertung-pdf');
@@ -357,9 +360,10 @@ Route::middleware('auth')->group(function () {
     });
 
     // Personalabrechnung Detail — alle eingeloggten (Controller prüft: pflege = nur eigene Daten)
-    Route::get('/personalabrechnung/{benutzer}',        [PersonalabrechnungController::class, 'show'])->name('personalabrechnung.show');
-    Route::get('/personalabrechnung/{benutzer}/export', [PersonalabrechnungController::class, 'exportCsv'])->name('personalabrechnung.export');
-    Route::get('/personalabrechnung/{benutzer}/pdf',    [PersonalabrechnungController::class, 'pdfExport'])->name('personalabrechnung.pdf');
+    Route::get('/personalabrechnung/{benutzer}',         [PersonalabrechnungController::class, 'show'])->name('personalabrechnung.show');
+    Route::get('/personalabrechnung/{benutzer}/export',  [PersonalabrechnungController::class, 'exportCsv'])->name('personalabrechnung.export');
+    Route::get('/personalabrechnung/{benutzer}/pdf',     [PersonalabrechnungController::class, 'pdfExport'])->name('personalabrechnung.pdf');
+    Route::post('/personalabrechnung/{benutzer}/mail',   [PersonalabrechnungController::class, 'mailVersand'])->name('personalabrechnung.mail');
 
     // Stammdaten + Audit — nur Admin
     Route::middleware('rolle:admin')->group(function () {

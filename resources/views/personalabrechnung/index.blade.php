@@ -18,23 +18,46 @@
     }
 @endphp
 
-<div class="seiten-kopf">
+<div class="seiten-kopf" style="margin-bottom: 1rem;">
     <h1>Personalabrechnung</h1>
 </div>
 
-{{-- Monat-Filter --}}
-<form method="GET" action="{{ route('personalabrechnung.index') }}" style="margin-bottom: 1.5rem;">
-    <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
-        <select name="monat" class="feld" style="width:auto;" onchange="this.form.submit()">
-            @foreach($monate as $m)
-                <option value="{{ $m }}" {{ $m === $monat ? 'selected' : '' }}>
-                    {{ \Carbon\Carbon::createFromFormat('Y-m', $m)->locale('de')->isoFormat('MMMM YYYY') }}
-                </option>
+{{-- Filter + Export --}}
+<div class="seiten-kopf" style="margin-bottom: 1.5rem;">
+    <form id="filter-form" method="GET" action="{{ route('personalabrechnung.index') }}" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+        <input type="text" name="suche" class="feld" style="width:180px;" placeholder="Name…" value="{{ $suche }}">
+        <select name="jahr" class="feld" style="width:90px;" onchange="this.form.submit()">
+            @foreach($jahre as $j)
+                <option value="{{ $j }}" {{ $j === $jahr ? 'selected' : '' }}>{{ $j }}</option>
             @endforeach
         </select>
-        <span class="text-hell text-klein">{{ $von->format('d.m.Y') }} – {{ $bis->format('d.m.Y') }}</span>
-    </div>
-</form>
+        <select name="monat" class="feld" style="width:120px;" onchange="this.form.submit()">
+            @foreach(['1'=>'Januar','2'=>'Februar','3'=>'März','4'=>'April','5'=>'Mai','6'=>'Juni','7'=>'Juli','8'=>'August','9'=>'September','10'=>'Oktober','11'=>'November','12'=>'Dezember'] as $m => $name)
+                <option value="{{ $m }}" {{ (int)$m === $monat ? 'selected' : '' }}>{{ $name }}</option>
+            @endforeach
+        </select>
+        <button type="submit" class="btn btn-sekundaer">Suchen</button>
+        <a href="{{ route('personalabrechnung.index') }}" class="btn btn-sekundaer">Reset</a>
+        <a href="{{ route('personalabrechnung.sammel-csv', ['jahr' => $jahr, 'monat' => $monat, 'suche' => $suche]) }}" class="btn btn-sekundaer">↓ Alle CSV</a>
+        <a href="{{ route('personalabrechnung.sammel-pdf', ['jahr' => $jahr, 'monat' => $monat, 'suche' => $suche]) }}" class="btn btn-sekundaer">↓ Alle PDF</a>
+        <form method="POST" action="{{ route('personalabrechnung.sammel-mail') }}" style="display:inline;">
+            @csrf
+            <input type="hidden" name="jahr" value="{{ $jahr }}">
+            <input type="hidden" name="monat" value="{{ $monat }}">
+            <input type="hidden" name="suche" value="{{ $suche }}">
+            <button type="submit" class="btn btn-sekundaer" onclick="return confirm('Zeitnachweis an alle Mitarbeitenden mit hinterlegter privater E-Mail senden?')">✉ Alle mailen</button>
+        </form>
+    </form>
+    <span class="text-hell text-klein">{{ $von->format('d.m.Y') }} – {{ $bis->format('d.m.Y') }}</span>
+</div>
+
+{{-- Flash --}}
+@if(session('erfolg'))
+    <div class="badge badge-erfolg" style="display:block; padding:.6rem 1rem; margin-bottom:1rem;">{{ session('erfolg') }}</div>
+@endif
+@if(session('fehler'))
+    <div class="badge badge-fehler" style="display:block; padding:.6rem 1rem; margin-bottom:1rem;">{{ session('fehler') }}</div>
+@endif
 
 {{-- Zusammenfassung --}}
 @php
@@ -129,11 +152,21 @@
                             <span class="text-hell">—</span>
                         @endif
                     </td>
-                    <td>
-                        <a href="{{ route('personalabrechnung.show', [$ma->id, 'monat' => $monat]) }}"
+                    <td style="white-space:nowrap;">
+                        <a href="{{ route('personalabrechnung.show', [$ma->id, 'jahr' => $jahr, 'monat' => $monat]) }}"
                            class="btn btn-sekundaer" style="font-size:.8rem; padding:.25rem .6rem;">
                             Detail →
                         </a>
+                        @if($ma->email_privat)
+                            <form method="POST" action="{{ route('personalabrechnung.mail', $ma->id) }}" style="display:inline;">
+                                @csrf
+                                <input type="hidden" name="jahr" value="{{ $jahr }}">
+                                <input type="hidden" name="monat" value="{{ $monat }}">
+                                <button type="submit" class="btn btn-sekundaer" style="font-size:.8rem; padding:.25rem .6rem;" title="{{ $ma->email_privat }}">✉</button>
+                            </form>
+                        @else
+                            <span class="text-hell" style="font-size:.8rem;" title="Keine private E-Mail hinterlegt">✉ —</span>
+                        @endif
                     </td>
                 </tr>
                 @endforeach
