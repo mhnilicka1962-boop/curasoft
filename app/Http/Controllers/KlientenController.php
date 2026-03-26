@@ -338,11 +338,21 @@ class KlientenController extends Controller
     {
         $this->autorisiereZugriff($klient);
 
-        // Nicht löschen — nur inaktivieren (medizinische Daten)
-        $klient->update(['aktiv' => false]);
+        $blocker = [];
+        if ($klient->einsaetze()->exists())    $blocker[] = $klient->einsaetze()->count() . ' Einsatz/Einsätze';
+        if ($klient->rechnungen()->exists())   $blocker[] = $klient->rechnungen()->count() . ' Rechnung(en)';
+        if ($klient->rapporte()->exists())     $blocker[] = $klient->rapporte()->count() . ' Rapport(e)';
+
+        if (!empty($blocker)) {
+            return back()->with('fehler',
+                'Klient kann nicht gelöscht werden — verknüpfte Daten: ' . implode(', ', $blocker) . '.');
+        }
+
+        $name = $klient->vorname . ' ' . $klient->nachname;
+        $klient->delete();
 
         return redirect()->route('klienten.index')
-            ->with('erfolg', 'Klient wurde deaktiviert.');
+            ->with('erfolg', 'Klient «' . $name . '» wurde gelöscht.');
     }
 
     public function qr(Klient $klient)

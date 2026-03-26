@@ -39,6 +39,15 @@ class TagespauschaleController extends Controller
             ->where('aktiv', true)->orderBy('nachname')->get();
 
         $selectedKlientId  = $request->get('klient_id');
+
+        if ($selectedKlientId) {
+            $klient = \App\Models\Klient::find($selectedKlientId);
+            if ($klient && !$klient->zustaendig_id) {
+                return redirect()->route('tagespauschalen.index')
+                    ->with('fehler', 'Kein Zuständiger auf dem Klienten «' . $klient->vorname . ' ' . $klient->nachname . '» gesetzt — bitte zuerst in den Klient-Stammdaten zuweisen.');
+            }
+        }
+
         $istTiersPayant    = \App\Models\Organisation::find($this->orgId())?->abrechnungslogik === 'tiers_payant';
 
         return view('tagespauschalen.create', compact('klienten', 'selectedKlientId', 'istTiersPayant'));

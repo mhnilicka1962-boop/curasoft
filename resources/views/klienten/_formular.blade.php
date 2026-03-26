@@ -79,7 +79,7 @@
         <input type="text" id="adresse" name="adresse" class="feld"
             value="{{ old('adresse', $k?->adresse) }}" placeholder="Musterstrasse 12">
     </div>
-    <div style="display: grid; grid-template-columns: 120px 1fr 100px; gap: 0.75rem; margin-bottom: 0.75rem;">
+    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
         <div>
             <label class="feld-label" for="plz">PLZ</label>
             <input type="text" id="plz" name="plz" class="feld"
@@ -90,16 +90,6 @@
             <input type="text" id="ort" name="ort" class="feld"
                 value="{{ old('ort', $k?->ort) }}" placeholder="Baar">
         </div>
-        <div>
-            <label class="feld-label" for="region_id">Kanton <span style="color:var(--cs-fehler);">*</span></label>
-            <select id="region_id" name="region_id" class="feld" required>
-                <option value="">— wählen —</option>
-                @foreach($regionen ?? [] as $r)
-                    <option value="{{ $r->id }}" {{ old('region_id', $k?->region_id) == $r->id ? 'selected' : '' }}>
-                        {{ $r->kuerzel }}
-                    </option>
-                @endforeach
-            </select>
         </div>
     </div>
     <div class="form-grid-3" style="gap: 0.75rem;">

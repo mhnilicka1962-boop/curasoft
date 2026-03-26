@@ -25,13 +25,12 @@
                 <button type="submit" class="btn btn-primaer">Speichern</button>
                 <a href="{{ route('klienten.show', $klient) }}" class="btn btn-sekundaer">Abbrechen</a>
             </div>
-            @if($klient->aktiv)
-            <form method="POST" action="{{ route('klienten.destroy', $klient) }}" onsubmit="return confirm('Klient wirklich deaktivieren?')">
-                @csrf @method('DELETE')
-                <button type="submit" class="btn btn-gefahr" style="font-size: 0.8125rem;">Deaktivieren</button>
-            </form>
-            @endif
         </div>
+    </form>
+
+    <form method="POST" action="{{ route('klienten.destroy', $klient) }}" style="margin-top: 0.75rem; text-align: right;" onsubmit="return confirm('Klient «{{ $klient->vorname }} {{ $klient->nachname }}» wirklich löschen?')">
+        @csrf @method('DELETE')
+        <button type="submit" class="btn btn-gefahr" style="font-size: 0.8125rem;">Klient löschen</button>
     </form>
 </div>
 

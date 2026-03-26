@@ -65,7 +65,7 @@
                         <span>{{ ['m' => 'Männl.', 'w' => 'Weibl.', 'x' => 'Div.'][$klient->geschlecht] }}</span>
                     @endif
                     @if($klient->zustaendig)
-                        <span>Bezugsperson: <strong style="color: var(--cs-text);">{{ $klient->zustaendig->name }}</strong></span>
+                        <span>Zuständig: <strong style="color: var(--cs-text);">{{ $klient->zustaendig->name }}</strong></span>
                     @endif
                     @if($klient->einsatz_geplant_von)
                         <span>Einsatz ab: <strong style="color: var(--cs-text);">{{ $klient->einsatz_geplant_von->format('d.m.Y') }}</strong></span>
@@ -100,20 +100,35 @@
                     <button onclick="oeffneEinsaetzePopup()" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.25rem 0.75rem;">Einsätze anzeigen</button>
                     <a href="{{ route('klienten.rapportierung', [$klient, now()->year, now()->month]) }}" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.25rem 0.75rem;">Rapportierung</a>
                 </div>
+                <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--cs-border); display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+                    <select name="region_id" form="klient-form" class="feld" required style="width:auto; min-width:80px;">
+                        <option value="">— Kanton —</option>
+                        @foreach($regionen as $r)
+                            <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }}</option>
+                        @endforeach
+                    </select>
+                    <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.8125rem; font-weight:500; cursor:pointer; white-space:nowrap;">
+                        <input type="hidden" name="aktiv" value="0" form="klient-form">
+                        <input type="checkbox" name="aktiv" value="1" form="klient-form" {{ $klient->aktiv ? 'checked' : '' }} style="width:1rem; height:1rem;">
+                        Aktiv
+                    </label>
+                    <div style="margin-left:auto; display:flex; gap:0.5rem;">
+                        <button type="submit" form="klient-form" class="btn btn-primaer" style="font-size:0.8125rem; padding:0.3rem 0.875rem;">Speichern</button>
+                        <button type="button" class="btn btn-gefahr" style="font-size:0.8125rem; padding:0.3rem 0.875rem;"
+                            onclick="if(confirm('Klient «{{ $klient->vorname }} {{ $klient->nachname }}» wirklich löschen?')) document.getElementById('form-klient-loeschen').submit()">Löschen</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     {{-- Inline-Bearbeitungsformular (versteckt, ausser bei Validation-Fehler) --}}
     <div id="klient-edit-form" style="display:block; margin-bottom: 1rem;">
-    <form method="POST" action="{{ route('klienten.update', $klient) }}">
+    <form id="klient-form" method="POST" action="{{ route('klienten.update', $klient) }}">
         @csrf @method('PUT')
         <div class="karte" style="margin-bottom: 0.75rem;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
-                <div class="abschnitt-label" style="margin-bottom:0;">Persönliche Daten</div>
-                <button type="submit" class="btn btn-primaer" style="padding:0.3rem 0.875rem; font-size:0.8125rem;">Speichern</button>
-            </div>
-            <div style="display: grid; grid-template-columns: 130px 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div class="abschnitt-label" style="margin-bottom:0.75rem;">Persönliche Daten</div>
+            <div style="display: grid; grid-template-columns: 110px 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
                 <div>
                     <label class="feld-label">Anrede</label>
                     <select name="anrede" class="feld">
@@ -162,23 +177,9 @@
                     <input type="number" name="anzahl_kinder" class="feld" min="0" value="{{ old('anzahl_kinder', $klient->anzahl_kinder) }}">
                 </div>
             </div>
-            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--cs-border); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--cs-border); display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
                 <div>
-                    <label class="feld-label">Kanton Abrechnung <span style="color:var(--cs-fehler);">*</span></label>
-                    <select name="region_id" class="feld" required>
-                        <option value="">— wählen —</option>
-                        @foreach($regionen as $r)
-                            <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }} — {{ $r->bezeichnung }}</option>
-                        @endforeach
-                    </select>
-                    @if(!$klient->region_id)
-                    <div class="warn-box" style="margin-top: 0.5rem; display: flex; gap: 0.4rem; align-items: flex-start;">
-                        <span>⚠</span><div>Kein Abrechnungskanton gesetzt — Rechnungslauf nicht möglich.</div>
-                    </div>
-                    @endif
-                </div>
-                <div>
-                    <label class="feld-label">Bezugsperson</label>
+                    <label class="feld-label">Zuständig</label>
                     <select name="zustaendig_id" class="feld">
                         <option value="">— keine —</option>
                         @foreach($mitarbeiter as $m)
@@ -189,15 +190,6 @@
                 <div>
                     <label class="feld-label">AHV-Nummer</label>
                     <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr', $klient->ahv_nr) }}" placeholder="756.XXXX.XXXX.XX">
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; margin-top: 0.25rem;">
-                <div style="padding-top: 0.25rem;">
-                    <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; font-weight: 500; cursor: pointer; white-space: nowrap;">
-                        <input type="hidden" name="aktiv" value="0">
-                        <input type="checkbox" name="aktiv" value="1" {{ $klient->aktiv ? 'checked' : '' }}>
-                        Aktiv
-                    </label>
                 </div>
             </div>
         </div>
@@ -1794,5 +1786,9 @@ function schliesseAPKlientModal() {
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') schliesseAPKlientModal(); });
 @if($errors->any() && old('_redirect') === 'klient_angehoerig') oeffneAPKlientModal(); @endif
 </script>
+
+<form id="form-klient-loeschen" method="POST" action="{{ route('klienten.destroy', $klient) }}" style="display:none;">
+    @csrf @method('DELETE')
+</form>
 
 </x-layouts.app>
