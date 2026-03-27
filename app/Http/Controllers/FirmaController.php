@@ -71,14 +71,9 @@ class FirmaController extends Controller
         // Logo hochladen
         if ($request->hasFile('logo')) {
             $file      = $request->file('logo');
-            $dateiname = 'logo_' . $this->org()->id . '.' . $file->getClientOriginalExtension();
+            $dateiname = 'logo.' . $file->getClientOriginalExtension();
             if (!is_dir(public_path('uploads'))) {
                 mkdir(public_path('uploads'), 0755, true);
-            }
-            // Altes Logo löschen
-            $altePfad = $this->org()->logo_pfad;
-            if ($altePfad && file_exists(public_path($altePfad))) {
-                unlink(public_path($altePfad));
             }
             $file->move(public_path('uploads'), $dateiname);
             $updates['logo_pfad'] = 'uploads/' . $dateiname;
