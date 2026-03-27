@@ -50,7 +50,7 @@ class FirmaController extends Controller
             'postcheckkonto'           => ['nullable', 'string', 'max:30'],
             'rechnungsadresse_position'=> ['nullable', 'in:links,rechts'],
             'logo_ausrichtung'         => ['nullable', 'in:links_anschrift_rechts,rechts_anschrift_links,mitte_anschrift_fusszeile'],
-            'logo'                     => ['nullable', 'image', 'max:2048'],
+            'logo'                     => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:2048'],
             'theme_farbe_primaer'      => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'theme_layout'             => ['nullable', 'in:sidebar,topnav'],
             'abrechnungslogik'         => ['nullable', 'in:tiers_garant,tiers_payant'],
@@ -73,7 +73,7 @@ class FirmaController extends Controller
             $file      = $request->file('logo');
             $tenant    = app()->bound('tenant') ? app('tenant') : null;
             $slug      = $tenant ? $tenant->subdomain : 'demo';
-            $dateiname = 'logo_' . $slug . '.' . $file->getClientOriginalExtension();
+            $dateiname = 'logo_' . $slug . '.' . ($file->guessExtension() ?? 'jpg');
             if (!is_dir(public_path('uploads'))) {
                 mkdir(public_path('uploads'), 0755, true);
             }
