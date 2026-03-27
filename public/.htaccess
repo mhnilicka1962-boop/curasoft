@@ -31,6 +31,11 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
+# Sensible Dateien sperren
+<FilesMatch "(^\.env|composer\.(json|lock)|package\.json|\.git)">
+    Require all denied
+</FilesMatch>
+
 # Security Headers
 <IfModule mod_headers.c>
     # HTTPS für 1 Jahr erzwingen (HSTS)
