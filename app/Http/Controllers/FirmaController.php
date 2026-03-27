@@ -71,7 +71,9 @@ class FirmaController extends Controller
         // Logo hochladen
         if ($request->hasFile('logo')) {
             $file      = $request->file('logo');
-            $dateiname = 'logo_' . $org->id . '.' . $file->getClientOriginalExtension();
+            $tenant    = app()->bound('tenant') ? app('tenant') : null;
+            $slug      = $tenant ? $tenant->subdomain : 'demo';
+            $dateiname = 'logo_' . $slug . '.' . $file->getClientOriginalExtension();
             if (!is_dir(public_path('uploads'))) {
                 mkdir(public_path('uploads'), 0755, true);
             }
