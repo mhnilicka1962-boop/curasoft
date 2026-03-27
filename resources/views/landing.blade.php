@@ -783,6 +783,14 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 Daten bleiben in der Schweiz
             </span>
+            <span class="hero-trust-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                KI-entwickelt — schnelle Updates
+            </span>
+            <span class="hero-trust-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                13 Jahre Praxiserfahrung
+            </span>
         </div>
     </div>
 </section>
@@ -896,6 +904,39 @@
                 <div class="feature-icon">🗓️</div>
                 <h3>Einsatzplanung visuell</h3>
                 <p>Kalender-Übersicht mit Drag &amp; Drop — alle Mitarbeitenden auf einen Blick. Doppelbelegungen werden sofort rot markiert. Wochen-, 2-Wochen- und Monatsansicht.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{-- ── KI-Entwicklung ────────────────────────────────────────────────────── --}}
+<section id="ki-vorteil" style="background: #f0f7ff; padding: 5rem 1.5rem;">
+    <div class="container">
+        <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
+            <p class="section-label">Entwicklungsphilosophie</p>
+            <h2 class="section-title">Entwickelt mit KI — für Sie ein Vorteil</h2>
+            <p class="section-lead">CuraSoft wurde mit Unterstützung moderner KI-Werkzeuge von Grund auf neu entwickelt — von einer einfachen Weblösung zu einer vollständigen Plattform für alle 26 Kantone.</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
+            <div style="background: #fff; border: 1px solid #dbeafe; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">⚡</div>
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Kurze Entwicklungszyklen</h3>
+                <p style="font-size: 0.9rem; color: var(--text-hell); line-height: 1.6;">Kundenwünsche und neue Funktionen werden in Wochen, nicht Monaten umgesetzt.</p>
+            </div>
+            <div style="background: #fff; border: 1px solid #dbeafe; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">🔄</div>
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Laufende Upgrades</h3>
+                <p style="font-size: 0.9rem; color: var(--text-hell); line-height: 1.6;">Qualitativ hochwertige Updates in kürzester Zeit, ohne Unterbruch des Betriebs.</p>
+            </div>
+            <div style="background: #fff; border: 1px solid #dbeafe; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">📋</div>
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Regulatorische Agilität</h3>
+                <p style="font-size: 0.9rem; color: var(--text-hell); line-height: 1.6;">KLV-Tarifänderungen oder neue Kantonsregelungen werden innerhalb von Tagen nachgeführt.</p>
+            </div>
+            <div style="background: #fff; border: 1px solid #dbeafe; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">🤝</div>
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Kein grosses Softwarehaus</h3>
+                <p style="font-size: 0.9rem; color: var(--text-hell); line-height: 1.6;">Direkter Kontakt zum Entwickler — Ihr Feedback fliesst direkt ins Produkt.</p>
             </div>
         </div>
     </div>
@@ -1165,6 +1206,30 @@
     </div>
 </section>
 
+{{-- ── Demo ─────────────────────────────────────────────────────────────── --}}
+<section id="demo-live" style="background: #1e293b; padding: 5rem 1.5rem; text-align: center;">
+    <div class="container">
+        <div class="container-sm" style="margin: 0 auto;">
+            <p class="section-label" style="color: #93c5fd;">Live Demo</p>
+            <h2 class="section-title" style="color: #f1f5f9;">Jetzt live ausprobieren — kein Passwort nötig</h2>
+            <p class="section-lead" style="color: #94a3b8; margin-bottom: 2.5rem;">Realistische Testdaten, alles anklickbar, sofort startklar.</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin-bottom: 1.5rem;">
+                <a href="https://www.curasoft.ch/demo/admin"
+                   style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--blau); color: #fff; font-weight: 600; font-size: 1rem; padding: 0.875rem 1.75rem; border-radius: 0.625rem; text-decoration: none; transition: background 0.15s;"
+                   onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blau)'">
+                    💻 Demo Verwaltung
+                </a>
+                <a href="https://www.curasoft.ch/demo/pflege"
+                   style="display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: #e2e8f0; font-weight: 600; font-size: 1rem; padding: 0.875rem 1.75rem; border-radius: 0.625rem; text-decoration: none; border: 2px solid #475569; transition: border-color 0.15s, color 0.15s;"
+                   onmouseover="this.style.borderColor='#94a3b8';this.style.color='#fff'" onmouseout="this.style.borderColor='#475569';this.style.color='#e2e8f0'">
+                    📱 Demo Pflege (Smartphone)
+                </a>
+            </div>
+            <p style="font-size: 0.8125rem; color: #64748b;">Klienten mit Krankengeschichte, Touren, abgeschlossene Rechnungsläufe — so nah an der Realität wie möglich.</p>
+        </div>
+    </div>
+</section>
+
 {{-- ── Preismodell ──────────────────────────────────────────────────────── --}}
 <section class="preismodell" id="preise">
     <div class="container">
@@ -1302,6 +1367,18 @@
                 <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                     <div class="faq-antwort-inner" itemprop="text">
                         Ja — schreiben Sie uns einfach kurz und wir richten einen Demo-Zugang für Sie ein. Keine Kreditkarte, keine Vertragsbindung. Sie sehen das System mit realistischen Testdaten, können alles durchklicken und Fragen direkt stellen. Wenn es passt, begleiten wir Sie bei der Einführung.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                <button class="faq-frage" aria-expanded="false">
+                    <span itemprop="name">Warum wurde CuraSoft mit KI entwickelt — und was bedeutet das für mich?</span>
+                    <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                    <div class="faq-antwort-inner" itemprop="text">
+                        KI-gestützte Entwicklung bedeutet nicht, dass ein Computer die Software schreibt — sondern dass ein erfahrener Schweizer Entwickler mit 13 Jahren Spitex-Praxis moderne KI-Werkzeuge nutzt, um schneller, sicherer und qualitativ hochwertiger zu entwickeln. Für Sie bedeutet das: Neue Funktionen erscheinen schneller. Tarifänderungen werden rasch nachgeführt. Und Sie haben immer eine direkte Ansprechperson — keinen anonymen Support.
                     </div>
                 </div>
             </div>
