@@ -1237,10 +1237,64 @@
                     @if($k->telefon)<div class="text-klein text-hell" style="margin-top: 0.25rem;">{{ $k->telefon }}</div>@endif
                     @if($k->telefon_mobil)<div class="text-klein text-hell">{{ $k->telefon_mobil }}</div>@endif
                     @if($k->email)<div class="text-klein text-hell">{{ $k->email }}</div>@endif
-                    <div style="display: flex; gap: 0.375rem; flex-wrap: wrap; margin-top: 0.375rem;">
-                        @if($k->bevollmaechtigt)<span class="badge badge-warnung" style="font-size: 0.7rem;">Bevollmächtigt</span>@endif
-                        @if($k->rechnungen_erhalten)<span class="badge badge-info" style="font-size: 0.7rem;">Erhält Rechnungen</span>@endif
-                    </div>
+                    @if($k->bevollmaechtigt)<div style="margin-top: 0.375rem;"><span class="badge badge-warnung" style="font-size: 0.7rem;">Bevollmächtigt</span></div>@endif
+                    <details style="margin-top: 0.5rem;">
+                        <summary style="font-size: 0.75rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; list-style: none;">✎ Mutieren</summary>
+                        <form method="POST" action="{{ route('klienten.kontakt.aktualisieren', [$klient, $k]) }}" style="margin-top: 0.5rem;">
+                            @csrf @method('PATCH')
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.7rem;">Rolle</label>
+                                    <select name="rolle" class="feld" style="font-size: 0.8125rem;">
+                                        @foreach(\App\Models\KlientKontakt::$rollen as $wert => $lbl)
+                                            <option value="{{ $wert }}" {{ $k->rolle === $wert ? 'selected' : '' }}>{{ $lbl }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.7rem;">Beziehung</label>
+                                    <input type="text" name="beziehung" class="feld" style="font-size: 0.8125rem;" value="{{ $k->beziehung }}">
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 90px 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.7rem;">Anrede</label>
+                                    <select name="anrede" class="feld" style="font-size: 0.8125rem;">
+                                        <option value="">—</option>
+                                        <option value="Herr" {{ $k->anrede === 'Herr' ? 'selected' : '' }}>Herr</option>
+                                        <option value="Frau" {{ $k->anrede === 'Frau' ? 'selected' : '' }}>Frau</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.7rem;">Vorname</label>
+                                    <input type="text" name="vorname" class="feld" style="font-size: 0.8125rem;" value="{{ $k->vorname }}">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.7rem;">Nachname *</label>
+                                    <input type="text" name="nachname" class="feld" required style="font-size: 0.8125rem;" value="{{ $k->nachname }}">
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.7rem;">Telefon</label>
+                                    <input type="text" name="telefon" class="feld" style="font-size: 0.8125rem;" value="{{ $k->telefon }}">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.7rem;">Mobile</label>
+                                    <input type="text" name="telefon_mobil" class="feld" style="font-size: 0.8125rem;" value="{{ $k->telefon_mobil }}">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.7rem;">E-Mail</label>
+                                    <input type="email" name="email" class="feld" style="font-size: 0.8125rem;" value="{{ $k->email }}">
+                                </div>
+                            </div>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; cursor: pointer; margin-bottom: 0.5rem;">
+                                <input type="hidden" name="bevollmaechtigt" value="0">
+                                <input type="checkbox" name="bevollmaechtigt" value="1" {{ $k->bevollmaechtigt ? 'checked' : '' }}> Bevollmächtigt
+                            </label>
+                            <button type="submit" class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
+                        </form>
+                    </details>
                 </div>
                 @endforeach
             </div>
@@ -1296,14 +1350,10 @@
                                 <input type="email" name="email" class="feld" style="font-size: 0.875rem;">
                             </div>
                         </div>
-                        <div style="display: flex; gap: 1.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+                        <div style="margin-bottom: 0.75rem;">
                             <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer;">
                                 <input type="hidden" name="bevollmaechtigt" value="0">
                                 <input type="checkbox" name="bevollmaechtigt" value="1"> Bevollmächtigt
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer;">
-                                <input type="hidden" name="rechnungen_erhalten" value="0">
-                                <input type="checkbox" name="rechnungen_erhalten" value="1"> Erhält Rechnungen
                             </label>
                         </div>
                         <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">Kontakt speichern</button>

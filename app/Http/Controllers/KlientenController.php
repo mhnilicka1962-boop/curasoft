@@ -521,6 +521,25 @@ class KlientenController extends Controller
         return back()->with('erfolg', 'Kontakt wurde hinzugefügt.');
     }
 
+    public function kontaktAktualisieren(Request $request, Klient $klient, KlientKontakt $kontakt)
+    {
+        $this->autorisiereZugriff($klient);
+        if ($kontakt->klient_id !== $klient->id) abort(403);
+        $daten = $request->validate([
+            'rolle'           => ['required', 'in:angehoerig,gesetzlicher_vertreter,rechnungsempfaenger,notfallkontakt,sonstige'],
+            'anrede'          => ['nullable', 'string', 'max:20'],
+            'vorname'         => ['nullable', 'string', 'max:100'],
+            'nachname'        => ['required', 'string', 'max:100'],
+            'beziehung'       => ['nullable', 'string', 'max:100'],
+            'telefon'         => ['nullable', 'string', 'max:50'],
+            'telefon_mobil'   => ['nullable', 'string', 'max:50'],
+            'email'           => ['nullable', 'email', 'max:255'],
+            'bevollmaechtigt' => ['boolean'],
+        ]);
+        $kontakt->update($daten);
+        return back()->with('erfolg', 'Kontakt wurde aktualisiert.');
+    }
+
     public function kontaktEntfernen(Klient $klient, KlientKontakt $kontakt)
     {
         $this->autorisiereZugriff($klient);

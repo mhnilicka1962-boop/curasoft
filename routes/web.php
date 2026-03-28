@@ -248,6 +248,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/klienten/{klient}/krankenkassen',               [KlientenController::class, 'krankenkasseSpeichern'])->name('klienten.kk.speichern');
         Route::delete('/klienten/{klient}/krankenkassen/{klientKk}',  [KlientenController::class, 'krankenkasseEntfernen'])->name('klienten.kk.entfernen');
         Route::post('/klienten/{klient}/kontakte',                    [KlientenController::class, 'kontaktSpeichern'])->name('klienten.kontakt.speichern');
+        Route::patch('/klienten/{klient}/kontakte/{kontakt}',         [KlientenController::class, 'kontaktAktualisieren'])->name('klienten.kontakt.aktualisieren');
         Route::delete('/klienten/{klient}/kontakte/{kontakt}',        [KlientenController::class, 'kontaktEntfernen'])->name('klienten.kontakt.entfernen');
         Route::post('/klienten/{klient}/beitraege',                   [KlientenController::class, 'beitragSpeichern'])->name('klienten.beitrag.speichern');
         Route::patch('/klienten/{klient}/beitraege/{beitrag}',        [KlientenController::class, 'beitragAktualisieren'])->name('klienten.beitrag.aktualisieren');
