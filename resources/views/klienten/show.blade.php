@@ -497,11 +497,10 @@
                 <input type="hidden" name="aktiv"    value="{{ $klient->aktiv ? 1 : 0 }}">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; align-items: end;">
                     <div>
-                        <label class="form-label" style="font-size: 0.8125rem;">Rechnungstyp</label>
+                        <label class="form-label" style="font-size: 0.8125rem;">Rechnungstyp @if($tiersGarant)<span class="text-hell" style="font-weight:400;"> — Automatisch</span>@endif</label>
                         @if($tiersGarant)
                             <input type="hidden" name="rechnungstyp" value="kombiniert">
                             <div class="feld" style="font-size: 0.875rem; background: var(--cs-hintergrund); color: var(--cs-text-hell); cursor: default;">Kombiniert</div>
-                            <div style="font-size: 0.75rem; color: var(--cs-text-hell); margin-top: 0.25rem;">Automatisch bei Tiers garant</div>
                         @else
                             <select name="rechnungstyp" class="feld" style="font-size: 0.875rem;">
                                 @foreach(\App\Models\Rechnung::$typen as $val => $lab)
@@ -511,7 +510,7 @@
                         @endif
                     </div>
                     <div>
-                        <label class="form-label" style="font-size: 0.8125rem;">Versand Patient-Rechnung</label>
+                        <label class="form-label" style="font-size: 0.8125rem;">Versand Patient</label>
                         <select name="versandart_patient" class="feld" style="font-size: 0.875rem;">
                             <option value="post"    {{ ($klient->versandart_patient ?? 'post') === 'post'    ? 'selected' : '' }}>Post / Druck</option>
                             <option value="email"   {{ ($klient->versandart_patient ?? 'post') === 'email'   ? 'selected' : '' }}>Email</option>
@@ -519,10 +518,9 @@
                         </select>
                     </div>
                     <div>
-                        <label class="form-label" style="font-size: 0.8125rem;">Versand KVG / Krankenkasse</label>
+                        <label class="form-label" style="font-size: 0.8125rem;">Versand KVG @if($tiersGarant)<span class="text-hell" style="font-weight:400;"> — kein Versand</span>@endif</label>
                         @if($tiersGarant)
                             <div class="feld" style="font-size: 0.875rem; background: var(--cs-hintergrund); color: var(--cs-text-hell); cursor: default;">—</div>
-                            <div style="font-size: 0.75rem; color: var(--cs-text-hell); margin-top: 0.25rem;">Kein KK-Versand bei Tiers garant</div>
                         @else
                             <select name="versandart_kvg" class="feld" style="font-size: 0.875rem;">
                                 <option value="manuell"   {{ ($klient->versandart_kvg ?? 'manuell') === 'manuell'   ? 'selected' : '' }}>Manuell</option>
