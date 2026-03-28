@@ -187,7 +187,7 @@
         $offeneVergangen = \App\Models\Einsatz::where('benutzer_id', auth()->id())
             ->whereDate('datum', '<', today())
             ->whereIn('status', ['geplant', 'aktiv'])
-            ->with('klient', 'leistungsart')
+            ->with('klient', 'einsatzLeistungsarten.leistungsart')
             ->orderByDesc('datum')
             ->limit(10)
             ->get();
