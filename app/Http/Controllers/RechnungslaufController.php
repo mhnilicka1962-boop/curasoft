@@ -724,20 +724,9 @@ class RechnungslaufController extends Controller
                 "{$blockiert} Rechnung(en) bereits versendet/bezahlt — Lauf kann nicht storniert werden.");
         }
 
-        // Einsätze zurücksetzen: verrechnet → false
-        $rechnungIds = $lauf->rechnungen()->pluck('id');
-
-        // Normale Einsätze via einsatz_id auf Position
-        $einsatzIds = \App\Models\RechnungsPosition::whereIn('rechnung_id', $rechnungIds)
-            ->whereNotNull('einsatz_id')
-            ->pluck('einsatz_id')
-            ->unique();
-        Einsatz::whereIn('id', $einsatzIds)->update(['verrechnet' => false]);
-
-        // Tagespauschalen-Einsätze: konsolidierte Position hat einsatz_id=null → via Klient + Periode zurücksetzen
+        // Alle Einsätze der betroffenen Klienten in der Periode zurücksetzen
         $klientIds = $lauf->rechnungen()->pluck('klient_id')->unique();
-        Einsatz::whereIn('klient_id', $klientIds)
-            ->whereNotNull('tagespauschale_id')
+        $zurueckgesetzt = Einsatz::whereIn('klient_id', $klientIds)
             ->whereBetween('datum', [$lauf->periode_von, $lauf->periode_bis])
             ->where('verrechnet', true)
             ->update(['verrechnet' => false]);
@@ -747,12 +736,12 @@ class RechnungslaufController extends Controller
         $lauf->rechnungen()->each(fn($r) => $r->delete());
 
         AuditLog::schreiben('geloescht', 'Rechnungslauf', $lauf->id,
-            "Lauf #{$lauf->id} storniert: {$anzahl} Rechnungen gelöscht, {$einsatzIds->count()} Einsätze zurückgesetzt");
+            "Lauf #{$lauf->id} storniert: {$anzahl} Rechnungen gelöscht, {$zurueckgesetzt} Einsätze zurückgesetzt");
 
         $lauf->delete();
 
         return redirect()->route('rechnungslauf.index')
-            ->with('erfolg', "Lauf #{$lauf->id} storniert — {$anzahl} Rechnungen gelöscht, {$einsatzIds->count()} Einsätze wieder verrechenbar.");
+            ->with('erfolg', "Lauf #{$lauf->id} storniert — {$anzahl} Rechnungen gelöscht, {$zurueckgesetzt} Einsätze wieder verrechenbar.");
     }
 
     // Lauf stornieren + sofort neuen Lauf mit gleicher Periode + gleichen Klienten erstellen
@@ -769,18 +758,9 @@ class RechnungslaufController extends Controller
         $periode_von = $lauf->periode_von->format('Y-m-d');
         $periode_bis = $lauf->periode_bis->format('Y-m-d');
 
-        // Schritt 1: Einsätze zurücksetzen + Lauf löschen
-        $rechnungIds = $lauf->rechnungen()->pluck('id');
-        $einsatzIds  = RechnungsPosition::whereIn('rechnung_id', $rechnungIds)
-            ->whereNotNull('einsatz_id')
-            ->pluck('einsatz_id')
-            ->unique();
-        Einsatz::whereIn('id', $einsatzIds)->update(['verrechnet' => false]);
-
-        // Tagespauschalen via Klient + Periode zurücksetzen
+        // Schritt 1: Alle Einsätze der betroffenen Klienten in der Periode zurücksetzen
         $klientIds = $lauf->rechnungen()->pluck('klient_id')->unique();
-        Einsatz::whereIn('klient_id', $klientIds)
-            ->whereNotNull('tagespauschale_id')
+        $zurueckgesetzt = Einsatz::whereIn('klient_id', $klientIds)
             ->whereBetween('datum', [$periode_von, $periode_bis])
             ->where('verrechnet', true)
             ->update(['verrechnet' => false]);
@@ -790,7 +770,7 @@ class RechnungslaufController extends Controller
         $lauf->delete();
 
         AuditLog::schreiben('geloescht', 'Rechnungslauf', $alteLaufId,
-            "Lauf #{$alteLaufId} storniert (Wiederholen): {$einsatzIds->count()} Einsätze zurückgesetzt");
+            "Lauf #{$alteLaufId} storniert (Wiederholen): {$zurueckgesetzt} Einsätze zurückgesetzt");
 
         // Schritt 2: ALLE Klienten mit verrechenbaren Einsätzen in der Periode neu ermitteln
         $alleKlientIds = Einsatz::where('organisation_id', $this->orgId())
