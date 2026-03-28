@@ -85,15 +85,16 @@ Klassen: `.karte`, `.btn`, `.btn-primaer`, `.btn-sekundaer`, `.btn-gefahr`, `.ba
 
 ---
 
-## Aktuelle DB (lokal + Demo identisch, Stand 2026-03-22)
+## Aktuelle DB (lokal + Demo identisch, Stand 2026-03-28)
 
 | Tabelle | Anzahl |
 |---|---|
 | klienten | 5 |
-| einsaetze | 930 |
-| touren | 326 |
-| rechnungslaeufe | 3 |
-| rechnungen | 12 |
+| einsaetze | 965 |
+| einsatz_leistungsarten | 965 |
+| touren | 338 |
+| rechnungslaeufe | 4 |
+| rechnungen | 16 |
 | benutzer | 6 |
 
 Seeder: `php artisan db:seed --class=CurasoftDemoSeeder` — einziger Demo/Test-Seeder.

@@ -170,10 +170,12 @@ Rechnung 3 → Gemeinde/Kanton:
 | `verrechnung` Flag | Billing-Logik prüft verrechnung=true/false | ✅ behoben (Session 31) |
 | Rapportblatt Seite 3 | Tagesaufstellung PDF (Landscape) | ✅ implementiert (Session 26) |
 | Kfm. Rundung 0.05 CHF | Alle Beträge in Vorschau + Rechnung | ✅ implementiert (Session 31) |
+| `einsatz_leistungsarten` Pivot | 1 Einsatz → n Leistungsarten, `leistungsart_id` entfernt | ✅ migriert (Session 32) |
+| Rechnungsadresse tiers_garant | `abrechnungslogik=tiers_garant` → immer Patientenadresse im PDF | ✅ implementiert (Session 32) |
+| Rechnungslauf 1 Position/LA | Pro Einsatz 1 RechnungsPosition je Leistungsart | ✅ implementiert (Session 32) |
 | `einsatz_minuten/stunden/tage` ignoriert | Immer Stundenberechnung, Flags wirkungslos | offen |
 | `tiers_payant` in PDF ignoriert | QR-Zahlteil zeigt immer betrag_total | offen |
 | `kassenpflichtig` ignoriert | Feld existiert aber nie geprüft | offen |
-| Keine Organisations-Einstellung | Logik 1 vs. 2 nicht steuerbar | offen |
 
 ### ⚠ Betriebshinweis: «Gültig ab» bei Tarifen
 
@@ -186,6 +188,6 @@ Das System sucht den Tarif mit dem **höchsten `gueltig_ab` ≤ Einsatzdatum**. 
 ## 10. Noch offen / zu klären
 
 - [ ] Wie genau Gemeinde-Rechnung Format pro Kanton?
-- [ ] `organisationen.abrechnungslogik` = `tiers_garant` | `tiers_payant` als neue Einstellung?
+- [x] `organisationen.abrechnungslogik` = `tiers_garant` | `tiers_payant` — implementiert, Default `tiers_garant`
 - [ ] Rapportblatt: exakte Spaltenstruktur aus Altsystem übernehmen
 - [ ] Patientenbeitrag-Berechnung: woher kommt der max. Betrag pro Kanton? (aus `klient_beitraege`?)
