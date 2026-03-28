@@ -115,7 +115,7 @@ class TourenController extends Controller
     {
         if ($tour->organisation_id !== $this->orgId()) abort(403);
 
-        $tour->load('benutzer', 'einsaetze.klient', 'einsaetze.leistungsart');
+        $tour->load('benutzer', 'einsaetze.klient', 'einsaetze.einsatzLeistungsarten.leistungsart');
 
         $einsatzIds    = $tour->einsaetze->pluck('id');
         $rapportZahlen = \Illuminate\Support\Facades\DB::table('rapporte')

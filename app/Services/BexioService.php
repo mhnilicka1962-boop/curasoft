@@ -114,7 +114,7 @@ class BexioService
             }
 
             $positionen = $rechnung->positionen()
-                ->with('leistungsart')
+                ->with('einsatzLeistungsart.leistungsart')
                 ->get()
                 ->map(fn($p) => [
                     'type'        => 'KbPositionArticle',

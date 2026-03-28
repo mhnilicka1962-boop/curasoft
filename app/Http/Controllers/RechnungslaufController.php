@@ -73,7 +73,7 @@ class RechnungslaufController extends Controller
                 $q->whereNotNull('checkout_zeit')->orWhereNotNull('tagespauschale_id');
             })
             ->whereBetween('datum', [$request->periode_von, $request->periode_bis])
-            ->with('leistungsart', 'tagespauschale')
+            ->with('einsatzLeistungsarten.leistungsart', 'tagespauschale')
             ->orderBy('datum')
             ->get();
 

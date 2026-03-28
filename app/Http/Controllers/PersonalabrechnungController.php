@@ -104,7 +104,7 @@ class PersonalabrechnungController extends Controller
             ->where('benutzer_id', $benutzer->id)
             ->whereBetween('datum', [$von->toDateString(), $bis->toDateString()])
             ->whereNotIn('status', ['storniert'])
-            ->with(['klient', 'leistungsart'])
+            ->with(['klient', 'einsatzLeistungsarten.leistungsart'])
             ->orderBy('datum')
             ->orderBy('zeit_von')
             ->get()
@@ -136,7 +136,7 @@ class PersonalabrechnungController extends Controller
             ->where('benutzer_id', $benutzer->id)
             ->whereBetween('datum', [$von->toDateString(), $bis->toDateString()])
             ->whereNotIn('status', ['storniert'])
-            ->with(['klient', 'leistungsart'])
+            ->with(['klient', 'einsatzLeistungsarten.leistungsart'])
             ->orderBy('datum')
             ->orderBy('zeit_von')
             ->get();
@@ -241,7 +241,7 @@ class PersonalabrechnungController extends Controller
             ->where('benutzer_id', $benutzer->id)
             ->whereBetween('datum', [$von->toDateString(), $bis->toDateString()])
             ->whereNotIn('status', ['storniert'])
-            ->with(['klient', 'leistungsart'])
+            ->with(['klient', 'einsatzLeistungsarten.leistungsart'])
             ->orderBy('datum')->orderBy('zeit_von')
             ->get()
             ->map(function ($e) {
@@ -338,7 +338,7 @@ class PersonalabrechnungController extends Controller
                     ->where('benutzer_id', $benutzer->id)
                     ->whereBetween('datum', [$von->toDateString(), $bis->toDateString()])
                     ->whereNotIn('status', ['storniert'])
-                    ->with(['klient', 'leistungsart'])
+                    ->with(['klient', 'einsatzLeistungsarten.leistungsart'])
                     ->orderBy('datum')
                     ->orderBy('zeit_von')
                     ->get();

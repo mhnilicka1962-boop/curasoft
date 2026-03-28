@@ -246,7 +246,7 @@ class KlientenController extends Controller
 
         $heute = today();
         $alle  = $klient->einsaetze()
-            ->with('leistungsart', 'benutzer', 'tour')
+            ->with('einsatzLeistungsarten.leistungsart', 'benutzer', 'tour')
             ->orderBy('datum')
             ->orderBy('zeit_von')
             ->get();
@@ -696,7 +696,7 @@ class KlientenController extends Controller
             $fallback = true;
             foreach ($einsaetze as $e) {
                 $tag = (int) $e->datum->day;
-                $kat  = $e->leistungsart?->bezeichnung ?? 'Einsätze';
+                $kat  = $e->einsatzLeistungsarten->first()?->leistungsart?->bezeichnung ?? 'Einsätze';
                 $name = 'Minuten';
                 // Minuten: aus einsatz.minuten, sonst aus zeit_von/bis, sonst dauerMinuten()
                 $min = $e->minuten;

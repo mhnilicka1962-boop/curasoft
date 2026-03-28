@@ -37,7 +37,7 @@ class VertretungController extends Controller
             ->where('benutzer_id', $daten['benutzer_id'])
             ->whereBetween('datum', [$daten['datum_von'], $daten['datum_bis']])
             ->where('status', 'geplant')
-            ->with('klient', 'leistungsart', 'tour')
+            ->with('klient', 'einsatzLeistungsarten.leistungsart', 'tour')
             ->orderBy('datum')
             ->orderBy('zeit_von')
             ->get();
