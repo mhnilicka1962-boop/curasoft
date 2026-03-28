@@ -160,7 +160,7 @@ Route::middleware('auth')->group(function () {
         $einsaetzeListe = \App\Models\Einsatz::where('organisation_id', $orgId)
             ->whereDate('datum', $heute)
             ->when($rolle === 'pflege', fn($q) => $q->where('benutzer_id', $userId))
-            ->with('klient', 'benutzer', 'leistungsart')
+            ->with('klient', 'benutzer', 'einsatzLeistungsarten.leistungsart')
             ->orderBy('zeit_von')
             ->limit(10)
             ->get();
@@ -177,7 +177,7 @@ Route::middleware('auth')->group(function () {
                 $einsaetzeListe = \App\Models\Einsatz::where('organisation_id', $orgId)
                     ->whereDate('datum', $naechster->datum)
                     ->when($rolle === 'pflege', fn($q) => $q->where('benutzer_id', $userId))
-                    ->with('klient', 'benutzer', 'leistungsart')
+                    ->with('klient', 'benutzer', 'einsatzLeistungsarten.leistungsart')
                     ->orderBy('zeit_von')
                     ->limit(10)
                     ->get();

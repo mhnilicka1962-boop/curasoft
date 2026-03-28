@@ -33,7 +33,7 @@ class XmlExportService
             'klient.diagnosen',
             'klient.krankenkassen.krankenkasse',
             'positionen.einsatz.verordnung',
-            'positionen.einsatz.leistungsart',
+            'positionen.einsatz.einsatzLeistungsarten.leistungsart',
             'positionen.einsatz.benutzer',  // GLN der Pflegefachperson pro Position
         ]);
 
