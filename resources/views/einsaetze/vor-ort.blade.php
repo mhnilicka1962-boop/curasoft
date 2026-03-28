@@ -67,7 +67,7 @@
     <div class="vo-name">{{ $einsatz->klient->vollname() }}</div>
     <div class="vo-meta">
         {{ $einsatz->datum->format('d.m.Y') }}
-        · {{ $einsatz->leistungsart?->bezeichnung }}
+        @if($einsatz->einsatzLeistungsarten->isNotEmpty())· {{ $einsatz->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}@endif
         @if($einsatz->zeit_von) · {{ \Carbon\Carbon::parse($einsatz->zeit_von)->format('H:i') }}@if($einsatz->zeit_bis)–{{ \Carbon\Carbon::parse($einsatz->zeit_bis)->format('H:i') }}@endif @endif
         @if($einsatz->klient->geburtsdatum) · {{ $einsatz->klient->geburtsdatum->age }} J.@endif
         @if($kk) · {{ $kk->krankenkasse?->name ?? $einsatz->klient->krankenkasse_name }}@endif

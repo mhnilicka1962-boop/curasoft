@@ -759,7 +759,6 @@ class CurasoftDemoSeeder extends Seeder
                     'organisation_id'        => $this->orgId,
                     'klient_id'              => $klientId,
                     'benutzer_id'            => $benutzerId,
-                    'leistungsart_id'        => $laId,
                     'region_id'              => $regionId,
                     'leistungserbringer_typ' => $leTyp,
                     'serie_id'               => $serieId,
@@ -777,6 +776,13 @@ class CurasoftDemoSeeder extends Seeder
                     'tour_reihenfolge'       => $reihenfolge[$rkKey],
                     'created_at'             => now(),
                     'updated_at'             => now(),
+                ]);
+                DB::table('einsatz_leistungsarten')->insert([
+                    'einsatz_id'      => $eid,
+                    'leistungsart_id' => $laId,
+                    'minuten'         => $min,
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
                 ]);
 
                 DB::table('einsatz_aktivitaeten')->insert([
@@ -861,7 +867,6 @@ class CurasoftDemoSeeder extends Seeder
                 'organisation_id'        => $this->orgId,
                 'klient_id'              => $klientId,
                 'benutzer_id'            => $annaId,
-                'leistungsart_id'        => $laId,
                 'region_id'              => $regionAg,
                 'leistungserbringer_typ' => 'fachperson',
                 'serie_id'               => null,
@@ -879,6 +884,13 @@ class CurasoftDemoSeeder extends Seeder
                 'tour_reihenfolge'       => $reihenfolge[$rkKey],
                 'created_at'             => now(),
                 'updated_at'             => now(),
+            ]);
+            DB::table('einsatz_leistungsarten')->insert([
+                'einsatz_id'      => $eid,
+                'leistungsart_id' => $laId,
+                'minuten'         => 45,
+                'created_at'      => now(),
+                'updated_at'      => now(),
             ]);
 
             DB::table('einsatz_aktivitaeten')->insert([
@@ -941,7 +953,6 @@ class CurasoftDemoSeeder extends Seeder
                 'organisation_id'        => $this->orgId,
                 'klient_id'              => $this->kl[$e['klient']],
                 'benutzer_id'            => $this->ma[$e['benutzer']],
-                'leistungsart_id'        => $e['la'],
                 'region_id'              => $e['region'],
                 'leistungserbringer_typ' => 'fachperson',
                 'serie_id'               => null,
@@ -960,6 +971,13 @@ class CurasoftDemoSeeder extends Seeder
                 'tour_reihenfolge'       => null,
                 'created_at'             => now(),
                 'updated_at'             => now(),
+            ]);
+            DB::table('einsatz_leistungsarten')->insert([
+                'einsatz_id'      => $eid,
+                'leistungsart_id' => $e['la'],
+                'minuten'         => $e['min'],
+                'created_at'      => now(),
+                'updated_at'      => now(),
             ]);
 
             DB::table('einsatz_aktivitaeten')->insert([
@@ -1149,41 +1167,46 @@ class CurasoftDemoSeeder extends Seeder
             $lrCache   = [];
 
             foreach ($einsaetze as $einsatz) {
-                // Tarif per Leistungsart + Region nachschlagen
-                $lrKey = $einsatz->leistungsart_id . '_' . $klient->region_id;
-                if (!isset($lrCache[$lrKey])) {
-                    $lrCache[$lrKey] = DB::table('leistungsregionen')
-                        ->where('leistungsart_id', $einsatz->leistungsart_id)
-                        ->where('region_id', $klient->region_id)
-                        ->orderByDesc('gueltig_ab')
-                        ->first();
+                $einsatzLeistungsarten = DB::table('einsatz_leistungsarten')
+                    ->where('einsatz_id', $einsatz->id)->get();
+
+                foreach ($einsatzLeistungsarten as $el) {
+                    $lrKey = $el->leistungsart_id . '_' . $klient->region_id;
+                    if (!isset($lrCache[$lrKey])) {
+                        $lrCache[$lrKey] = DB::table('leistungsregionen')
+                            ->where('leistungsart_id', $el->leistungsart_id)
+                            ->where('region_id', $klient->region_id)
+                            ->orderByDesc('gueltig_ab')
+                            ->first();
+                    }
+                    $lr = $lrCache[$lrKey];
+                    if (!$lr) continue; // Keine Leistungsregion → überspringen
+
+                    $ansatz  = (float) $lr->ansatz;
+                    $kkasse  = (float) $lr->kkasse;
+                    $minuten = $el->minuten ?? 0;
+                    $bPat    = round($minuten / 60.0 * max(0, $ansatz - $kkasse), 2);
+                    $bKk     = round($minuten / 60.0 * $kkasse, 2);
+
+                    DB::table('rechnungs_positionen')->insert([
+                        'rechnung_id'              => $rechnungId,
+                        'einsatz_id'               => $einsatz->id,
+                        'einsatz_leistungsart_id'  => $el->id,
+                        'datum'                    => $einsatz->datum,
+                        'menge'                    => $minuten,
+                        'einheit'                  => 'minuten',
+                        'beschreibung'             => null,
+                        'tarif_patient'            => max(0, $ansatz - $kkasse),
+                        'tarif_kk'                 => $kkasse,
+                        'betrag_patient'            => $bPat,
+                        'betrag_kk'                => $bKk,
+                        'created_at'               => now(),
+                        'updated_at'               => now(),
+                    ]);
+
+                    $betragPat += $bPat;
+                    $betragKk  += $bKk;
                 }
-
-                $lr = $lrCache[$lrKey];
-                if (!$lr) throw new \RuntimeException("Keine Leistungsregion für leistungsart_id={$einsatz->leistungsart_id}, region_id={$klient->region_id}");
-                $ansatz = (float) $lr->ansatz;
-                $kkasse = (float) $lr->kkasse;
-                $minuten = $einsatz->minuten ?? 0;
-                $bPat    = round($minuten / 60.0 * max(0, $ansatz - $kkasse), 2);
-                $bKk     = round($minuten / 60.0 * $kkasse, 2);
-
-                DB::table('rechnungs_positionen')->insert([
-                    'rechnung_id'    => $rechnungId,
-                    'einsatz_id'     => $einsatz->id,
-                    'datum'          => $einsatz->datum,
-                    'menge'          => $minuten,
-                    'einheit'        => 'minuten',
-                    'beschreibung'   => null,
-                    'tarif_patient'  => max(0, $ansatz - $kkasse),
-                    'tarif_kk'       => $kkasse,
-                    'betrag_patient' => $bPat,
-                    'betrag_kk'      => $bKk,
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
-                ]);
-
-                $betragPat += $bPat;
-                $betragKk  += $bKk;
             }
 
             DB::table('rechnungen')->where('id', $rechnungId)->update([

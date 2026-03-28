@@ -123,7 +123,7 @@ class BexioService
                     'discount_in_percent' => 0,
                     'account_id'  => null,
                     'tax_id'      => null,
-                    'text'        => $p->leistungsart?->bezeichnung ?? $p->bezeichnung ?? '',
+                    'text'        => $p->einsatzLeistungsart?->leistungsart?->bezeichnung ?? $p->beschreibung ?? $p->bezeichnung ?? '',
                     'unit_id'     => null,
                 ]);
 

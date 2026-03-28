@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Benutzer;
 use App\Models\Einsatz;
+use App\Models\EinsatzLeistungsart;
 use App\Models\Klient;
 use App\Models\Leistungsart;
 use Illuminate\Http\Request;
@@ -15,24 +16,44 @@ class EinsaetzeController extends Controller
         return auth()->user()->organisation_id;
     }
 
+    private function formView(Einsatz $einsatz)
+    {
+        $klienten = Klient::where('organisation_id', $this->orgId())
+            ->where('aktiv', true)->orderBy('nachname')->get();
+        $leistungsarten = Leistungsart::where('aktiv', true)->where('einheit', '!=', 'tage')->orderBy('bezeichnung')->get();
+        $mitarbeiter = (auth()->user()->rolle === 'admin')
+            ? Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get()
+            : collect();
+        $kbEintraege    = \App\Models\KlientBenutzer::where('beziehungstyp', 'angehoerig_pflegend')->where('aktiv', true)->get();
+        $benutzerLookup = Benutzer::whereIn('id', $kbEintraege->pluck('benutzer_id')->unique())->get()->keyBy('id');
+        $angehoerigeMap = $kbEintraege->groupBy('klient_id')
+            ->map(fn($gruppe) => $gruppe->map(fn($kb) => [
+                'id'   => $kb->benutzer_id,
+                'name' => ($b = $benutzerLookup[$kb->benutzer_id] ?? null) ? $b->nachname . ' ' . $b->vorname : '?',
+            ])->values());
+        $angehoerigenBenutzer = Benutzer::whereIn('id',
+            \App\Models\KlientBenutzer::where('klient_id', $einsatz->klient_id)
+                ->where('beziehungstyp', 'angehoerig_pflegend')->where('aktiv', true)->pluck('benutzer_id')
+        )->orderBy('nachname')->get();
+        return view('einsaetze.form', compact('einsatz', 'klienten', 'leistungsarten', 'mitarbeiter', 'angehoerigeMap', 'angehoerigenBenutzer'));
+    }
+
     public function index(Request $request)
     {
         $rolle   = auth()->user()->rolle;
         $userId  = auth()->id();
         $heute   = today();
-        $ansicht = $request->get('ansicht', 'anstehend'); // 'anstehend' | 'vergangen'
+        $ansicht = $request->get('ansicht', 'anstehend');
 
-        $q = Einsatz::with(['klient', 'benutzer', 'leistungsart'])
+        $q = Einsatz::with(['klient', 'benutzer', 'einsatzLeistungsarten.leistungsart'])
             ->where('organisation_id', $this->orgId());
 
-        // Pflege sieht nur eigene Einsätze
         if ($rolle === 'pflege') {
             $q->where('benutzer_id', $userId);
         } elseif ($request->filled('benutzer_id')) {
             $q->where('benutzer_id', $request->benutzer_id);
         }
 
-        // Ansicht: anstehend vs. vergangen
         if ($ansicht === 'vergangen') {
             $q->where(fn($sub) =>
                 $sub->whereDate('datum', '<', $heute)
@@ -71,7 +92,9 @@ class EinsaetzeController extends Controller
             if ($request->leistungsart_id === 'tagespauschale') {
                 $q->whereNotNull('tagespauschale_id');
             } else {
-                $q->where('leistungsart_id', $request->leistungsart_id);
+                $q->whereHas('einsatzLeistungsarten', fn($sub) =>
+                    $sub->where('leistungsart_id', $request->leistungsart_id)
+                );
             }
         }
 
@@ -91,10 +114,9 @@ class EinsaetzeController extends Controller
                 ->get()
             : collect();
 
-        // Meine Woche (nur Pflege-Rolle): eigene Einsätze der nächsten 14 Tage, nach Tag gruppiert
         $meineWoche = null;
         if ($rolle === 'pflege') {
-            $meineWoche = Einsatz::with(['klient', 'leistungsart'])
+            $meineWoche = Einsatz::with(['klient', 'einsatzLeistungsarten.leistungsart'])
                 ->where('organisation_id', $this->orgId())
                 ->where('benutzer_id', $userId)
                 ->whereDate('datum', '>=', $heute)
@@ -127,7 +149,6 @@ class EinsaetzeController extends Controller
                 ->get()
             : collect();
 
-        // Map: klient_id => [{id, name}, ...] für pflegende Angehörige (Helfer-Dropdown + Auto-Detect)
         $kbEintraege    = \App\Models\KlientBenutzer::where('beziehungstyp', 'angehoerig_pflegend')
             ->where('aktiv', true)->get();
         $benutzerLookup = Benutzer::whereIn('id', $kbEintraege->pluck('benutzer_id')->unique())
@@ -140,39 +161,50 @@ class EinsaetzeController extends Controller
                             ? $b->nachname . ' ' . $b->vorname : '?',
             ])->values());
 
-        return view('einsaetze.create', compact('klienten', 'leistungsarten', 'mitarbeiter', 'angehoerigeMap'));
+        return view('einsaetze.form', compact('klienten', 'leistungsarten', 'mitarbeiter', 'angehoerigeMap'))
+            ->with('einsatz', new Einsatz());
     }
 
     public function store(Request $request)
     {
+        // Nur angehakte Checkboxen haben eine id — herausfiltern
+        $request->merge([
+            'leistungsarten' => collect($request->input('leistungsarten', []))
+                ->filter(fn($la) => !empty($la['id']))
+                ->values()
+                ->toArray(),
+        ]);
+
         $daten = $request->validate([
-            'klient_id'       => ['required', 'exists:klienten,id'],
-            'leistungsart_id' => ['required', 'exists:leistungsarten,id'],
-            'datum'           => ['required', 'date'],
-            'datum_bis'       => ['nullable', 'date', 'after_or_equal:datum'],
-            'zeit_von'        => ['nullable', 'date_format:H:i', fn($a, $v, $f) =>
-                                    $v && (int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0
-                                        ? $f('Startzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).') : null],
-            'zeit_bis'        => ['nullable', 'date_format:H:i', function($a, $v, $f) use ($request) {
-                                    if (!$v) return;
-                                    if ((int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0)
-                                        return $f('Endzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).');
-                                    if ($request->zeit_von) {
-                                        $dauer = \Carbon\Carbon::createFromFormat('H:i', $request->zeit_von)
-                                                    ->diffInMinutes(\Carbon\Carbon::createFromFormat('H:i', $v));
-                                        if ($dauer < 10)
-                                            $f('Einsatz muss mindestens 10 Minuten dauern (KLV-Mindestdauer).');
-                                    }
-                                }],
+            'klient_id'              => ['required', 'exists:klienten,id'],
+            'leistungsarten'         => ['required', 'array', 'min:1'],
+            'leistungsarten.*.id'    => ['required', 'exists:leistungsarten,id'],
+            'leistungsarten.*.minuten' => ['required', 'integer', 'min:5'],
+            'datum'                  => ['required', 'date'],
+            'datum_bis'              => ['nullable', 'date', 'after_or_equal:datum'],
+            'zeit_von'               => ['nullable', 'date_format:H:i', fn($a, $v, $f) =>
+                                          $v && (int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0
+                                              ? $f('Startzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).') : null],
+            'zeit_bis'               => ['nullable', 'date_format:H:i', function($a, $v, $f) use ($request) {
+                                          if (!$v) return;
+                                          if ((int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0)
+                                              return $f('Endzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).');
+                                          if ($request->zeit_von) {
+                                              $dauer = \Carbon\Carbon::createFromFormat('H:i', $request->zeit_von)
+                                                          ->diffInMinutes(\Carbon\Carbon::createFromFormat('H:i', $v));
+                                              if ($dauer < 10)
+                                                  $f('Einsatz muss mindestens 10 Minuten dauern (KLV-Mindestdauer).');
+                                          }
+                                      }],
             'verordnung_id'          => ['nullable', 'exists:klient_verordnungen,id'],
             'leistungserbringer_typ' => ['nullable', 'in:fachperson,angehoerig'],
             'benutzer_id'            => ['nullable', 'exists:benutzer,id'],
             'helfer_id'              => ['nullable', 'exists:benutzer,id'],
             'bemerkung'              => ['nullable', 'string', 'max:1000'],
-            'wiederholung'    => ['nullable', 'in:woechentlich,taeglich'],
-            'serie_ende'      => ['nullable', 'date', 'after:datum'],
-            'wochentage'      => ['nullable', 'array'],
-            'wochentage.*'    => ['integer', 'between:0,6'],
+            'wiederholung'           => ['nullable', 'in:woechentlich,taeglich'],
+            'serie_ende'             => ['nullable', 'date', 'after:datum'],
+            'wochentage'             => ['nullable', 'array'],
+            'wochentage.*'           => ['integer', 'between:0,6'],
         ]);
 
         $klient = Klient::findOrFail($daten['klient_id']);
@@ -181,35 +213,38 @@ class EinsaetzeController extends Controller
             ? $daten['benutzer_id']
             : auth()->id();
 
-        // Warnung wenn Pflegeperson diese Leistungsart nicht darf
+        // Prüfen ob Pflegeperson alle gewählten Leistungsarten erbringen darf
         $pflegeperson = \App\Models\Benutzer::find($benutzerId);
-        if ($pflegeperson && !$pflegeperson->darfLeistungsart((int) $daten['leistungsart_id'])) {
-            return back()->withInput()->withErrors([
-                'leistungsart_id' => $pflegeperson->vorname . ' ' . $pflegeperson->nachname . ' ist für diese Leistungsart nicht freigegeben.',
-            ]);
+        if ($pflegeperson) {
+            foreach ($daten['leistungsarten'] as $la) {
+                if (!$pflegeperson->darfLeistungsart((int) $la['id'])) {
+                    $laName = Leistungsart::find($la['id'])?->bezeichnung ?? 'Leistungsart';
+                    return back()->withInput()->withErrors([
+                        'leistungsarten' => $pflegeperson->vorname . ' ' . $pflegeperson->nachname . ' ist für "' . $laName . '" nicht freigegeben.',
+                    ]);
+                }
+            }
         }
 
         $basis = [
-            'organisation_id' => $this->orgId(),
-            'klient_id'       => $daten['klient_id'],
-            'leistungsart_id' => $daten['leistungsart_id'],
+            'organisation_id'        => $this->orgId(),
+            'klient_id'              => $daten['klient_id'],
             'verordnung_id'          => $daten['verordnung_id'] ?? null,
             'leistungserbringer_typ' => $daten['leistungserbringer_typ'] ?? 'fachperson',
             'benutzer_id'            => $benutzerId,
             'helfer_id'              => $daten['helfer_id'] ?? null,
-            'region_id'       => $klient->region_id,
-            'datum_bis'       => $daten['datum_bis'] ?? null,
-            'zeit_von'        => $daten['zeit_von'] ?? null,
-            'zeit_bis'        => $daten['zeit_bis'] ?? null,
-            'minuten'         => (isset($daten['zeit_von'], $daten['zeit_bis']))
-                                    ? \Carbon\Carbon::createFromFormat('H:i', $daten['zeit_von'])
-                                        ->diffInMinutes(\Carbon\Carbon::createFromFormat('H:i', $daten['zeit_bis']))
-                                    : null,
-            'bemerkung'       => $daten['bemerkung'] ?? null,
-            'status'          => 'geplant',
+            'region_id'              => $klient->region_id,
+            'datum_bis'              => $daten['datum_bis'] ?? null,
+            'zeit_von'               => $daten['zeit_von'] ?? null,
+            'zeit_bis'               => $daten['zeit_bis'] ?? null,
+            'minuten'                => (isset($daten['zeit_von'], $daten['zeit_bis']))
+                                          ? \Carbon\Carbon::createFromFormat('H:i', $daten['zeit_von'])
+                                              ->diffInMinutes(\Carbon\Carbon::createFromFormat('H:i', $daten['zeit_bis']))
+                                          : null,
+            'bemerkung'              => $daten['bemerkung'] ?? null,
+            'status'                 => 'geplant',
         ];
 
-        // Wiederholung: mehrere Einsätze erstellen
         $wiederholung = $daten['wiederholung'] ?? null;
         if ($wiederholung && !empty($daten['serie_ende'])) {
             $serieId    = (string) \Illuminate\Support\Str::uuid();
@@ -217,7 +252,6 @@ class EinsaetzeController extends Controller
             $ende       = \Carbon\Carbon::parse($daten['serie_ende']);
             $wochentage = array_map('intval', $daten['wochentage'] ?? []);
             $anzahl     = 0;
-            $ersterEinsatz = null;
 
             while ($current->lte($ende) && $anzahl < 365) {
                 $passt = match($wiederholung) {
@@ -230,7 +264,12 @@ class EinsaetzeController extends Controller
                         'datum'    => $current->format('Y-m-d'),
                         'serie_id' => $serieId,
                     ]));
-                    if (!$ersterEinsatz) $ersterEinsatz = $e;
+                    foreach ($daten['leistungsarten'] as $la) {
+                        $e->einsatzLeistungsarten()->create([
+                            'leistungsart_id' => $la['id'],
+                            'minuten'         => $la['minuten'],
+                        ]);
+                    }
                     $anzahl++;
                 }
                 $current->addDay();
@@ -246,6 +285,12 @@ class EinsaetzeController extends Controller
 
         // Einzelner Einsatz
         $einsatz = Einsatz::create(array_merge($basis, ['datum' => $daten['datum']]));
+        foreach ($daten['leistungsarten'] as $la) {
+            $einsatz->einsatzLeistungsarten()->create([
+                'leistungsart_id' => $la['id'],
+                'minuten'         => $la['minuten'],
+            ]);
+        }
 
         if ($request->filled('_klient_redirect')) {
             return redirect()->route('klienten.show', $daten['klient_id'])
@@ -266,8 +311,8 @@ class EinsaetzeController extends Controller
     public function show(Einsatz $einsatz)
     {
         $this->autorisiereZugriff($einsatz);
-        $einsatz->load('klient', 'benutzer', 'helfer', 'leistungsart', 'region', 'aktivitaeten');
-        return view('einsaetze.show', compact('einsatz'));
+        $einsatz->load('klient', 'benutzer', 'helfer', 'einsatzLeistungsarten.leistungsart', 'region', 'aktivitaeten');
+        return $this->formView($einsatz);
     }
 
     public function vorOrt(Einsatz $einsatz)
@@ -279,13 +324,12 @@ class EinsaetzeController extends Controller
             'klient.diagnosen',
             'klient.krankenkassen.krankenkasse',
             'klient.verordnungen' => fn($q) => $q->where('aktiv', true),
-            'leistungsart',
+            'einsatzLeistungsarten.leistungsart',
             'verordnung',
             'helfer',
             'aktivitaeten',
             'rapporte' => fn($q) => $q->orderByDesc('datum')->orderByDesc('id'),
         ]);
-        // Gespeicherte Aktivitäten als Lookup-Map: "Kategorie|Aktivität" => EinsatzAktivitaet
         $gespeicherteAktivitaeten = $einsatz->aktivitaeten
             ->keyBy(fn($a) => $a->kategorie . '|' . $a->aktivitaet);
         return view('einsaetze.vor-ort', compact('einsatz', 'gespeicherteAktivitaeten'));
@@ -314,30 +358,8 @@ class EinsaetzeController extends Controller
     public function edit(Einsatz $einsatz)
     {
         $this->autorisiereZugriff($einsatz);
-        $einsatz->load('klient', 'leistungsart');
-
-        $klienten = Klient::where('organisation_id', $this->orgId())
-            ->where('aktiv', true)
-            ->orderBy('nachname')
-            ->get();
-
-        $leistungsarten = Leistungsart::where('aktiv', true)->where('einheit', '!=', 'tage')->orderBy('bezeichnung')->get();
-
-        $mitarbeiter = (auth()->user()->rolle === 'admin')
-            ? Benutzer::where('organisation_id', $this->orgId())
-                ->where('aktiv', true)
-                ->orderBy('nachname')
-                ->get()
-            : collect();
-
-        $angehoerigenBenutzer = Benutzer::whereIn('id',
-            \App\Models\KlientBenutzer::where('klient_id', $einsatz->klient_id)
-                ->where('beziehungstyp', 'angehoerig_pflegend')
-                ->where('aktiv', true)
-                ->pluck('benutzer_id')
-        )->orderBy('nachname')->get();
-
-        return view('einsaetze.edit', compact('einsatz', 'klienten', 'leistungsarten', 'mitarbeiter', 'angehoerigenBenutzer'));
+        $einsatz->load('klient', 'einsatzLeistungsarten.leistungsart', 'aktivitaeten');
+        return $this->formView($einsatz);
     }
 
     public function update(Request $request, Einsatz $einsatz)
@@ -350,26 +372,36 @@ class EinsaetzeController extends Controller
             return redirect()->route('einsaetze.show', $einsatz)->with('erfolg', 'Bemerkung gespeichert.');
         }
 
+        // Nur angehakte Checkboxen haben eine id — herausfiltern
+        $request->merge([
+            'leistungsarten' => collect($request->input('leistungsarten', []))
+                ->filter(fn($la) => !empty($la['id']))
+                ->values()
+                ->toArray(),
+        ]);
+
         $regeln = [
-            'klient_id'       => ['required', 'exists:klienten,id'],
-            'leistungsart_id' => ['required', 'exists:leistungsarten,id'],
-            'datum'           => ['required', 'date'],
-            'datum_bis'       => ['nullable', 'date', 'after_or_equal:datum'],
-            'zeit_von'        => ['nullable', 'date_format:H:i', fn($a, $v, $f) =>
-                                    $v && (int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0
-                                        ? $f('Startzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).') : null],
-            'zeit_bis'        => ['nullable', 'date_format:H:i', function($a, $v, $f) use ($request) {
-                                    if (!$v) return;
-                                    if ((int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0)
-                                        return $f('Endzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).');
-                                    if ($request->zeit_von) {
-                                        $dauer = \Carbon\Carbon::createFromFormat('H:i', $request->zeit_von)
-                                                    ->diffInMinutes(\Carbon\Carbon::createFromFormat('H:i', $v));
-                                        if ($dauer < 10)
-                                            $f('Einsatz muss mindestens 10 Minuten dauern (KLV-Mindestdauer).');
-                                    }
-                                }],
-            'bemerkung'       => ['nullable', 'string', 'max:1000'],
+            'klient_id'              => ['required', 'exists:klienten,id'],
+            'leistungsarten'         => ['required', 'array', 'min:1'],
+            'leistungsarten.*.id'    => ['required', 'exists:leistungsarten,id'],
+            'leistungsarten.*.minuten' => ['required', 'integer', 'min:5'],
+            'datum'                  => ['required', 'date'],
+            'datum_bis'              => ['nullable', 'date', 'after_or_equal:datum'],
+            'zeit_von'               => ['nullable', 'date_format:H:i', fn($a, $v, $f) =>
+                                          $v && (int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0
+                                              ? $f('Startzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).') : null],
+            'zeit_bis'               => ['nullable', 'date_format:H:i', function($a, $v, $f) use ($request) {
+                                          if (!$v) return;
+                                          if ((int)\Carbon\Carbon::createFromFormat('H:i', $v)->format('i') % 5 !== 0)
+                                              return $f('Endzeit muss in 5-Minuten-Schritten sein (KLV-Vorschrift).');
+                                          if ($request->zeit_von) {
+                                              $dauer = \Carbon\Carbon::createFromFormat('H:i', $request->zeit_von)
+                                                          ->diffInMinutes(\Carbon\Carbon::createFromFormat('H:i', $v));
+                                              if ($dauer < 10)
+                                                  $f('Einsatz muss mindestens 10 Minuten dauern (KLV-Mindestdauer).');
+                                          }
+                                      }],
+            'bemerkung'              => ['nullable', 'string', 'max:1000'],
         ];
 
         if (auth()->user()->rolle === 'admin') {
@@ -395,18 +427,33 @@ class EinsaetzeController extends Controller
             unset($daten['helfer_id']);
         }
 
-        // Warnung wenn Pflegeperson diese Leistungsart nicht darf
-        $benutzerId = $daten['benutzer_id'] ?? $einsatz->benutzer_id;
+        // Prüfen ob Pflegeperson alle gewählten Leistungsarten erbringen darf
+        $benutzerId   = $daten['benutzer_id'] ?? $einsatz->benutzer_id;
         $pflegeperson = \App\Models\Benutzer::find($benutzerId);
-        if ($pflegeperson && !$pflegeperson->darfLeistungsart((int) $daten['leistungsart_id'])) {
-            return back()->withInput()->withErrors([
-                'leistungsart_id' => $pflegeperson->vorname . ' ' . $pflegeperson->nachname . ' ist für diese Leistungsart nicht freigegeben.',
+        if ($pflegeperson) {
+            foreach ($daten['leistungsarten'] as $la) {
+                if (!$pflegeperson->darfLeistungsart((int) $la['id'])) {
+                    $laName = Leistungsart::find($la['id'])?->bezeichnung ?? 'Leistungsart';
+                    return back()->withInput()->withErrors([
+                        'leistungsarten' => $pflegeperson->vorname . ' ' . $pflegeperson->nachname . ' ist für "' . $laName . '" nicht freigegeben.',
+                    ]);
+                }
+            }
+        }
+
+        $updateDaten = collect($daten)->except(['leistungsarten'])->toArray();
+        $einsatz->update($updateDaten);
+
+        // Leistungsarten neu setzen
+        $einsatz->einsatzLeistungsarten()->delete();
+        foreach ($daten['leistungsarten'] as $la) {
+            $einsatz->einsatzLeistungsarten()->create([
+                'leistungsart_id' => $la['id'],
+                'minuten'         => $la['minuten'],
             ]);
         }
 
-        $einsatz->update($daten);
-
-        return redirect()->route('kalender.index')
+        return redirect()->route('einsaetze.show', $einsatz)
             ->with('erfolg', 'Einsatz wurde gespeichert.');
     }
 
@@ -433,7 +480,6 @@ class EinsaetzeController extends Controller
 
     public function destroySerie(Request $request, string $serieId)
     {
-        // Nur zukünftige, nicht abgeschlossene Einsätze löschen
         $anzahl = Einsatz::where('organisation_id', $this->orgId())
             ->where('serie_id', $serieId)
             ->whereDate('datum', '>=', today())

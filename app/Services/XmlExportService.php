@@ -205,7 +205,7 @@ class XmlExportService
         $session = 1;
         foreach ($positionen as $pos) {
             $einsatz = $pos->einsatz;
-            $la      = $einsatz?->leistungsart;
+            $la      = $pos->einsatzLeistungsart?->leistungsart ?? $einsatz?->einsatzLeistungsarten->first()?->leistungsart;
 
             // Minuten ermitteln: aus Einsatz oder Menge
             $minuten = $einsatz?->minuten ?? $pos->menge ?? 0;

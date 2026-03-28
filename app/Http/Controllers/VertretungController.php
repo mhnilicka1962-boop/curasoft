@@ -56,7 +56,7 @@ class VertretungController extends Controller
         $einsaetzeWarnung  = collect();
 
         foreach ($einsaetze as $e) {
-            if ($vertretung && !$vertretung->darfLeistungsart($e->leistungsart_id)) {
+            if ($vertretung && $e->einsatzLeistungsarten->contains(fn($el) => !$vertretung->darfLeistungsart($el->leistungsart_id))) {
                 $einsaetzeWarnung->push($e);
             } else {
                 $einsaetzeOk->push($e);

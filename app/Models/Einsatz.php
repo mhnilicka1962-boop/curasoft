@@ -10,7 +10,7 @@ class Einsatz extends Model
 
     protected $fillable = [
         'organisation_id', 'klient_id', 'benutzer_id', 'helfer_id',
-        'leistungsart_id', 'verordnung_id', 'leistungserbringer_typ', 'region_id', 'status',
+        'verordnung_id', 'leistungserbringer_typ', 'region_id', 'status',
         'datum', 'datum_bis', 'tagespauschale_id', 'zeit_von', 'zeit_bis', 'minuten', 'bemerkung', 'admin_kommentar', 'verrechnet',
         'checkin_zeit', 'checkin_lat', 'checkin_lng', 'checkin_methode', 'checkin_distanz_meter',
         'checkout_zeit', 'checkout_lat', 'checkout_lng', 'checkout_methode', 'checkout_distanz_meter',
@@ -25,17 +25,17 @@ class Einsatz extends Model
         'verrechnet'   => 'boolean',
     ];
 
-    public function klient()          { return $this->belongsTo(Klient::class); }
-    public function tagespauschale()  { return $this->belongsTo(Tagespauschale::class); }
-    public function benutzer()      { return $this->belongsTo(Benutzer::class); }
-    public function helfer()        { return $this->belongsTo(Benutzer::class, 'helfer_id'); }
-    public function leistungsart()  { return $this->belongsTo(Leistungsart::class); }
-    public function verordnung()    { return $this->belongsTo(KlientVerordnung::class, 'verordnung_id'); }
-    public function region()        { return $this->belongsTo(Region::class); }
-    public function tour()          { return $this->belongsTo(Tour::class); }
-    public function aktivitaeten()    { return $this->hasMany(EinsatzAktivitaet::class); }
-    public function rapporte()        { return $this->hasMany(Rapport::class); }
-    public function rechnungsPosition() { return $this->hasOne(RechnungsPosition::class); }
+    public function klient()             { return $this->belongsTo(Klient::class); }
+    public function tagespauschale()     { return $this->belongsTo(Tagespauschale::class); }
+    public function benutzer()           { return $this->belongsTo(Benutzer::class); }
+    public function helfer()             { return $this->belongsTo(Benutzer::class, 'helfer_id'); }
+    public function verordnung()         { return $this->belongsTo(KlientVerordnung::class, 'verordnung_id'); }
+    public function region()             { return $this->belongsTo(Region::class); }
+    public function tour()               { return $this->belongsTo(Tour::class); }
+    public function aktivitaeten()       { return $this->hasMany(EinsatzAktivitaet::class); }
+    public function rapporte()           { return $this->hasMany(Rapport::class); }
+    public function rechnungsPosition()  { return $this->hasOne(RechnungsPosition::class); }
+    public function einsatzLeistungsarten() { return $this->hasMany(EinsatzLeistungsart::class); }
 
     public function isEingecheckt(): bool  { return !is_null($this->checkin_zeit); }
     public function isAusgecheckt(): bool  { return !is_null($this->checkout_zeit); }
@@ -48,7 +48,9 @@ class Einsatz extends Model
 
     public function istPauschale(): bool
     {
-        return $this->leistungsart?->einheit === 'tage';
+        return $this->einsatzLeistungsarten->contains(
+            fn($el) => $el->leistungsart?->einheit === 'tage'
+        );
     }
 
     public function anzahlTage(): ?int

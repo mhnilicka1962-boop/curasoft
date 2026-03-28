@@ -48,7 +48,7 @@ class RapportierungController extends Controller
             ->whereBetween('datum', [$periodeVon, $periodeBis])
             ->whereNull('tagespauschale_id')
             ->whereNull('betrag_fix')
-            ->with('aktivitaeten', 'benutzer')
+            ->with('aktivitaeten', 'benutzer', 'einsatzLeistungsarten')
             ->get();
 
         // Raster Rapportierung: [leistungstyp_id][tag] = ['minuten' => X]
@@ -58,20 +58,22 @@ class RapportierungController extends Controller
         $appRaster = [];
 
         foreach ($einsaetze as $e) {
-            $tag  = $e->datum->day;
-            $laId = $e->leistungsart_id;
+            $tag = $e->datum->day;
 
-            // Leistungsart-Header Summe
-            if (!isset($appRaster[$laId][$tag])) {
-                $appRaster[$laId][$tag] = ['minuten' => 0, 'aktiv' => false, 'einsatz_id' => null, 'kommentar' => null];
-            }
-            $appRaster[$laId][$tag]['minuten'] += $e->minuten ?? 0;
-            if ($e->status === 'aktiv') {
-                $appRaster[$laId][$tag]['aktiv']      = true;
-                $appRaster[$laId][$tag]['einsatz_id'] = $e->id;
-            } elseif (!$appRaster[$laId][$tag]['einsatz_id']) {
-                $appRaster[$laId][$tag]['einsatz_id'] = $e->id;
-                $appRaster[$laId][$tag]['kommentar']  = $e->admin_kommentar;
+            // Leistungsart-Header Summe — pro Leistungsart separat
+            foreach ($e->einsatzLeistungsarten as $el) {
+                $laId = $el->leistungsart_id;
+                if (!isset($appRaster[$laId][$tag])) {
+                    $appRaster[$laId][$tag] = ['minuten' => 0, 'aktiv' => false, 'einsatz_id' => null, 'kommentar' => null];
+                }
+                $appRaster[$laId][$tag]['minuten'] += $el->minuten ?? 0;
+                if ($e->status === 'aktiv') {
+                    $appRaster[$laId][$tag]['aktiv']      = true;
+                    $appRaster[$laId][$tag]['einsatz_id'] = $e->id;
+                } elseif (!$appRaster[$laId][$tag]['einsatz_id']) {
+                    $appRaster[$laId][$tag]['einsatz_id'] = $e->id;
+                    $appRaster[$laId][$tag]['kommentar']  = $e->admin_kommentar;
+                }
             }
 
             // Admin-Protokoll lesen
@@ -236,7 +238,6 @@ class RapportierungController extends Controller
                         'organisation_id' => $this->orgId(),
                         'klient_id'       => $klient->id,
                         'benutzer_id'     => $benutzerId,
-                        'leistungsart_id' => $lt->leistungsart_id,
                         'region_id'       => $klient->region_id,
                         'datum'           => $datum,
                         'minuten'         => $minuten,
@@ -246,6 +247,10 @@ class RapportierungController extends Controller
                         'checkout_zeit'   => $datum->copy()->setTime(0, 0)->addMinutes($minuten),
                         'verrechnet'      => false,
                         'admin_kommentar' => $kommentar,
+                    ]);
+                    $neuerEinsatz->einsatzLeistungsarten()->create([
+                        'leistungsart_id' => $lt->leistungsart_id,
+                        'minuten'         => $minuten,
                     ]);
                     $neuerEinsatz->aktivitaeten()->create([
                         'organisation_id' => $this->orgId(),
@@ -296,7 +301,7 @@ class RapportierungController extends Controller
             ->whereNull('tagespauschale_id')
             ->whereNull('betrag_fix')
             ->whereNotNull('checkout_zeit')
-            ->with('leistungsart')
+            ->with('einsatzLeistungsarten.leistungsart')
             ->get();
 
         $rechnungstyp = $klient->rechnungstyp ?? 'kombiniert';
@@ -304,21 +309,24 @@ class RapportierungController extends Controller
         $positionen   = collect();
 
         foreach ($einsaetze as $einsatz) {
-            $m = (float)($einsatz->minuten ?? 0);
-            if ($m <= 0) continue;
-            [$tarifPat, $tarifKk] = $this->tarifeFuerVorschau($einsatz, $klient, $rechnungstyp, $tarifCache);
-            $positionen->push((object)[
-                'einheit'        => 'minuten',
-                'beschreibung'   => null,
-                'datum'          => $einsatz->datum,
-                'menge'          => $m,
-                'tarif_patient'  => $tarifPat,
-                'tarif_kk'       => $tarifKk,
-                'betrag_patient' => round($m / 60 * $tarifPat, 5),
-                'betrag_kk'      => round($m / 60 * $tarifKk, 5),
-                'einsatz'        => $einsatz,
-                'leistungstyp'   => null,
-            ]);
+            foreach ($einsatz->einsatzLeistungsarten as $el) {
+                $m = (float)($el->minuten ?? 0);
+                if ($m <= 0) continue;
+                [$tarifPat, $tarifKk] = $this->tarifeFuerVorschau($el->leistungsart_id, $einsatz->region_id ?? $klient->region_id, $einsatz->datum, $rechnungstyp, $tarifCache);
+                $positionen->push((object)[
+                    'einheit'          => 'minuten',
+                    'beschreibung'     => $el->leistungsart?->bezeichnung,
+                    'leistungsart_id'  => $el->leistungsart_id,
+                    'datum'            => $einsatz->datum,
+                    'menge'            => $m,
+                    'tarif_patient'    => $tarifPat,
+                    'tarif_kk'         => $tarifKk,
+                    'betrag_patient'   => round($m / 60 * $tarifPat, 5),
+                    'betrag_kk'        => round($m / 60 * $tarifKk, 5),
+                    'einsatz'          => $einsatz,
+                    'leistungstyp'     => null,
+                ]);
+            }
         }
 
         $betragPat = $positionen->sum('betrag_patient');
@@ -350,13 +358,8 @@ class RapportierungController extends Controller
         ]);
     }
 
-    private function tarifeFuerVorschau(Einsatz $einsatz, Klient $klient, string $rechnungstyp, array &$cache): array
+    private function tarifeFuerVorschau(int $leistungsartId, ?int $regionId, $datum, string $rechnungstyp, array &$cache): array
     {
-        $regionId       = $einsatz->region_id ?? $klient->region_id;
-        $leistungsartId = $einsatz->leistungsart_id;
-        if (!$leistungsartId) return [0, 0];
-
-        $datum    = $einsatz->datum ?? today();
         $cacheKey = "{$leistungsartId}-{$regionId}-{$datum}";
 
         if (!isset($cache[$cacheKey])) {

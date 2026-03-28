@@ -125,11 +125,12 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
     $klientName  = trim(($rechnung->klient->anrede ? $rechnung->klient->anrede . ' ' : '')
                    . $rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
 
-    // Anschrift: KVG→KK, sonst Rechnungsadresse > Einsatzadresse > Hauptadresse
+    // Anschrift: bei tiers_garant immer Patient, sonst KVG→KK
+    $tiersGarant = (\App\Models\Organisation::find($rechnung->organisation_id)?->abrechnungslogik ?? 'tiers_garant') === 'tiers_garant';
     $adrRechnung = $rechnung->klient->adressen->firstWhere('adressart', 'rechnung');
     $adrEinsatz  = $rechnung->klient->adressen->firstWhere('adressart', 'einsatzort');
 
-    if ($nurKK && $rechnung->klient->krankenkassen->isNotEmpty()) {
+    if (!$tiersGarant && $nurKK && $rechnung->klient->krankenkassen->isNotEmpty()) {
         $kk = $rechnung->klient->krankenkassen->first();
         $anschriftAnrede   = null;
         $anschriftName     = $kk->krankenkasse->name ?? '';
@@ -301,7 +302,8 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
                 @php
                     $bezeichnung = $pos->einheit === 'pauschal'
                                 ? ($pos->beschreibung ?? 'Einzelleistung')
-                                : ($pos->einsatz?->leistungsart?->bezeichnung
+                                : ($pos->einsatzLeistungsart?->leistungsart?->bezeichnung
+                                ?? $pos->beschreibung
                                 ?? $pos->leistungstyp?->bezeichnung
                                 ?? 'Tagespauschale');
                     $betrag = $pos->betrag_patient + $pos->betrag_kk;
@@ -309,14 +311,10 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
                 @endphp
                 <tr>
                     <td>
-                        {{ $bezeichnung }}<br>
-                        @if($pos->einheit !== 'pauschal')
-                        <span style="font-size: 7.5pt; color: #555;">
-                            @if($pos->beschreibung)
-                                {{ $pos->beschreibung }}
-                            @else
-                                {{ $pos->datum->format('d.m.Y') }}
-                            @endif
+                        {{ $bezeichnung }}
+                        @if($pos->einheit !== 'pauschal' && $pos->beschreibung !== $bezeichnung)
+                        <br><span style="font-size: 7.5pt; color: #555;">
+                            {{ $pos->beschreibung ?? $pos->datum->format('d.m.Y') }}
                         </span>
                         @endif
                     </td>
@@ -334,7 +332,8 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
             // Positionen nach Leistungsart gruppieren + kumulieren
             $gruppen = [];
             foreach ($positionen as $pos) {
-                $la = $pos->einsatz?->leistungsart?->bezeichnung
+                $la = $pos->einsatzLeistungsart?->leistungsart?->bezeichnung
+                   ?? $pos->beschreibung
                    ?? $pos->leistungstyp?->leistungsart?->bezeichnung
                    ?? $pos->leistungstyp?->bezeichnung
                    ?? 'Pflege- und Betreuungsleistung';

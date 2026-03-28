@@ -52,7 +52,7 @@ class KalenderController extends Controller
         $von = $request->get('start') ? Carbon::parse($request->get('start')) : Carbon::today()->startOfWeek();
         $bis = $request->get('end')   ? Carbon::parse($request->get('end'))   : Carbon::today()->endOfWeek();
 
-        $einsaetze = Einsatz::with(['klient', 'benutzer', 'helfer', 'leistungsart'])
+        $einsaetze = Einsatz::with(['klient', 'benutzer', 'helfer', 'einsatzLeistungsarten.leistungsart'])
             ->where('organisation_id', $this->orgId())
             ->whereNotIn('status', ['storniert'])
             ->whereBetween('datum', [$von->toDateString(), $bis->toDateString()])
@@ -85,7 +85,7 @@ class KalenderController extends Controller
                 'extendedProps'   => [
                     'status'       => $e->status,
                     'statusLabel'  => $e->statusLabel(),
-                    'leistungsart' => $e->leistungsart?->bezeichnung,
+                    'leistungsart' => $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', '),
                     'klient_id'    => $e->klient_id,
                     'klient_name'  => $e->klient ? $e->klient->vorname . ' ' . $e->klient->nachname : '?',
                     'benutzer_name'=> $e->benutzer ? $e->benutzer->vorname . ' ' . $e->benutzer->nachname : '—',
@@ -116,7 +116,10 @@ class KalenderController extends Controller
         // Mitarbeiter-Freigabe prüfen
         if (!empty($data['benutzer_id'])) {
             $ma = Benutzer::find($data['benutzer_id']);
-            if ($ma && !$ma->darfLeistungsart($einsatz->leistungsart_id)) {
+            $hatSperrung = $einsatz->einsatzLeistungsarten->contains(
+                fn($el) => !$ma->darfLeistungsart($el->leistungsart_id)
+            );
+            if ($ma && $hatSperrung) {
                 return response()->json([
                     'fehler' => $ma->vorname . ' ' . $ma->nachname . ' ist für diese Leistungsart nicht freigegeben.'
                 ], 422);

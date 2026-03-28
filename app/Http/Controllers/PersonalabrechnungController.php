@@ -180,7 +180,7 @@ class PersonalabrechnungController extends Controller
                 fputcsv($handle, [
                     $e->datum->format('d.m.Y'),
                     ($e->klient?->vorname . ' ' . $e->klient?->nachname),
-                    $e->leistungsart?->bezeichnung ?? '—',
+                    $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: '—',
                     $e->zeit_von ?? '',
                     $e->zeit_bis ?? '',
                     $planMin,
@@ -366,7 +366,7 @@ class PersonalabrechnungController extends Controller
                     fputcsv($handle, [
                         $e->datum->format('d.m.Y'),
                         ($e->klient?->vorname . ' ' . $e->klient?->nachname),
-                        $e->leistungsart?->bezeichnung ?? '—',
+                        $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: '—',
                         $e->zeit_von ?? '',
                         $e->zeit_bis ?? '',
                         $planMin,

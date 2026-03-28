@@ -29,7 +29,7 @@ class PdfExportService
             'klient.adressen',
             'klient.aktBeitrag',
             'positionen.leistungstyp.leistungsart',
-            'positionen.einsatz.leistungsart',
+            'positionen.einsatzLeistungsart.leistungsart',
         ]);
 
         $regionDaten = $rechnung->klient->region_id
@@ -277,7 +277,7 @@ class PdfExportService
         // Positionen nach Datum × Leistungsart aggregieren
         $tagesMin = [];
         foreach ($positionen as $pos) {
-            $laId = $pos->einsatz?->leistungsart_id ?? null;
+            $laId = $pos->einsatzLeistungsart?->leistungsart_id ?? $pos->leistungsart_id ?? null;
             if (!$laId) continue;
             $key = null;
             foreach ($keys as $k => $name) {
@@ -375,7 +375,7 @@ class PdfExportService
             'klient.adressen',
             'klient.aktBeitrag',
             'positionen.leistungstyp.leistungsart',
-            'positionen.einsatz.leistungsart',
+            'positionen.einsatzLeistungsart.leistungsart',
         ]);
 
         $regionDaten = $rechnung->klient->region_id

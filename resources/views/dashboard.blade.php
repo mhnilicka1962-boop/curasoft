@@ -176,8 +176,8 @@
                 <div class="flex-1-min" style="min-width: 160px;">
                     <a href="{{ route('klienten.show', $e->klient) }}" class="text-fett link-primaer">{{ $e->klient->vollname() }}</a>
                     <span class="badge badge-klein ml-klein {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
-                    @if($e->leistungsart)
-                        <div class="text-hell listen-meta">{{ $e->leistungsart->bezeichnung }}</div>
+                    @if($e->einsatzLeistungsarten->isNotEmpty())
+                        <div class="text-hell listen-meta">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</div>
                     @endif
                 </div>
                 <div class="text-mini text-hell text-rechts flex-shrink-0" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem;">

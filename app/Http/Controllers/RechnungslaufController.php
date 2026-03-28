@@ -399,20 +399,11 @@ class RechnungslaufController extends Controller
      *
      * @return array{0: float, 1: float} [tarif_patient, tarif_kk]
      */
-    private function tarifeFuerEinsatz(Einsatz $einsatz, Klient $klient, string $rechnungstyp, array &$cache): array
+    private function tarifeFuerLeistungsart(int $leistungsartId, ?int $regionId, $datum, string $rechnungstyp, array &$cache): array
     {
-        $regionId       = $einsatz->region_id ?? $klient->region_id;
-        $leistungsartId = $einsatz->leistungsart_id;
-
-        if (!$leistungsartId) {
-            return [0, 0];
-        }
-
-        $datum    = $einsatz->datum ?? today();
         $cacheKey = "{$leistungsartId}-{$regionId}-{$datum}";
 
         if (!isset($cache[$cacheKey])) {
-            // Aktuellsten Tarif per Einsatzdatum: gültig_ab <= datum, neuester zuerst
             $lr = Leistungsregion::where('leistungsart_id', $leistungsartId)
                 ->where('region_id', $regionId)
                 ->where(fn($q) => $q->whereNull('gueltig_ab')->orWhere('gueltig_ab', '<=', $datum))
@@ -420,7 +411,6 @@ class RechnungslaufController extends Controller
                 ->orderByDesc('gueltig_ab')
                 ->first();
 
-            // Fallback: Leistungsregion ohne Region-Einschränkung (globaler Tarif)
             if (!$lr && $regionId) {
                 $lr = Leistungsregion::where('leistungsart_id', $leistungsartId)
                     ->whereNull('region_id')
@@ -442,10 +432,10 @@ class RechnungslaufController extends Controller
         $kkasse = (float) $lr->kkasse;
 
         return match($rechnungstyp) {
-            'kvg'     => [0,                      $ansatz],          // KK zahlt vollen Ansatz
-            'klient'  => [$ansatz,                0],                // Patient zahlt vollen Ansatz
-            'gemeinde'=> [$ansatz,                0],                // Gemeinde im Patienten-Feld
-            default   => [max(0, $ansatz - $kkasse), $kkasse],       // kombiniert: Anteil aufteilen
+            'kvg'     => [0,                         $ansatz],
+            'klient'  => [$ansatz,                   0],
+            'gemeinde'=> [$ansatz,                   0],
+            default   => [max(0, $ansatz - $kkasse), $kkasse],
         };
     }
 
@@ -472,7 +462,7 @@ class RechnungslaufController extends Controller
                       ->orWhereNotNull('tagespauschale_id');
                 })
                 ->whereBetween('datum', [$von, $bis])
-                ->with('leistungsart', 'tagespauschale')
+                ->with('einsatzLeistungsarten.leistungsart', 'tagespauschale')
                 ->get();
 
             if ($einsaetze->isEmpty()) {
@@ -502,19 +492,22 @@ class RechnungslaufController extends Controller
             if ($normale->isNotEmpty()) {
                 $betragPat = 0; $betragKk = 0; $minuten = 0; $ohneTypCount = 0;
                 foreach ($normale as $einsatz) {
-                    $istTage = $einsatz->leistungsart?->einheit === 'tage';
-                    [$tp, $tk] = $this->tarifeFuerEinsatz($einsatz, $klient, $rechnungstyp, $tarifCache);
-                    if ($istTage) {
-                        $tage       = $einsatz->anzahlTage() ?? 1;
-                        $betragPat += $this->r5($tage * $tp);
-                        $betragKk  += $this->r5($tage * $tk);
-                    } else {
-                        $m          = $einsatz->minuten ?? 0;
-                        $betragPat += $this->r5($m / 60 * $tp);
-                        $betragKk  += $this->r5($m / 60 * $tk);
-                        $minuten   += $m;
+                    if ($einsatz->einsatzLeistungsarten->isEmpty()) { $ohneTypCount++; continue; }
+                    $regionId = $einsatz->region_id ?? $klient->region_id;
+                    foreach ($einsatz->einsatzLeistungsarten as $el) {
+                        $istTage = $el->leistungsart?->einheit === 'tage';
+                        [$tp, $tk] = $this->tarifeFuerLeistungsart($el->leistungsart_id, $regionId, $einsatz->datum, $rechnungstyp, $tarifCache);
+                        if ($istTage) {
+                            $tage       = $einsatz->anzahlTage() ?? 1;
+                            $betragPat += $this->r5($tage * $tp);
+                            $betragKk  += $this->r5($tage * $tk);
+                        } else {
+                            $m          = $el->minuten ?? 0;
+                            $betragPat += $this->r5($m / 60 * $tp);
+                            $betragKk  += $this->r5($m / 60 * $tk);
+                            $minuten   += $m;
+                        }
                     }
-                    if (!$einsatz->leistungsart_id) $ohneTypCount++;
                 }
                 if ($ohneTypCount > 0) $ohneLeistungsart++;
                 $betrag = $betragPat + $betragKk;
@@ -846,7 +839,7 @@ class RechnungslaufController extends Controller
                       ->orWhereNotNull('tagespauschale_id');
                 })
                 ->whereBetween('datum', [$periode_von, $periode_bis])
-                ->with('leistungsart', 'tagespauschale')
+                ->with('einsatzLeistungsarten.leistungsart', 'tagespauschale')
                 ->orderBy('datum')
                 ->get();
 
@@ -901,51 +894,50 @@ class RechnungslaufController extends Controller
                 foreach ($daten['normale'] as $einsatz) {
                     if ($einsatz->betrag_fix !== null) {
                         // Einzelleistung mit Fixbetrag — kein Tarif-Lookup
-                        $menge     = 1;
-                        $einheit   = 'pauschal';
                         $betragFix = $this->r5((float) $einsatz->betrag_fix);
-                        $betragPat = $betragFix;
-                        $betragKk  = 0.0;
-                        $tarifPat  = $betragFix;
-                        $tarifKk   = 0.0;
                         RechnungsPosition::create([
                             'rechnung_id'    => $rechnung->id,
                             'einsatz_id'     => $einsatz->id,
                             'datum'          => $einsatz->datum,
-                            'menge'          => $menge,
-                            'einheit'        => $einheit,
+                            'menge'          => 1,
+                            'einheit'        => 'pauschal',
                             'beschreibung'   => $einsatz->bemerkung,
-                            'tarif_patient'  => $tarifPat,
-                            'tarif_kk'       => $tarifKk,
-                            'betrag_patient' => $betragPat,
-                            'betrag_kk'      => $betragKk,
+                            'tarif_patient'  => $betragFix,
+                            'tarif_kk'       => 0.0,
+                            'betrag_patient' => $betragFix,
+                            'betrag_kk'      => 0.0,
                         ]);
                     } else {
-                        $istTage = $einsatz->leistungsart?->einheit === 'tage';
-                        [$tarifPat, $tarifKk] = $this->tarifeFuerEinsatz($einsatz, $klient, $rechnungstyp, $tarifCache);
-                        if ($istTage) {
-                            $menge     = $einsatz->anzahlTage() ?? 1;
-                            $einheit   = 'tage';
-                            $betragPat = $this->r5($menge * $tarifPat);
-                            $betragKk  = $this->r5($menge * $tarifKk);
-                        } else {
-                            $menge     = $einsatz->minuten ?? 0;
-                            $einheit   = 'minuten';
-                            $betragPat = $this->r5($menge / 60 * $tarifPat);
-                            $betragKk  = $this->r5($menge / 60 * $tarifKk);
+                        // Eine Position pro Leistungsart
+                        $regionId = $einsatz->region_id ?? $klient->region_id;
+                        foreach ($einsatz->einsatzLeistungsarten as $el) {
+                            $istTage = $el->leistungsart?->einheit === 'tage';
+                            [$tarifPat, $tarifKk] = $this->tarifeFuerLeistungsart($el->leistungsart_id, $regionId, $einsatz->datum, $rechnungstyp, $tarifCache);
+                            if ($istTage) {
+                                $menge     = $einsatz->anzahlTage() ?? 1;
+                                $einheit   = 'tage';
+                                $betragPat = $this->r5($menge * $tarifPat);
+                                $betragKk  = $this->r5($menge * $tarifKk);
+                            } else {
+                                $menge     = $el->minuten ?? 0;
+                                $einheit   = 'minuten';
+                                $betragPat = $this->r5($menge / 60 * $tarifPat);
+                                $betragKk  = $this->r5($menge / 60 * $tarifKk);
+                            }
+                            RechnungsPosition::create([
+                                'rechnung_id'             => $rechnung->id,
+                                'einsatz_id'              => $einsatz->id,
+                                'einsatz_leistungsart_id' => $el->id,
+                                'datum'                   => $einsatz->datum,
+                                'menge'                   => $menge,
+                                'einheit'                 => $einheit,
+                                'beschreibung'            => null,
+                                'tarif_patient'           => $tarifPat,
+                                'tarif_kk'                => $tarifKk,
+                                'betrag_patient'          => $betragPat,
+                                'betrag_kk'               => $betragKk,
+                            ]);
                         }
-                        RechnungsPosition::create([
-                            'rechnung_id'    => $rechnung->id,
-                            'einsatz_id'     => $einsatz->id,
-                            'datum'          => $einsatz->datum,
-                            'menge'          => $menge,
-                            'einheit'        => $einheit,
-                            'beschreibung'   => null,
-                            'tarif_patient'  => $tarifPat,
-                            'tarif_kk'       => $tarifKk,
-                            'betrag_patient' => $betragPat,
-                            'betrag_kk'      => $betragKk,
-                        ]);
                     }
                     $einsatz->update(['verrechnet' => true]);
                 }

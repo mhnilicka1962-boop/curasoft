@@ -178,7 +178,13 @@
                         </a>
                     </td>
                     <td class="col-desktop text-hell" style="padding: 0.625rem 1rem;">
-                        {{ $einsatz->tagespauschale_id ? 'Tagespauschale' : ($einsatz->leistungsart?->bezeichnung ?? '—') }}
+                        @if($einsatz->tagespauschale_id)
+                            Tagespauschale
+                        @elseif($einsatz->einsatzLeistungsarten->isNotEmpty())
+                            {{ $einsatz->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}
+                        @else
+                            —
+                        @endif
                     </td>
                     <td class="text-hell" style="padding: 0.625rem 1rem; white-space: nowrap;">
                         @if($einsatz->checkin_zeit && $einsatz->checkout_zeit)
@@ -219,6 +225,7 @@
                     </td>
                     @endif
                     <td class="text-rechts" style="padding: 0.625rem 1rem; white-space: nowrap;">
+                        <span class="text-hell" style="font-size: 0.7rem; margin-right: 0.5rem;">#{{ $einsatz->id }}</span>
                         <a href="{{ route('einsaetze.show', $einsatz) }}"
                             class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.625rem;">
                             Detail
