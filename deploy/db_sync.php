@@ -18,7 +18,7 @@ $tables = [
     'klient_adressen', 'klient_aerzte', 'klient_krankenkassen', 'klient_verordnungen',
     'klient_kontakte', 'klient_pflegestufen', 'klient_diagnosen',
     'klient_beitraege', 'klient_benutzer',
-    'einsaetze', 'einsatz_aktivitaeten', 'rapporte',
+    'einsaetze', 'einsatz_leistungsarten', 'einsatz_aktivitaeten', 'rapporte',
     'nachrichten', 'nachricht_empfaenger', 'dokumente',
     'rechnungslaeufe', 'rechnungen', 'rechnungs_positionen',
 ];
