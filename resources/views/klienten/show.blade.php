@@ -192,6 +192,24 @@
                     <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr', $klient->ahv_nr) }}" placeholder="756.XXXX.XXXX.XX">
                 </div>
             </div>
+            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--cs-border); display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem;">
+                <div>
+                    <label class="feld-label">Zahlbar (Tage)</label>
+                    <input type="number" name="zahlbar_tage" class="feld" min="1" value="{{ old('zahlbar_tage', $klient->zahlbar_tage ?? 30) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Datum Erstkontakt</label>
+                    <input type="date" name="datum_erstkontakt" class="feld" value="{{ old('datum_erstkontakt', $klient->datum_erstkontakt?->format('Y-m-d')) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Einsatz geplant ab</label>
+                    <input type="date" name="einsatz_geplant_von" class="feld" value="{{ old('einsatz_geplant_von', $klient->einsatz_geplant_von?->format('Y-m-d')) }}">
+                </div>
+                <div>
+                    <label class="feld-label">Einsatz geplant bis</label>
+                    <input type="date" name="einsatz_geplant_bis" class="feld" value="{{ old('einsatz_geplant_bis', $klient->einsatz_geplant_bis?->format('Y-m-d')) }}">
+                </div>
+            </div>
         </div>
 
         <div class="karte" style="margin-bottom: 0.75rem;">
@@ -226,39 +244,6 @@
             </div>
         </div>
 
-        <div class="karte" style="margin-bottom: 0.75rem;">
-            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Abrechnung</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; margin-bottom: 0.625rem;">
-                <div>
-                    <label class="feld-label">Zahlbar (Tage)</label>
-                    <input type="number" name="zahlbar_tage" class="feld" min="1" value="{{ old('zahlbar_tage', $klient->zahlbar_tage ?? 30) }}">
-                </div>
-                <div>
-                    <label class="feld-label">Rechnungstyp</label>
-                    <select name="rechnungstyp" class="feld">
-                        <option value="">—</option>
-                        <option value="kombiniert" {{ $klient->rechnungstyp === 'kombiniert' ? 'selected' : '' }}>Kombiniert</option>
-                        <option value="kvg"        {{ $klient->rechnungstyp === 'kvg'        ? 'selected' : '' }}>Nur KVG</option>
-                        <option value="klient"     {{ $klient->rechnungstyp === 'klient'     ? 'selected' : '' }}>Nur Patient</option>
-                        <option value="gemeinde"   {{ $klient->rechnungstyp === 'gemeinde'   ? 'selected' : '' }}>Gemeinde</option>
-                    </select>
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.625rem;">
-                <div>
-                    <label class="feld-label">Datum Erstkontakt</label>
-                    <input type="date" name="datum_erstkontakt" class="feld" value="{{ old('datum_erstkontakt', $klient->datum_erstkontakt?->format('Y-m-d')) }}">
-                </div>
-                <div>
-                    <label class="feld-label">Einsatz geplant ab</label>
-                    <input type="date" name="einsatz_geplant_von" class="feld" value="{{ old('einsatz_geplant_von', $klient->einsatz_geplant_von?->format('Y-m-d')) }}">
-                </div>
-                <div>
-                    <label class="feld-label">Einsatz geplant bis</label>
-                    <input type="date" name="einsatz_geplant_bis" class="feld" value="{{ old('einsatz_geplant_bis', $klient->einsatz_geplant_bis?->format('Y-m-d')) }}">
-                </div>
-            </div>
-        </div>
 
 <div style="display: flex; gap: 0.75rem;">
             <button type="submit" class="btn btn-primaer">Speichern</button>
