@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class EinladungController extends Controller
 {
-    /** Einladungslink — direkt einloggen */
+    /** Einladungslink — Passwort-Formular anzeigen */
     public function show(string $token)
     {
         $benutzer = Benutzer::where('einladungs_token', $token)->first();
@@ -21,8 +21,25 @@ class EinladungController extends Controller
             return view('einladung.passwort', ['fehler' => 'Dieser Einladungslink ist abgelaufen. Bitte einen Administrator bitten, eine neue Einladung zu senden.', 'token' => $token, 'benutzer' => null]);
         }
 
-        // Token einmalig verbrauchen + einloggen
+        return view('einladung.passwort', compact('token', 'benutzer'));
+    }
+
+    /** Passwort speichern, Token verbrauchen, einloggen */
+    public function store(Request $request, string $token)
+    {
+        $benutzer = Benutzer::where('einladungs_token', $token)->first();
+
+        if (!$benutzer || $benutzer->einladungs_token_ablauf < now()) {
+            return redirect()->route('einladung.show', $token)
+                ->withErrors('Dieser Einladungslink ist abgelaufen oder ungültig.');
+        }
+
+        $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
         $benutzer->update([
+            'password'                => $request->password,
             'einladungs_token'        => null,
             'einladungs_token_ablauf' => null,
         ]);
@@ -30,6 +47,6 @@ class EinladungController extends Controller
         Auth::login($benutzer);
 
         return redirect()->route('dashboard')
-            ->with('erfolg', 'Willkommen, ' . $benutzer->vorname . '! Du bist jetzt eingeloggt.');
+            ->with('erfolg', 'Willkommen, ' . $benutzer->vorname . '! Dein Passwort wurde gesetzt.');
     }
 }
