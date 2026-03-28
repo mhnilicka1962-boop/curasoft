@@ -166,7 +166,7 @@ class RapportierungController extends Controller
 
         // Alle benötigten Leistungstypen einmalig laden
         $ltIds = array_keys($eintraege);
-        $ltMap = Leistungstyp::with('leistungsart')->whereIn('id', $ltIds)->get()->keyBy('id');
+        $ltMap = Leistungstyp::with(['leistungsart'])->whereIn('id', $ltIds)->get()->keyBy('id');
 
         $jetzt = now()->format('d.m.Y H:i');
 
@@ -199,6 +199,14 @@ class RapportierungController extends Controller
 
                     // Gesamtminuten des Einsatzes neu aus DB summieren
                     $neueTotal = $einsatz->aktivitaeten()->sum('minuten');
+
+                    // einsatz_leistungsarten für diese Leistungsart aktualisieren
+                    $neueMinutenLA = $einsatz->aktivitaeten()
+                        ->where('kategorie', $lt->leistungsart->bezeichnung)
+                        ->sum('minuten');
+                    $einsatz->einsatzLeistungsarten()
+                        ->where('leistungsart_id', $lt->leistungsart_id)
+                        ->update(['minuten' => $neueMinutenLA]);
 
                     // History aufbauen
                     $adminGeaendert = [];
