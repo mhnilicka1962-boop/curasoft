@@ -373,6 +373,7 @@ class KlientenController extends Controller
 
         $daten = $request->validate([
             'adressart' => ['required', 'in:rechnung,notfall'],
+            'firma'     => ['nullable', 'string', 'max:200'],
             'name'      => ['nullable', 'string', 'max:200'],
             'strasse'   => ['nullable', 'string', 'max:255'],
             'plz'       => ['nullable', 'string', 'max:10'],
@@ -384,6 +385,7 @@ class KlientenController extends Controller
         $klient->adressen()->updateOrCreate(
             ['adressart' => $daten['adressart']],
             [
+                'firma'    => $daten['firma'] ?? null,
                 'nachname' => $daten['name'] ?? null,
                 'strasse'  => $daten['strasse'] ?? null,
                 'plz'      => $daten['plz'] ?? null,

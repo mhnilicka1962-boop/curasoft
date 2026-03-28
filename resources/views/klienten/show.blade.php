@@ -212,37 +212,6 @@
             </div>
         </div>
 
-        <div class="karte" style="margin-bottom: 0.75rem;">
-            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">Kontakt & Adresse</div>
-            <div style="margin-bottom: 0.625rem;">
-                <label class="feld-label">Strasse & Hausnummer</label>
-                <input type="text" name="adresse" class="feld" value="{{ old('adresse', $klient->adresse) }}" placeholder="Musterstrasse 12">
-            </div>
-            <div style="display: grid; grid-template-columns: 110px 1fr; gap: 0.625rem; margin-bottom: 0.625rem;">
-                <div>
-                    <label class="feld-label">PLZ</label>
-                    <input type="text" name="plz" class="feld" value="{{ old('plz', $klient->plz) }}">
-                </div>
-                <div>
-                    <label class="feld-label">Ort</label>
-                    <input type="text" name="ort" class="feld" value="{{ old('ort', $klient->ort) }}">
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.625rem;">
-                <div>
-                    <label class="feld-label">Telefon</label>
-                    <input type="text" name="telefon" class="feld" value="{{ old('telefon', $klient->telefon) }}">
-                </div>
-                <div>
-                    <label class="feld-label">Notfallnummer</label>
-                    <input type="text" name="notfallnummer" class="feld" value="{{ old('notfallnummer', $klient->notfallnummer) }}">
-                </div>
-                <div>
-                    <label class="feld-label">E-Mail</label>
-                    <input type="email" name="email" class="feld" value="{{ old('email', $klient->email) }}">
-                </div>
-            </div>
-        </div>
 
 
 <div style="display: flex; gap: 0.75rem;">
@@ -1179,7 +1148,7 @@
                     <label class="feld-label" style="font-size: 0.75rem;">Strasse &amp; Nr.</label>
                     <input type="text" name="adresse" class="feld" style="font-size: 0.875rem;" value="{{ old('adresse', $klient->adresse) }}">
                 </div>
-                <div style="display: grid; grid-template-columns: 80px 1fr 120px; gap: 0.5rem; margin-bottom: 0.625rem;">
+                <div style="display: grid; grid-template-columns: 80px 1fr 120px; gap: 0.5rem; margin-bottom: 0.5rem;">
                     <div>
                         <label class="feld-label" style="font-size: 0.75rem;">PLZ</label>
                         <input type="text" name="plz" class="feld" style="font-size: 0.875rem;" value="{{ old('plz', $klient->plz) }}">
@@ -1196,6 +1165,20 @@
                                 <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }}</option>
                             @endforeach
                         </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.625rem;">
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Telefon</label>
+                        <input type="text" name="telefon" class="feld" style="font-size: 0.875rem;" value="{{ old('telefon', $klient->telefon) }}">
+                    </div>
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Notfallnummer</label>
+                        <input type="text" name="notfallnummer" class="feld" style="font-size: 0.875rem;" value="{{ old('notfallnummer', $klient->notfallnummer) }}">
+                    </div>
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">E-Mail</label>
+                        <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $klient->email) }}">
                     </div>
                 </div>
                 <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
@@ -1226,9 +1209,15 @@
                         <form method="POST" action="{{ route('klienten.adresse.speichern', $klient) }}" style="margin-top: 0.5rem;">
                             @csrf
                             <input type="hidden" name="adressart" value="rechnung">
-                            <div style="margin-bottom: 0.5rem;">
-                                <label class="feld-label" style="font-size: 0.75rem;">Name / Firma</label>
-                                <input type="text" name="name" class="feld" style="font-size: 0.875rem;" value="{{ old('name', $adrRechnung?->nachname) }}" placeholder="z.B. Sohn Hans Müller">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Firma</label>
+                                    <input type="text" name="firma" class="feld" style="font-size: 0.875rem;" value="{{ old('firma', $adrRechnung?->firma) }}" placeholder="z.B. Treuhand AG">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Name</label>
+                                    <input type="text" name="name" class="feld" style="font-size: 0.875rem;" value="{{ old('name', $adrRechnung?->nachname) }}" placeholder="z.B. Max Müller">
+                                </div>
                             </div>
                             <div style="margin-bottom: 0.5rem;">
                                 <label class="feld-label" style="font-size: 0.75rem;">Strasse &amp; Nr.</label>
@@ -1282,9 +1271,15 @@
                         <form method="POST" action="{{ route('klienten.adresse.speichern', $klient) }}" style="margin-top: 0.5rem;">
                             @csrf
                             <input type="hidden" name="adressart" value="notfall">
-                            <div style="margin-bottom: 0.5rem;">
-                                <label class="feld-label" style="font-size: 0.75rem;">Name / Firma</label>
-                                <input type="text" name="name" class="feld" style="font-size: 0.875rem;" value="{{ old('name', $adrNotfall?->nachname) }}" placeholder="z.B. Tochter Maria Meier">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Firma</label>
+                                    <input type="text" name="firma" class="feld" style="font-size: 0.875rem;" value="{{ old('firma', $adrNotfall?->firma) }}" placeholder="z.B. Treuhand AG">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Name</label>
+                                    <input type="text" name="name" class="feld" style="font-size: 0.875rem;" value="{{ old('name', $adrNotfall?->nachname) }}" placeholder="z.B. Maria Meier">
+                                </div>
                             </div>
                             <div style="margin-bottom: 0.5rem;">
                                 <label class="feld-label" style="font-size: 0.75rem;">Strasse &amp; Nr.</label>
