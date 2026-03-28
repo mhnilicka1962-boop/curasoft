@@ -486,6 +486,9 @@
         </summary>
         <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
 
+            @php
+                $tiersGarant = (\App\Models\Organisation::find($klient->organisation_id)?->abrechnungslogik ?? 'tiers_garant') === 'tiers_garant';
+            @endphp
             <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Abrechnung &amp; Versand</div>
             <form method="POST" action="{{ route('klienten.update', $klient) }}" style="margin-bottom: 1.25rem;">
                 @csrf @method('PUT')
@@ -495,11 +498,17 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; align-items: end;">
                     <div>
                         <label class="form-label" style="font-size: 0.8125rem;">Rechnungstyp</label>
-                        <select name="rechnungstyp" class="feld" style="font-size: 0.875rem;">
-                            @foreach(\App\Models\Rechnung::$typen as $val => $lab)
-                                <option value="{{ $val }}" {{ ($klient->rechnungstyp ?? 'kombiniert') === $val ? 'selected' : '' }}>{{ $lab }}</option>
-                            @endforeach
-                        </select>
+                        @if($tiersGarant)
+                            <input type="hidden" name="rechnungstyp" value="kombiniert">
+                            <div class="feld" style="font-size: 0.875rem; background: var(--cs-hintergrund); color: var(--cs-text-hell); cursor: default;">Kombiniert</div>
+                            <div style="font-size: 0.75rem; color: var(--cs-text-hell); margin-top: 0.25rem;">Automatisch bei Tiers garant</div>
+                        @else
+                            <select name="rechnungstyp" class="feld" style="font-size: 0.875rem;">
+                                @foreach(\App\Models\Rechnung::$typen as $val => $lab)
+                                    <option value="{{ $val }}" {{ ($klient->rechnungstyp ?? 'kombiniert') === $val ? 'selected' : '' }}>{{ $lab }}</option>
+                                @endforeach
+                            </select>
+                        @endif
                     </div>
                     <div>
                         <label class="form-label" style="font-size: 0.8125rem;">Versand Patient-Rechnung</label>
@@ -511,11 +520,16 @@
                     </div>
                     <div>
                         <label class="form-label" style="font-size: 0.8125rem;">Versand KVG / Krankenkasse</label>
-                        <select name="versandart_kvg" class="feld" style="font-size: 0.875rem;">
-                            <option value="manuell"   {{ ($klient->versandart_kvg ?? 'manuell') === 'manuell'   ? 'selected' : '' }}>Manuell</option>
-                            <option value="email"     {{ ($klient->versandart_kvg ?? 'manuell') === 'email'     ? 'selected' : '' }}>Email (KK)</option>
-                            <option value="healthnet" {{ ($klient->versandart_kvg ?? 'manuell') === 'healthnet' ? 'selected' : '' }}>Healthnet</option>
-                        </select>
+                        @if($tiersGarant)
+                            <div class="feld" style="font-size: 0.875rem; background: var(--cs-hintergrund); color: var(--cs-text-hell); cursor: default;">—</div>
+                            <div style="font-size: 0.75rem; color: var(--cs-text-hell); margin-top: 0.25rem;">Kein KK-Versand bei Tiers garant</div>
+                        @else
+                            <select name="versandart_kvg" class="feld" style="font-size: 0.875rem;">
+                                <option value="manuell"   {{ ($klient->versandart_kvg ?? 'manuell') === 'manuell'   ? 'selected' : '' }}>Manuell</option>
+                                <option value="email"     {{ ($klient->versandart_kvg ?? 'manuell') === 'email'     ? 'selected' : '' }}>Email (KK)</option>
+                                <option value="healthnet" {{ ($klient->versandart_kvg ?? 'manuell') === 'healthnet' ? 'selected' : '' }}>Healthnet</option>
+                            </select>
+                        @endif
                     </div>
                 </div>
                 <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
