@@ -100,3 +100,8 @@ $einstellungenAktiv = request()->routeIs('firma.*') || request()->routeIs('leist
     </a>
 </details>
 @endif
+
+<div class="nav-abschnitt">Konto</div>
+<a href="{{ route('profil.index') }}" class="nav-link {{ request()->routeIs('profil.*') ? 'aktiv' : '' }}">
+    Mein Profil &amp; Passkey
+</a>
