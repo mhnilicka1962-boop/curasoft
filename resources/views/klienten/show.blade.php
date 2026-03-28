@@ -1464,27 +1464,17 @@
     <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
         <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
             <span>Tagespauschalen</span>
-            <span style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+                <a href="{{ route('tagespauschalen.create', ['klient_id' => $klient->id]) }}"
+                   class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.6rem;"
+                   onclick="event.stopPropagation()">+ Tagespauschale</a>
                 @if($aktiveTagespauschale)
-                    <span class="badge badge-erfolg" style="font-size: 0.7rem;">
-                        Aktiv · CHF {{ number_format($aktiveTagespauschale->ansatz, 2, '.', "'") }}/Tag
-                    </span>
+                    <span class="badge badge-erfolg" style="font-size: 0.7rem;">Aktiv · CHF {{ number_format($aktiveTagespauschale->ansatz, 2, '.', "'") }}/Tag</span>
                 @endif
                 <span class="text-hell" style="font-size: 0.75rem;">{{ $tagespauschalen->count() }} Einträge</span>
-            </span>
+            </div>
         </summary>
         <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
-            @if($aktiveTagespauschale)
-            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: var(--cs-radius); padding: 0.625rem 0.875rem; margin-bottom: 0.875rem; font-size: 0.875rem;">
-                <div style="font-weight: 600; color: #15803d;">Aktive Tagespauschale</div>
-                <div class="text-hell">
-                    {{ $aktiveTagespauschale->datum_von->format('d.m.Y') }} – {{ $aktiveTagespauschale->datum_bis->format('d.m.Y') }}
-                    · CHF {{ number_format($aktiveTagespauschale->ansatz, 2, '.', "'") }}/Tag
-                    · {{ $aktiveTagespauschale->rechnungstypLabel() }}
-                    @if($aktiveTagespauschale->text) · {{ $aktiveTagespauschale->text }} @endif
-                </div>
-            </div>
-            @endif
 
             @forelse($tagespauschalen as $tp)
             @php
@@ -1516,10 +1506,6 @@
             <p class="text-klein text-hell" style="margin: 0 0 0.75rem;">Keine Tagespauschalen erfasst.</p>
             @endforelse
 
-            <div style="margin-top: 0.875rem;">
-                <a href="{{ route('tagespauschalen.create', ['klient_id' => $klient->id]) }}"
-                   class="btn btn-sekundaer btn-sm" style="font-size: 0.8125rem;">+ Tagespauschale erfassen</a>
-            </div>
         </div>
     </details>
 
