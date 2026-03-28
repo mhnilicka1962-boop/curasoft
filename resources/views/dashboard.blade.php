@@ -2,9 +2,17 @@
 
 <div style="max-width: 1100px;">
 
-    <h1 class="seiten-titel seiten-titel-mb">
-        Willkommen, {{ Auth::user()->vorname }}!
-    </h1>
+    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+        <h1 class="seiten-titel" style="margin: 0;">
+            Willkommen, {{ Auth::user()->vorname }}!
+        </h1>
+        @php $hatPasskey = \App\Models\WebAuthnCredential::where('benutzer_id', Auth::id())->exists(); @endphp
+        @if(!$hatPasskey)
+        <a href="{{ route('profil.index') }}" class="btn btn-sekundaer" style="font-size: 0.8125rem; white-space: nowrap;">
+            🔑 Passkey einrichten
+        </a>
+        @endif
+    </div>
 
     {{-- ===== ONBOARDING (nur Admin, solange Setup nicht fertig) ===== --}}
     @if(auth()->user()->rolle === 'admin' && !$setupFertig)
