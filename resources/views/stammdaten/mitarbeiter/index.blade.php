@@ -64,6 +64,9 @@
                     <a href="{{ route('mitarbeiter.show', $ma) }}" class="link-primaer">
                         {{ $ma->nachname }} {{ $ma->vorname }}
                     </a>
+                    @if($ma->anstellungsart === 'angehoerig')
+                        <span class="badge badge-info" style="font-size:0.65rem; margin-left:0.25rem;">Pfl. Angehöriger</span>
+                    @endif
                 </td>
                 <td style="font-size: 0.8125rem;">{{ $ma->email }}</td>
                 <td style="font-size: 0.8125rem;">{{ $ma->telefon ?? '—' }}</td>

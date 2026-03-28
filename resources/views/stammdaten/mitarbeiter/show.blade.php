@@ -15,8 +15,12 @@
         <div class="text-klein text-hell" style="margin-top: 0.2rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
             @php $rolleKlasse = match($mitarbeiter->rolle) { 'admin' => 'badge-fehler', 'buchhaltung' => 'badge-info', default => 'badge-primaer' }; @endphp
             <span class="badge {{ $rolleKlasse }}">{{ ucfirst($mitarbeiter->rolle) }}</span>
-            @if(!$mitarbeiter->aktiv)<span class="badge badge-grau">Inaktiv</span>@endif
             <span>{{ $mitarbeiter->pensum }}% Pensum</span>
+            <label style="display:flex; align-items:center; gap:0.35rem; font-size:0.8125rem; cursor:pointer; margin-left:0.25rem;">
+                <input type="hidden" name="aktiv" value="0" form="form-stammdaten">
+                <input type="checkbox" name="aktiv" value="1" form="form-stammdaten" {{ $mitarbeiter->aktiv ? 'checked' : '' }}>
+                Aktiv
+            </label>
         </div>
         @endif
     </div>
@@ -50,11 +54,16 @@
 
 {{-- ═══ 1. STAMMDATEN ═══ --}}
 <div class="karte" style="margin-bottom: 1.25rem;">
-    <div class="abschnitt-label">Stammdaten</div>
     @if($mitarbeiter->exists)
-    <form method="POST" action="{{ route('mitarbeiter.update', $mitarbeiter) }}">
+    <form id="form-stammdaten" method="POST" action="{{ route('mitarbeiter.update', $mitarbeiter) }}">
         @csrf @method('PUT')
     @endif
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <div class="abschnitt-label" style="margin-bottom:0;">Stammdaten</div>
+        @if($mitarbeiter->exists)
+        <button type="submit" class="btn btn-primaer">Speichern</button>
+        @endif
+    </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
             <div>
@@ -211,17 +220,6 @@
         </div>
 
         @if($mitarbeiter->exists)
-        <div style="margin-bottom: 0.75rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer;">
-                <input type="hidden" name="aktiv" value="0">
-                <input type="checkbox" name="aktiv" value="1" {{ $mitarbeiter->aktiv ? 'checked' : '' }}>
-                Aktiv
-            </label>
-        </div>
-
-        <div class="abschnitt-trenn" style="padding-top: 0.75rem;">
-            <button type="submit" class="btn btn-primaer">Speichern</button>
-        </div>
         @endif
 
     @if($mitarbeiter->exists)
@@ -231,15 +229,20 @@
 
 {{-- ═══ 2. QUALIFIKATIONEN ═══ --}}
 <div class="karte" style="margin-bottom: 1.25rem;" id="qualifikationen">
-    <div class="abschnitt-label">Ausbildung / Qualifikationen</div>
-    @if(session('erfolg_qual'))
-        <div class="meldung meldung-erfolg" style="margin-bottom: 0.75rem;">{{ session('erfolg_qual') }}</div>
-    @endif
     @if($mitarbeiter->exists)
     <form method="POST" action="{{ route('mitarbeiter.qualifikationen', $mitarbeiter) }}">
         @csrf
     @endif
-        <div style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 1rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <div class="abschnitt-label" style="margin-bottom:0;">Ausbildung / Qualifikationen</div>
+        @if($mitarbeiter->exists)
+        <button type="submit" class="btn btn-primaer">Speichern</button>
+        @endif
+    </div>
+    @if(session('erfolg_qual'))
+        <div class="meldung meldung-erfolg" style="margin-bottom: 0.75rem;">{{ session('erfolg_qual') }}</div>
+    @endif
+        <div style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 0.5rem;">
             @foreach($qualifikationen as $q)
             <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.875rem; cursor: pointer; background: {{ $mitarbeiter->qualifikationen->contains($q->id) ? 'var(--cs-primaer)' : 'var(--cs-hintergrund)' }}; color: {{ $mitarbeiter->qualifikationen->contains($q->id) ? '#fff' : 'var(--cs-text)' }}; border: 1px solid {{ $mitarbeiter->qualifikationen->contains($q->id) ? 'var(--cs-primaer)' : 'var(--cs-border)' }}; padding: 0.3rem 0.65rem; border-radius: 999px; transition: all 0.1s;">
                 <input type="checkbox" name="qualifikation_ids[]" value="{{ $q->id }}"
@@ -250,9 +253,6 @@
             </label>
             @endforeach
         </div>
-        @if($mitarbeiter->exists)
-        <button type="submit" class="btn btn-primaer">Qualifikationen speichern</button>
-        @endif
     @if($mitarbeiter->exists)
     </form>
     @endif
@@ -264,16 +264,21 @@ $klvGesperrt = ['Untersuchung Behandlung', 'Abklärung/Beratung'];
 $istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
 @endphp
 <div class="karte" style="margin-bottom: 1.25rem;">
-    <div class="abschnitt-label">Erlaubte Leistungsarten</div>
-    <p class="text-klein text-hell" style="margin: 0 0 0.5rem;">Welche Leistungsarten darf diese Person erbringen? Leer = alle erlaubt.</p>
-    <div id="hinweis-klv" style="display: {{ $istAngehoerig ? 'block' : 'none' }}; margin-bottom: 0.75rem; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.8125rem; color: #92400e;">
-        <strong>KLV-Einschränkung:</strong> Pflegende Angehörige dürfen keine medizinischen Leistungen erbringen (Untersuchung/Behandlung, Abklärung/Beratung).
-    </div>
     @if($mitarbeiter->exists)
     <form method="POST" action="{{ route('mitarbeiter.leistungsarten', $mitarbeiter) }}">
         @csrf
     @endif
-        <div id="leistungsarten-grid" style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 1rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+        <div class="abschnitt-label" style="margin-bottom:0;">Erlaubte Leistungsarten</div>
+        @if($mitarbeiter->exists)
+        <button type="submit" class="btn btn-primaer">Speichern</button>
+        @endif
+    </div>
+    <p class="text-klein text-hell" style="margin: 0 0 0.5rem;">Welche Leistungsarten darf diese Person erbringen? Leer = alle erlaubt.</p>
+    <div id="hinweis-klv" style="display: {{ $istAngehoerig ? 'block' : 'none' }}; margin-bottom: 0.75rem; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.8125rem; color: #92400e;">
+        <strong>KLV-Einschränkung:</strong> Pflegende Angehörige dürfen keine medizinischen Leistungen erbringen (Untersuchung/Behandlung, Abklärung/Beratung).
+    </div>
+        <div id="leistungsarten-grid" style="display: flex; flex-wrap: wrap; gap: 0.625rem; margin-bottom: 0.5rem;">
             @foreach($leistungsarten as $la)
             @php
                 $erlaubt = $mitarbeiter->erlaubteLeistungsarten->contains($la->id);
@@ -297,9 +302,6 @@ $istAngehoerig = ($mitarbeiter->anstellungsart ?? '') === 'angehoerig';
             </label>
             @endforeach
         </div>
-        @if($mitarbeiter->exists)
-        <button type="submit" class="btn btn-primaer">Leistungsarten speichern</button>
-        @endif
     @if($mitarbeiter->exists)
     </form>
     @endif

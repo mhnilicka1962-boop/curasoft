@@ -130,7 +130,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($rechnung->positionen as $pos)
+                @foreach($rechnung->positionen->filter(fn($p) => $p->menge > 0) as $pos)
                 <tr>
                     <td style="white-space:nowrap;">{{ $pos->datum->format('d.m.Y') }}</td>
                     <td class="text-hell">

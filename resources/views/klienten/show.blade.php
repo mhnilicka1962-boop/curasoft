@@ -1166,61 +1166,17 @@
         </div>
     </details>
 
-    {{-- Kontakte & Angehörige --}}
+    {{-- ═══ KONTAKTE ═══ --}}
     @php $kontakte = $klient->kontakte()->where('aktiv', true)->get(); @endphp
-    <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
+    <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;" {{ $kontakte->count() ? 'open' : '' }}>
         <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
-            <span>Kontakte &amp; Angehörige</span>
-            <span class="text-hell" style="font-size: 0.75rem;">{{ $kontakte->count() }} Kontakt/e · {{ $pflegendeAngehoerige->count() }} Pfl. Angeh.</span>
+            <span>Kontakte{!! $kontakte->count() ? ' <span class="badge badge-grau" style="font-size:0.7rem;font-weight:400;margin-left:0.35rem;">' . $kontakte->count() . '</span>' : '' !!}</span>
+            <a href="{{ route('klienten.kontakt.speichern', $klient) }}"
+               onclick="event.preventDefault(); event.stopPropagation(); this.closest('details').open=true; document.getElementById('kontakt-neu-form').open=true;"
+               class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.6rem;">+ Kontakt</a>
         </summary>
         <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
 
-            {{-- Pflegender Angehöriger --}}
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.625rem;">
-                <div class="abschnitt-label" style="margin-bottom: 0;">Pflegender Angehöriger</div>
-                @if(auth()->user()->rolle === 'admin')
-                <button type="button" onclick="oeffneAPKlientModal()" class="btn btn-primaer" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">+ Neu</button>
-                @endif
-            </div>
-            @if($pflegendeAngehoerige->isNotEmpty())
-                @foreach($pflegendeAngehoerige as $pa)
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; background: var(--cs-hintergrund); border-radius: 6px; margin-bottom: 0.375rem;">
-                    <div>
-                        <a href="{{ route('mitarbeiter.show', $pa->benutzer_id) }}" class="link-primaer text-fett" style="font-size: 0.875rem;">{{ $pa->benutzer->vorname }} {{ $pa->benutzer->nachname }}</a>
-                        <span class="badge badge-info" style="font-size: 0.7rem; margin-left: 0.5rem;">Pflegend</span>
-                        @if($pa->benutzer->telefon)<div class="text-mini text-hell">{{ $pa->benutzer->telefon }}</div>@endif
-                    </div>
-                    <div style="display: flex; gap: 0.4rem; align-items: center;">
-                        <a href="{{ route('einsaetze.create', ['klient_id' => $klient->id, 'benutzer_id' => $pa->benutzer_id]) }}" class="btn btn-sekundaer" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">+ Einsatz</a>
-                        @if(auth()->user()->rolle === 'admin')
-                        <form method="POST" action="{{ route('klienten.angehoerig.entfernen', [$klient, $pa]) }}" onsubmit="return confirm('Zuweisung entfernen?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-text-hell); font-size: 0.875rem; padding: 0;">×</button>
-                        </form>
-                        @endif
-                    </div>
-                </div>
-                @endforeach
-            @else
-                <p class="text-klein text-hell" style="margin: 0 0 0.5rem;">Kein pflegender Angehöriger zugewiesen.</p>
-            @endif
-            @if(auth()->user()->rolle === 'admin' && $mitarbeiter->count())
-            <form method="POST" action="{{ route('klienten.angehoerig.zuweisen', $klient) }}" style="display: flex; gap: 0.5rem; margin-top: 0.375rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                @csrf
-                <select name="benutzer_id" class="feld" required style="min-width: 200px; font-size: 0.875rem;">
-                    <option value="">— Bestehende Person zuweisen —</option>
-                    @foreach($mitarbeiter as $m)
-                        @if(!$pflegendeAngehoerige->contains('benutzer_id', $m->id))
-                        <option value="{{ $m->id }}">{{ $m->nachname }} {{ $m->vorname }}</option>
-                        @endif
-                    @endforeach
-                </select>
-                <button type="submit" class="btn btn-sekundaer">Zuweisen</button>
-            </form>
-            @endif
-
-            {{-- Kontakte --}}
-            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Kontakte</div>
             @if($kontakte->count())
             <div class="form-grid" style="margin-bottom: 0.75rem;">
                 @foreach($kontakte as $k)
@@ -1234,9 +1190,12 @@
                     </div>
                     <div class="text-fett" style="font-size: 0.875rem;">{{ $k->vollname() }}</div>
                     @if($k->beziehung)<div class="text-hell" style="font-size: 0.8rem;">{{ $k->beziehung }}</div>@endif
-                    @if($k->telefon)<div class="text-klein text-hell" style="margin-top: 0.25rem;">{{ $k->telefon }}</div>@endif
+                    @if($k->telefon)<div class="text-klein text-hell" style="margin-top: 0.2rem;">{{ $k->telefon }}</div>@endif
                     @if($k->telefon_mobil)<div class="text-klein text-hell">{{ $k->telefon_mobil }}</div>@endif
                     @if($k->email)<div class="text-klein text-hell">{{ $k->email }}</div>@endif
+                    @if($k->adresse || $k->ort)
+                        <div class="text-klein text-hell">{{ trim(($k->adresse ? $k->adresse . ', ' : '') . ($k->plz ? $k->plz . ' ' : '') . ($k->ort ?? ''), ', ') }}</div>
+                    @endif
                     @if($k->bevollmaechtigt)<div style="margin-top: 0.375rem;"><span class="badge badge-warnung" style="font-size: 0.7rem;">Bevollmächtigt</span></div>@endif
                     <details style="margin-top: 0.5rem;">
                         <summary style="font-size: 0.75rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; list-style: none;">✎ Mutieren</summary>
@@ -1288,6 +1247,20 @@
                                     <input type="email" name="email" class="feld" style="font-size: 0.8125rem;" value="{{ $k->email }}">
                                 </div>
                             </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div style="grid-column: span 2;">
+                                    <label class="feld-label" style="font-size: 0.7rem;">Adresse</label>
+                                    <input type="text" name="adresse" class="feld" style="font-size: 0.8125rem;" value="{{ $k->adresse }}">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.7rem;">PLZ</label>
+                                    <input type="text" name="plz" class="feld" style="font-size: 0.8125rem;" value="{{ $k->plz }}">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.7rem;">Ort</label>
+                                    <input type="text" name="ort" class="feld" style="font-size: 0.8125rem;" value="{{ $k->ort }}">
+                                </div>
+                            </div>
                             <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; cursor: pointer; margin-bottom: 0.5rem;">
                                 <input type="hidden" name="bevollmaechtigt" value="0">
                                 <input type="checkbox" name="bevollmaechtigt" value="1" {{ $k->bevollmaechtigt ? 'checked' : '' }}> Bevollmächtigt
@@ -1299,7 +1272,9 @@
                 @endforeach
             </div>
             @endif
-            <details>
+
+            {{-- Neuer Kontakt --}}
+            <details id="kontakt-neu-form">
                 <summary style="font-size: 0.8125rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; padding: 0.375rem 0; list-style: none;">+ Kontakt hinzufügen</summary>
                 <div style="margin-top: 0.75rem; padding: 1rem; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); background: var(--cs-hintergrund);">
                     <form method="POST" action="{{ route('klienten.kontakt.speichern', $klient) }}">
@@ -1318,7 +1293,7 @@
                                 <input type="text" name="beziehung" class="feld" placeholder="z.B. Sohn, Tochter" style="font-size: 0.875rem;">
                             </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 120px 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div style="display: grid; grid-template-columns: 100px 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
                             <div>
                                 <label class="feld-label" style="font-size: 0.75rem;">Anrede</label>
                                 <select name="anrede" class="feld" style="font-size: 0.875rem;">
@@ -1336,7 +1311,7 @@
                                 <input type="text" name="nachname" class="feld" required style="font-size: 0.875rem;">
                             </div>
                         </div>
-                        <div class="form-grid-3" style="gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
                             <div>
                                 <label class="feld-label" style="font-size: 0.75rem;">Telefon</label>
                                 <input type="text" name="telefon" class="feld" style="font-size: 0.875rem;">
@@ -1350,16 +1325,85 @@
                                 <input type="email" name="email" class="feld" style="font-size: 0.875rem;">
                             </div>
                         </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                            <div style="grid-column: span 2;">
+                                <label class="feld-label" style="font-size: 0.75rem;">Adresse</label>
+                                <input type="text" name="adresse" class="feld" style="font-size: 0.875rem;">
+                            </div>
+                            <div>
+                                <label class="feld-label" style="font-size: 0.75rem;">PLZ</label>
+                                <input type="text" name="plz" class="feld" style="font-size: 0.875rem;">
+                            </div>
+                            <div>
+                                <label class="feld-label" style="font-size: 0.75rem;">Ort</label>
+                                <input type="text" name="ort" class="feld" style="font-size: 0.875rem;">
+                            </div>
+                        </div>
                         <div style="margin-bottom: 0.75rem;">
                             <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer;">
                                 <input type="hidden" name="bevollmaechtigt" value="0">
                                 <input type="checkbox" name="bevollmaechtigt" value="1"> Bevollmächtigt
                             </label>
                         </div>
-                        <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">Kontakt speichern</button>
+                        <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">Speichern</button>
                     </form>
                 </div>
             </details>
+        </div>
+    </details>
+
+    {{-- ═══ PFLEGENDE ANGEHÖRIGE ═══ --}}
+    <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;" {{ $pflegendeAngehoerige->count() ? 'open' : '' }}>
+        <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+            <span>Pflegende Angehörige{!! $pflegendeAngehoerige->count() ? ' <span class="badge badge-grau" style="font-size:0.7rem;font-weight:400;margin-left:0.35rem;">' . $pflegendeAngehoerige->count() . '</span>' : '' !!}</span>
+            @if(auth()->user()->rolle === 'admin')
+            <button type="button" onclick="event.stopPropagation(); oeffneAPKlientModal();" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.6rem;">+ Neu</button>
+            @endif
+        </summary>
+        <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
+            @if($pflegendeAngehoerige->isNotEmpty())
+                @foreach($pflegendeAngehoerige as $pa)
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; background: var(--cs-hintergrund); border-radius: 6px; margin-bottom: 0.375rem;">
+                    <div>
+                        <a href="{{ route('mitarbeiter.show', $pa->benutzer_id) }}" class="link-primaer text-fett" style="font-size: 0.875rem;">{{ $pa->benutzer->vorname }} {{ $pa->benutzer->nachname }}</a>
+                        @if($pa->benutzer->telefon)<div class="text-mini text-hell">{{ $pa->benutzer->telefon }}</div>@endif
+                        @if($pa->benutzer->email)<div class="text-mini text-hell">{{ $pa->benutzer->email }}</div>@endif
+                    </div>
+                    @if(auth()->user()->rolle === 'admin')
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        <form method="POST" action="{{ route('mitarbeiter.einladung', $pa->benutzer_id) }}" style="display:inline;"
+                            onsubmit="return confirm('Einladungs-Email an {{ addslashes($pa->benutzer->email) }} senden?')">
+                            @csrf
+                            <button type="submit" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.5rem;">✉ Einladen</button>
+                        </form>
+                        <form method="POST" action="{{ route('klienten.angehoerig.entfernen', [$klient, $pa]) }}" style="display:inline;" onsubmit="return confirm('Zuweisung entfernen?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.5rem; color:var(--cs-fehler);">Entfernen</button>
+                        </form>
+                    </div>
+                    @endif
+                </div>
+                @endforeach
+            @else
+                <p class="text-klein text-hell" style="margin: 0 0 0.5rem;">Noch kein pflegender Angehöriger zugewiesen.</p>
+            @endif
+            @if(auth()->user()->rolle === 'admin' && $mitarbeiter->count())
+            <details style="margin-top: 0.5rem;">
+                <summary style="font-size: 0.8125rem; color: var(--cs-text-hell); cursor: pointer; list-style: none; padding: 0.25rem 0;">Bestehende Person zuweisen …</summary>
+                <form method="POST" action="{{ route('klienten.angehoerig.zuweisen', $klient) }}" style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                    @csrf
+                    <select name="benutzer_id" class="feld" required style="min-width: 200px; font-size: 0.875rem;">
+                        <option value="">— Person wählen —</option>
+                        @foreach($mitarbeiter as $m)
+                            @if(!$pflegendeAngehoerige->contains('benutzer_id', $m->id))
+                            <option value="{{ $m->id }}">{{ $m->nachname }} {{ $m->vorname }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-sekundaer">Zuweisen</button>
+                </form>
+            </details>
+            @endif
         </div>
     </details>
 

@@ -117,7 +117,7 @@ class KlientenController extends Controller
 
     public function schnellerfassung()
     {
-        $mitarbeiter   = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get();
+        $mitarbeiter   = Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->where('anstellungsart', '!=', 'angehoerig')->orderBy('nachname')->get();
         $regionen      = Region::orderBy('kuerzel')->get();
         $leistungsarten = \App\Models\Leistungsart::where('aktiv', true)->orderBy('bezeichnung')->get();
         return view('klienten.schnellerfassung', compact('mitarbeiter', 'regionen', 'leistungsarten'));
@@ -534,6 +534,9 @@ class KlientenController extends Controller
             'telefon'         => ['nullable', 'string', 'max:50'],
             'telefon_mobil'   => ['nullable', 'string', 'max:50'],
             'email'           => ['nullable', 'email', 'max:255'],
+            'adresse'         => ['nullable', 'string', 'max:255'],
+            'plz'             => ['nullable', 'string', 'max:10'],
+            'ort'             => ['nullable', 'string', 'max:100'],
             'bevollmaechtigt' => ['boolean'],
         ]);
         $kontakt->update($daten);
