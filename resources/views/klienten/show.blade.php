@@ -220,6 +220,203 @@
     </form>
     </div>
 
+    {{-- Adressen --}}
+    @php
+        $adressen    = $klient->adressen()->get();
+        $adrRechnung = $adressen->firstWhere('adressart', 'rechnung');
+        $adrNotfall  = $adressen->firstWhere('adressart', 'notfall');
+        $adrHat = $adrRechnung || $adrNotfall;
+    @endphp
+    <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
+        <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+            <span>Adressen</span>
+            <span class="text-hell" style="font-size: 0.75rem;">
+                Einsatz: {{ trim(($klient->plz ?? '') . ' ' . ($klient->ort ?? '')) ?: '—' }}
+                @if($adrRechnung) · Rechnung: {{ $adrRechnung->plz }} {{ $adrRechnung->ort }} @endif
+                @if($adrNotfall) · Notfall: {{ $adrNotfall->plz }} {{ $adrNotfall->ort }} @endif
+            </span>
+        </summary>
+        <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
+
+            {{-- Einsatzadresse (Klient-Modell, mit Kanton) --}}
+            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Einsatzadresse</div>
+            <form method="POST" action="{{ route('klienten.update', $klient) }}" style="margin-bottom: 1.25rem;">
+                @csrf @method('PUT')
+                <input type="hidden" name="vorname"  value="{{ $klient->vorname }}">
+                <input type="hidden" name="nachname" value="{{ $klient->nachname }}">
+                <input type="hidden" name="aktiv"    value="{{ $klient->aktiv ? 1 : 0 }}">
+                <div style="margin-bottom: 0.5rem;">
+                    <label class="feld-label" style="font-size: 0.75rem;">Strasse &amp; Nr.</label>
+                    <input type="text" name="adresse" class="feld" style="font-size: 0.875rem;" value="{{ old('adresse', $klient->adresse) }}">
+                </div>
+                <div style="display: grid; grid-template-columns: 80px 1fr 120px; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">PLZ</label>
+                        <input type="text" name="plz" class="feld" style="font-size: 0.875rem;" value="{{ old('plz', $klient->plz) }}">
+                    </div>
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Ort</label>
+                        <input type="text" name="ort" class="feld" style="font-size: 0.875rem;" value="{{ old('ort', $klient->ort) }}">
+                    </div>
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Kanton</label>
+                        <select name="region_id" class="feld" style="font-size: 0.875rem;">
+                            <option value="">—</option>
+                            @foreach(\App\Models\Region::orderBy('kuerzel')->get() as $r)
+                                <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.625rem;">
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Telefon</label>
+                        <input type="text" name="telefon" class="feld" style="font-size: 0.875rem;" value="{{ old('telefon', $klient->telefon) }}">
+                    </div>
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">Notfallnummer</label>
+                        <input type="text" name="notfallnummer" class="feld" style="font-size: 0.875rem;" value="{{ old('notfallnummer', $klient->notfallnummer) }}">
+                    </div>
+                    <div>
+                        <label class="feld-label" style="font-size: 0.75rem;">E-Mail</label>
+                        <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $klient->email) }}">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
+            </form>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+
+                {{-- Rechnungsadresse --}}
+                <div>
+                    <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Rechnungsadresse</div>
+                    @if($adrRechnung)
+                    <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.625rem 0.75rem; font-size: 0.875rem; margin-bottom: 0.75rem;">
+                        @if($adrRechnung->firma)<div class="text-fett">{{ $adrRechnung->firma }}</div>@endif
+                        @if($adrRechnung->nachname)<div class="text-hell">{{ $adrRechnung->nachname }}</div>@endif
+                        @if($adrRechnung->strasse)<div class="text-hell">{{ $adrRechnung->strasse }}</div>@endif
+                        @if($adrRechnung->plz || $adrRechnung->ort)<div class="text-hell">{{ $adrRechnung->plz }} {{ $adrRechnung->ort }}</div>@endif
+                        @if($adrRechnung->telefon)<div class="text-hell">{{ $adrRechnung->telefon }}</div>@endif
+                        @if($adrRechnung->email)<div class="text-hell">{{ $adrRechnung->email }}</div>@endif
+                        <form method="POST" action="{{ route('klienten.adresse.loeschen', [$klient, $adrRechnung]) }}" style="margin-top: 0.375rem;" onsubmit="return confirm('Adresse löschen?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-fehler); font-size: 0.75rem; padding: 0;">× Löschen</button>
+                        </form>
+                    </div>
+                    @endif
+                    <details {{ !$adrRechnung ? 'open' : '' }}>
+                        <summary style="font-size: 0.8125rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; padding: 0.25rem 0; list-style: none;">
+                            {{ $adrRechnung ? '✎ Ändern' : '+ Erfassen' }}
+                        </summary>
+                        <form method="POST" action="{{ route('klienten.adresse.speichern', $klient) }}" style="margin-top: 0.5rem;">
+                            @csrf
+                            <input type="hidden" name="adressart" value="rechnung">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Firma</label>
+                                    <input type="text" name="firma" class="feld" style="font-size: 0.875rem;" value="{{ old('firma', $adrRechnung?->firma) }}" placeholder="z.B. Treuhand AG">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Name</label>
+                                    <input type="text" name="name" class="feld" style="font-size: 0.875rem;" value="{{ old('name', $adrRechnung?->nachname) }}" placeholder="z.B. Max Müller">
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <label class="feld-label" style="font-size: 0.75rem;">Strasse &amp; Nr.</label>
+                                <input type="text" name="strasse" class="feld" style="font-size: 0.875rem;" value="{{ old('strasse', $adrRechnung?->strasse) }}">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">PLZ</label>
+                                    <input type="text" name="plz" class="feld" style="font-size: 0.875rem;" value="{{ old('plz', $adrRechnung?->plz) }}">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Ort</label>
+                                    <input type="text" name="ort" class="feld" style="font-size: 0.875rem;" value="{{ old('ort', $adrRechnung?->ort) }}">
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.625rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Telefon</label>
+                                    <input type="text" name="telefon" class="feld" style="font-size: 0.875rem;" value="{{ old('telefon', $adrRechnung?->telefon) }}">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">E-Mail</label>
+                                    <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $adrRechnung?->email) }}">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
+                        </form>
+                    </details>
+                </div>
+
+                {{-- Notfalladresse --}}
+                <div>
+                    <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Notfalladresse</div>
+                    @if($adrNotfall)
+                    <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.625rem 0.75rem; font-size: 0.875rem; margin-bottom: 0.75rem;">
+                        @if($adrNotfall->firma)<div class="text-fett">{{ $adrNotfall->firma }}</div>@endif
+                        @if($adrNotfall->nachname)<div class="text-hell">{{ $adrNotfall->nachname }}</div>@endif
+                        @if($adrNotfall->strasse)<div class="text-hell">{{ $adrNotfall->strasse }}</div>@endif
+                        @if($adrNotfall->plz || $adrNotfall->ort)<div class="text-hell">{{ $adrNotfall->plz }} {{ $adrNotfall->ort }}</div>@endif
+                        @if($adrNotfall->telefon)<div class="text-hell">{{ $adrNotfall->telefon }}</div>@endif
+                        @if($adrNotfall->email)<div class="text-hell">{{ $adrNotfall->email }}</div>@endif
+                        <form method="POST" action="{{ route('klienten.adresse.loeschen', [$klient, $adrNotfall]) }}" style="margin-top: 0.375rem;" onsubmit="return confirm('Adresse löschen?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-fehler); font-size: 0.75rem; padding: 0;">× Löschen</button>
+                        </form>
+                    </div>
+                    @endif
+                    <details {{ !$adrNotfall ? 'open' : '' }}>
+                        <summary style="font-size: 0.8125rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; padding: 0.25rem 0; list-style: none;">
+                            {{ $adrNotfall ? '✎ Ändern' : '+ Erfassen' }}
+                        </summary>
+                        <form method="POST" action="{{ route('klienten.adresse.speichern', $klient) }}" style="margin-top: 0.5rem;">
+                            @csrf
+                            <input type="hidden" name="adressart" value="notfall">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Firma</label>
+                                    <input type="text" name="firma" class="feld" style="font-size: 0.875rem;" value="{{ old('firma', $adrNotfall?->firma) }}" placeholder="z.B. Treuhand AG">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Name</label>
+                                    <input type="text" name="name" class="feld" style="font-size: 0.875rem;" value="{{ old('name', $adrNotfall?->nachname) }}" placeholder="z.B. Maria Meier">
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <label class="feld-label" style="font-size: 0.75rem;">Strasse &amp; Nr.</label>
+                                <input type="text" name="strasse" class="feld" style="font-size: 0.875rem;" value="{{ old('strasse', $adrNotfall?->strasse) }}">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">PLZ</label>
+                                    <input type="text" name="plz" class="feld" style="font-size: 0.875rem;" value="{{ old('plz', $adrNotfall?->plz) }}">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Ort</label>
+                                    <input type="text" name="ort" class="feld" style="font-size: 0.875rem;" value="{{ old('ort', $adrNotfall?->ort) }}">
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.625rem;">
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">Telefon</label>
+                                    <input type="text" name="telefon" class="feld" style="font-size: 0.875rem;" value="{{ old('telefon', $adrNotfall?->telefon) }}">
+                                </div>
+                                <div>
+                                    <label class="feld-label" style="font-size: 0.75rem;">E-Mail</label>
+                                    <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $adrNotfall?->email) }}">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
+                        </form>
+                    </details>
+                </div>
+
+            </div>
+        </div>
+    </details>
+
     {{-- Einsätze-Modal --}}
     <div id="einsaetze-modal" style="display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.45); overflow-y:auto;" onclick="if(event.target===this)schliesseEinsaetzePopup()">
         <div style="margin:2rem auto; max-width:860px; background:#fff; border-radius:8px; padding:1.5rem; position:relative; min-height:200px;">
@@ -1119,200 +1316,6 @@
         </div>
     </details>
 
-    {{-- Adressen --}}
-    @php
-        $adressen    = $klient->adressen()->get();
-        $adrRechnung = $adressen->firstWhere('adressart', 'rechnung');
-        $adrNotfall  = $adressen->firstWhere('adressart', 'notfall');
-        $adrHat = $adrRechnung || $adrNotfall;
-    @endphp
-    <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
-        <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
-            <span>Adressen</span>
-            <span class="text-hell" style="font-size: 0.75rem;">
-                Einsatz: {{ trim(($klient->plz ?? '') . ' ' . ($klient->ort ?? '')) ?: '—' }}
-                @if($adrRechnung) · Rechnung: {{ $adrRechnung->plz }} {{ $adrRechnung->ort }} @endif
-                @if($adrNotfall) · Notfall: {{ $adrNotfall->plz }} {{ $adrNotfall->ort }} @endif
-            </span>
-        </summary>
-        <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
-
-            {{-- Einsatzadresse (Klient-Modell, mit Kanton) --}}
-            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Einsatzadresse</div>
-            <form method="POST" action="{{ route('klienten.update', $klient) }}" style="margin-bottom: 1.25rem;">
-                @csrf @method('PUT')
-                <input type="hidden" name="vorname"  value="{{ $klient->vorname }}">
-                <input type="hidden" name="nachname" value="{{ $klient->nachname }}">
-                <input type="hidden" name="aktiv"    value="{{ $klient->aktiv ? 1 : 0 }}">
-                <div style="margin-bottom: 0.5rem;">
-                    <label class="feld-label" style="font-size: 0.75rem;">Strasse &amp; Nr.</label>
-                    <input type="text" name="adresse" class="feld" style="font-size: 0.875rem;" value="{{ old('adresse', $klient->adresse) }}">
-                </div>
-                <div style="display: grid; grid-template-columns: 80px 1fr 120px; gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">PLZ</label>
-                        <input type="text" name="plz" class="feld" style="font-size: 0.875rem;" value="{{ old('plz', $klient->plz) }}">
-                    </div>
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">Ort</label>
-                        <input type="text" name="ort" class="feld" style="font-size: 0.875rem;" value="{{ old('ort', $klient->ort) }}">
-                    </div>
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">Kanton</label>
-                        <select name="region_id" class="feld" style="font-size: 0.875rem;">
-                            <option value="">—</option>
-                            @foreach(\App\Models\Region::orderBy('kuerzel')->get() as $r)
-                                <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.625rem;">
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">Telefon</label>
-                        <input type="text" name="telefon" class="feld" style="font-size: 0.875rem;" value="{{ old('telefon', $klient->telefon) }}">
-                    </div>
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">Notfallnummer</label>
-                        <input type="text" name="notfallnummer" class="feld" style="font-size: 0.875rem;" value="{{ old('notfallnummer', $klient->notfallnummer) }}">
-                    </div>
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">E-Mail</label>
-                        <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $klient->email) }}">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
-            </form>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
-
-                {{-- Rechnungsadresse --}}
-                <div>
-                    <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Rechnungsadresse</div>
-                    @if($adrRechnung)
-                    <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.625rem 0.75rem; font-size: 0.875rem; margin-bottom: 0.75rem;">
-                        @if($adrRechnung->nachname)<div class="text-fett">{{ $adrRechnung->nachname }}</div>@endif
-                        @if($adrRechnung->strasse)<div class="text-hell">{{ $adrRechnung->strasse }}</div>@endif
-                        @if($adrRechnung->plz || $adrRechnung->ort)<div class="text-hell">{{ $adrRechnung->plz }} {{ $adrRechnung->ort }}</div>@endif
-                        @if($adrRechnung->telefon)<div class="text-hell">{{ $adrRechnung->telefon }}</div>@endif
-                        @if($adrRechnung->email)<div class="text-hell">{{ $adrRechnung->email }}</div>@endif
-                        <form method="POST" action="{{ route('klienten.adresse.loeschen', [$klient, $adrRechnung]) }}" style="margin-top: 0.375rem;" onsubmit="return confirm('Adresse löschen?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-fehler); font-size: 0.75rem; padding: 0;">× Löschen</button>
-                        </form>
-                    </div>
-                    @endif
-                    <details {{ !$adrRechnung ? 'open' : '' }}>
-                        <summary style="font-size: 0.8125rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; padding: 0.25rem 0; list-style: none;">
-                            {{ $adrRechnung ? '✎ Ändern' : '+ Erfassen' }}
-                        </summary>
-                        <form method="POST" action="{{ route('klienten.adresse.speichern', $klient) }}" style="margin-top: 0.5rem;">
-                            @csrf
-                            <input type="hidden" name="adressart" value="rechnung">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">Firma</label>
-                                    <input type="text" name="firma" class="feld" style="font-size: 0.875rem;" value="{{ old('firma', $adrRechnung?->firma) }}" placeholder="z.B. Treuhand AG">
-                                </div>
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">Name</label>
-                                    <input type="text" name="name" class="feld" style="font-size: 0.875rem;" value="{{ old('name', $adrRechnung?->nachname) }}" placeholder="z.B. Max Müller">
-                                </div>
-                            </div>
-                            <div style="margin-bottom: 0.5rem;">
-                                <label class="feld-label" style="font-size: 0.75rem;">Strasse &amp; Nr.</label>
-                                <input type="text" name="strasse" class="feld" style="font-size: 0.875rem;" value="{{ old('strasse', $adrRechnung?->strasse) }}">
-                            </div>
-                            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">PLZ</label>
-                                    <input type="text" name="plz" class="feld" style="font-size: 0.875rem;" value="{{ old('plz', $adrRechnung?->plz) }}">
-                                </div>
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">Ort</label>
-                                    <input type="text" name="ort" class="feld" style="font-size: 0.875rem;" value="{{ old('ort', $adrRechnung?->ort) }}">
-                                </div>
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.625rem;">
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">Telefon</label>
-                                    <input type="text" name="telefon" class="feld" style="font-size: 0.875rem;" value="{{ old('telefon', $adrRechnung?->telefon) }}">
-                                </div>
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">E-Mail</label>
-                                    <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $adrRechnung?->email) }}">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
-                        </form>
-                    </details>
-                </div>
-
-                {{-- Notfalladresse --}}
-                <div>
-                    <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Notfalladresse</div>
-                    @if($adrNotfall)
-                    <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.625rem 0.75rem; font-size: 0.875rem; margin-bottom: 0.75rem;">
-                        @if($adrNotfall->nachname)<div class="text-fett">{{ $adrNotfall->nachname }}</div>@endif
-                        @if($adrNotfall->strasse)<div class="text-hell">{{ $adrNotfall->strasse }}</div>@endif
-                        @if($adrNotfall->plz || $adrNotfall->ort)<div class="text-hell">{{ $adrNotfall->plz }} {{ $adrNotfall->ort }}</div>@endif
-                        @if($adrNotfall->telefon)<div class="text-hell">{{ $adrNotfall->telefon }}</div>@endif
-                        @if($adrNotfall->email)<div class="text-hell">{{ $adrNotfall->email }}</div>@endif
-                        <form method="POST" action="{{ route('klienten.adresse.loeschen', [$klient, $adrNotfall]) }}" style="margin-top: 0.375rem;" onsubmit="return confirm('Adresse löschen?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" style="background: none; border: none; cursor: pointer; color: var(--cs-fehler); font-size: 0.75rem; padding: 0;">× Löschen</button>
-                        </form>
-                    </div>
-                    @endif
-                    <details {{ !$adrNotfall ? 'open' : '' }}>
-                        <summary style="font-size: 0.8125rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; padding: 0.25rem 0; list-style: none;">
-                            {{ $adrNotfall ? '✎ Ändern' : '+ Erfassen' }}
-                        </summary>
-                        <form method="POST" action="{{ route('klienten.adresse.speichern', $klient) }}" style="margin-top: 0.5rem;">
-                            @csrf
-                            <input type="hidden" name="adressart" value="notfall">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">Firma</label>
-                                    <input type="text" name="firma" class="feld" style="font-size: 0.875rem;" value="{{ old('firma', $adrNotfall?->firma) }}" placeholder="z.B. Treuhand AG">
-                                </div>
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">Name</label>
-                                    <input type="text" name="name" class="feld" style="font-size: 0.875rem;" value="{{ old('name', $adrNotfall?->nachname) }}" placeholder="z.B. Maria Meier">
-                                </div>
-                            </div>
-                            <div style="margin-bottom: 0.5rem;">
-                                <label class="feld-label" style="font-size: 0.75rem;">Strasse &amp; Nr.</label>
-                                <input type="text" name="strasse" class="feld" style="font-size: 0.875rem;" value="{{ old('strasse', $adrNotfall?->strasse) }}">
-                            </div>
-                            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">PLZ</label>
-                                    <input type="text" name="plz" class="feld" style="font-size: 0.875rem;" value="{{ old('plz', $adrNotfall?->plz) }}">
-                                </div>
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">Ort</label>
-                                    <input type="text" name="ort" class="feld" style="font-size: 0.875rem;" value="{{ old('ort', $adrNotfall?->ort) }}">
-                                </div>
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.625rem;">
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">Telefon</label>
-                                    <input type="text" name="telefon" class="feld" style="font-size: 0.875rem;" value="{{ old('telefon', $adrNotfall?->telefon) }}">
-                                </div>
-                                <div>
-                                    <label class="feld-label" style="font-size: 0.75rem;">E-Mail</label>
-                                    <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $adrNotfall?->email) }}">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
-                        </form>
-                    </details>
-                </div>
-
-            </div>
-        </div>
-    </details>
 
     {{-- Rapporte --}}
     @php $letzteRapporte = $klient->rapporte()->with('benutzer')->limit(5)->get(); @endphp
