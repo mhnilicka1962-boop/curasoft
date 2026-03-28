@@ -331,7 +331,7 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
         @php
             // Positionen nach Leistungsart gruppieren + kumulieren
             $gruppen = [];
-            foreach ($positionen as $pos) {
+            foreach ($positionen->filter(fn($p) => $p->menge > 0) as $pos) {
                 $la = $pos->einsatzLeistungsart?->leistungsart?->bezeichnung
                    ?? $pos->beschreibung
                    ?? $pos->leistungstyp?->leistungsart?->bezeichnung
