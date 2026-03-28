@@ -20,7 +20,7 @@ class TourenController extends Controller
 
         $query = Tour::where('organisation_id', $this->orgId())
             ->whereDate('datum', $datum)
-            ->with('benutzer', 'einsaetze.klient', 'einsaetze.leistungsart');
+            ->with('benutzer', 'einsaetze.klient', 'einsaetze.einsatzLeistungsarten.leistungsart');
 
         if ($request->filled('benutzer_id')) {
             $query->where('benutzer_id', $request->benutzer_id);
@@ -41,7 +41,7 @@ class TourenController extends Controller
             ->whereDate('datum', $datum)
             ->whereNull('tour_id')
             ->whereHas('benutzer', fn($q) => $q->where('anstellungsart', '!=', 'angehoerig'))
-            ->with('klient', 'benutzer', 'leistungsart')
+            ->with('klient', 'benutzer', 'einsatzLeistungsarten.leistungsart')
             ->orderBy('benutzer_id')
             ->orderBy('zeit_von')
             ->get()
@@ -66,7 +66,7 @@ class TourenController extends Controller
                 ->whereDate('datum', $vorDatum)
                 ->where('benutzer_id', $vorBenutzerId)
                 ->whereNull('tour_id')
-                ->with('klient', 'leistungsart')
+                ->with('klient', 'einsatzLeistungsarten.leistungsart')
                 ->orderBy('zeit_von')
                 ->get();
 
@@ -128,7 +128,7 @@ class TourenController extends Controller
             ->whereDate('datum', $tour->datum)
             ->where('benutzer_id', $tour->benutzer_id)
             ->whereNull('tour_id')
-            ->with('klient', 'leistungsart')
+            ->with('klient', 'einsatzLeistungsarten.leistungsart')
             ->orderBy('zeit_von')
             ->get();
 
