@@ -489,7 +489,7 @@
             @php
                 $tiersGarant = (\App\Models\Organisation::find($klient->organisation_id)?->abrechnungslogik ?? 'tiers_garant') === 'tiers_garant';
             @endphp
-            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Abrechnung &amp; Versand</div>
+            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Abrechnung &amp; Versand@if($tiersGarant) <span class="text-hell" style="font-weight:400;">— Tiers garant</span>@endif</div>
             <form method="POST" action="{{ route('klienten.update', $klient) }}" style="margin-bottom: 1.25rem;">
                 @csrf @method('PUT')
                 <input type="hidden" name="vorname"  value="{{ $klient->vorname }}">
