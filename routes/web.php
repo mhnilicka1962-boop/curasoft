@@ -436,6 +436,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/mitarbeiter/{mitarbeiter}/leistungsarten', [MitarbeiterController::class, 'leistungsartenSpeichern'])->name('mitarbeiter.leistungsarten');
         Route::post('/mitarbeiter/{mitarbeiter}/klienten', [MitarbeiterController::class, 'klientZuweisen'])->name('mitarbeiter.klient.zuweisen');
         Route::delete('/mitarbeiter/{mitarbeiter}/klienten/{zuweisung}', [MitarbeiterController::class, 'klientEntfernen'])->name('mitarbeiter.klient.entfernen');
+        Route::delete('/mitarbeiter/{mitarbeiter}', [MitarbeiterController::class, 'destroy'])->name('mitarbeiter.destroy');
         Route::post('/mitarbeiter/{mitarbeiter}/einladung', [MitarbeiterController::class, 'einladungSenden'])->name('mitarbeiter.einladung');
     });
 

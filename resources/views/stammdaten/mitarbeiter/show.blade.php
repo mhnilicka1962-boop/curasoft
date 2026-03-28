@@ -27,6 +27,14 @@
             @csrf
             <button type="submit" class="btn btn-sekundaer">Zugang mailen</button>
         </form>
+        @php $hatEinsaetze = \App\Models\Einsatz::where('benutzer_id', $mitarbeiter->id)->exists(); @endphp
+        @if(!$hatEinsaetze)
+        <form method="POST" action="{{ route('mitarbeiter.destroy', $mitarbeiter) }}" style="display:inline;"
+            onsubmit="return confirm('Mitarbeiter {{ $mitarbeiter->vorname }} {{ $mitarbeiter->nachname }} wirklich löschen?')">
+            @csrf @method('DELETE')
+            <button type="submit" class="btn btn-gefahr">Löschen</button>
+        </form>
+        @endif
         @else
         <button type="submit" form="form-neu-ma" class="btn btn-primaer">Speichern & Einladen</button>
         @endif
@@ -34,9 +42,10 @@
 </div>
 
 @if(session('erfolg'))
-    <div class="erfolg-box">
-        {{ session('erfolg') }}
-    </div>
+    <div class="erfolg-box">{{ session('erfolg') }}</div>
+@endif
+@if(session('fehler'))
+    <div class="fehler-box">{{ session('fehler') }}</div>
 @endif
 
 {{-- ═══ 1. STAMMDATEN ═══ --}}

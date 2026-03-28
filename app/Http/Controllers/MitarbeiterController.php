@@ -262,4 +262,22 @@ class MitarbeiterController extends Controller
         $zuweisung->delete();
         return back()->with('erfolg', 'Zuweisung entfernt.');
     }
+
+    public function destroy(Benutzer $mitarbeiter)
+    {
+        if ($mitarbeiter->organisation_id !== $this->orgId()) abort(403);
+
+        $hatEinsaetze = \App\Models\Einsatz::where('benutzer_id', $mitarbeiter->id)->exists();
+        $hatRechnungen = \DB::table('rechnungen')->where('organisation_id', $this->orgId())
+            ->whereExists(fn($q) => $q->from('rechnungs_positionen')
+                ->whereColumn('rechnungs_positionen.rechnung_id', 'rechnungen.id'))
+            ->exists(); // vereinfacht — kein direkter benutzer_id auf rechnungen
+
+        if ($hatEinsaetze) {
+            return back()->with('fehler', 'Mitarbeiter kann nicht gelöscht werden — es existieren Einsätze.');
+        }
+
+        $mitarbeiter->delete();
+        return redirect()->route('mitarbeiter.index')->with('erfolg', 'Mitarbeiter wurde gelöscht.');
+    }
 }
