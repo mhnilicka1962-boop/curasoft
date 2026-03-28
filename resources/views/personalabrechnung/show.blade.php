@@ -113,9 +113,9 @@
                         </td>
                         <td>
                             <div>{{ $e->klient?->vorname }} {{ $e->klient?->nachname }}</div>
-                            <div class="text-mini text-hell mobile-meta">{{ $e->leistungsart?->bezeichnung }}</div>
+                            <div class="text-mini text-hell mobile-meta">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: '—' }}</div>
                         </td>
-                        <td class="col-desktop text-klein text-hell">{{ $e->leistungsart?->bezeichnung ?? '—' }}</td>
+                        <td class="col-desktop text-klein text-hell">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: '—' }}</td>
                         <td class="text-mitte">
                             @if($e->zeit_von)
                                 <span class="text-klein">{{ $e->zeit_von }}–{{ $e->zeit_bis }}</span><br>

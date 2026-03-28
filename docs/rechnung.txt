@@ -1,0 +1,55 @@
+RECHNUNG - Nr. 2026-288-0202 - 2728
+
+Absender:
+cura - pflege GmbH
+Postfach 6
+6024 Hildisrieden
+
+Empfänger:
+Herr Hans Kaufmann
+Mattweg 3
+6340 Baar
+
+Datum Rechnung:   03.03.2026
+Versanddatum:     19.03.2026
+Leistungen von:   01.02.2026 - 28.02.2026
+ZSR-Nr.:          M0842.03
+Klient:           94, Herr Hans Kaufmann, Mattweg 3, 6340 Baar
+Geburtsdatum:     07.03.1943
+
+------------------------------------------------------------
+Leistung/Material         Anzahl    Ansatz    Total
+------------------------------------------------------------
+Abklärung Beratung         1.17     106.20    124.25
+------------------------------------------------------------
+Total kassenpflichtige Leistungen:              124.25
+------------------------------------------------------------
+
+Unser Guthaben CHF - zahlbar bis 20.03.2026:   124.25
+
+Bitte benutzen Sie ausschliesslich den beiliegenden Einzahlungsschein.
+
+------------------------------------------------------------
+EINZAHLUNGSSCHEIN / ZAHLTEIL
+------------------------------------------------------------
+Konto / Zahlbar an:
+IBAN: CH0809000000604903836
+cura - pflege GmbH
+Postfach 6
+6024 Hildisrieden
+
+Zahlbar durch:
+Herr Hans Kaufmann
+Mattweg 3
+6340 Baar
+
+Währung: CHF
+Betrag:  124.25
+
+------------------------------------------------------------
+LEISTUNGSDETAIL (Seite 3)
+------------------------------------------------------------
+Datum       Anzahl    Taxpunkte    Ansatz    Total
+01.02.2026   120      196.20       10.20     ...
+(weitere Leistungspositionen gemäss Detailblatt)
+------------------------------------------------------------

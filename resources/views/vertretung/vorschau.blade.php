@@ -39,7 +39,7 @@
                 <tr>
                     <td>{{ $e->datum->format('d.m.Y') }}</td>
                     <td>{{ $e->klient?->vollname() ?? '—' }}</td>
-                    <td>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</td>
+                    <td>{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</td>
                     <td>{{ $e->zeit_von ? substr($e->zeit_von,0,5) : '—' }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</td>
                 </tr>
                 @endforeach
@@ -103,7 +103,7 @@
                         </td>
                         <td>{{ $e->datum->format('d.m.Y') }}</td>
                         <td>{{ $e->klient?->vollname() ?? '—' }}</td>
-                        <td>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</td>
+                        <td>{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</td>
                         <td>{{ $e->zeit_von ? substr($e->zeit_von,0,5) : '—' }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</td>
                         <td class="text-hell text-klein">{{ $e->tour?->bezeichnung ?? '—' }}</td>
                     </tr>

@@ -107,7 +107,7 @@
                     </div>
 
                     <div style="font-size: 0.8125rem; color: var(--cs-text-hell); margin-top: 0.2rem;">
-                        {{ $e->leistungsart?->bezeichnung }}
+                        {{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}
                         @if($e->klient?->adresse)
                             · {{ $e->klient->adresse }}, {{ $e->klient->plz }} {{ $e->klient->ort }}
                         @endif
@@ -190,7 +190,7 @@
                     <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer; padding: 0.25rem 0;">
                         <input type="checkbox" name="einsatz_ids[]" value="{{ $e->id }}" checked>
                         <span style="font-weight: 500;">{{ $e->klient?->vollname() }}</span>
-                        <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
+                        <span class="text-hell">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
                         @if($e->zeit_von)
                             <span class="text-hell" style="margin-left: auto; font-size: 0.8rem;">{{ \Carbon\Carbon::parse($e->zeit_von)->format('H:i') }}</span>
                         @endif

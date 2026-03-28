@@ -90,7 +90,7 @@
                                 {{ $e->klient?->vollname() }}
                             </a>
                         </td>
-                        <td class="col-desktop text-hell" style="font-size: 0.8125rem;">{{ $e->leistungsart?->bezeichnung }}</td>
+                        <td class="col-desktop text-hell" style="font-size: 0.8125rem;">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</td>
                         <td style="font-size: 0.8125rem;">{{ $e->benutzer?->vorname }} {{ $e->benutzer?->nachname }}</td>
                         <td>
                             @if($t)
@@ -135,7 +135,7 @@
             <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.625rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; overflow: hidden;">
                 <span class="text-hell" style="font-size: 0.8rem; min-width: 18px; flex-shrink: 0;">{{ $idx + 1 }}.</span>
                 <span class="text-fett" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->klient?->vollname() }}</span>
-                <span class="text-hell" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->leistungsart?->bezeichnung }}</span>
+                <span class="text-hell" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
                 @if($e->zeit_von)
                     <span class="text-hell" style="flex-shrink: 0; font-size: 0.8rem;">{{ $e->zeit_von }}</span>
                 @endif
@@ -154,7 +154,7 @@
             @php
                 $eigeneEinsaetze = \App\Models\Einsatz::where('benutzer_id', auth()->id())
                     ->whereDate('datum', $datum)
-                    ->with('klient','leistungsart')
+                    ->with('klient','einsatzLeistungsarten.leistungsart')
                     ->orderBy('zeit_von')
                     ->get();
             @endphp
@@ -165,7 +165,7 @@
                     @foreach($eigeneEinsaetze as $e)
                     <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; border: 1px solid var(--cs-border); overflow: hidden;">
                         <span class="text-fett" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->klient?->vollname() }}</span>
-                        <span class="text-hell" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->leistungsart?->bezeichnung }}</span>
+                        <span class="text-hell" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
                         @if($e->zeit_von)
                             <span class="text-hell" style="flex-shrink: 0; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}</span>
                         @endif
@@ -202,7 +202,7 @@
             <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: #fff5f5; border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; border: 1px solid #fca5a5;">
                 <span style="font-size: 0.8rem; color: var(--cs-fehler); min-width: 60px;">{{ $e->datum->format('d.m.') }}</span>
                 <span class="text-fett">{{ $e->klient?->vollname() }}</span>
-                <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
+                <span class="text-hell">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
                 <span class="badge badge-fehler" style="margin-left: auto; font-size: 0.7rem;">{{ $e->statusLabel() }}</span>
             </a>
             @endforeach
@@ -251,7 +251,7 @@
                         <span class="text-hell" style="min-width: 45px;">—</span>
                     @endif
                     <span style="font-weight: 500;">{{ $e->klient?->vollname() }}</span>
-                    <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
+                    <span class="text-hell">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
                 </div>
                 @endforeach
             </div>

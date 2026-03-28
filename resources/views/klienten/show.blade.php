@@ -318,7 +318,7 @@
                     @if($e->zeit_von)
                         <span class="text-hell" style="white-space: nowrap; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
                     @endif
-                    <span>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
+                    <span>{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
                     @if($e->benutzer)
                         <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
                     @endif
@@ -358,7 +358,7 @@
                     @if($e->zeit_von)
                         <span class="text-hell" style="white-space: nowrap; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
                     @endif
-                    <span>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
+                    <span>{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
                     @if($e->benutzer)
                         <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
                     @endif
@@ -386,7 +386,7 @@
                     @if($e->zeit_von)
                         <span class="text-hell" style="white-space: nowrap; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
                     @endif
-                    <span>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
+                    <span>{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
                     @if($e->benutzer)
                         <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
                     @endif

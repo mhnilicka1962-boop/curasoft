@@ -180,7 +180,7 @@ tr.total td { padding:1.5mm 1.5mm; font-weight:bold; font-size:7.5pt; background
                     <span class="tag-day">{{ $tagLbl }}</span>
                 @endif
             </td>
-            <td>{{ $e->klient?->vorname }} {{ $e->klient?->nachname }} <span class="la">· {{ $e->leistungsart?->bezeichnung ?? '—' }}</span></td>
+            <td>{{ $e->klient?->vorname }} {{ $e->klient?->nachname }} <span class="la">· {{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: '—' }}</span></td>
             <td class="c">
                 @if($e->zeit_von)<span class="zeit">{{ $zt($e->zeit_von) }}–{{ $zt($e->zeit_bis) }} </span>@endif
                 <strong>{{ $planMin > 0 ? $hm($planMin) : '—' }}</strong>

@@ -36,7 +36,7 @@
                                 {{ $e->klient->nachname }} {{ $e->klient->vorname }}
                             </a>
                         </span>
-                        <span class="text-klein text-hell">{{ $e->tagespauschale_id ? 'Tagespauschale' : ($e->leistungsart?->bezeichnung ?? '') }}</span>
+                        <span class="text-klein text-hell">{{ $e->tagespauschale_id ? 'Tagespauschale' : ($e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: '') }}</span>
                         <span class="badge {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
                     </div>
                     @endforeach

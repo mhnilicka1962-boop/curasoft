@@ -45,7 +45,7 @@ function renderEinsatzZeile($e, $heute, $withDelete = false) {
         <div style="display:flex; gap:0.625rem; align-items:center; flex-wrap:wrap; flex:1;">
             <span style="color:{{ $istHeute ? 'var(--cs-primaer)' : 'var(--cs-text-hell)' }}; min-width:80px; font-weight:{{ $istHeute ? '700' : '400' }}; white-space:nowrap;">{{ $e->datum->format('d.m.Y') }}</span>
             @if($e->zeit_von)<span class="text-hell" style="white-space:nowrap; font-size:0.8rem;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>@endif
-            <span>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
+            <span>{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
             @if($e->tagespauschale_id)<span class="badge badge-info" style="font-size:0.7rem;">Pauschale</span>@endif
             @if($e->benutzer)<span class="text-hell" style="font-size:0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>@endif
             @if($e->tour)<a href="{{ route('touren.show', $e->tour) }}" class="badge badge-primaer" style="font-size:0.7rem; text-decoration:none;">{{ $e->tour->bezeichnung }}</a>
@@ -76,7 +76,7 @@ function renderEinsatzZeile($e, $heute, $withDelete = false) {
         <div style="display:flex; gap:0.625rem; align-items:center; flex-wrap:wrap; flex:1;">
             <span class="text-hell" style="min-width:80px; white-space:nowrap;">{{ $e->datum->format('d.m.Y') }}</span>
             @if($e->zeit_von)<span class="text-hell" style="white-space:nowrap; font-size:0.8rem;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>@endif
-            <span>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
+            <span>{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
             @if($e->tagespauschale_id)<span class="badge badge-info" style="font-size:0.7rem;">Pauschale</span>@endif
             @if($e->benutzer)<span class="text-hell" style="font-size:0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>@endif
         </div>
@@ -98,7 +98,7 @@ function renderEinsatzZeile($e, $heute, $withDelete = false) {
     <div style="display:flex; align-items:center; justify-content:space-between; padding:0.4375rem 0.25rem; border-bottom:1px solid var(--cs-border); font-size:0.875rem; gap:0.5rem; flex-wrap:wrap; {{ $istHeute ? 'background:#eff6ff; border-radius:4px;' : '' }}">
         <div style="display:flex; gap:0.625rem; align-items:center; flex-wrap:wrap; flex:1;">
             <span style="min-width:80px; white-space:nowrap; color:{{ $istHeute ? 'var(--cs-primaer)' : 'var(--cs-text-hell)' }}; font-weight:{{ $istHeute ? '700' : '400' }}">{{ $e->datum->format('d.m.Y') }}</span>
-            <span>{{ $e->leistungsart?->bezeichnung ?? ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
+            <span>{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
             @if($e->tagespauschale_id)<span class="badge badge-info" style="font-size:0.7rem;">Pauschale</span>@endif
             @if($e->benutzer)<span class="text-hell" style="font-size:0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>@endif
         </div>

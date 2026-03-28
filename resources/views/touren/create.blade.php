@@ -62,7 +62,7 @@
                 <label style="display: flex; align-items: center; gap: 0.625rem; padding: 0.375rem 0; font-size: 0.875rem; cursor: pointer; border-bottom: 1px solid var(--cs-border);">
                     <input type="checkbox" name="einsatz_ids[]" value="{{ $e->id }}" checked class="einsatz-cb">
                     <span style="font-weight: 600;">{{ $e->klient?->vollname() }}</span>
-                    <span class="text-hell">{{ $e->leistungsart?->bezeichnung }}</span>
+                    <span class="text-hell">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
                     @if($e->zeit_von)
                         <span class="text-hell" style="margin-left: auto; font-size: 0.8rem; flex-shrink: 0;">{{ \Carbon\Carbon::parse($e->zeit_von)->format('H:i') }}</span>
                     @endif

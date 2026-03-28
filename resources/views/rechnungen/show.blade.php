@@ -134,7 +134,7 @@
                 <tr>
                     <td style="white-space:nowrap;">{{ $pos->datum->format('d.m.Y') }}</td>
                     <td class="text-hell">
-                        {{ $pos->leistungstyp?->bezeichnung ?? $pos->einsatz?->leistungsart?->bezeichnung ?? $pos->beschreibung ?? '—' }}
+                        {{ $pos->leistungstyp?->bezeichnung ?? $pos->einsatz?->einsatzLeistungsarten->first()?->leistungsart?->bezeichnung ?? $pos->beschreibung ?? '—' }}
                     </td>
                     <td class="text-rechts">{{ $pos->menge }}</td>
                     @if($beide || $nurPatient)
