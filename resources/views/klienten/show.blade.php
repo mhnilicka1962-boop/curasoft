@@ -214,9 +214,6 @@
 
 
 
-<div style="display: flex; gap: 0.75rem;">
-            <button type="submit" class="btn btn-primaer">Speichern</button>
-        </div>
     </form>
     </div>
 
@@ -282,7 +279,7 @@
                         <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $klient->email) }}">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
+                <button type="submit" class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
             </form>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
@@ -345,7 +342,7 @@
                                     <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $adrRechnung?->email) }}">
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
+                            <button type="submit" class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
                         </form>
                     </details>
                 </div>
@@ -408,7 +405,7 @@
                                     <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $adrNotfall?->email) }}">
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
+                            <button type="submit" class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
                         </form>
                     </details>
                 </div>
@@ -681,7 +678,7 @@
                         @endif
                     </div>
                 </div>
-                <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
+                <button type="submit" class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
             </form>
 
             <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Beiträge</div>
