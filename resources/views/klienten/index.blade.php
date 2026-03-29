@@ -52,6 +52,16 @@
                     <span class="mobile-meta">
                         {{ $klient->ort ?? '' }}{{ $klient->geburtsdatum ? ' · ' . $klient->geburtsdatum->format('d.m.Y') : '' }}
                     </span>
+                    @if($klient->adresse || $klient->ort)
+                    <div class="text-hell" style="font-size: 0.78rem; margin-top: 0.1rem;">
+                        {{ trim(($klient->adresse ?? '') . ', ' . ($klient->plz ?? '') . ' ' . ($klient->ort ?? ''), ', ') }}
+                        @if($klient->klient_lat && $klient->klient_lng)
+                            <span style="color: var(--cs-erfolg, #16a34a);" title="Geocoding aktiv">✓</span>
+                        @else
+                            <span style="color: var(--cs-warnung, #d97706);" title="Nicht geocodet">⚠</span>
+                        @endif
+                    </div>
+                    @endif
                 </td>
                 <td class="col-desktop text-klein text-hell">
                     {{ $klient->geburtsdatum?->format('d.m.Y') ?? '—' }}

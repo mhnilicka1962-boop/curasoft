@@ -27,6 +27,7 @@ use App\Http\Controllers\WebAuthnController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\VertretungController;
+use App\Http\Controllers\SerienController;
 use App\Http\Controllers\PersonalabrechnungController;
 use App\Http\Controllers\AngehoerigenpflegeController;
 use App\Http\Controllers\RapportierungController;
@@ -263,6 +264,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/klienten/{klient}/einsaetze-popup',              [KlientenController::class, 'einsaetzePopup'])->name('klienten.einsaetze-popup');
         Route::post('/klienten/{klient}/angehoerige',                 [KlientenController::class, 'angehoerigZuweisen'])->name('klienten.angehoerig.zuweisen');
         Route::delete('/klienten/{klient}/angehoerige/{zuweisung}',   [KlientenController::class, 'angehoerigEntfernen'])->name('klienten.angehoerig.entfernen');
+        Route::post('/klienten/{klient}/serien',                      [SerienController::class, 'store'])->name('klienten.serien.speichern');
+        Route::get('/klienten/{klient}/serien/{serie}/edit',          [SerienController::class, 'edit'])->name('klienten.serien.edit');
+        Route::put('/klienten/{klient}/serien/{serie}',               [SerienController::class, 'update'])->name('klienten.serien.aktualisieren');
+        Route::patch('/klienten/{klient}/serien/{serie}/beenden',     [SerienController::class, 'beenden'])->name('klienten.serien.beenden');
+        Route::delete('/klienten/{klient}/serien/{serie}',            [SerienController::class, 'destroy'])->name('klienten.serien.loeschen');
         Route::get('/schnellerfassung',  [KlientenController::class, 'schnellerfassung'])->name('schnellerfassung');
         Route::post('/schnellerfassung', [KlientenController::class, 'schnellSpeichern'])->name('schnellerfassung.speichern');
 
@@ -288,6 +294,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/touren/{tour}/einsaetze',          [TourenController::class, 'einsatzZuweisen'])->name('touren.einsatz.zuweisen');
         Route::delete('/touren/{tour}/einsaetze/{einsatz}', [TourenController::class, 'einsatzEntfernen'])->name('touren.einsatz.entfernen');
         Route::post('/touren/{tour}/route-optimieren',   [TourenController::class, 'routeOptimieren'])->name('touren.route.optimieren');
+        Route::post('/touren/{tour}/zeiten-setzen',      [TourenController::class, 'zeitenSetzen'])->name('touren.zeiten.setzen');
         Route::patch('/touren/{tour}/reihenfolge',        [TourenController::class, 'reihenfolgeAktualisieren'])->name('touren.reihenfolge');
 
         // Ferienvertretung (nur Admin)

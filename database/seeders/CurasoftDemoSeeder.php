@@ -12,11 +12,11 @@ use Illuminate\Support\Str;
  * CurasoftDemoSeeder — Vollständiger Demo- und Testdatensatz
  *
  * 5 Klienten mit mehreren Leistungsarten:
- *   Brunner   (AG): Grundpflege Mo–Fr + Hauswirtschaft Di/Fr, Sandra
- *   Weber     (AG): UB Injektion Mo–Fr + UB Verband Mo/Mi/Fr, Sandra
- *   Schneider (BE): Grundpflege tägl. + UB Vitalzeichen Mo/Mi/Fr, Peter, tiers_payant
- *   Keller    (BE): Hauswirtschaft Di/Do + Grundpflege Mo/Mi/Fr, Peter
- *   Gerber    (BE): Grundpflege Mo–Fr, Angehörigenpflege Ruth
+ *   Brunner   (ZH): Grundpflege Mo–Fr + Hauswirtschaft Di/Fr, Sandra
+ *   Weber     (ZH): UB Injektion Mo–Fr + UB Verband Mo/Mi/Fr, Sandra
+ *   Schneider (ZG): Grundpflege tägl. + UB Vitalzeichen Mo/Mi/Fr, Peter, tiers_payant
+ *   Keller    (ZG): Hauswirtschaft Di/Do + Grundpflege Mo/Mi/Fr, Peter
+ *   Gerber    (ZG): Grundpflege Mo–Fr, Angehörigenpflege Ruth
  *
  * Enthält: einsatz_aktivitaeten, Touren, Rapporte, 4 Rechnungsläufe.
  * Idempotent: kann beliebig oft ausgeführt werden.
@@ -84,6 +84,7 @@ class CurasoftDemoSeeder extends Seeder
         DB::table('rechnungslaeufe')->delete();
         DB::table('einsatz_aktivitaeten')->delete();
         DB::table('einsaetze')->delete();
+        DB::table('serien')->delete();
         DB::table('tagespauschalen')->delete();
         DB::table('rapporte')->delete();
         DB::table('touren')->delete();
@@ -120,12 +121,12 @@ class CurasoftDemoSeeder extends Seeder
     private function organisationUpdaten(): void
     {
         DB::table('organisationen')->where('id', $this->orgId)->update([
-            'name'       => 'CuraSoft Demo Spitex AG',
-            'adresse'    => 'Bahnhofstrasse 1',
-            'plz'        => '5000',
-            'ort'        => 'Aarau',
-            'kanton'     => 'AG',
-            'telefon'    => '062 123 45 67',
+            'name'       => 'CuraSoft Demo Spitex GmbH',
+            'adresse'    => 'Weinbergstrasse 10',
+            'plz'        => '8001',
+            'ort'        => 'Zürich',
+            'kanton'     => 'ZH',
+            'telefon'    => '044 123 45 67',
             'email'      => 'info@curasoft-demo.ch',
             'website'    => 'https://www.curasoft.ch',
             'iban'       => 'CH56 0483 5012 3456 7800 9',
@@ -166,7 +167,7 @@ class CurasoftDemoSeeder extends Seeder
 
     private function regionen(): void
     {
-        foreach (['AG' => 'Aargau', 'BE' => 'Bern'] as $kuerzel => $name) {
+        foreach (['ZH' => 'Zürich', 'ZG' => 'Zug'] as $kuerzel => $name) {
             $region = DB::table('regionen')->where('kuerzel', $kuerzel)->first();
             if (!$region) {
                 $id = DB::table('regionen')->insertGetId([
@@ -299,12 +300,12 @@ class CurasoftDemoSeeder extends Seeder
             'geburtsdatum'    => '1942-03-12',
             'geschlecht'      => 'w',
             'zivilstand'      => 'verwitwet',
-            'adresse'         => 'Rosenweg 7',
-            'plz'             => '5400',
-            'ort'             => 'Baden',
-            'telefon'         => '056 444 55 66',
+            'adresse'         => 'Seefeldstrasse 45',
+            'plz'             => '8008',
+            'ort'             => 'Zürich',
+            'telefon'         => '044 444 55 66',
             'notfallnummer'   => '079 333 22 11',
-            'region_id'       => $this->regionen['AG'],
+            'region_id'       => $this->regionen['ZH'],
             'zustaendig_id'   => $this->ma['sandra'],
             'rechnungstyp'    => 'kombiniert',
             'aktiv'           => true,
@@ -365,13 +366,13 @@ class CurasoftDemoSeeder extends Seeder
             'geburtsdatum'    => '1947-07-22',
             'geschlecht'      => 'm',
             'zivilstand'      => 'verheiratet',
-            'adresse'         => 'Laurenzenvorstadt 15',
-            'plz'             => '5000',
-            'ort'             => 'Aarau',
+            'adresse'         => 'Rämistrasse 28',
+            'plz'             => '8001',
+            'ort'             => 'Zürich',
             'email'           => 'h.weber@muster.ch',
-            'telefon'         => '062 891 23 45',
+            'telefon'         => '044 891 23 45',
             'notfallnummer'   => '078 123 45 67',
-            'region_id'       => $this->regionen['AG'],
+            'region_id'       => $this->regionen['ZH'],
             'zustaendig_id'   => $this->ma['sandra'],
             'rechnungstyp'    => 'kombiniert',
             'aktiv'           => true,
@@ -432,13 +433,13 @@ class CurasoftDemoSeeder extends Seeder
             'geburtsdatum'    => '1945-11-08',
             'geschlecht'      => 'w',
             'zivilstand'      => 'verwitwet',
-            'adresse'         => 'Kramgasse 58',
-            'plz'             => '3011',
-            'ort'             => 'Bern',
+            'adresse'         => 'Baarerstrasse 12',
+            'plz'             => '6300',
+            'ort'             => 'Zug',
             'email'           => 'm.schneider@muster.ch',
-            'telefon'         => '031 311 78 90',
+            'telefon'         => '041 711 78 90',
             'notfallnummer'   => '076 789 01 23',
-            'region_id'       => $this->regionen['BE'],
+            'region_id'       => $this->regionen['ZG'],
             'zustaendig_id'   => $this->ma['peter'],
             'rechnungstyp'    => 'kombiniert',
             'aktiv'           => true,
@@ -499,12 +500,12 @@ class CurasoftDemoSeeder extends Seeder
             'geburtsdatum'    => '1940-05-14',
             'geschlecht'      => 'm',
             'zivilstand'      => 'verheiratet',
-            'adresse'         => 'Hauptgasse 10',
-            'plz'             => '3600',
-            'ort'             => 'Thun',
-            'telefon'         => '033 222 34 56',
+            'adresse'         => 'Alpenstrasse 5',
+            'plz'             => '6300',
+            'ort'             => 'Zug',
+            'telefon'         => '041 222 34 56',
             'notfallnummer'   => '079 234 56 78',
-            'region_id'       => $this->regionen['BE'],
+            'region_id'       => $this->regionen['ZG'],
             'zustaendig_id'   => $this->ma['peter'],
             'rechnungstyp'    => 'kombiniert',
             'aktiv'           => true,
@@ -555,12 +556,12 @@ class CurasoftDemoSeeder extends Seeder
             'geburtsdatum'    => '1955-03-18',
             'geschlecht'      => 'm',
             'zivilstand'      => 'verheiratet',
-            'adresse'         => 'Gerechtigkeitsgasse 14',
-            'plz'             => '3011',
-            'ort'             => 'Bern',
-            'telefon'         => '031 311 56 78',
+            'adresse'         => 'Kolinplatz 3',
+            'plz'             => '6300',
+            'ort'             => 'Zug',
+            'telefon'         => '041 311 56 78',
             'notfallnummer'   => '079 456 78 90',
-            'region_id'       => $this->regionen['BE'],
+            'region_id'       => $this->regionen['ZG'],
             'zustaendig_id'   => $this->ma['ruth'],
             'rechnungstyp'    => 'kombiniert',
             'aktiv'           => true,
@@ -667,16 +668,16 @@ class CurasoftDemoSeeder extends Seeder
 
     private function beitraege(): void
     {
-        // AG: CHF 98.00/h total, KK 54.60, Patient 43.40
-        // BE: CHF 68.00/h total, KK 60.00, Patient  8.00
+        // ZH: CHF 98.00/h total, KK 54.60, Patient 43.40
+        // ZG: CHF 68.00/h total, KK 60.00, Patient  8.00
         $adminId = $this->adminId ?: ($this->ma['admin'] ?? 1);
 
         $beitraege = [
-            'brunner'   => ['region' => 'AG', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
-            'weber'     => ['region' => 'AG', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
-            'schneider' => ['region' => 'BE', 'ansatz_kunde' =>  8.00, 'ansatz_spitex' => 68.00, 'limit' => 10],
-            'keller'    => ['region' => 'BE', 'ansatz_kunde' =>  8.00, 'ansatz_spitex' => 68.00, 'limit' => 10],
-            'gerber'    => ['region' => 'BE', 'ansatz_kunde' =>  8.00, 'ansatz_spitex' => 68.00, 'limit' =>  0],
+            'brunner'   => ['region' => 'ZH', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
+            'weber'     => ['region' => 'ZH', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
+            'schneider' => ['region' => 'ZG', 'ansatz_kunde' =>  8.00, 'ansatz_spitex' => 68.00, 'limit' => 10],
+            'keller'    => ['region' => 'ZG', 'ansatz_kunde' =>  8.00, 'ansatz_spitex' => 68.00, 'limit' => 10],
+            'gerber'    => ['region' => 'ZG', 'ansatz_kunde' =>  8.00, 'ansatz_spitex' => 68.00, 'limit' =>  0],
         ];
 
         foreach ($beitraege as $klientKey => $b) {
@@ -708,34 +709,81 @@ class CurasoftDemoSeeder extends Seeder
         $laGp  = $this->laId('gp');
         $laUb  = $this->laId('ub');
         $laHwl = $this->laId('hwl');
-        $rAg   = $this->regionen['AG'];
-        $rBe   = $this->regionen['BE'];
+        $rAg   = $this->regionen['ZH'];
+        $rBe   = $this->regionen['ZG'];
 
-        // Serien: [klientKey, benutzerId, laId, regionId, wochentage, von, bis, min, kategorie, aktivitaet, mitTour, leTyp]
-        $serien = [
-            // Brunner: GP Mo–Fr + HWL Di/Fr
-            ['brunner',   'sandra', $laGp,  $rAg, [1,2,3,4,5],     '08:00', '08:45', 45, 'Grundpflege',            'Duschen',                             true,  'fachperson'],
-            ['brunner',   'sandra', $laHwl, $rAg, [2,5],            '11:00', '11:30', 30, 'Hauswirtschaft',         'HWL-Leistungen',                      true,  'fachperson'],
-            // Weber: UB Injektion Mo–Fr + UB Verband Mo/Mi/Fr
-            ['weber',     'sandra', $laUb,  $rAg, [1,2,3,4,5],     '09:00', '09:15', 15, 'Untersuchung/Behandlung', 'Injektion subcutan',                  true,  'fachperson'],
-            ['weber',     'sandra', $laUb,  $rAg, [1,3,5],          '09:20', '09:40', 20, 'Untersuchung/Behandlung', 'Verbandwechsel',                      true,  'fachperson'],
-            // Schneider: GP tägl. + UB Vitalzeichen Mo/Mi/Fr
-            ['schneider', 'peter',  $laGp,  $rBe, [1,2,3,4,5,6,0], '09:00', '09:50', 50, 'Grundpflege',            'Grundpflege',                         true,  'fachperson'],
-            ['schneider', 'peter',  $laUb,  $rBe, [1,3,5],          '10:00', '10:15', 15, 'Untersuchung/Behandlung', 'Vitalzeichen (Puls, BD, T, Gewicht)', true,  'fachperson'],
-            // Keller: HWL Di/Do + GP Mo/Mi/Fr
-            ['keller',    'peter',  $laHwl, $rBe, [2,4],            '14:00', '15:00', 60, 'Hauswirtschaft',         'HWL-Leistungen',                      true,  'fachperson'],
-            ['keller',    'peter',  $laGp,  $rBe, [1,3,5],          '10:00', '10:25', 25, 'Grundpflege',            'An-/Auskleiden',                      true,  'fachperson'],
-            // Gerber: GP Mo–Fr (Angehörige, kein Tour)
-            ['gerber',    'ruth',   $laGp,  $rBe, [1,2,3,4,5],     '10:00', '10:35', 35, 'Grundpflege',            'Mobilisation',                        false, 'angehoerig'],
+        // Besuche: [klientKey, benKey, regionId, wochentage, von, mitTour, leTyp, [[laId, min, kategorie, aktivitaet], ...]]
+        // Pro Besuch = ein Einsatz mit mehreren Leistungsarten
+        $besuche = [
+            // Brunner: Morgenbesuch GP Mo–Fr (45min)
+            ['brunner',   'sandra', $rAg, [1,2,3,4,5],     '08:00', true,  'fachperson', [
+                [$laGp,  45, 'Grundpflege',             'Duschen'],
+            ]],
+            // Brunner: Nachmittagsbesuch HWL Di/Fr (30min)
+            ['brunner',   'sandra', $rAg, [2,5],            '14:00', true,  'fachperson', [
+                [$laHwl, 30, 'Hauswirtschaft',           'HWL-Leistungen'],
+            ]],
+            // Weber: Mo/Mi/Fr Injektion + Verband (35min)
+            ['weber',     'sandra', $rAg, [1,3,5],          '09:00', true,  'fachperson', [
+                [$laUb,  15, 'Untersuchung/Behandlung',  'Injektion subcutan'],
+                [$laUb,  20, 'Untersuchung/Behandlung',  'Verbandwechsel'],
+            ]],
+            // Weber: Di/Do nur Injektion (15min)
+            ['weber',     'sandra', $rAg, [2,4],            '09:00', true,  'fachperson', [
+                [$laUb,  15, 'Untersuchung/Behandlung',  'Injektion subcutan'],
+            ]],
+            // Schneider: Mo/Mi/Fr GP + UB Vitalzeichen (65min)
+            ['schneider', 'peter',  $rBe, [1,3,5],          '09:00', true,  'fachperson', [
+                [$laGp,  50, 'Grundpflege',             'Grundpflege'],
+                [$laUb,  15, 'Untersuchung/Behandlung', 'Vitalzeichen (Puls, BD, T, Gewicht)'],
+            ]],
+            // Schneider: Di/Do/Sa/So nur GP (50min)
+            ['schneider', 'peter',  $rBe, [2,4,6,0],        '09:00', true,  'fachperson', [
+                [$laGp,  50, 'Grundpflege',             'Grundpflege'],
+            ]],
+            // Keller: Mo/Mi/Fr GP (25min)
+            ['keller',    'peter',  $rBe, [1,3,5],          '10:30', true,  'fachperson', [
+                [$laGp,  25, 'Grundpflege',             'An-/Auskleiden'],
+            ]],
+            // Keller: Di/Do HWL (60min)
+            ['keller',    'peter',  $rBe, [2,4],            '14:00', true,  'fachperson', [
+                [$laHwl, 60, 'Hauswirtschaft',           'HWL-Leistungen'],
+            ]],
+            // Gerber: Mo–Fr GP durch Angehörige (35min, keine Tour)
+            ['gerber',    'ruth',   $rBe, [1,2,3,4,5],     '10:00', false, 'angehoerig', [
+                [$laGp,  35, 'Grundpflege',             'Mobilisation'],
+            ]],
         ];
 
         $tourenCache = [];
 
-        foreach ($serien as [$klientKey, $benKey, $laId, $regionId, $wochentage, $von, $bis, $min, $kategorie, $aktivitaet, $mitTour, $leTyp]) {
-            $klientId   = $this->kl[$klientKey];
+        foreach ($besuche as [$klientKey, $benKey, $regionId, $wochentage, $von, $mitTour, $leTyp, $leistungsarten]) {
+            $klientId  = $this->kl[$klientKey];
             $benutzerId = $this->ma[$benKey];
-            $serieId    = (string) Str::uuid();
+            $serieId   = (string) Str::uuid();
+            $totalMin  = array_sum(array_column($leistungsarten, 1));
+            $bis       = Carbon::createFromFormat('H:i', $von)->addMinutes($totalMin)->format('H:i');
             $reihenfolge = [];
+
+            // Serie-Datensatz anlegen
+            $laJson = array_map(fn($la) => ['id' => $la[0], 'minuten' => $la[1]], $leistungsarten);
+            $hatAlleTage = count(array_diff([0,1,2,3,4,5,6], $wochentage)) === 0;
+            DB::table('serien')->insert([
+                'id'                     => $serieId,
+                'organisation_id'        => $this->orgId,
+                'klient_id'              => $klientId,
+                'benutzer_id'            => $benutzerId,
+                'rhythmus'               => $hatAlleTage ? 'taeglich' : 'woechentlich',
+                'wochentage'             => $hatAlleTage ? null : json_encode($wochentage),
+                'leistungsarten'         => json_encode($laJson),
+                'gueltig_ab'             => $vonDat->format('Y-m-d'),
+                'gueltig_bis'            => $bisDat->format('Y-m-d'),
+                'zeit_von'               => $von,
+                'zeit_bis'               => $bis,
+                'leistungserbringer_typ' => $leTyp,
+                'created_at'             => now(),
+                'updated_at'             => now(),
+            ]);
 
             $current = $vonDat->copy()->startOfDay();
             while ($current <= $bisDat) {
@@ -747,7 +795,7 @@ class CurasoftDemoSeeder extends Seeder
                 $datumStr      = $current->format('Y-m-d');
                 $istVergangen  = $current->lt($heute);
                 $istHeute      = $current->isSameDay($heute);
-                $abgeschlossen = $istVergangen; // heute = noch geplant
+                $abgeschlossen = $istVergangen;
                 $status        = $abgeschlossen ? 'abgeschlossen' : 'geplant';
                 $verrechnet    = $istVergangen && $current->lt($aktuellerMonat);
 
@@ -765,7 +813,7 @@ class CurasoftDemoSeeder extends Seeder
                     'datum'                  => $datumStr,
                     'zeit_von'               => $von,
                     'zeit_bis'               => $bis,
-                    'minuten'                => $min,
+                    'minuten'                => $totalMin,
                     'status'                 => $status,
                     'checkin_zeit'           => $abgeschlossen ? $datumStr . ' ' . $von . ':00' : null,
                     'checkout_zeit'          => $abgeschlossen ? $datumStr . ' ' . $bis . ':00' : null,
@@ -777,23 +825,25 @@ class CurasoftDemoSeeder extends Seeder
                     'created_at'             => now(),
                     'updated_at'             => now(),
                 ]);
-                DB::table('einsatz_leistungsarten')->insert([
-                    'einsatz_id'      => $eid,
-                    'leistungsart_id' => $laId,
-                    'minuten'         => $min,
-                    'created_at'      => now(),
-                    'updated_at'      => now(),
-                ]);
 
-                DB::table('einsatz_aktivitaeten')->insert([
-                    'einsatz_id'      => $eid,
-                    'organisation_id' => $this->orgId,
-                    'kategorie'       => $kategorie,
-                    'aktivitaet'      => $aktivitaet,
-                    'minuten'         => $min,
-                    'created_at'      => now(),
-                    'updated_at'      => now(),
-                ]);
+                foreach ($leistungsarten as [$laId, $laMin, $kategorie, $aktivitaet]) {
+                    DB::table('einsatz_leistungsarten')->insert([
+                        'einsatz_id'      => $eid,
+                        'leistungsart_id' => $laId,
+                        'minuten'         => $laMin,
+                        'created_at'      => now(),
+                        'updated_at'      => now(),
+                    ]);
+                    DB::table('einsatz_aktivitaeten')->insert([
+                        'einsatz_id'      => $eid,
+                        'organisation_id' => $this->orgId,
+                        'kategorie'       => $kategorie,
+                        'aktivitaet'      => $aktivitaet,
+                        'minuten'         => $laMin,
+                        'created_at'      => now(),
+                        'updated_at'      => now(),
+                    ]);
+                }
 
                 $current->addDay();
             }
@@ -801,114 +851,6 @@ class CurasoftDemoSeeder extends Seeder
 
         $this->annaSpringerEinsaetze($tourenCache, $vonDat, $bisDat, $heute, $laGp, $rAg, $aktuellerMonat);
         $this->einmaligeEinsaetze($rAg, $rBe);
-        $this->zusatzFutureTouren($tourenCache, $heute, $laGp, $laUb, $laHwl, $rAg, $rBe);
-    }
-
-    private function zusatzFutureTouren(
-        array &$tourenCache,
-        Carbon $heute,
-        ?int $laGp,
-        ?int $laUb,
-        ?int $laHwl,
-        int $rAg,
-        int $rBe
-    ): void {
-        $ziel = 8;
-
-        $klientenMitRegion = [
-            'brunner'   => ['id' => $this->kl['brunner'],   'region' => $rAg],
-            'weber'     => ['id' => $this->kl['weber'],     'region' => $rAg],
-            'schneider' => ['id' => $this->kl['schneider'], 'region' => $rBe],
-            'keller'    => ['id' => $this->kl['keller'],    'region' => $rBe],
-            'gerber'    => ['id' => $this->kl['gerber'],    'region' => $rBe],
-        ];
-        $klientKeys = array_keys($klientenMitRegion);
-
-        // Abwechselnde LA + Aktivitäten (8 Slots, rotierend)
-        $slots = [
-            [$laGp,  'Grundpflege',             'Mobilisation'],
-            [$laUb,  'Untersuchung/Behandlung', 'Vitalzeichen (Puls, BD, T, Gewicht)'],
-            [$laHwl, 'Hauswirtschaft',           'HWL-Leistungen'],
-            [$laGp,  'Grundpflege',             'An-/Auskleiden'],
-            [$laUb,  'Untersuchung/Behandlung', 'Injektion subcutan'],
-            [$laHwl, 'Hauswirtschaft',           'HWL-Leistungen'],
-            [$laGp,  'Grundpflege',             'Duschen'],
-            [$laUb,  'Untersuchung/Behandlung', 'Verbandwechsel'],
-        ];
-
-        $mitarbeiterKeys = ['sandra', 'peter', 'anna'];
-
-        for ($offset = 0; $offset < 10; $offset++) {
-            $day      = $heute->copy()->addDays($offset);
-            $datumStr = $day->format('Y-m-d');
-            $istHeute = $offset === 0;
-
-            foreach ($mitarbeiterKeys as $benKey) {
-                $benutzerId = $this->ma[$benKey];
-                $tourId     = $this->holeTourId($tourenCache, true, $benutzerId, $datumStr, false, $istHeute);
-
-                $existing    = DB::table('einsaetze')->where('tour_id', $tourId)->count();
-                $needed      = max(0, $ziel - $existing);
-                $reihenfolge = $existing;
-                $minOffset   = 0; // Nachmittag ab 13:00
-
-                for ($i = 0; $i < $needed; $i++) {
-                    $klientKey = $klientKeys[($existing + $i) % count($klientKeys)];
-                    $klient    = $klientenMitRegion[$klientKey];
-
-                    [$laId, $kategorie, $aktivitaet] = $slots[($existing + $i) % count($slots)];
-                    $laId = $laId ?? $laGp; // Fallback falls LA nicht gesetzt
-
-                    $vonMin = 13 * 60 + $minOffset;
-                    $bisMin = $vonMin + 30;
-                    $von    = sprintf('%02d:%02d', intdiv($vonMin, 60), $vonMin % 60);
-                    $bis    = sprintf('%02d:%02d', intdiv($bisMin, 60), $bisMin % 60);
-                    $minOffset += 30;
-                    $reihenfolge++;
-
-                    $eid = DB::table('einsaetze')->insertGetId([
-                        'organisation_id'        => $this->orgId,
-                        'klient_id'              => $klient['id'],
-                        'benutzer_id'            => $benutzerId,
-                        'region_id'              => $klient['region'],
-                        'leistungserbringer_typ' => 'fachperson',
-                        'serie_id'               => null,
-                        'datum'                  => $datumStr,
-                        'zeit_von'               => $von,
-                        'zeit_bis'               => $bis,
-                        'minuten'                => 30,
-                        'status'                 => 'geplant',
-                        'checkin_zeit'           => null,
-                        'checkout_zeit'          => null,
-                        'checkin_methode'        => null,
-                        'checkout_methode'       => null,
-                        'verrechnet'             => false,
-                        'tour_id'                => $tourId,
-                        'tour_reihenfolge'       => $reihenfolge,
-                        'created_at'             => now(),
-                        'updated_at'             => now(),
-                    ]);
-
-                    DB::table('einsatz_leistungsarten')->insert([
-                        'einsatz_id'      => $eid,
-                        'leistungsart_id' => $laId,
-                        'minuten'         => 30,
-                        'created_at'      => now(),
-                        'updated_at'      => now(),
-                    ]);
-
-                    DB::table('einsatz_aktivitaeten')->insert([
-                        'einsatz_id'      => $eid,
-                        'organisation_id' => $this->orgId,
-                        'kategorie'       => $kategorie,
-                        'aktivitaet'      => $aktivitaet,
-                        'minuten'         => 30,
-                        'created_at'      => now(),
-                        'updated_at'      => now(),
-                    ]);
-                }
-            }
-        }
     }
 
     private function holeTourId(array &$cache, bool $mitTour, int $benutzerId, string $datumStr, bool $istVergangen, bool $istHeute): ?int
@@ -926,6 +868,7 @@ class CurasoftDemoSeeder extends Seeder
                 'datum'           => $datumStr,
                 'bezeichnung'     => $name . ' — ' . Carbon::parse($datumStr)->format('d.m.Y'),
                 'status'          => $tourStatus,
+                'start_zeit'      => '08:00:00',
                 'created_at'      => now(),
                 'updated_at'      => now(),
             ]);

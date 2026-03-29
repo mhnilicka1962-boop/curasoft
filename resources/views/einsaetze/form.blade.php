@@ -16,6 +16,8 @@
            class="link-gedaempt" style="font-size: 0.875rem;">
             ← {{ $klientZurueck?->nachname }} {{ $klientZurueck?->vorname }}
         </a>
+        @elseif($einsatz->exists && $einsatz->tour_id)
+        <a href="{{ route('touren.show', $einsatz->tour_id) }}" class="link-gedaempt" style="font-size: 0.875rem;">← Zurück zur Tour</a>
         @elseif($einsatz->exists)
         <a href="{{ route('einsaetze.index') }}" class="link-gedaempt" style="font-size: 0.875rem;">← Einsätze</a>
         @else
@@ -61,7 +63,11 @@
                 <button type="submit" form="einsatz-form" class="btn btn-primaer" id="btn-submit">
                     {{ $einsatz->exists ? 'Speichern' : 'Einsatz anlegen' }}
                 </button>
+                @if($einsatz->exists && $einsatz->tour_id)
+                <a href="{{ route('touren.show', $einsatz->tour_id) }}" class="btn btn-sekundaer">Abbrechen</a>
+                @else
                 <a href="{{ route('einsaetze.index') }}" class="btn btn-sekundaer">Abbrechen</a>
+                @endif
             </div>
         </div>
 
@@ -248,40 +254,6 @@
                     style="resize: vertical;" maxlength="1000">{{ old('bemerkung', $einsatz->bemerkung) }}</textarea>
             </div>
 
-            {{-- Wiederholung (nur neu) --}}
-            @if(!$einsatz->exists)
-            <div style="margin-bottom: 1.25rem; padding: 0.875rem; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); background: var(--cs-hintergrund);">
-                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-                    <label class="feld-label" style="margin: 0;">Wiederholung</label>
-                    <select id="wiederholung" name="wiederholung" class="feld" style="max-width: 180px;" onchange="zeigeWiederholung()">
-                        <option value="">Keine</option>
-                        <option value="woechentlich" {{ old('wiederholung') === 'woechentlich' ? 'selected' : '' }}>Wöchentlich</option>
-                        <option value="taeglich"     {{ old('wiederholung') === 'taeglich'     ? 'selected' : '' }}>Täglich</option>
-                    </select>
-                </div>
-                <div id="block-woechentlich" style="display: none;">
-                    <div style="margin-bottom: 0.75rem;">
-                        <div class="feld-label" style="font-size: 0.75rem; margin-bottom: 0.375rem;">Wochentage</div>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                            @foreach(['1'=>'Mo','2'=>'Di','3'=>'Mi','4'=>'Do','5'=>'Fr','6'=>'Sa','0'=>'So'] as $nr => $tag)
-                            <label style="display: flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.625rem; border: 1px solid var(--cs-border); border-radius: 999px; font-size: 0.8125rem; cursor: pointer; background: #fff;" id="tag-label-{{ $nr }}">
-                                <input type="checkbox" name="wochentage[]" value="{{ $nr }}"
-                                    {{ in_array($nr, old('wochentage', [])) ? 'checked' : '' }}
-                                    onchange="aktualisierePreview()" style="display:none;" class="wochentag-cb">
-                                <span>{{ $tag }}</span>
-                            </label>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-                <div id="block-serie-ende" style="display: none;">
-                    <label class="feld-label" style="font-size: 0.75rem;">Wiederholen bis *</label>
-                    <input type="date" id="serie_ende" name="serie_ende" class="feld" style="max-width: 200px;"
-                        value="{{ old('serie_ende') }}" oninput="aktualisierePreview()">
-                    <div id="serie-preview" style="margin-top: 0.625rem; font-size: 0.8125rem; color: var(--cs-primaer); font-weight: 500;"></div>
-                </div>
-            </div>
-            @endif
 
             @if($einsatz->exists && $einsatz->tagespauschale_id)
             </fieldset>
@@ -450,42 +422,6 @@ aktualisiereKanton();
 aktualisiereHelfer();
 pruefeAngehoerig();
 
-@if(!$einsatz->exists)
-// Wiederholung
-function zeigeWiederholung() {
-    const w = document.getElementById('wiederholung').value;
-    document.getElementById('block-woechentlich').style.display = w === 'woechentlich' ? 'block' : 'none';
-    document.getElementById('block-serie-ende').style.display   = w ? 'block' : 'none';
-    aktualisierePreview();
-}
-function aktualisierePreview() {
-    const w   = document.getElementById('wiederholung').value;
-    const von = datumInput.value;
-    const bis = document.getElementById('serie_ende').value;
-    const prev = document.getElementById('serie-preview');
-    const btn  = document.getElementById('btn-submit');
-    if (!w || !von || !bis) { prev.textContent = ''; btn.textContent = 'Einsatz anlegen'; return; }
-    const start = new Date(von), ende = new Date(bis);
-    if (ende <= start) { prev.textContent = 'Enddatum nach Startdatum.'; prev.style.color = 'var(--cs-fehler)'; return; }
-    let anzahl = 0; const cur = new Date(start);
-    if (w === 'taeglich') {
-        while (cur <= ende && anzahl < 365) { anzahl++; cur.setDate(cur.getDate() + 1); }
-    } else {
-        const gew = [...document.querySelectorAll('.wochentag-cb:checked')].map(cb => parseInt(cb.value));
-        if (!gew.length) { prev.textContent = 'Bitte Wochentag wählen.'; prev.style.color = 'var(--cs-fehler)'; return; }
-        while (cur <= ende && anzahl < 365) { if (gew.includes(cur.getDay())) anzahl++; cur.setDate(cur.getDate() + 1); }
-    }
-    prev.style.color = 'var(--cs-primaer)';
-    prev.textContent = anzahl + ' Einsatz' + (anzahl !== 1 ? 'ätze' : '') + ' werden erstellt.';
-    btn.textContent  = anzahl + ' Einsatz' + (anzahl !== 1 ? 'ätze' : '') + ' anlegen';
-}
-document.querySelectorAll('.wochentag-cb').forEach(cb => {
-    const label = cb.closest('label');
-    function upd() { label.style.background = cb.checked ? 'var(--cs-primaer)' : '#fff'; label.style.color = cb.checked ? '#fff' : 'inherit'; label.style.borderColor = cb.checked ? 'var(--cs-primaer)' : 'var(--cs-border)'; }
-    cb.addEventListener('change', upd); upd();
-});
-zeigeWiederholung();
-@endif
 
 @if($einsatz->exists && $einsatz->status !== 'storniert')
 function gpsCheckin() {

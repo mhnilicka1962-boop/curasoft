@@ -202,10 +202,6 @@ class EinsaetzeController extends Controller
             'benutzer_id'            => ['nullable', 'exists:benutzer,id'],
             'helfer_id'              => ['nullable', 'exists:benutzer,id'],
             'bemerkung'              => ['nullable', 'string', 'max:1000'],
-            'wiederholung'           => ['nullable', 'in:woechentlich,taeglich'],
-            'serie_ende'             => ['nullable', 'date', 'after:datum'],
-            'wochentage'             => ['nullable', 'array'],
-            'wochentage.*'           => ['integer', 'between:0,6'],
         ]);
 
         $klient = Klient::findOrFail($daten['klient_id']);
@@ -245,44 +241,6 @@ class EinsaetzeController extends Controller
             'bemerkung'              => $daten['bemerkung'] ?? null,
             'status'                 => 'geplant',
         ];
-
-        $wiederholung = $daten['wiederholung'] ?? null;
-        if ($wiederholung && !empty($daten['serie_ende'])) {
-            $serieId    = (string) \Illuminate\Support\Str::uuid();
-            $current    = \Carbon\Carbon::parse($daten['datum']);
-            $ende       = \Carbon\Carbon::parse($daten['serie_ende']);
-            $wochentage = array_map('intval', $daten['wochentage'] ?? []);
-            $anzahl     = 0;
-
-            while ($current->lte($ende) && $anzahl < 365) {
-                $passt = match($wiederholung) {
-                    'taeglich'     => true,
-                    'woechentlich' => empty($wochentage) || in_array($current->dayOfWeek, $wochentage),
-                    default        => false,
-                };
-                if ($passt) {
-                    $e = Einsatz::create(array_merge($basis, [
-                        'datum'    => $current->format('Y-m-d'),
-                        'serie_id' => $serieId,
-                    ]));
-                    foreach ($daten['leistungsarten'] as $la) {
-                        $e->einsatzLeistungsarten()->create([
-                            'leistungsart_id' => $la['id'],
-                            'minuten'         => $la['minuten'],
-                        ]);
-                    }
-                    $anzahl++;
-                }
-                $current->addDay();
-            }
-
-            $meldung = $anzahl . ' Einsatz' . ($anzahl !== 1 ? 'ätze' : '') . ' wurden angelegt.';
-
-            if ($request->filled('_klient_redirect')) {
-                return redirect()->route('klienten.show', $daten['klient_id'])->with('erfolg', $meldung);
-            }
-            return redirect()->route('einsaetze.index')->with('erfolg', $meldung);
-        }
 
         // Einzelner Einsatz
         $einsatz = Einsatz::create(array_merge($basis, ['datum' => $daten['datum']]));

@@ -38,8 +38,8 @@
             </div>
 
             <div style="margin-bottom: 1rem;">
-                <label class="feld-label">Startzeit (geplant)</label>
-                <input type="time" name="start_zeit" class="feld" style="max-width: 160px;" value="{{ old('start_zeit') }}">
+                <label class="feld-label">Startzeit <span style="color:var(--cs-fehler);">*</span></label>
+                <input type="time" name="start_zeit" class="feld" style="max-width: 160px;" value="{{ old('start_zeit') }}" required>
             </div>
 
             {{-- Verfügbare Einsätze --------------------------------}}

@@ -97,7 +97,7 @@
                     @else
                         <span class="badge badge-grau" style="font-size:0.7rem;">Keine aktiven Einsätze</span>
                     @endif
-                    <button onclick="oeffneEinsaetzePopup()" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.25rem 0.75rem;">Einsätze anzeigen</button>
+                    <a href="#einsaetze-abschnitt" onclick="document.getElementById('einsaetze-abschnitt').open=true" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.25rem 0.75rem;">Einsätze anzeigen</a>
                     <a href="{{ route('klienten.rapportierung', [$klient, now()->year, now()->month]) }}" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.25rem 0.75rem;">Rapportierung</a>
                 </div>
                 <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--cs-border); display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
@@ -236,7 +236,14 @@
         <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
 
             {{-- Einsatzadresse (Klient-Modell, mit Kanton) --}}
-            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Einsatzadresse</div>
+            <div class="abschnitt-label" style="margin-bottom: 0.625rem; display: flex; align-items: center; gap: 0.5rem;">
+                Einsatzadresse
+                @if($klient->klient_lat && $klient->klient_lng)
+                    <span title="Geocoding aktiv — Koordinaten vorhanden" style="color: var(--cs-erfolg, #16a34a); font-size: 0.8rem;">✓ geocodet</span>
+                @else
+                    <span title="Keine Koordinaten — Route-Optimierung nicht möglich" style="color: var(--cs-warnung, #d97706); font-size: 0.8rem;">⚠ nicht geocodet</span>
+                @endif
+            </div>
             <form method="POST" action="{{ route('klienten.update', $klient) }}" style="margin-bottom: 1.25rem;">
                 @csrf @method('PUT')
                 <input type="hidden" name="vorname"  value="{{ $klient->vorname }}">
@@ -414,18 +421,206 @@
         </div>
     </details>
 
-    {{-- Einsätze-Modal --}}
-    <div id="einsaetze-modal" style="display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.45); overflow-y:auto;" onclick="if(event.target===this)schliesseEinsaetzePopup()">
-        <div style="margin:2rem auto; max-width:860px; background:#fff; border-radius:8px; padding:1.5rem; position:relative; min-height:200px;">
-            <button onclick="schliesseEinsaetzePopup()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.25rem; cursor:pointer; color:var(--cs-text-hell); line-height:1;">×</button>
-            <div id="einsaetze-popup-inhalt">
-                <p class="text-hell text-klein">Wird geladen…</p>
+    {{-- Einsatzserien --}}
+    <details id="serien-abschnitt" style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;" {{ $serien->isNotEmpty() ? 'open' : '' }}>
+        <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+            <span>Einsatzserien <span class="text-hell" style="font-weight: 400;">— wiederkehrende Planung ({{ $serien->count() }})</span></span>
+            <span style="color: var(--cs-text-hell); font-size: 0.75rem;">▾</span>
+        </summary>
+        <div style="padding: 0.75rem 1rem; border-top: 1px solid var(--cs-border);">
+
+            {{-- Bestehende Serien --}}
+            @forelse($serien as $serie)
+            @php $aktiv = $serie->istAktiv(); @endphp
+            <div style="padding: 0.625rem 0; border-bottom: 1px solid var(--cs-border); display: flex; align-items: flex-start; gap: 0.75rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+                        <span style="font-weight: 600; font-size: 0.875rem;">{{ $serie->rhythmusLabel() }}</span>
+                        @if($aktiv)
+                            <span class="badge badge-erfolg" style="font-size: 0.7rem;">Aktiv</span>
+                        @else
+                            <span class="badge badge-grau" style="font-size: 0.7rem;">Beendet</span>
+                        @endif
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--cs-text-hell); display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <span>{{ $serie->gueltig_ab->format('d.m.Y') }} – {{ $serie->gueltig_bis?->format('d.m.Y') ?? '∞' }}</span>
+                        @if($serie->benutzer)
+                            <span>{{ $serie->benutzer->vorname }} {{ $serie->benutzer->nachname }}</span>
+                        @endif
+                        @if($serie->leistungsarten)
+                            <span>{{ collect($serie->leistungsarten)->map(fn($la) => \App\Models\Leistungsart::find($la['id'] ?? 0)?->bezeichnung)->filter()->implode(', ') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.375rem; align-items: center; flex-shrink: 0;">
+                    <a href="{{ route('klienten.serien.edit', [$klient, $serie]) }}" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.6rem;">Bearbeiten</a>
+                    @if($aktiv)
+                    {{-- Beenden --}}
+                    <form method="POST" action="{{ route('klienten.serien.beenden', [$klient, $serie]) }}" style="display:flex; gap:0.25rem; align-items:center;">
+                        @csrf @method('PATCH')
+                        <input type="date" name="gueltig_bis" class="feld" style="font-size:0.75rem; padding:0.2rem 0.4rem; max-width:130px;"
+                            value="{{ today()->format('Y-m-d') }}" required>
+                        <button type="submit" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.6rem;"
+                            onclick="return confirm('Serie beenden und zukünftige geplante Einsätze löschen?')">Beenden</button>
+                    </form>
+                    @endif
+                    {{-- Löschen --}}
+                    <form method="POST" action="{{ route('klienten.serien.loeschen', [$klient, $serie]) }}"
+                        onsubmit="return confirm('Serie und alle Einsätze löschen? Nur möglich wenn keine Einsätze durchgeführt oder verrechnet wurden.')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.6rem; color:var(--cs-fehler); border-color:var(--cs-fehler);">Löschen</button>
+                    </form>
+                </div>
             </div>
+            @empty
+            <p class="text-hell text-klein" style="margin: 0; padding: 0.5rem 0;">Noch keine Serien erfasst.</p>
+            @endforelse
+
+            {{-- Neue Serie erstellen --}}
+            <details style="margin-top: 0.875rem;">
+                <summary style="font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; color: var(--cs-primaer); padding: 0.25rem 0;">+ Neue Serie erstellen</summary>
+                <div style="margin-top: 0.75rem; padding: 0.875rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); border: 1px solid var(--cs-border);">
+                    <form method="POST" action="{{ route('klienten.serien.speichern', $klient) }}" id="serie-form">
+                        @csrf
+
+                        {{-- Rhythmus --}}
+                        <div style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                            <label class="feld-label" style="margin:0; white-space:nowrap;">Rhythmus *</label>
+                            <select name="rhythmus" class="feld" style="max-width:160px;" onchange="zeigeSerieWochentage(this)" required>
+                                <option value="woechentlich">Wöchentlich</option>
+                                <option value="taeglich">Täglich</option>
+                            </select>
+                        </div>
+
+                        {{-- Wochentage --}}
+                        <div id="serie-wochentage" style="margin-bottom: 0.75rem;">
+                            <div class="feld-label" style="font-size: 0.75rem; margin-bottom: 0.375rem;">Wochentage</div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                @foreach(['1'=>'Mo','2'=>'Di','3'=>'Mi','4'=>'Do','5'=>'Fr','6'=>'Sa','0'=>'So'] as $nr => $tag)
+                                <label class="serie-tag-label" data-nr="{{ $nr }}" style="display:flex; align-items:center; gap:0.25rem; padding:0.25rem 0.625rem; border:1px solid var(--cs-border); border-radius:999px; font-size:0.8125rem; cursor:pointer; background:#fff;">
+                                    <input type="checkbox" name="wochentage[]" value="{{ $nr }}" style="display:none;" class="serie-wochentag-cb">
+                                    <span>{{ $tag }}</span>
+                                </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Leistungsarten --}}
+                        <div style="margin-bottom: 0.75rem;">
+                            <label class="feld-label" style="font-size: 0.75rem;">Leistungsarten *</label>
+                            @foreach($leistungsarten as $i => $la)
+                            <div style="display:flex; align-items:center; gap:0.5rem; padding:0.2rem 0; font-size:0.875rem;">
+                                <label style="display:flex; align-items:center; gap:0.4rem; flex:1; cursor:pointer;">
+                                    <input type="checkbox" name="leistungsarten[{{ $i }}][id]" value="{{ $la->id }}"
+                                        onchange="toggleSerieMin(this)"
+                                        style="width:1rem; height:1rem; accent-color:var(--cs-primaer);">
+                                    {{ $la->bezeichnung }}
+                                </label>
+                                <input type="number" name="leistungsarten[{{ $i }}][minuten]"
+                                    value="30" min="5" step="5"
+                                    style="width:65px; opacity:0.3;" class="feld serie-min-input">
+                                <span class="text-hell" style="font-size:0.8rem;">Min.</span>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Von / Bis --}}
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+                            <div>
+                                <label class="feld-label" style="font-size:0.75rem;">Gültig ab *</label>
+                                <input type="date" name="gueltig_ab" class="feld" value="{{ today()->format('Y-m-d') }}" required>
+                            </div>
+                            <div>
+                                <label class="feld-label" style="font-size:0.75rem;">Gültig bis *</label>
+                                <input type="date" name="gueltig_bis" class="feld" value="{{ today()->addMonths(3)->format('Y-m-d') }}" required id="serie-gueltig-bis" oninput="aktualisiereSeriePreview()">
+                            </div>
+                        </div>
+
+                        {{-- Zeit --}}
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+                            <div>
+                                <label class="feld-label" style="font-size:0.75rem;">Von (geplant)</label>
+                                <input type="time" name="zeit_von" class="feld" step="300">
+                            </div>
+                            <div>
+                                <label class="feld-label" style="font-size:0.75rem;">Bis (geplant)</label>
+                                <input type="time" name="zeit_bis" class="feld" step="300">
+                            </div>
+                        </div>
+
+                        {{-- Mitarbeiter --}}
+                        @if(auth()->user()->rolle === 'admin')
+                        <div style="margin-bottom: 0.75rem;">
+                            <label class="feld-label" style="font-size:0.75rem;">Mitarbeiter</label>
+                            <select name="benutzer_id" class="feld">
+                                <option value="">— Eigener Account —</option>
+                                @foreach($mitarbeiter as $m)
+                                <option value="{{ $m->id }}">{{ $m->nachname }} {{ $m->vorname }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+
+                        {{-- Preview + Submit --}}
+                        <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-top:0.5rem;">
+                            <button type="submit" class="btn btn-primaer" id="btn-serie-submit">Serie erstellen</button>
+                            <span id="serie-preview" style="font-size:0.8125rem; color:var(--cs-primaer); font-weight:500;"></span>
+                        </div>
+                    </form>
+                </div>
+            </details>
         </div>
-    </div>
-    {{-- Einsätze: via Popup (Button in erster Kachel) --}}
+    </details>
+
+    {{-- Einsätze: nächste 7 Tage --}}
+    <details id="einsaetze-abschnitt" style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;" {{ $naechste7Tage->isEmpty() ? '' : 'open' }}>
+        <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+            <span>Einsätze <span class="text-hell" style="font-weight: 400;">— nächste 7 Tage ({{ $naechste7Tage->count() }})</span></span>
+            <span style="color: var(--cs-text-hell); font-size: 0.75rem;">▾</span>
+        </summary>
+        <div style="padding: 0.75rem 1rem; border-top: 1px solid var(--cs-border);">
+
+            {{-- Header mit Aktionen --}}
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.875rem; flex-wrap: wrap;">
+                <a href="{{ route('einsaetze.create', ['klient_id' => $klient->id]) }}" class="btn btn-primaer" style="font-size: 0.875rem;">+ Einsatz planen</a>
+                <a href="{{ route('touren.index') }}" class="btn btn-sekundaer" style="font-size: 0.8125rem;">Tourenplanung</a>
+                <span style="flex: 1;"></span>
+                <a href="{{ route('einsaetze.index', ['suche' => $klient->nachname]) }}" class="text-mini link-primaer" style="font-size: 0.8rem;">Alle Einsätze →</a>
+            </div>
+
+            {{-- Liste --}}
+            @forelse($naechste7Tage as $e)
+            @php $istHeute = $e->datum->isToday(); @endphp
+            <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; flex-wrap: wrap; {{ $istHeute ? 'background: #eff6ff; border-radius: 4px; padding: 0.4rem 0.5rem;' : '' }}">
+                <span style="min-width: 75px; font-weight: {{ $istHeute ? '700' : '400' }}; color: {{ $istHeute ? 'var(--cs-primaer)' : 'var(--cs-text-hell)' }}; white-space: nowrap; font-size: 0.8rem;">
+                    {{ $e->datum->format('d.m.') }} {{ $e->datum->isoFormat('dd') }}
+                </span>
+                @if($e->zeit_von)
+                    <span class="text-hell" style="white-space: nowrap; font-size: 0.8rem; min-width: 90px;">{{ substr($e->zeit_von,0,5) }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</span>
+                @else
+                    <span style="min-width: 90px;"></span>
+                @endif
+                <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}
+                </span>
+                <span class="text-hell" style="font-size: 0.8rem; white-space: nowrap;">{{ $e->benutzer?->vorname }} {{ $e->benutzer?->nachname }}</span>
+                @if($e->benutzer?->anstellungsart === 'angehoerig')
+                    <span class="badge badge-grau" style="font-size: 0.7rem; white-space: nowrap;">Angehörig</span>
+                @elseif($e->tour)
+                    <a href="{{ route('touren.show', $e->tour) }}" class="badge badge-primaer" style="font-size: 0.7rem; text-decoration: none; white-space: nowrap;">{{ $e->tour->bezeichnung }}</a>
+                @else
+                    <span class="badge badge-warnung" style="font-size: 0.7rem; white-space: nowrap;">⚠ Keine Tour</span>
+                @endif
+                <span class="badge {{ $e->statusBadgeKlasse() }}" style="font-size: 0.7rem;">{{ $e->statusLabel() }}</span>
+                <a href="{{ route('einsaetze.edit', $e) }}" class="text-mini link-primaer" style="flex-shrink: 0;">Detail →</a>
+            </div>
+            @empty
+            <p class="text-hell text-klein" style="margin: 0; padding: 0.5rem 0;">Keine Einsätze in den nächsten 7 Tagen.</p>
+            @endforelse
+
+        </div>
+    </details>
     @if(false)
-    <div style="display:none;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
             <div class="abschnitt-label" style="margin-bottom: 0;">Einsätze</div>
             <div style="display: flex; gap: 0.5rem;">
@@ -1743,6 +1938,60 @@ document.addEventListener('keydown', function(e) {
         });
     });
 })();
+
+// Anchor: serien-abschnitt öffnen und scrollen
+if (window.location.hash === '#serien-abschnitt') {
+    const el = document.getElementById('serien-abschnitt');
+    if (el) {
+        el.open = true;
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+}
+
+// Serien-Formular JS
+function zeigeSerieWochentage(sel) {
+    document.getElementById('serie-wochentage').style.display = sel.value === 'woechentlich' ? '' : 'none';
+    aktualisiereSeriePreview();
+}
+function toggleSerieMin(cb) {
+    const input = cb.closest('div').querySelector('.serie-min-input');
+    if (input) input.style.opacity = cb.checked ? '1' : '0.3';
+}
+function aktualisiereSeriePreview() {
+    const rhythmus = document.querySelector('[name="rhythmus"]')?.value;
+    const ab   = document.querySelector('[name="gueltig_ab"]')?.value;
+    const bis  = document.getElementById('serie-gueltig-bis')?.value;
+    const prev = document.getElementById('serie-preview');
+    const btn  = document.getElementById('btn-serie-submit');
+    if (!prev || !btn) return;
+    if (!ab || !bis) { prev.textContent = ''; return; }
+    const start = new Date(ab), ende = new Date(bis);
+    if (ende < start) { prev.textContent = 'Enddatum nach Startdatum.'; prev.style.color = 'var(--cs-fehler)'; return; }
+    let anzahl = 0;
+    const cur = new Date(start);
+    if (rhythmus === 'taeglich') {
+        while (cur <= ende && anzahl < 500) { anzahl++; cur.setDate(cur.getDate() + 1); }
+    } else {
+        const gew = [...document.querySelectorAll('.serie-wochentag-cb:checked')].map(cb => parseInt(cb.value));
+        if (!gew.length) { prev.textContent = 'Bitte Wochentag wählen.'; prev.style.color = 'var(--cs-fehler)'; return; }
+        while (cur <= ende && anzahl < 500) { if (gew.includes(cur.getDay())) anzahl++; cur.setDate(cur.getDate() + 1); }
+    }
+    prev.style.color = 'var(--cs-primaer)';
+    prev.textContent = anzahl + ' Einsatz' + (anzahl !== 1 ? 'ätze' : '') + ' werden erstellt.';
+    btn.textContent  = anzahl + ' Einsatz' + (anzahl !== 1 ? 'ätze' : '') + ' anlegen';
+}
+document.querySelectorAll('.serie-wochentag-cb').forEach(cb => {
+    const label = cb.closest('label');
+    function upd() {
+        label.style.background   = cb.checked ? 'var(--cs-primaer)' : '#fff';
+        label.style.color        = cb.checked ? '#fff' : 'inherit';
+        label.style.borderColor  = cb.checked ? 'var(--cs-primaer)' : 'var(--cs-border)';
+    }
+    cb.addEventListener('change', () => { upd(); aktualisiereSeriePreview(); });
+    upd();
+});
+document.querySelector('[name="gueltig_ab"]')?.addEventListener('input', aktualisiereSeriePreview);
+aktualisiereSeriePreview();
 </script>
 @endpush
 

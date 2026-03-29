@@ -250,8 +250,9 @@
                     @else
                         <span class="text-hell" style="min-width: 45px;">—</span>
                     @endif
-                    <span style="font-weight: 500;">{{ $e->klient?->vollname() }}</span>
-                    <span class="text-hell">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
+                    <span style="font-weight: 500; flex: 1;">{{ $e->klient?->vollname() }}</span>
+                    <span class="text-hell" style="flex: 1;">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
+                    <a href="{{ route('einsaetze.edit', $e) }}" class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; flex-shrink: 0;">Detail</a>
                 </div>
                 @endforeach
             </div>

@@ -63,7 +63,7 @@
     $kk = $einsatz->klient->krankenkassen->first();
 @endphp
 <div class="vo-header">
-    <a href="{{ auth()->user()->rolle === 'admin' ? route('einsaetze.show', $einsatz) : route('dashboard') }}">← Zurück</a>
+    <a href="{{ route('dashboard') }}">← Zurück</a>
     <div class="vo-name">{{ $einsatz->klient->vollname() }}</div>
     <div class="vo-meta">
         {{ $einsatz->datum->format('d.m.Y') }}

@@ -18,6 +18,7 @@ use App\Models\Krankenkasse;
 use App\Models\Leistungsart;
 use App\Models\Organisation;
 use App\Models\Region;
+use App\Models\Serie;
 use App\Services\BexioService;
 use App\Services\GeocodingService;
 use Endroid\QrCode\QrCode;
@@ -106,13 +107,16 @@ class KlientenController extends Controller
         ]));
 
         // Koordinaten automatisch holen
+        $geocodeFehler = false;
         if ($klient->adresse && $klient->plz && $klient->ort) {
             $coords = app(GeocodingService::class)->geocode($klient->adresse, $klient->plz, $klient->ort);
             if ($coords) $klient->update(['klient_lat' => $coords['lat'], 'klient_lng' => $coords['lng']]);
+            else $geocodeFehler = true;
         }
 
-        return redirect()->route('klienten.show', $klient)
-            ->with('erfolg', 'Klient wurde erfolgreich angelegt.');
+        $redirect = redirect()->route('klienten.show', $klient)->with('erfolg', 'Klient wurde erfolgreich angelegt.');
+        if ($geocodeFehler) $redirect = $redirect->with('warnung', 'Einsatzadresse konnte nicht geocodet werden — Route-Optimierung nicht möglich.');
+        return $redirect;
     }
 
     public function schnellerfassung()
@@ -237,7 +241,22 @@ class KlientenController extends Controller
             ->whereNotIn('status', ['abgeschlossen', 'storniert'])
             ->count();
 
-        return view('klienten.show', compact('klient', 'leistungsarten', 'mitarbeiter', 'pflegendeAngehoerige', 'regionen', 'einzelleistungen', 'einsaetzeAnzahl'));
+        $naechste7Tage = $klient->einsaetze()
+            ->where('datum', '>=', today())
+            ->where('datum', '<=', today()->addDays(7))
+            ->whereNotIn('status', ['storniert'])
+            ->with('benutzer', 'tour', 'einsatzLeistungsarten.leistungsart')
+            ->orderBy('datum')
+            ->orderBy('zeit_von')
+            ->get();
+
+        $serien = Serie::where('organisation_id', $this->orgId())
+            ->where('klient_id', $klient->id)
+            ->with('benutzer')
+            ->orderBy('gueltig_ab', 'desc')
+            ->get();
+
+        return view('klienten.show', compact('klient', 'leistungsarten', 'mitarbeiter', 'pflegendeAngehoerige', 'regionen', 'einzelleistungen', 'einsaetzeAnzahl', 'naechste7Tage', 'serien'));
     }
 
     public function einsaetzePopup(Klient $klient)
@@ -325,13 +344,16 @@ class KlientenController extends Controller
         }
 
         // Koordinaten neu holen wenn Adresse geändert
+        $geocodeFehler = false;
         if ($adresseGeaendert && $klient->adresse && $klient->plz && $klient->ort) {
             $coords = app(GeocodingService::class)->geocode($klient->adresse, $klient->plz, $klient->ort);
             if ($coords) $klient->update(['klient_lat' => $coords['lat'], 'klient_lng' => $coords['lng']]);
+            else $geocodeFehler = true;
         }
 
-        return redirect()->route('klienten.show', $klient)
-            ->with('erfolg', 'Klient wurde gespeichert.');
+        $redirect = redirect()->route('klienten.show', $klient)->with('erfolg', 'Klient wurde gespeichert.');
+        if ($geocodeFehler) $redirect = $redirect->with('warnung', 'Einsatzadresse konnte nicht geocodet werden — Route-Optimierung nicht möglich.');
+        return $redirect;
     }
 
     public function destroy(Klient $klient)

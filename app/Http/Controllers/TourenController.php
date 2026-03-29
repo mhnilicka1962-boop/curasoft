@@ -85,7 +85,7 @@ class TourenController extends Controller
             'benutzer_id'   => ['required', 'exists:benutzer,id'],
             'datum'         => ['required', 'date'],
             'bezeichnung'   => ['required', 'string', 'max:200'],
-            'start_zeit'    => ['nullable', 'date_format:H:i'],
+            'start_zeit'    => ['required', 'date_format:H:i'],
             'bemerkung'     => ['nullable', 'string', 'max:500'],
             'einsatz_ids'   => ['nullable', 'array'],
             'einsatz_ids.*' => ['exists:einsaetze,id'],
@@ -166,7 +166,7 @@ class TourenController extends Controller
         $daten = $request->validate([
             'bezeichnung' => ['required', 'string', 'max:200'],
             'status'      => ['required', 'in:geplant,gestartet,abgeschlossen'],
-            'start_zeit'  => ['nullable', 'date_format:H:i'],
+            'start_zeit'  => ['required', 'date_format:H:i'],
             'end_zeit'    => ['nullable', 'date_format:H:i'],
             'bemerkung'   => ['nullable', 'string', 'max:500'],
         ]);
@@ -175,15 +175,33 @@ class TourenController extends Controller
         return back()->with('erfolg', 'Tour wurde aktualisiert.');
     }
 
+    public function zeitenSetzen(Tour $tour)
+    {
+        if ($tour->organisation_id !== $this->orgId()) abort(403);
+
+        $start = $tour->start_zeit ?? '08:00:00';
+        $current = \Carbon\Carbon::createFromFormat('H:i:s', strlen($start) === 5 ? $start . ':00' : $start);
+
+        $einsaetze = $tour->einsaetze()->orderBy('tour_reihenfolge')->get();
+
+        foreach ($einsaetze as $einsatz) {
+            $minuten = $einsatz->minuten ?: 60;
+            $von = $current->format('H:i');
+            $current->addMinutes($minuten);
+            $bis = $current->format('H:i');
+            $einsatz->update(['zeit_von' => $von, 'zeit_bis' => $bis]);
+        }
+
+        return back()->with('erfolg', 'Zeiten wurden automatisch gesetzt.');
+    }
+
     public function destroy(Tour $tour)
     {
         if ($tour->organisation_id !== $this->orgId()) abort(403);
 
         $datum = $tour->datum->format('Y-m-d');
 
-        // Einsätze aus Tour lösen (nicht löschen)
-        Einsatz::where('tour_id', $tour->id)
-            ->update(['tour_id' => null, 'tour_reihenfolge' => null]);
+        Einsatz::where('tour_id', $tour->id)->delete();
 
         $tour->delete();
 
@@ -283,6 +301,18 @@ class TourenController extends Controller
             Einsatz::where('id', $einsatzId)->update(['tour_reihenfolge' => $reihenfolge + 1]);
         }
 
-        return back()->with('erfolg', count($optimiert) . ' Einsätze nach kürzester Route sortiert.');
+        // Zeiten sequenziell ab start_zeit neu berechnen
+        $start   = $tour->start_zeit ?: '08:00:00';
+        $current = \Carbon\Carbon::createFromFormat('H:i:s', strlen($start) === 5 ? $start . ':00' : $start);
+        foreach ($tour->einsaetze()->orderBy('tour_reihenfolge')->get() as $einsatz) {
+            $minuten = $einsatz->minuten ?: 60;
+            $einsatz->update([
+                'zeit_von' => $current->format('H:i'),
+                'zeit_bis' => $current->copy()->addMinutes($minuten)->format('H:i'),
+            ]);
+            $current->addMinutes($minuten);
+        }
+
+        return back()->with('erfolg', count($optimiert) . ' Einsätze nach kürzester Route sortiert und Zeiten neu gesetzt.');
     }
 }

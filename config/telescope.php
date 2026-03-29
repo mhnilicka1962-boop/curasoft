@@ -195,6 +195,7 @@ return [
             'ignore_packages' => true,
             'ignore_paths' => [],
             'slow' => 100,
+            'slow_queries_only' => true,
         ],
 
         Watchers\RedisWatcher::class => env('TELESCOPE_REDIS_WATCHER', true),
