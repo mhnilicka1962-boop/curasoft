@@ -15,6 +15,7 @@ class Einsatz extends Model
         'checkin_zeit', 'checkin_lat', 'checkin_lng', 'checkin_methode', 'checkin_distanz_meter',
         'checkout_zeit', 'checkout_lat', 'checkout_lng', 'checkout_methode', 'checkout_distanz_meter',
         'betrag_fix',
+        'tour_id', 'tour_reihenfolge', 'serie_id',
     ];
 
     protected $casts = [

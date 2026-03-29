@@ -199,7 +199,7 @@
                     </label>
                     @endforeach
                 </div>
-                <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">Zuweisen</button>
+                <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">+ Zur Tour hinzufügen</button>
             </form>
         </div>
         @endif
