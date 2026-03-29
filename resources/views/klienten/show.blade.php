@@ -640,9 +640,10 @@
             <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Abrechnung &amp; Versand{!! $tiersGarant ? ' <span class="text-hell" style="font-weight:400;">— Tiers garant</span>' : '' !!}</div>
             <form method="POST" action="{{ route('klienten.update', $klient) }}" style="margin-bottom: 1.25rem;">
                 @csrf @method('PUT')
-                <input type="hidden" name="vorname"  value="{{ $klient->vorname }}">
-                <input type="hidden" name="nachname" value="{{ $klient->nachname }}">
-                <input type="hidden" name="aktiv"    value="{{ $klient->aktiv ? 1 : 0 }}">
+                <input type="hidden" name="vorname"   value="{{ $klient->vorname }}">
+                <input type="hidden" name="nachname"  value="{{ $klient->nachname }}">
+                <input type="hidden" name="aktiv"     value="{{ $klient->aktiv ? 1 : 0 }}">
+                <input type="hidden" name="region_id" value="{{ $klient->region_id }}">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; align-items: end;">
                     <div>
                         <label class="form-label" style="font-size: 0.8125rem;">Rechnungstyp @if($tiersGarant)<span class="text-hell" style="font-weight:400;"> — Automatisch</span>@endif</label>
