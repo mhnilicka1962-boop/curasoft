@@ -227,10 +227,10 @@ Route::middleware('auth')->group(function () {
     // Chat — alle eingeloggten Benutzer
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/sidebar', [ChatController::class, 'sidebarDaten'])->name('chat.sidebar');
+    Route::post('/chat/direkt/{benutzer}', [ChatController::class, 'startDirekt'])->name('chat.direkt');
     Route::get('/chat/{chat}/nachrichten', [ChatController::class, 'nachrichten'])->name('chat.nachrichten');
     Route::post('/chat/{chat}', [ChatController::class, 'store'])->name('chat.store');
     Route::delete('/chat/{chat}/nachrichten/{chatNachricht}', [ChatController::class, 'destroy'])->name('chat.destroy');
-    Route::post('/chat/direkt/{benutzer}', [ChatController::class, 'startDirekt'])->name('chat.direkt');
 
     // KI — alle eingeloggten Benutzer
     Route::post('/ki/rapport', [KiController::class, 'rapportVorschlag'])->name('ki.rapport');
