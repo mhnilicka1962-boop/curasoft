@@ -133,22 +133,56 @@ class RechnungslaufController extends Controller
             $positionen->push($pos);
         } else {
             foreach ($einsaetze as $einsatz) {
-                [$tarifPat, $tarifKk] = $this->tarifeFuerEinsatz($einsatz, $klient, $rechnungstyp, $tarifCache);
-                $m = $einsatz->minuten ?? 0;
-                $pos = new RechnungsPosition([
-                    'rechnung_id'    => 0,
-                    'einsatz_id'     => $einsatz->id,
-                    'datum'          => $einsatz->datum,
-                    'menge'          => $m,
-                    'einheit'        => 'minuten',
-                    'beschreibung'   => null,
-                    'tarif_patient'  => $tarifPat,
-                    'tarif_kk'       => $tarifKk,
-                    'betrag_patient' => $this->r5($m / 60 * $tarifPat),
-                    'betrag_kk' => $this->r5($m / 60 * $tarifKk),
-                ]);
-                $pos->setRelation('einsatz', $einsatz);
-                $positionen->push($pos);
+                if ($einsatz->betrag_fix !== null) {
+                    $betragFix = $this->r5((float) $einsatz->betrag_fix);
+                    $pos = new RechnungsPosition([
+                        'rechnung_id'    => 0,
+                        'einsatz_id'     => $einsatz->id,
+                        'datum'          => $einsatz->datum,
+                        'menge'          => 1,
+                        'einheit'        => 'pauschal',
+                        'beschreibung'   => $einsatz->bemerkung,
+                        'tarif_patient'  => $betragFix,
+                        'tarif_kk'       => 0.0,
+                        'betrag_patient' => $betragFix,
+                        'betrag_kk'      => 0.0,
+                    ]);
+                    $pos->setRelation('einsatz', $einsatz);
+                    $positionen->push($pos);
+                } else {
+                    $regionId = $einsatz->region_id ?? $klient->region_id;
+                    foreach ($einsatz->einsatzLeistungsarten as $el) {
+                        $istTage = $el->leistungsart?->einheit === 'tage';
+                        [$tarifPat, $tarifKk] = $this->tarifeFuerLeistungsart($el->leistungsart_id, $regionId, $einsatz->datum, $rechnungstyp, $tarifCache);
+                        if ($istTage) {
+                            $menge     = $einsatz->anzahlTage() ?? 1;
+                            $einheit   = 'tage';
+                            $betragPat = $this->r5($menge * $tarifPat);
+                            $betragKk  = $this->r5($menge * $tarifKk);
+                        } else {
+                            $menge     = $el->minuten ?? 0;
+                            $einheit   = 'minuten';
+                            $betragPat = $this->r5($menge / 60 * $tarifPat);
+                            $betragKk  = $this->r5($menge / 60 * $tarifKk);
+                        }
+                        $pos = new RechnungsPosition([
+                            'rechnung_id'             => 0,
+                            'einsatz_id'              => $einsatz->id,
+                            'einsatz_leistungsart_id' => $el->id,
+                            'datum'                   => $einsatz->datum,
+                            'menge'                   => $menge,
+                            'einheit'                 => $einheit,
+                            'beschreibung'            => null,
+                            'tarif_patient'           => $tarifPat,
+                            'tarif_kk'                => $tarifKk,
+                            'betrag_patient'          => $betragPat,
+                            'betrag_kk'               => $betragKk,
+                        ]);
+                        $pos->setRelation('einsatz', $einsatz);
+                        $pos->setRelation('einsatzLeistungsart', $el);
+                        $positionen->push($pos);
+                    }
+                }
             }
         }
 
