@@ -14,9 +14,16 @@
                 @if($tour->end_zeit) – {{ \Carbon\Carbon::parse($tour->end_zeit)->format('H:i') }} @endif
             </div>
         </div>
-        <span class="badge {{ $tour->status === 'abgeschlossen' ? 'badge-erfolg' : ($tour->status === 'gestartet' ? 'badge-warnung' : 'badge-grau') }}" style="font-size: 0.875rem;">
-            {{ ucfirst($tour->status) }}
-        </span>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span class="badge {{ $tour->status === 'abgeschlossen' ? 'badge-erfolg' : ($tour->status === 'gestartet' ? 'badge-warnung' : 'badge-grau') }}" style="font-size: 0.875rem;">
+                {{ ucfirst($tour->status) }}
+            </span>
+            <form method="POST" action="{{ route('touren.destroy', $tour) }}"
+                  onsubmit="return confirm('Tour löschen? Einsätze werden aus der Tour entfernt, aber nicht gelöscht.')">
+                @csrf @method('DELETE')
+                <button type="submit" class="btn btn-gefahr" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Tour löschen</button>
+            </form>
+        </div>
     </div>
 
     @if(session('erfolg'))
@@ -226,15 +233,18 @@
                 </div>
                 <div>
                     <label class="feld-label" style="font-size: 0.75rem;">Startzeit</label>
-                    <input type="time" name="start_zeit" class="feld" style="font-size: 0.875rem;" value="{{ $tour->start_zeit }}">
+                    <input type="time" name="start_zeit" class="feld" style="font-size: 0.875rem;" value="{{ $tour->start_zeit ? substr($tour->start_zeit, 0, 5) : '' }}">
                 </div>
                 <div>
                     <label class="feld-label" style="font-size: 0.75rem;">Endzeit</label>
-                    <input type="time" name="end_zeit" class="feld" style="font-size: 0.875rem;" value="{{ $tour->end_zeit }}">
+                    <input type="time" name="end_zeit" class="feld" style="font-size: 0.875rem;" value="{{ $tour->end_zeit ? substr($tour->end_zeit, 0, 5) : '' }}">
                 </div>
             </div>
-            <button type="submit" class="btn btn-sekundaer" style="font-size: 0.875rem;">Speichern</button>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">Speichern</button>
+            </div>
         </form>
+
     </div>
 
     {{-- Karte --}}

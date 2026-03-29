@@ -283,7 +283,7 @@ Route::middleware('auth')->group(function () {
 
         // Touren
         Route::resource('/touren', TourenController::class)
-            ->only(['index', 'create', 'store', 'show', 'update'])
+            ->only(['index', 'create', 'store', 'show', 'update', 'destroy'])
             ->parameters(['touren' => 'tour']);
         Route::post('/touren/{tour}/einsaetze',          [TourenController::class, 'einsatzZuweisen'])->name('touren.einsatz.zuweisen');
         Route::delete('/touren/{tour}/einsaetze/{einsatz}', [TourenController::class, 'einsatzEntfernen'])->name('touren.einsatz.entfernen');
