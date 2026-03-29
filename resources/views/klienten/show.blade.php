@@ -1717,6 +1717,31 @@ function einsatzTabPopup(tab) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') schliesseEinsaetzePopup();
 });
+
+// Sektionen-Zustand in localStorage merken — öffnet nach Reload/Redirect wieder
+(function() {
+    var storageKey = 'klient_offen_{{ $klient->id }}';
+    var gespeichert = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+    document.querySelectorAll('details').forEach(function(d, idx) {
+        var span = d.querySelector('summary > span');
+        var key  = span ? span.textContent.trim().slice(0, 50) : ('section_' + idx);
+
+        // Beim Laden: gespeicherten Zustand wiederherstellen
+        if (gespeichert.includes(key)) d.open = true;
+
+        // Bei Änderung: Zustand speichern
+        d.addEventListener('toggle', function() {
+            var aktuell = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            if (d.open) {
+                if (!aktuell.includes(key)) aktuell.push(key);
+            } else {
+                aktuell = aktuell.filter(function(k) { return k !== key; });
+            }
+            localStorage.setItem(storageKey, JSON.stringify(aktuell));
+        });
+    });
+})();
 </script>
 @endpush
 
