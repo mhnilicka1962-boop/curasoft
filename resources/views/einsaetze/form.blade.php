@@ -4,7 +4,10 @@
     {{-- Kopfzeile --}}
     <div class="seiten-kopf" style="margin-bottom: 1.25rem; align-items: flex-start;">
         {{-- Zurück-Link --}}
-        @if(!$einsatz->exists && request('_nach_touren'))
+        @if(!$einsatz->exists && request('_tour_redirect'))
+        <a href="{{ route('touren.show', request('_tour_redirect')) }}"
+           class="link-gedaempt" style="font-size: 0.875rem;">← Zurück zur Tour</a>
+        @elseif(!$einsatz->exists && request('_nach_touren'))
         <a href="{{ route('touren.create', ['benutzer_id' => request('benutzer_id'), 'datum' => request('datum')]) }}"
            class="link-gedaempt" style="font-size: 0.875rem;">← Zurück zur Tour</a>
         @elseif(!$einsatz->exists && request('klient_id'))
@@ -72,7 +75,9 @@
             @csrf
             @if($einsatz->exists) @method('PUT') @endif
 
-            @if(!$einsatz->exists && request('_nach_touren'))
+            @if(!$einsatz->exists && request('_tour_redirect'))
+                <input type="hidden" name="_tour_redirect" value="{{ request('_tour_redirect') }}">
+            @elseif(!$einsatz->exists && request('_nach_touren'))
                 <input type="hidden" name="_nach_touren" value="1">
             @elseif(!$einsatz->exists && request('klient_id'))
                 <input type="hidden" name="_klient_redirect" value="1">

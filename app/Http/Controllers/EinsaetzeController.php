@@ -298,6 +298,17 @@ class EinsaetzeController extends Controller
                 ->with('erfolg', 'Einsatz wurde geplant.');
         }
 
+        if ($request->filled('_tour_redirect')) {
+            $tour = \App\Models\Tour::where('id', $request->_tour_redirect)
+                ->where('organisation_id', $this->orgId())->first();
+            if ($tour) {
+                $max = $tour->einsaetze()->max('tour_reihenfolge') ?? 0;
+                $einsatz->update(['tour_id' => $tour->id, 'tour_reihenfolge' => $max + 1]);
+                return redirect()->route('touren.show', $tour)
+                    ->with('erfolg', 'Einsatz angelegt und Tour zugewiesen.');
+            }
+        }
+
         if ($request->filled('_nach_touren')) {
             return redirect()->route('touren.create', [
                 'benutzer_id' => $einsatz->benutzer_id,

@@ -36,6 +36,8 @@
 
         <div style="padding: 0.875rem 1rem; border-bottom: 1px solid var(--cs-border); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
             <span class="abschnitt-label" style="margin: 0;">Einsätze ({{ $tour->einsaetze->count() }})</span>
+            <a href="{{ route('einsaetze.create', ['datum' => $tour->datum->format('Y-m-d'), 'benutzer_id' => $tour->benutzer_id, '_tour_redirect' => $tour->id]) }}"
+               class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">+ Einsatz anlegen</a>
             @php
                 $abgeschlossen   = $tour->einsaetze->where('status', 'abgeschlossen')->count();
                 $mitKoordinaten  = $tour->einsaetze->filter(fn($e) => $e->klient?->klient_lat)->count();
