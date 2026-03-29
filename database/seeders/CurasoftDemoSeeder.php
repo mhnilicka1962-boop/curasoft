@@ -801,6 +801,114 @@ class CurasoftDemoSeeder extends Seeder
 
         $this->annaSpringerEinsaetze($tourenCache, $vonDat, $bisDat, $heute, $laGp, $rAg, $aktuellerMonat);
         $this->einmaligeEinsaetze($rAg, $rBe);
+        $this->zusatzFutureTouren($tourenCache, $heute, $laGp, $laUb, $laHwl, $rAg, $rBe);
+    }
+
+    private function zusatzFutureTouren(
+        array &$tourenCache,
+        Carbon $heute,
+        ?int $laGp,
+        ?int $laUb,
+        ?int $laHwl,
+        int $rAg,
+        int $rBe
+    ): void {
+        $ziel = 8;
+
+        $klientenMitRegion = [
+            'brunner'   => ['id' => $this->kl['brunner'],   'region' => $rAg],
+            'weber'     => ['id' => $this->kl['weber'],     'region' => $rAg],
+            'schneider' => ['id' => $this->kl['schneider'], 'region' => $rBe],
+            'keller'    => ['id' => $this->kl['keller'],    'region' => $rBe],
+            'gerber'    => ['id' => $this->kl['gerber'],    'region' => $rBe],
+        ];
+        $klientKeys = array_keys($klientenMitRegion);
+
+        // Abwechselnde LA + Aktivitäten (8 Slots, rotierend)
+        $slots = [
+            [$laGp,  'Grundpflege',             'Mobilisation'],
+            [$laUb,  'Untersuchung/Behandlung', 'Vitalzeichen (Puls, BD, T, Gewicht)'],
+            [$laHwl, 'Hauswirtschaft',           'HWL-Leistungen'],
+            [$laGp,  'Grundpflege',             'An-/Auskleiden'],
+            [$laUb,  'Untersuchung/Behandlung', 'Injektion subcutan'],
+            [$laHwl, 'Hauswirtschaft',           'HWL-Leistungen'],
+            [$laGp,  'Grundpflege',             'Duschen'],
+            [$laUb,  'Untersuchung/Behandlung', 'Verbandwechsel'],
+        ];
+
+        $mitarbeiterKeys = ['sandra', 'peter', 'anna'];
+
+        for ($offset = 0; $offset < 10; $offset++) {
+            $day      = $heute->copy()->addDays($offset);
+            $datumStr = $day->format('Y-m-d');
+            $istHeute = $offset === 0;
+
+            foreach ($mitarbeiterKeys as $benKey) {
+                $benutzerId = $this->ma[$benKey];
+                $tourId     = $this->holeTourId($tourenCache, true, $benutzerId, $datumStr, false, $istHeute);
+
+                $existing    = DB::table('einsaetze')->where('tour_id', $tourId)->count();
+                $needed      = max(0, $ziel - $existing);
+                $reihenfolge = $existing;
+                $minOffset   = 0; // Nachmittag ab 13:00
+
+                for ($i = 0; $i < $needed; $i++) {
+                    $klientKey = $klientKeys[($existing + $i) % count($klientKeys)];
+                    $klient    = $klientenMitRegion[$klientKey];
+
+                    [$laId, $kategorie, $aktivitaet] = $slots[($existing + $i) % count($slots)];
+                    $laId = $laId ?? $laGp; // Fallback falls LA nicht gesetzt
+
+                    $vonMin = 13 * 60 + $minOffset;
+                    $bisMin = $vonMin + 30;
+                    $von    = sprintf('%02d:%02d', intdiv($vonMin, 60), $vonMin % 60);
+                    $bis    = sprintf('%02d:%02d', intdiv($bisMin, 60), $bisMin % 60);
+                    $minOffset += 30;
+                    $reihenfolge++;
+
+                    $eid = DB::table('einsaetze')->insertGetId([
+                        'organisation_id'        => $this->orgId,
+                        'klient_id'              => $klient['id'],
+                        'benutzer_id'            => $benutzerId,
+                        'region_id'              => $klient['region'],
+                        'leistungserbringer_typ' => 'fachperson',
+                        'serie_id'               => null,
+                        'datum'                  => $datumStr,
+                        'zeit_von'               => $von,
+                        'zeit_bis'               => $bis,
+                        'minuten'                => 30,
+                        'status'                 => $istHeute ? 'abgeschlossen' : 'geplant',
+                        'checkin_zeit'           => $istHeute ? $datumStr . ' ' . $von . ':00' : null,
+                        'checkout_zeit'          => $istHeute ? $datumStr . ' ' . $bis . ':00' : null,
+                        'checkin_methode'        => $istHeute ? 'manuell' : null,
+                        'checkout_methode'       => $istHeute ? 'manuell' : null,
+                        'verrechnet'             => false,
+                        'tour_id'                => $tourId,
+                        'tour_reihenfolge'       => $reihenfolge,
+                        'created_at'             => now(),
+                        'updated_at'             => now(),
+                    ]);
+
+                    DB::table('einsatz_leistungsarten')->insert([
+                        'einsatz_id'      => $eid,
+                        'leistungsart_id' => $laId,
+                        'minuten'         => 30,
+                        'created_at'      => now(),
+                        'updated_at'      => now(),
+                    ]);
+
+                    DB::table('einsatz_aktivitaeten')->insert([
+                        'einsatz_id'      => $eid,
+                        'organisation_id' => $this->orgId,
+                        'kategorie'       => $kategorie,
+                        'aktivitaet'      => $aktivitaet,
+                        'minuten'         => 30,
+                        'created_at'      => now(),
+                        'updated_at'      => now(),
+                    ]);
+                }
+            }
+        }
     }
 
     private function holeTourId(array &$cache, bool $mitTour, int $benutzerId, string $datumStr, bool $istVergangen, bool $istHeute): ?int
