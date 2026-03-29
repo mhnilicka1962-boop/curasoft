@@ -747,7 +747,7 @@ class CurasoftDemoSeeder extends Seeder
                 $datumStr      = $current->format('Y-m-d');
                 $istVergangen  = $current->lt($heute);
                 $istHeute      = $current->isSameDay($heute);
-                $abgeschlossen = $istVergangen || $istHeute;
+                $abgeschlossen = $istVergangen; // heute = noch geplant
                 $status        = $abgeschlossen ? 'abgeschlossen' : 'geplant';
                 $verrechnet    = $istVergangen && $current->lt($aktuellerMonat);
 
@@ -877,11 +877,11 @@ class CurasoftDemoSeeder extends Seeder
                         'zeit_von'               => $von,
                         'zeit_bis'               => $bis,
                         'minuten'                => 30,
-                        'status'                 => $istHeute ? 'abgeschlossen' : 'geplant',
-                        'checkin_zeit'           => $istHeute ? $datumStr . ' ' . $von . ':00' : null,
-                        'checkout_zeit'          => $istHeute ? $datumStr . ' ' . $bis . ':00' : null,
-                        'checkin_methode'        => $istHeute ? 'manuell' : null,
-                        'checkout_methode'       => $istHeute ? 'manuell' : null,
+                        'status'                 => 'geplant',
+                        'checkin_zeit'           => null,
+                        'checkout_zeit'          => null,
+                        'checkin_methode'        => null,
+                        'checkout_methode'       => null,
                         'verrechnet'             => false,
                         'tour_id'                => $tourId,
                         'tour_reihenfolge'       => $reihenfolge,
@@ -957,7 +957,7 @@ class CurasoftDemoSeeder extends Seeder
             $datumStr      = $current->format('Y-m-d');
             $istVergangen  = $current->lt($heute);
             $istHeute      = $current->isSameDay($heute);
-            $abgeschlossen = $istVergangen || $istHeute;
+            $abgeschlossen = $istVergangen; // heute = noch geplant
             $status        = $abgeschlossen ? 'abgeschlossen' : 'geplant';
             $verrechnet    = $istVergangen && $current->lt($aktuellerMonat);
             $klientId      = ($week === 1) ? $brunnerId : $weberId;
