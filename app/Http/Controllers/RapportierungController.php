@@ -309,24 +309,36 @@ class RapportierungController extends Controller
             ->whereNull('tagespauschale_id')
             ->whereNull('betrag_fix')
             ->whereNotNull('checkout_zeit')
-            ->with('einsatzLeistungsarten.leistungsart')
+            ->with('aktivitaeten')
             ->get();
+
+        // Gleiche Logik wie die Rapportierungs-Seite: Minuten aus aktivitaeten lesen
+        $ltMap    = Leistungstyp::pluck('leistungsart_id', 'bezeichnung');
+        $laModels = \App\Models\Leistungsart::all()->keyBy('id');
 
         $rechnungstyp = $klient->rechnungstyp ?? 'kombiniert';
         $tarifCache   = [];
         $positionen   = collect();
 
         foreach ($einsaetze as $einsatz) {
-            foreach ($einsatz->einsatzLeistungsarten as $el) {
-                $m = (float)($el->minuten ?? 0);
+            // Minuten pro leistungsart_id summieren (aus aktivitaeten)
+            $laMinuten = [];
+            foreach ($einsatz->aktivitaeten as $akt) {
+                $laId = $ltMap[$akt->aktivitaet] ?? null;
+                if (!$laId) continue;
+                $laMinuten[$laId] = ($laMinuten[$laId] ?? 0) + $akt->minuten;
+            }
+
+            foreach ($laMinuten as $laId => $m) {
                 if ($m <= 0) continue;
-                [$tarifPat, $tarifKk] = $this->tarifeFuerVorschau($el->leistungsart_id, $einsatz->region_id ?? $klient->region_id, $einsatz->datum, $rechnungstyp, $tarifCache);
+                $la = $laModels[$laId] ?? null;
+                [$tarifPat, $tarifKk] = $this->tarifeFuerVorschau($laId, $einsatz->region_id ?? $klient->region_id, $einsatz->datum, $rechnungstyp, $tarifCache);
                 $positionen->push((object)[
                     'einheit'          => 'minuten',
-                    'beschreibung'     => $el->leistungsart?->bezeichnung,
-                    'leistungsart_id'  => $el->leistungsart_id,
+                    'beschreibung'     => $la?->bezeichnung,
+                    'leistungsart_id'  => $laId,
                     'datum'            => $einsatz->datum,
-                    'menge'            => $m,
+                    'menge'            => (float)$m,
                     'tarif_patient'    => $tarifPat,
                     'tarif_kk'         => $tarifKk,
                     'betrag_patient'   => round($m / 60 * $tarifPat, 5),

@@ -73,7 +73,7 @@ class RechnungslaufController extends Controller
                 $q->whereNotNull('checkout_zeit')->orWhereNotNull('tagespauschale_id');
             })
             ->whereBetween('datum', [$request->periode_von, $request->periode_bis])
-            ->with('einsatzLeistungsarten.leistungsart', 'tagespauschale')
+            ->with('einsatzLeistungsarten.leistungsart', 'aktivitaeten', 'tagespauschale')
             ->orderBy('datum')
             ->get();
 
@@ -103,6 +103,7 @@ class RechnungslaufController extends Controller
         $rechnung->id = 0;
         $rechnung->setRelation('klient', $klient->load(['region', 'krankenkassen.krankenkasse', 'adressen']));
 
+        $ltMap      = \App\Models\Leistungstyp::pluck('leistungsart_id', 'bezeichnung')->toArray();
         $tarifCache = [];
         $positionen = collect();
 
@@ -160,7 +161,7 @@ class RechnungslaufController extends Controller
                             $betragPat = $this->r5($menge * $tarifPat);
                             $betragKk  = $this->r5($menge * $tarifKk);
                         } else {
-                            $menge     = $el->minuten ?? 0;
+                            $menge     = $this->minutenFuerLeistungsart($einsatz, $el->leistungsart_id, $ltMap);
                             $einheit   = 'minuten';
                             $betragPat = $this->r5($menge / 60 * $tarifPat);
                             $betragKk  = $this->r5($menge / 60 * $tarifKk);
@@ -486,6 +487,7 @@ class RechnungslaufController extends Controller
         $anzahlMit    = 0;
         $anzahlOhne   = 0;
         $ohneLeistungsart = 0;
+        $ltMap        = \App\Models\Leistungstyp::pluck('leistungsart_id', 'bezeichnung')->toArray();
         $tarifCache   = [];
 
         foreach ($klienten as $klient) {
@@ -496,7 +498,7 @@ class RechnungslaufController extends Controller
                       ->orWhereNotNull('tagespauschale_id');
                 })
                 ->whereBetween('datum', [$von, $bis])
-                ->with('einsatzLeistungsarten.leistungsart', 'tagespauschale')
+                ->with('einsatzLeistungsarten.leistungsart', 'aktivitaeten', 'tagespauschale')
                 ->get();
 
             if ($einsaetze->isEmpty()) {
@@ -536,7 +538,7 @@ class RechnungslaufController extends Controller
                             $betragPat += $this->r5($tage * $tp);
                             $betragKk  += $this->r5($tage * $tk);
                         } else {
-                            $m          = $el->minuten ?? 0;
+                            $m          = $this->minutenFuerLeistungsart($einsatz, $el->leistungsart_id, $ltMap);
                             $betragPat += $this->r5($m / 60 * $tp);
                             $betragKk  += $this->r5($m / 60 * $tk);
                             $minuten   += $m;
@@ -841,6 +843,7 @@ class RechnungslaufController extends Controller
 
         $erstellt      = 0;
         $uebersprungen = 0;
+        $ltMap         = \App\Models\Leistungstyp::pluck('leistungsart_id', 'bezeichnung')->toArray();
         $tarifCache    = [];
 
         // Schritt 1: Alle Einsätze sammeln — Lauf wird erst danach angelegt
@@ -853,7 +856,7 @@ class RechnungslaufController extends Controller
                       ->orWhereNotNull('tagespauschale_id');
                 })
                 ->whereBetween('datum', [$periode_von, $periode_bis])
-                ->with('einsatzLeistungsarten.leistungsart', 'tagespauschale')
+                ->with('einsatzLeistungsarten.leistungsart', 'aktivitaeten', 'tagespauschale')
                 ->orderBy('datum')
                 ->get();
 
@@ -933,7 +936,7 @@ class RechnungslaufController extends Controller
                                 $betragPat = $this->r5($menge * $tarifPat);
                                 $betragKk  = $this->r5($menge * $tarifKk);
                             } else {
-                                $menge     = $el->minuten ?? 0;
+                                $menge     = $this->minutenFuerLeistungsart($einsatz, $el->leistungsart_id, $ltMap);
                                 $einheit   = 'minuten';
                                 $betragPat = $this->r5($menge / 60 * $tarifPat);
                                 $betragKk  = $this->r5($menge / 60 * $tarifKk);
@@ -1102,6 +1105,22 @@ class RechnungslaufController extends Controller
     }
 
     /** Kaufmännische Rundung auf 0.05 CHF */
+    private function minutenFuerLeistungsart(Einsatz $einsatz, int $laId, array $ltMap): int
+    {
+        $sum = 0;
+        foreach ($einsatz->aktivitaeten as $akt) {
+            if (($ltMap[$akt->aktivitaet] ?? null) == $laId) {
+                $sum += (int)$akt->minuten;
+            }
+        }
+        // Fallback: wenn keine Aktivitäten, einsatz_leistungsarten.minuten nehmen
+        if ($sum === 0) {
+            $el = $einsatz->einsatzLeistungsarten->firstWhere('leistungsart_id', $laId);
+            $sum = (int)($el?->minuten ?? 0);
+        }
+        return $sum;
+    }
+
     private function r5(float $x): float { return round($x * 20) / 20; }
 
     private function autorisiereZugriff(Rechnungslauf $lauf): void
