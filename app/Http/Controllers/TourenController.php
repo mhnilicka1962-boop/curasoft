@@ -175,6 +175,22 @@ class TourenController extends Controller
         return back()->with('erfolg', 'Tour wurde aktualisiert.');
     }
 
+    public function destroy(Tour $tour)
+    {
+        if ($tour->organisation_id !== $this->orgId()) abort(403);
+
+        $datum = $tour->datum->format('Y-m-d');
+
+        // Einsätze aus Tour lösen (nicht löschen)
+        Einsatz::where('tour_id', $tour->id)
+            ->update(['tour_id' => null, 'tour_reihenfolge' => null]);
+
+        $tour->delete();
+
+        return redirect()->route('touren.index', ['datum' => $datum])
+            ->with('erfolg', 'Tour wurde gelöscht.');
+    }
+
     public function einsatzZuweisen(Request $request, Tour $tour)
     {
         if ($tour->organisation_id !== $this->orgId()) abort(403);
