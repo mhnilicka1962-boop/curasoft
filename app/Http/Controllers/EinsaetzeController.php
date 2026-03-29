@@ -322,7 +322,29 @@ class EinsaetzeController extends Controller
             ]);
         }
 
+        // einsatz_leistungsarten.minuten aus Aktivitäten ableiten
+        $this->syncLeistungsartenMinuten($einsatz);
+
         return back()->with('erfolg', 'Leistungen gespeichert.');
+    }
+
+    private function syncLeistungsartenMinuten(Einsatz $einsatz): void
+    {
+        // Aktivitätsname → leistungsart_id (via leistungstypen)
+        $ltMap = \App\Models\Leistungstyp::pluck('leistungsart_id', 'bezeichnung');
+
+        // Minuten pro leistungsart_id summieren
+        $summen = [];
+        foreach ($einsatz->aktivitaeten()->get() as $akt) {
+            $laId = $ltMap[$akt->aktivitaet] ?? null;
+            if (!$laId) continue;
+            $summen[$laId] = ($summen[$laId] ?? 0) + $akt->minuten;
+        }
+
+        // einsatz_leistungsarten aktualisieren
+        foreach ($einsatz->einsatzLeistungsarten()->get() as $ela) {
+            $ela->update(['minuten' => $summen[$ela->leistungsart_id] ?? 0]);
+        }
     }
 
     public function edit(Einsatz $einsatz)
