@@ -704,7 +704,7 @@ class CurasoftDemoSeeder extends Seeder
         $heute          = Carbon::today();
         $vonDat         = $heute->copy()->startOfMonth()->subMonths(4);
         $bisDat         = $heute->copy()->addWeeks(6)->endOfDay();
-        $einsatzBis     = $heute->copy()->addDays(10); // Planungshorizont
+        $einsatzBis     = $heute->copy()->subDay(); // nur bis gestern → Batch generiert Rest
         $weberEnde      = $heute->copy()->addMonths(2)->format('Y-m-d');   // Serie endet demnächst
         $kellerEnde     = $heute->copy()->subDays(14)->format('Y-m-d');    // Serie bereits beendet
         $gerberEnde     = $heute->copy()->addWeeks(3)->format('Y-m-d');    // Serie endet bald
@@ -1287,7 +1287,7 @@ class CurasoftDemoSeeder extends Seeder
     private function tagespauschalen(): void
     {
         $heute   = Carbon::today();
-        $horizon = $heute->copy()->addDays(10);
+        $horizon = $heute->copy()->subDay(); // nur bis gestern → Batch generiert Rest
 
         // [klientKey, benKey, autoVerlaengern, datumVon, datumBis, ansatz, text]
         $fälle = [
