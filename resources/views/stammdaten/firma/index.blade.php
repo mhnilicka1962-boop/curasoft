@@ -1,9 +1,16 @@
 <x-layouts.app :titel="'Firma / Organisation'">
 <div style="max-width: 900px;">
 
-    <div style="margin-bottom: 1.25rem;">
-        <div class="text-mini text-hell">Stammdaten</div>
-        <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Firma / Organisation</h1>
+    <div style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 1rem;">
+        <div>
+            <div class="text-mini text-hell">Stammdaten</div>
+            <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Firma / Organisation</h1>
+        </div>
+        @if($org->is_demo)
+            <span class="badge badge-warnung" title="Demo-Umgebung — Testdaten-Seeder erlaubt">Demo-Umgebung</span>
+        @else
+            <span class="badge badge-ok" title="Produktiv-Umgebung — kein Testdaten-Seeder erlaubt">Produktiv-Umgebung</span>
+        @endif
     </div>
 
     @php
