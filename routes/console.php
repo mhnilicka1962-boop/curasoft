@@ -8,4 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('einsaetze:generieren')->dailyAt('02:00');
+// Kein Schedule hier — direkt via Cronjob auf Server:
+// 0 2 * * * /usr/local/bin/php /home/devitjob/public_html/spitex/artisan einsaetze:generieren
