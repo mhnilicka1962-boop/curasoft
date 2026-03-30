@@ -14,7 +14,7 @@ $tables = [
     'benutzer', 'regionen', 'krankenkassen', 'aerzte',
     'leistungsarten', 'leistungstypen', 'leistungsregionen',
     'qualifikationen', 'benutzer_qualifikation', 'benutzer_leistungsarten',
-    'klienten', 'touren', 'tagespauschalen',
+    'klienten', 'serien', 'touren', 'tagespauschalen',
     'klient_adressen', 'klient_aerzte', 'klient_krankenkassen', 'klient_verordnungen',
     'klient_kontakte', 'klient_pflegestufen', 'klient_diagnosen',
     'klient_beitraege', 'klient_benutzer',

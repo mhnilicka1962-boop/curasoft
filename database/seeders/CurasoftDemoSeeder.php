@@ -704,6 +704,10 @@ class CurasoftDemoSeeder extends Seeder
         $heute          = Carbon::today();
         $vonDat         = $heute->copy()->startOfMonth()->subMonths(4);
         $bisDat         = $heute->copy()->addWeeks(6)->endOfDay();
+        $einsatzBis     = $heute->copy()->addDays(10); // Planungshorizont
+        $weberEnde      = $heute->copy()->addMonths(2)->format('Y-m-d');   // Serie endet demnächst
+        $kellerEnde     = $heute->copy()->subDays(14)->format('Y-m-d');    // Serie bereits beendet
+        $gerberEnde     = $heute->copy()->addWeeks(3)->format('Y-m-d');    // Serie endet bald
         $aktuellerMonat = $heute->copy()->startOfMonth();
 
         $laGp  = $this->laId('gp');
@@ -712,52 +716,52 @@ class CurasoftDemoSeeder extends Seeder
         $rAg   = $this->regionen['ZH'];
         $rBe   = $this->regionen['ZG'];
 
-        // Besuche: [klientKey, benKey, regionId, wochentage, von, mitTour, leTyp, [[laId, min, kategorie, aktivitaet], ...]]
-        // Pro Besuch = ein Einsatz mit mehreren Leistungsarten
+        // Besuche: [klientKey, benKey, regionId, wochentage, von, mitTour, leTyp, leistungsarten, autoVerlaengern, serieGueltigBis]
+        // autoVerlaengern=true  → gueltig_bis=null, Batchjob verlängert täglich
+        // autoVerlaengern=false → gueltig_bis gesetzt, läuft aus oder bereits beendet
         $besuche = [
-            // Brunner: Morgenbesuch GP Mo–Fr (45min)
-            ['brunner',   'sandra', $rAg, [1,2,3,4,5],     '08:00', true,  'fachperson', [
-                [$laGp,  45, 'Grundpflege',             'Duschen'],
-            ]],
-            // Brunner: Nachmittagsbesuch HWL Di/Fr (30min)
-            ['brunner',   'sandra', $rAg, [2,5],            '14:00', true,  'fachperson', [
-                [$laHwl, 30, 'Hauswirtschaft',           'HWL-Leistungen'],
-            ]],
-            // Weber: Mo/Mi/Fr Injektion + Verband (35min)
-            ['weber',     'sandra', $rAg, [1,3,5],          '09:00', true,  'fachperson', [
-                [$laUb,  15, 'Untersuchung/Behandlung',  'Injektion subcutan'],
-                [$laUb,  20, 'Untersuchung/Behandlung',  'Verbandwechsel'],
-            ]],
-            // Weber: Di/Do nur Injektion (15min)
-            ['weber',     'sandra', $rAg, [2,4],            '09:00', true,  'fachperson', [
-                [$laUb,  15, 'Untersuchung/Behandlung',  'Injektion subcutan'],
-            ]],
-            // Schneider: Mo/Mi/Fr GP + UB Vitalzeichen (65min)
-            ['schneider', 'peter',  $rBe, [1,3,5],          '09:00', true,  'fachperson', [
+            // Brunner: GP Mo–Fr — auto_verlaengern=true (läuft unbegrenzt)
+            ['brunner',   'sandra', $rAg, [1,2,3,4,5],  '08:00', true,  'fachperson', [
+                [$laGp,  45, 'Grundpflege',            'Duschen'],
+            ], true, null],
+            // Brunner: HWL Di/Fr — auto_verlaengern=true (läuft unbegrenzt)
+            ['brunner',   'sandra', $rAg, [2,5],         '14:00', true,  'fachperson', [
+                [$laHwl, 30, 'Hauswirtschaft',          'HWL-Leistungen'],
+            ], true, null],
+            // Weber: UB Mo/Mi/Fr — auto_verlaengern=false, endet in 2 Monaten
+            ['weber',     'sandra', $rAg, [1,3,5],       '09:00', true,  'fachperson', [
+                [$laUb,  35, 'Untersuchung/Behandlung', 'Injektion subcutan + Verbandwechsel'],
+            ], false, $weberEnde],
+            // Weber: UB Di/Do — auto_verlaengern=false, endet in 2 Monaten
+            ['weber',     'sandra', $rAg, [2,4],         '09:00', true,  'fachperson', [
+                [$laUb,  15, 'Untersuchung/Behandlung', 'Injektion subcutan'],
+            ], false, $weberEnde],
+            // Schneider: GP+UB Mo/Mi/Fr — auto_verlaengern=true (läuft unbegrenzt)
+            ['schneider', 'peter',  $rBe, [1,3,5],       '09:00', true,  'fachperson', [
                 [$laGp,  50, 'Grundpflege',             'Grundpflege'],
                 [$laUb,  15, 'Untersuchung/Behandlung', 'Vitalzeichen (Puls, BD, T, Gewicht)'],
-            ]],
-            // Schneider: Di/Do/Sa/So nur GP (50min)
-            ['schneider', 'peter',  $rBe, [2,4,6,0],        '09:00', true,  'fachperson', [
+            ], true, null],
+            // Schneider: GP tägl. — auto_verlaengern=true (läuft unbegrenzt)
+            ['schneider', 'peter',  $rBe, [2,4,6,0],     '09:00', true,  'fachperson', [
                 [$laGp,  50, 'Grundpflege',             'Grundpflege'],
-            ]],
-            // Keller: Mo/Mi/Fr GP (25min)
-            ['keller',    'peter',  $rBe, [1,3,5],          '10:30', true,  'fachperson', [
+            ], true, null],
+            // Keller: GP Mo/Mi/Fr — auto_verlaengern=false, bereits beendet (ins Spital)
+            ['keller',    'peter',  $rBe, [1,3,5],       '10:30', true,  'fachperson', [
                 [$laGp,  25, 'Grundpflege',             'An-/Auskleiden'],
-            ]],
-            // Keller: Di/Do HWL (60min)
-            ['keller',    'peter',  $rBe, [2,4],            '14:00', true,  'fachperson', [
-                [$laHwl, 60, 'Hauswirtschaft',           'HWL-Leistungen'],
-            ]],
-            // Gerber: Mo–Fr GP durch Angehörige (35min, keine Tour)
-            ['gerber',    'ruth',   $rBe, [1,2,3,4,5],     '10:00', false, 'angehoerig', [
+            ], false, $kellerEnde],
+            // Keller: HWL Di/Do — auto_verlaengern=false, bereits beendet (ins Spital)
+            ['keller',    'peter',  $rBe, [2,4],          '14:00', true,  'fachperson', [
+                [$laHwl, 60, 'Hauswirtschaft',          'HWL-Leistungen'],
+            ], false, $kellerEnde],
+            // Gerber: GP Mo–Fr, Angehörige — auto_verlaengern=false, endet in 3 Wochen
+            ['gerber',    'ruth',   $rBe, [1,2,3,4,5],  '10:00', false, 'angehoerig', [
                 [$laGp,  35, 'Grundpflege',             'Mobilisation'],
-            ]],
+            ], false, $gerberEnde],
         ];
 
         $tourenCache = [];
 
-        foreach ($besuche as [$klientKey, $benKey, $regionId, $wochentage, $von, $mitTour, $leTyp, $leistungsarten]) {
+        foreach ($besuche as [$klientKey, $benKey, $regionId, $wochentage, $von, $mitTour, $leTyp, $leistungsarten, $autoVerlaengern, $serieGueltigBis]) {
             $klientId  = $this->kl[$klientKey];
             $benutzerId = $this->ma[$benKey];
             $serieId   = (string) Str::uuid();
@@ -777,7 +781,8 @@ class CurasoftDemoSeeder extends Seeder
                 'wochentage'             => $hatAlleTage ? null : json_encode($wochentage),
                 'leistungsarten'         => json_encode($laJson),
                 'gueltig_ab'             => $vonDat->format('Y-m-d'),
-                'gueltig_bis'            => $bisDat->format('Y-m-d'),
+                'gueltig_bis'            => $serieGueltigBis,
+                'auto_verlaengern'       => $autoVerlaengern,
                 'zeit_von'               => $von,
                 'zeit_bis'               => $bis,
                 'leistungserbringer_typ' => $leTyp,
@@ -785,8 +790,13 @@ class CurasoftDemoSeeder extends Seeder
                 'updated_at'             => now(),
             ]);
 
+            // Einsätze: Vergangenheit vollständig, Zukunft nur bis Planungshorizont
+            $loopBis = $serieGueltigBis
+                ? Carbon::parse($serieGueltigBis)->min($einsatzBis)
+                : $einsatzBis;
+
             $current = $vonDat->copy()->startOfDay();
-            while ($current <= $bisDat) {
+            while ($current <= $loopBis) {
                 if (!in_array((int)$current->dayOfWeek, $wochentage)) {
                     $current->addDay();
                     continue;
@@ -849,8 +859,9 @@ class CurasoftDemoSeeder extends Seeder
             }
         }
 
-        $this->annaSpringerEinsaetze($tourenCache, $vonDat, $bisDat, $heute, $laGp, $rAg, $aktuellerMonat);
+        $this->annaSpringerEinsaetze($tourenCache, $vonDat, $einsatzBis, $heute, $laGp, $rAg, $aktuellerMonat);
         $this->einmaligeEinsaetze($rAg, $rBe);
+        $this->tagespauschalen();
     }
 
     private function holeTourId(array &$cache, bool $mitTour, int $benutzerId, string $datumStr, bool $istVergangen, bool $istHeute): ?int
@@ -1266,6 +1277,67 @@ class CurasoftDemoSeeder extends Seeder
                 'betrag_total'   => round($betragPat + $betragKk, 2),
                 'updated_at'     => now(),
             ]);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // TAGESPAUSCHALEN (2 Testfälle)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function tagespauschalen(): void
+    {
+        $heute   = Carbon::today();
+        $horizon = $heute->copy()->addDays(10);
+
+        // [klientKey, benKey, autoVerlaengern, datumVon, datumBis, ansatz, text]
+        $fälle = [
+            // Keller: ins Spital seit 14 Tagen — läuft unbegrenzt (auto_verlaengern=true)
+            ['keller',  'peter',  true,  $heute->copy()->subDays(14)->format('Y-m-d'), null,
+             98.00, 'Tagespauschale Spitalaufenthalt'],
+            // Brunner: Kurzzeitpflege seit 7 Tagen — endet in 3 Wochen (auto_verlaengern=false)
+            ['brunner', 'sandra', false, $heute->copy()->subDays(7)->format('Y-m-d'),
+             $heute->copy()->addWeeks(3)->format('Y-m-d'),
+             98.00, 'Tagespauschale Kurzzeitpflege'],
+        ];
+
+        foreach ($fälle as [$klientKey, $benKey, $autoVerlaengern, $datumVon, $datumBis, $ansatz, $text]) {
+            $klientId   = $this->kl[$klientKey];
+            $benutzerId = $this->ma[$benKey];
+
+            $tpId = DB::table('tagespauschalen')->insertGetId([
+                'organisation_id'  => $this->orgId,
+                'klient_id'        => $klientId,
+                'rechnungstyp'     => 'kvg',
+                'datum_von'        => $datumVon,
+                'datum_bis'        => $datumBis,
+                'auto_verlaengern' => $autoVerlaengern,
+                'ansatz'           => $ansatz,
+                'text'             => $text,
+                'erstellt_von'     => $this->adminId ?: $benutzerId,
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+
+            // Einsätze: Vergangenheit vollständig, Zukunft bis Planungshorizont
+            $bis     = $datumBis ? Carbon::parse($datumBis)->min($horizon) : $horizon;
+            $current = Carbon::parse($datumVon)->startOfDay();
+
+            while ($current->lte($bis)) {
+                $istVergangen = $current->lt($heute);
+                DB::table('einsaetze')->insert([
+                    'organisation_id'   => $this->orgId,
+                    'klient_id'         => $klientId,
+                    'benutzer_id'       => $benutzerId,
+                    'tagespauschale_id' => $tpId,
+                    'datum'             => $current->format('Y-m-d'),
+                    'datum_bis'         => $current->format('Y-m-d'),
+                    'verrechnet'        => $istVergangen && $current->lt(Carbon::today()->startOfMonth()),
+                    'status'            => $istVergangen ? 'abgeschlossen' : 'geplant',
+                    'created_at'        => now(),
+                    'updated_at'        => now(),
+                ]);
+                $current->addDay();
+            }
         }
     }
 }
