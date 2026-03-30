@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af"/>
+      <stop offset="100%" style="stop-color:#2563eb"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Hintergrund -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Dekorative Kreise -->
+  <circle cx="1050" cy="120" r="180" fill="#3b82f6" opacity="0.3"/>
+  <circle cx="150" cy="520" r="120" fill="#1d4ed8" opacity="0.4"/>
+
+  <!-- Logo-Bereich oben links -->
+  <rect x="80" y="70" width="48" height="48" rx="12" fill="white" opacity="0.15"/>
+  <text x="104" y="103" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="white" text-anchor="middle">C</text>
+  <text x="150" y="102" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="white">CuraSoft</text>
+
+  <!-- Haupttitel -->
+  <text x="80" y="230" font-family="Arial, sans-serif" font-size="64" font-weight="800" fill="white">Die Spitex-Software</text>
+  <text x="80" y="310" font-family="Arial, sans-serif" font-size="64" font-weight="800" fill="white">für die Schweiz</text>
+
+  <!-- Untertitel -->
+  <text x="80" y="385" font-family="Arial, sans-serif" font-size="28" fill="#bfdbfe">Einsatzplanung · Abrechnung · KI-Rapporte · Alle 26 Kantone</text>
+
+  <!-- Badges unten -->
+  <rect x="80" y="460" width="220" height="50" rx="25" fill="white" opacity="0.15"/>
+  <text x="190" y="492" font-family="Arial, sans-serif" font-size="20" font-weight="600" fill="white" text-anchor="middle">Ab CHF 250 / Monat</text>
+
+  <rect x="320" y="460" width="220" height="50" rx="25" fill="white" opacity="0.15"/>
+  <text x="430" y="492" font-family="Arial, sans-serif" font-size="20" font-weight="600" fill="white" text-anchor="middle">Monatlich kündbar</text>
+
+  <rect x="560" y="460" width="200" height="50" rx="25" fill="white" opacity="0.15"/>
+  <text x="660" y="492" font-family="Arial, sans-serif" font-size="20" font-weight="600" fill="white" text-anchor="middle">Keine Setup-Gebühr</text>
+
+  <!-- URL rechts unten -->
+  <text x="1120" y="580" font-family="Arial, sans-serif" font-size="20" fill="#93c5fd" text-anchor="end">curasoft.ch</text>
+</svg>
