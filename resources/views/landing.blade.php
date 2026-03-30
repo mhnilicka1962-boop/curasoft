@@ -16,14 +16,12 @@
     <meta property="og:locale"      content="de_CH">
     <meta property="og:url"         content="https://curasoft.ch/">
     <meta property="og:title"       content="CuraSoft — Die Spitex-Software für die ganze Schweiz">
-    <meta property="og:description" content="Kantonsübergreifende Einsatzplanung, direkte KK- und Gemeindeabrechnung, Bexio-Integration — für alle Spitex-Dienste in der Schweiz.">
-    <meta property="og:image"       content="https://curasoft.ch/og-image.png">
+    <meta property="og:description" content="Einsatzplanung, Klientenverwaltung, Tiers-garant-Abrechnung und KI-Rapporte — für alle Spitex-Dienste in der Schweiz. Ab CHF 250/Monat.">
 
     {{-- ── Twitter Card ──────────────────────────────────────────────────── --}}
     <meta name="twitter:card"        content="summary_large_image">
     <meta name="twitter:title"       content="CuraSoft — Die Spitex-Software für die ganze Schweiz">
-    <meta name="twitter:description" content="Kantonsübergreifende Einsatzplanung, direkte KK- und Gemeindeabrechnung, Bexio-Integration — einfach, sicher, schweizweit.">
-    <meta name="twitter:image"       content="https://curasoft.ch/og-image.png">
+    <meta name="twitter:description" content="Einsatzplanung, Klientenverwaltung, Tiers-garant-Abrechnung und KI-Rapporte — einfach, sicher, schweizweit. Ab CHF 250/Monat.">
 
     {{-- ── Schema.org Structured Data ──────────────────────────────────── --}}
     <script type="application/ld+json">
@@ -36,7 +34,7 @@
                 "@id": "https://curasoft.ch/#organization",
                 "name": "CuraSoft",
                 "url": "https://curasoft.ch",
-                "description": "CuraSoft ist die moderne Spitex-Software für alle 26 Schweizer Kantone — mit Einsatzplanung, direkter KK- und Gemeindeabrechnung und Bexio-Integration.",
+                "description": "CuraSoft ist die moderne Spitex-Software für alle 26 Schweizer Kantone — mit Einsatzplanung, Tiers-garant-Abrechnung, KI-Rapportierung und Bexio-Integration.",
                 "email": "mhn@itjob.ch",
                 "address": {
                     "@type": "PostalAddress",
