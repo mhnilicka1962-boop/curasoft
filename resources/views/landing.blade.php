@@ -762,10 +762,13 @@
                 Demo anfragen
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
-            <a href="#loesungen" class="btn-sekundaer">
-                Funktionen entdecken
+            <a href="#preise" class="btn-sekundaer">
+                Preise ansehen
             </a>
         </div>
+        <p style="font-size: 0.875rem; color: var(--text-hell); margin-top: 0.75rem;">
+            Kleine Spitex, kleine Kosten — ab CHF 250 / Monat, monatlich kündbar, keine Setup-Gebühr.
+        </p>
         <div class="hero-trust">
             <span class="hero-trust-item">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
