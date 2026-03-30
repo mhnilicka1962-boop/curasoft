@@ -203,7 +203,7 @@ class EinsaetzeGenerieren extends Command
         $anzahl = 0;
         $current = $ab->copy()->startOfDay();
 
-        while ($current->lte($bis) && $anzahl < 30) {
+        while ($current->lte($bis) && $anzahl < 5000) {
             $passt = match ($serie->rhythmus) {
                 'taeglich'     => true,
                 'woechentlich' => empty($wochentage) || in_array($current->dayOfWeek, $wochentage),
