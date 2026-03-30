@@ -431,15 +431,16 @@
 
             {{-- Bestehende Serien --}}
             @forelse($serien as $serie)
-            @php $aktiv = $serie->istAktiv(); @endphp
             <div style="padding: 0.625rem 0; border-bottom: 1px solid var(--cs-border); display: flex; align-items: flex-start; gap: 0.75rem; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 200px;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
                         <span style="font-weight: 600; font-size: 0.875rem;">{{ $serie->rhythmusLabel() }}</span>
-                        @if($aktiv)
+                        @if($serie->istGeplant())
+                            <span class="badge badge-info" style="font-size: 0.7rem;">Geplant</span>
+                        @elseif($serie->istAktiv())
                             <span class="badge badge-erfolg" style="font-size: 0.7rem;">Aktiv</span>
                         @else
-                            <span class="badge badge-grau" style="font-size: 0.7rem;">Beendet</span>
+                            <span class="badge badge-fehler" style="font-size: 0.7rem;">Beendet</span>
                         @endif
                     </div>
                     <div style="font-size: 0.8rem; color: var(--cs-text-hell); display: flex; gap: 0.75rem; flex-wrap: wrap;">
@@ -454,22 +455,6 @@
                 </div>
                 <div style="display: flex; gap: 0.375rem; align-items: center; flex-shrink: 0;">
                     <a href="{{ route('klienten.serien.edit', [$klient, $serie]) }}" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.6rem;">Bearbeiten</a>
-                    @if($aktiv)
-                    {{-- Beenden --}}
-                    <form method="POST" action="{{ route('klienten.serien.beenden', [$klient, $serie]) }}" style="display:flex; gap:0.25rem; align-items:center;">
-                        @csrf @method('PATCH')
-                        <input type="date" name="gueltig_bis" class="feld" style="font-size:0.75rem; padding:0.2rem 0.4rem; max-width:130px;"
-                            value="{{ today()->format('Y-m-d') }}" required>
-                        <button type="submit" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.6rem;"
-                            onclick="return confirm('Serie beenden und zukünftige geplante Einsätze löschen?')">Beenden</button>
-                    </form>
-                    @endif
-                    {{-- Löschen --}}
-                    <form method="POST" action="{{ route('klienten.serien.loeschen', [$klient, $serie]) }}"
-                        onsubmit="return confirm('Serie und alle Einsätze löschen? Nur möglich wenn keine Einsätze durchgeführt oder verrechnet wurden.')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-sekundaer" style="font-size:0.75rem; padding:0.2rem 0.6rem; color:var(--cs-fehler); border-color:var(--cs-fehler);">Löschen</button>
-                    </form>
                 </div>
             </div>
             @empty
@@ -545,6 +530,18 @@
                             <div>
                                 <label class="feld-label" style="font-size:0.75rem;">Bis (geplant)</label>
                                 <input type="time" name="zeit_bis" class="feld" step="300">
+                            </div>
+                        </div>
+
+                        {{-- Auto-Verlängerung --}}
+                        <div style="margin-bottom: 0.75rem;">
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.8125rem;">
+                                <input type="hidden" name="auto_verlaengern" value="0">
+                                <input type="checkbox" name="auto_verlaengern" value="1">
+                                <span>Automatisch verlängern</span>
+                            </label>
+                            <div style="font-size:0.75rem; color:var(--cs-text-hell); margin-top:0.2rem;">
+                                Cronjob generiert laufend neue Einsätze bis zum konfigurierten Vorlauf
                             </div>
                         </div>
 
@@ -1697,9 +1694,7 @@
             ->where('organisation_id', auth()->user()->organisation_id)
             ->orderByDesc('datum_von')
             ->get();
-        $aktiveTagespauschale = $tagespauschalen->first(fn($tp) =>
-            $tp->datum_von <= today() && $tp->datum_bis >= today()
-        );
+        $aktiveTagespauschale = $tagespauschalen->first(fn($tp) => $tp->istAktiv());
     @endphp
     <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
         <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
@@ -1718,7 +1713,7 @@
 
             @forelse($tagespauschalen as $tp)
             @php
-                $aktiv       = $tp->datum_von <= today() && $tp->datum_bis >= today();
+                $aktiv       = $tp->istAktiv();
                 $anzahlTage  = $tp->anzahlTage();
                 $verrechnet  = $tp->anzahlVerrechnet();
                 $offen       = $anzahlTage - $verrechnet;
@@ -1726,7 +1721,7 @@
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--cs-border); font-size: 0.875rem; gap: 0.75rem; flex-wrap: wrap;">
                 <div style="display: flex; gap: 0.625rem; align-items: center; flex-wrap: wrap; flex: 1;">
                     <span class="text-hell" style="white-space: nowrap;">
-                        {{ $tp->datum_von->format('d.m.Y') }} – {{ $tp->datum_bis->format('d.m.Y') }}
+                        {{ $tp->datum_von->format('d.m.Y') }} – {{ $tp->datum_bis?->format('d.m.Y') ?? '∞' }}
                     </span>
                     <span class="text-fett">CHF {{ number_format($tp->ansatz, 2, '.', "'") }}/Tag</span>
                     <span class="badge badge-grau" style="font-size: 0.7rem;">{{ $tp->rechnungstypLabel() }}</span>

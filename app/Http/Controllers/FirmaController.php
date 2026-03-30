@@ -25,7 +25,12 @@ class FirmaController extends Controller
 
         $hatRechnungen = \App\Models\Rechnung::where('organisation_id', $org->id)->exists();
 
-        return view('stammdaten.firma.index', compact('org', 'alleRegionen', 'orgRegionenMap', 'hatRechnungen'));
+        // Zähler: fehlende Einsätze bis Horizont (gleiche Logik wie Generator, nur zählen)
+        $vorlauf  = max(5, min(30, $org->einsatz_vorlauf_tage ?? 10));
+        $horizon  = today()->addDays($vorlauf);
+        $einsaetzeOffen = $this->zaehleFehlende($horizon);
+
+        return view('stammdaten.firma.index', compact('org', 'alleRegionen', 'orgRegionenMap', 'hatRechnungen', 'einsaetzeOffen', 'horizon'));
     }
 
     public function update(Request $request)
@@ -179,6 +184,265 @@ class FirmaController extends Controller
             return back()->with('erfolg', 'Bexio-Verbindung OK: ' . ($result['info'] ?? ''));
         }
         return back()->with('fehler', 'Bexio-Verbindung fehlgeschlagen: ' . ($result['fehler'] ?? 'Unbekannter Fehler'));
+    }
+
+    private function zaehleFehlende(\Carbon\Carbon $horizon): int
+    {
+        $orgId = auth()->user()->organisation_id;
+        $total = 0;
+
+        // Serien
+        $serien = \App\Models\Serie::whereHas('klient', fn($q) => $q->where('aktiv', true))
+            ->where('organisation_id', $orgId)
+            ->where('gueltig_ab', '<=', today())
+            ->where(fn($q) => $q
+                ->where('auto_verlaengern', true)
+                ->orWhere(fn($q2) => $q2
+                    ->where('auto_verlaengern', false)
+                    ->whereNotNull('gueltig_bis')
+                    ->where('gueltig_bis', '>', today())
+                )
+            )
+            ->get();
+
+        foreach ($serien as $serie) {
+            $serieHorizont = (!$serie->auto_verlaengern && $serie->gueltig_bis?->lt($horizon))
+                ? $serie->gueltig_bis
+                : $horizon;
+
+            $letzter = \App\Models\Einsatz::where('serie_id', $serie->id)
+                ->orderByDesc('datum')->value('datum');
+
+            $ab = $letzter
+                ? \Carbon\Carbon::parse($letzter)->addDay()
+                : \Carbon\Carbon::parse($serie->gueltig_ab)->max(today());
+
+            if ($ab->gt($serieHorizont)) continue;
+
+            $wochentage = array_map('intval', $serie->wochentage ?? []);
+            $current    = $ab->copy()->startOfDay();
+
+            while ($current->lte($serieHorizont)) {
+                $passt = match ($serie->rhythmus) {
+                    'taeglich'     => true,
+                    'woechentlich' => empty($wochentage) || in_array($current->dayOfWeek, $wochentage),
+                    default        => false,
+                };
+                if ($passt) $total++;
+                $current->addDay();
+            }
+        }
+
+        // Tagespauschalen
+        $pauschalen = \App\Models\Tagespauschale::whereHas('klient', fn($q) => $q->where('aktiv', true))
+            ->where('organisation_id', $orgId)
+            ->where('datum_von', '<=', today())
+            ->where(fn($q) => $q
+                ->where('auto_verlaengern', true)
+                ->orWhere(fn($q2) => $q2
+                    ->where('auto_verlaengern', false)
+                    ->whereNotNull('datum_bis')
+                    ->where('datum_bis', '>', today())
+                )
+            )
+            ->get();
+
+        foreach ($pauschalen as $tp) {
+            $tpBis = $tp->datum_bis?->lt($horizon) ? $tp->datum_bis : $horizon;
+
+            $letzter = \App\Models\Einsatz::where('tagespauschale_id', $tp->id)
+                ->orderByDesc('datum')->value('datum');
+
+            $ab = $letzter
+                ? \Carbon\Carbon::parse($letzter)->addDay()
+                : $tp->datum_von->copy();
+
+            if ($ab->gt($tpBis)) continue;
+
+            $total += $ab->copy()->startOfDay()->diffInDays($tpBis->copy()->startOfDay()) + 1;
+        }
+
+        return $total;
+    }
+
+    /** Einsatz-Vorlauf Einstellungen speichern */
+    public function einsatzVorlaufSpeichern(Request $request)
+    {
+        abort_unless(auth()->user()->rolle === 'admin', 403);
+
+        $request->validate([
+            'einsatz_vorlauf_tage' => ['required', 'integer', 'min:5', 'max:30'],
+        ]);
+
+        $this->org()->update([
+            'einsatz_vorlauf_tage' => $request->einsatz_vorlauf_tage,
+        ]);
+
+        return redirect(route('firma.index') . '#einsatz-generierung')->with('erfolg', 'Einsatz-Vorlauf gespeichert.');
+    }
+
+    /** Einsätze jetzt generieren (manuell) — max. 50 pro Klick */
+    public function einsaetzeJetztGenerieren()
+    {
+        abort_unless(auth()->user()->rolle === 'admin', 403);
+
+        $org     = $this->org();
+        $vorlauf = max(5, min(30, $org->einsatz_vorlauf_tage ?? 10));
+        $horizon = today()->addDays($vorlauf);
+
+        $serien = \App\Models\Serie::whereHas('klient', fn($q) => $q->where('aktiv', true))
+            ->where('gueltig_ab', '<=', today())
+            ->where(fn($q) => $q
+                ->where('auto_verlaengern', true)
+                ->orWhere(fn($q2) => $q2
+                    ->where('auto_verlaengern', false)
+                    ->whereNotNull('gueltig_bis')
+                    ->where('gueltig_bis', '>', today())
+                )
+            )
+            ->with('klient')
+            ->get();
+
+        $total        = 0;
+        $benutzerCache = [];
+
+        foreach ($serien as $serie) {
+            if ($total >= 50) break;
+
+            $serieHorizont = (!$serie->auto_verlaengern && $serie->gueltig_bis?->lt($horizon))
+                ? $serie->gueltig_bis
+                : $horizon;
+
+            $letzter = \App\Models\Einsatz::where('serie_id', $serie->id)
+                ->orderByDesc('datum')->value('datum');
+
+            $ab = $letzter
+                ? \Carbon\Carbon::parse($letzter)->addDay()
+                : \Carbon\Carbon::parse($serie->gueltig_ab)->max(today());
+
+            if ($ab->gt($serieHorizont)) continue;
+
+            $wochentage = array_map('intval', $serie->wochentage ?? []);
+            $leTyp      = $serie->leistungserbringer_typ ?? 'fachperson';
+            $benutzerId = $serie->benutzer_id;
+            $current    = $ab->copy()->startOfDay();
+
+            while ($current->lte($serieHorizont) && $total < 50) {
+                $passt = match ($serie->rhythmus) {
+                    'taeglich'     => true,
+                    'woechentlich' => empty($wochentage) || in_array($current->dayOfWeek, $wochentage),
+                    default        => false,
+                };
+
+                if ($passt) {
+                    $minuten = collect($serie->leistungsarten)->sum('minuten');
+                    $e = \App\Models\Einsatz::create([
+                        'organisation_id'        => $serie->organisation_id,
+                        'klient_id'              => $serie->klient_id,
+                        'benutzer_id'            => $benutzerId,
+                        'region_id'              => $serie->klient->region_id,
+                        'datum'                  => $current->format('Y-m-d'),
+                        'zeit_von'               => $serie->zeit_von,
+                        'zeit_bis'               => $serie->zeit_bis,
+                        'minuten'                => $minuten ?: null,
+                        'leistungserbringer_typ' => $leTyp,
+                        'bemerkung'              => $serie->bemerkung,
+                        'status'                 => 'geplant',
+                        'serie_id'               => $serie->id,
+                    ]);
+
+                    foreach ($serie->leistungsarten as $la) {
+                        \App\Models\EinsatzLeistungsart::create([
+                            'einsatz_id'      => $e->id,
+                            'leistungsart_id' => $la['id'],
+                            'minuten'         => $la['minuten'],
+                        ]);
+                    }
+
+                    if ($leTyp !== 'angehoerig' && $benutzerId) {
+                        if (!isset($benutzerCache[$benutzerId])) {
+                            $benutzerCache[$benutzerId] = \App\Models\Benutzer::find($benutzerId);
+                        }
+                        $ma   = $benutzerCache[$benutzerId];
+                        $tour = \App\Models\Tour::where('organisation_id', $serie->organisation_id)
+                            ->where('benutzer_id', $benutzerId)
+                            ->whereDate('datum', $current->format('Y-m-d'))
+                            ->first();
+                        if (!$tour) {
+                            $tour = \App\Models\Tour::create([
+                                'organisation_id' => $serie->organisation_id,
+                                'benutzer_id'     => $benutzerId,
+                                'datum'           => $current->format('Y-m-d'),
+                                'bezeichnung'     => 'Tour ' . ($ma?->vorname ?? '') . ' · ' . $current->format('d.m.Y'),
+                                'start_zeit'      => $e->zeit_von ?? '08:00:00',
+                                'status'          => 'geplant',
+                            ]);
+                        }
+                        $max = $tour->einsaetze()->max('tour_reihenfolge') ?? 0;
+                        $e->update(['tour_id' => $tour->id, 'tour_reihenfolge' => $max + 1]);
+                    }
+
+                    $total++;
+                }
+                $current->addDay();
+            }
+        }
+
+        // Tagespauschalen
+        if ($total < 50) {
+            $pauschalen = \App\Models\Tagespauschale::whereHas('klient', fn($q) => $q->where('aktiv', true))
+                ->where('datum_von', '<=', today())
+                ->where(fn($q) => $q
+                    ->where('auto_verlaengern', true)
+                    ->orWhere(fn($q2) => $q2
+                        ->where('auto_verlaengern', false)
+                        ->whereNotNull('datum_bis')
+                        ->where('datum_bis', '>', today())
+                    )
+                )
+                ->get();
+
+            foreach ($pauschalen as $tp) {
+                if ($total >= 50) break;
+
+                $tpBis = $tp->datum_bis?->lt($horizon) ? $tp->datum_bis : $horizon;
+
+                $letzter = \App\Models\Einsatz::where('tagespauschale_id', $tp->id)
+                    ->orderByDesc('datum')->value('datum');
+
+                $ab = $letzter
+                    ? \Carbon\Carbon::parse($letzter)->addDay()
+                    : $tp->datum_von->copy();
+
+                if ($ab->gt($tpBis)) continue;
+
+                $zustaendigId = $tp->klient?->zustaendig_id ?? $tp->erstellt_von;
+                $current      = $ab->copy()->startOfDay();
+
+                while ($current->lte($tpBis) && $total < 50) {
+                    \App\Models\Einsatz::create([
+                        'organisation_id'   => $tp->organisation_id,
+                        'klient_id'         => $tp->klient_id,
+                        'benutzer_id'       => $zustaendigId,
+                        'tagespauschale_id' => $tp->id,
+                        'datum'             => $current->format('Y-m-d'),
+                        'datum_bis'         => $current->format('Y-m-d'),
+                        'verrechnet'        => false,
+                        'status'            => $current->lt(today()) ? 'abgeschlossen' : 'geplant',
+                    ]);
+                    $current->addDay();
+                    $total++;
+                }
+            }
+        }
+
+        $org->update(['letzter_generierungs_lauf' => now()]);
+
+        $meldung = $total > 0
+            ? $total . ' Einsätze bis ' . $horizon->format('d.m.Y') . ' generiert.'
+            : 'Keine fehlenden Einsätze — alles aktuell bis ' . $horizon->format('d.m.Y') . '.';
+
+        return redirect(route('firma.index') . '#einsatz-generierung')->with('erfolg', $meldung);
     }
 
     /** Logo löschen */

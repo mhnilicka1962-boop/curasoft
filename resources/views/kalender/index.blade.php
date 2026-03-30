@@ -63,6 +63,7 @@
         <span class="legende-item"><span class="legende-dot" style="background:#16a34a"></span> Abgeschlossen</span>
         <span class="legende-item"><span class="legende-dot" style="background:#dc2626"></span> ⚠ Doppelb.</span>
         <span class="legende-item"><span class="legende-dot" style="background:#fbbf24; border:1px solid #d97706;"></span> Nicht zugeteilt</span>
+        <span class="legende-item"><span class="legende-dot" style="background:#fee2e2; border:1px solid #fca5a5;"></span> Keine Planung</span>
     </div>
     <button id="kl-ansicht-toggle" class="btn btn-sekundaer">Ansicht: Angestellte</button>
 </div>
@@ -85,10 +86,11 @@
 @push('scripts')
 @vite('resources/js/kalender.js')
 <script>
-    const mitarbeiter = @json($mitarbeiter->map(fn($m) => ['id' => $m->id, 'vorname' => $m->vorname, 'nachname' => $m->nachname]));
-    const klienten    = @json($klienten->map(fn($k) => ['id' => $k->id, 'vorname' => $k->vorname, 'nachname' => $k->nachname]));
+    const mitarbeiter       = @json($mitarbeiter->map(fn($m) => ['id' => $m->id, 'vorname' => $m->vorname, 'nachname' => $m->nachname]));
+    const klienten          = @json($klienten->map(fn($k) => ['id' => $k->id, 'vorname' => $k->vorname, 'nachname' => $k->nachname]));
+    const einsatzHorizont   = '{{ \App\Models\Organisation::find(auth()->user()->organisation_id)?->einsatz_vorlauf_tage ? today()->addDays(\App\Models\Organisation::find(auth()->user()->organisation_id)->einsatz_vorlauf_tage)->format('Y-m-d') : today()->addDays(10)->format('Y-m-d') }}';
     document.addEventListener('DOMContentLoaded', function() {
-        window.KalenderInit(mitarbeiter, klienten);
+        window.KalenderInit(mitarbeiter, klienten, einsatzHorizont);
     });
 </script>
 @endpush

@@ -17,12 +17,14 @@ class Organisation extends Model
         'druck_mit_firmendaten', 'rechnungsadresse_position', 'logo_ausrichtung',
         'aktiv',
         'bexio_api_key', 'bexio_mandant_id',
+        'einsatz_vorlauf_tage', 'letzter_generierungs_lauf',
     ];
 
     protected $casts = [
-        'aktiv'               => 'boolean',
-        'druck_mit_firmendaten' => 'boolean',
-        'bexio_api_key'       => 'encrypted', // nDSG: API-Schlüssel verschlüsselt in DB
+        'aktiv'                      => 'boolean',
+        'druck_mit_firmendaten'      => 'boolean',
+        'bexio_api_key'              => 'encrypted', // nDSG: API-Schlüssel verschlüsselt in DB
+        'letzter_generierungs_lauf'  => 'datetime',
     ];
 
     public function regionen()

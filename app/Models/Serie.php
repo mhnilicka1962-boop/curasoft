@@ -12,16 +12,17 @@ class Serie extends Model
     protected $fillable = [
         'id', 'organisation_id', 'klient_id', 'benutzer_id',
         'rhythmus', 'wochentage', 'leistungsarten',
-        'gueltig_ab', 'gueltig_bis',
+        'gueltig_ab', 'gueltig_bis', 'auto_verlaengern',
         'zeit_von', 'zeit_bis',
         'leistungserbringer_typ', 'verordnung_id', 'bemerkung',
     ];
 
     protected $casts = [
-        'wochentage'    => 'array',
-        'leistungsarten' => 'array',
-        'gueltig_ab'    => 'date',
-        'gueltig_bis'   => 'date',
+        'wochentage'      => 'array',
+        'leistungsarten'  => 'array',
+        'gueltig_ab'      => 'date',
+        'gueltig_bis'     => 'date',
+        'auto_verlaengern' => 'boolean',
     ];
 
     protected $table = 'serien';
@@ -54,6 +55,12 @@ class Serie extends Model
 
     public function istAktiv(): bool
     {
-        return !$this->gueltig_bis || $this->gueltig_bis->isFuture();
+        return $this->gueltig_ab->lte(today())
+            && (!$this->gueltig_bis || $this->gueltig_bis->gt(today()));
+    }
+
+    public function istGeplant(): bool
+    {
+        return $this->gueltig_ab->gt(today());
     }
 }

@@ -557,4 +557,49 @@ function kantonBearbeiten(regionId, kuerzel, zsrNr, iban, postcheckkonto, esr, q
     </form>
 </div>
 
+{{-- Einsatz-Generierung --}}
+@if(auth()->user()->rolle === 'admin')
+<div class="karte" style="margin-top: 1.5rem;" id="einsatz-generierung">
+    <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Einsatz-Generierung</h2>
+
+    <form method="POST" action="{{ route('firma.einsatz-vorlauf.speichern') }}">
+        @csrf
+        <div style="display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+            <div>
+                <label class="feld-label">Vorlauf Tage <span class="text-hell" style="font-weight:400;">(min. 5, max. 30)</span></label>
+                <input type="number" name="einsatz_vorlauf_tage" class="feld" style="max-width: 100px;"
+                    value="{{ old('einsatz_vorlauf_tage', $org->einsatz_vorlauf_tage ?? 10) }}"
+                    min="5" max="30" required>
+            </div>
+            <button type="submit" class="btn btn-primaer">Speichern</button>
+        </div>
+        <div class="text-klein text-hell">
+            Der Cronjob generiert täglich Einsätze für alle aktiven Serien und Tagespauschalen bis zu diesem Vorlauf.
+        </div>
+    </form>
+
+    <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--cs-border); display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <form method="POST" action="{{ route('firma.einsaetze.generieren') }}">
+            @csrf
+            <button type="submit" class="btn btn-primaer">Jetzt generieren</button>
+        </form>
+        <span class="text-klein text-hell">max. 50 Einsätze pro Lauf</span>
+        <span class="text-klein" style="color: {{ $einsaetzeOffen > 0 ? 'var(--cs-fehler)' : 'var(--cs-erfolg)' }}; font-weight: 500;">
+            @if($einsaetzeOffen > 0)
+                {{ $einsaetzeOffen }} fehlende Einsätze bis {{ $horizon->format('d.m.Y') }}
+            @else
+                Alles aktuell bis {{ $horizon->format('d.m.Y') }}
+            @endif
+        </span>
+        @if($org->letzter_generierungs_lauf)
+            <span class="text-klein text-hell">
+                Zuletzt: {{ $org->letzter_generierungs_lauf->format('d.m.Y H:i') }} Uhr
+            </span>
+        @else
+            <span class="text-klein text-hell">Noch nicht gelaufen</span>
+        @endif
+    </div>
+</div>
+@endif
+
 </x-layouts.app>

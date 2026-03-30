@@ -36,17 +36,21 @@ class SerienController extends Controller
             'leistungsarten.*.id'      => ['required', 'exists:leistungsarten,id'],
             'leistungsarten.*.minuten' => ['required', 'integer', 'min:5'],
             'gueltig_ab'               => ['required', 'date'],
-            'gueltig_bis'              => ['required', 'date', 'after_or_equal:gueltig_ab'],
+            'gueltig_bis'              => ['required_if:auto_verlaengern,0', 'nullable', 'date', 'after_or_equal:gueltig_ab'],
+            'auto_verlaengern'         => ['boolean'],
             'zeit_von'                 => ['nullable', 'date_format:H:i'],
             'zeit_bis'                 => ['nullable', 'date_format:H:i'],
             'benutzer_id'              => ['nullable', 'exists:benutzer,id'],
             'leistungserbringer_typ'   => ['nullable', 'in:fachperson,angehoerig'],
             'bemerkung'                => ['nullable', 'string', 'max:500'],
+        ], [
+            'gueltig_bis.required_if' => 'Enddatum ist erforderlich wenn keine automatische Verlängerung aktiv ist.',
         ]);
 
-        $serieId    = (string) Str::uuid();
-        $benutzerId = $daten['benutzer_id'] ?? auth()->id();
-        $leTyp      = $daten['leistungserbringer_typ'] ?? 'fachperson';
+        $serieId        = (string) Str::uuid();
+        $benutzerId     = $daten['benutzer_id'] ?? auth()->id();
+        $leTyp          = $daten['leistungserbringer_typ'] ?? 'fachperson';
+        $autoVerlaengern = !empty($daten['auto_verlaengern']);
 
         Serie::create([
             'id'                     => $serieId,
@@ -58,20 +62,28 @@ class SerienController extends Controller
             'leistungsarten'         => $daten['leistungsarten'],
             'gueltig_ab'             => $daten['gueltig_ab'],
             'gueltig_bis'            => $daten['gueltig_bis'],
+            'auto_verlaengern'       => $autoVerlaengern,
             'zeit_von'               => $daten['zeit_von'] ?? null,
             'zeit_bis'               => $daten['zeit_bis'] ?? null,
             'leistungserbringer_typ' => $leTyp,
             'bemerkung'              => $daten['bemerkung'] ?? null,
         ]);
 
+        $org     = \App\Models\Organisation::find($this->orgId());
+        $vorlauf = $org?->einsatz_vorlauf_tage ?? 10;
+        $horizon = today()->addDays($vorlauf);
+        $bisDate = \Carbon\Carbon::parse($daten['gueltig_bis']);
+        $genBis  = $bisDate->lt($horizon) ? $bisDate : $horizon;
+
         $anzahl = $this->generiereEinsaetze(
             $serieId, $klient, $benutzerId, $daten,
             \Carbon\Carbon::parse($daten['gueltig_ab']),
-            \Carbon\Carbon::parse($daten['gueltig_bis'])
+            $genBis,
+            30
         );
 
         return redirect()->route('klienten.show', $klient)
-            ->with('erfolg', $anzahl . ' Einsatz' . ($anzahl !== 1 ? 'ätze' : '') . ' angelegt und Touren zugewiesen.');
+            ->with('erfolg', 'Serie erstellt — ' . $anzahl . ' Einsätze bis ' . $genBis->format('d.m.Y') . ' generiert (Vorlauf: ' . $vorlauf . ' Tage). Der Cronjob ergänzt laufend weitere.');
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -107,23 +119,30 @@ class SerienController extends Controller
             'leistungsarten'           => ['required', 'array', 'min:1'],
             'leistungsarten.*.id'      => ['required', 'exists:leistungsarten,id'],
             'leistungsarten.*.minuten' => ['required', 'integer', 'min:5'],
-            'gueltig_bis'              => ['nullable', 'date'],
+            'gueltig_ab'               => ['required', 'date'],
+            'gueltig_bis'              => ['required_if:auto_verlaengern,0', 'nullable', 'date', 'after_or_equal:gueltig_ab'],
+            'auto_verlaengern'         => ['boolean'],
             'zeit_von'                 => ['nullable', 'date_format:H:i'],
             'zeit_bis'                 => ['nullable', 'date_format:H:i'],
             'benutzer_id'              => ['nullable', 'exists:benutzer,id'],
             'leistungserbringer_typ'   => ['nullable', 'in:fachperson,angehoerig'],
             'bemerkung'                => ['nullable', 'string', 'max:500'],
+        ], [
+            'gueltig_bis.required_if' => 'Enddatum ist erforderlich wenn keine automatische Verlängerung aktiv ist.',
         ]);
 
-        $benutzerId = $daten['benutzer_id'] ?? auth()->id();
-        $gueltigBis = $daten['gueltig_bis'] ? \Carbon\Carbon::parse($daten['gueltig_bis']) : null;
+        $benutzerId      = $daten['benutzer_id'] ?? auth()->id();
+        $gueltigBis      = !empty($daten['gueltig_bis']) ? \Carbon\Carbon::parse($daten['gueltig_bis']) : null;
+        $autoVerlaengern = !empty($daten['auto_verlaengern']);
 
         // Serie-Record aktualisieren
         $serie->update([
+            'gueltig_ab'             => $daten['gueltig_ab'],
             'rhythmus'               => $daten['rhythmus'],
             'wochentage'             => ($daten['rhythmus'] === 'woechentlich') ? ($daten['wochentage'] ?? []) : null,
             'leistungsarten'         => $daten['leistungsarten'],
             'gueltig_bis'            => $gueltigBis,
+            'auto_verlaengern'       => $autoVerlaengern,
             'zeit_von'               => $daten['zeit_von'] ?? null,
             'zeit_bis'               => $daten['zeit_bis'] ?? null,
             'benutzer_id'            => $daten['benutzer_id'] ?? null,
@@ -134,12 +153,15 @@ class SerienController extends Controller
         // Alle zukünftigen geplanten Einsätze löschen + leere Touren bereinigen
         $this->loescheZukuenftigeEinsaetze($serie->id);
 
-        // Neu generieren ab heute
-        $ende   = $gueltigBis ?? today()->addMonths(3);
-        $anzahl = $this->generiereEinsaetze($serie->id, $klient, $benutzerId, $daten, today(), $ende);
+        // Neu generieren ab heute bis Horizon
+        $org     = \App\Models\Organisation::find($this->orgId());
+        $vorlauf = $org?->einsatz_vorlauf_tage ?? 10;
+        $horizon = today()->addDays($vorlauf);
+        $ende    = $gueltigBis ? ($gueltigBis->lt($horizon) ? $gueltigBis : $horizon) : $horizon;
+        $anzahl  = $this->generiereEinsaetze($serie->id, $klient, $benutzerId, $daten, today(), $ende, 30);
 
-        return redirect()->route('klienten.show', $klient)
-            ->with('erfolg', 'Serie aktualisiert — ' . $anzahl . ' zukünftige Einsätze neu generiert und Touren zugewiesen.');
+        return redirect()->route('klienten.serien.edit', [$klient, $serie])
+            ->with('erfolg', 'Serie gespeichert — ' . $anzahl . ' Einsätze bis ' . $ende->format('d.m.Y') . ' generiert (Vorlauf: ' . $vorlauf . ' Tage). Der Cronjob ergänzt laufend weitere.');
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -162,7 +184,26 @@ class SerienController extends Controller
             $meldung .= ' ' . $geloescht . ' Einsatz' . ($geloescht !== 1 ? 'ätze' : '') . ' gelöscht.';
         }
 
-        return redirect()->route('klienten.show', $klient)->with('erfolg', $meldung);
+        return redirect()->route('klienten.serien.edit', [$klient, $serie])->with('erfolg', $meldung);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // NEU STARTEN
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function neustart(Klient $klient, Serie $serie)
+    {
+        if ($serie->organisation_id !== $this->orgId()) abort(403);
+        if ($serie->klient_id !== $klient->id) abort(403);
+
+        $serie->update([
+            'gueltig_ab'       => today(),
+            'gueltig_bis'      => null,
+            'auto_verlaengern' => true,
+        ]);
+
+        return redirect()->route('klienten.serien.edit', [$klient, $serie])
+            ->with('erfolg', 'Serie neu gestartet — läuft ab heute automatisch weiter.');
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -202,7 +243,8 @@ class SerienController extends Controller
         int $benutzerId,
         array $daten,
         \Carbon\Carbon $von,
-        \Carbon\Carbon $bis
+        \Carbon\Carbon $bis,
+        int $maxEintraege = 30
     ): int {
         $minuten    = collect($daten['leistungsarten'])->sum('minuten');
         $wochentage = array_map('intval', $daten['wochentage'] ?? []);
@@ -210,7 +252,7 @@ class SerienController extends Controller
         $current    = $von->copy()->startOfDay();
         $anzahl     = 0;
 
-        while ($current->lte($bis) && $anzahl < 500) {
+        while ($current->lte($bis) && $anzahl < $maxEintraege) {
             $passt = match($daten['rhythmus']) {
                 'taeglich'     => true,
                 'woechentlich' => empty($wochentage) || in_array($current->dayOfWeek, $wochentage),

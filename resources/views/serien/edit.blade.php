@@ -12,22 +12,52 @@
     @endif
 
     <div class="karte">
+        @php
+            $serieAktiv    = $serie->istAktiv();
+            $serieGeplant  = $serie->istGeplant();
+            $serieAbgelaufen = !$serieAktiv && !$serieGeplant;
+        @endphp
+
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-            <div class="abschnitt-label" style="margin: 0;">Serie bearbeiten</div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="abschnitt-label" style="margin: 0;">Serie bearbeiten</div>
+                @if($serieGeplant)
+                    <span class="badge badge-info">Geplant</span>
+                @elseif($serieAktiv)
+                    <span class="badge badge-erfolg">Aktiv</span>
+                @else
+                    <span class="badge badge-fehler">Abgelaufen</span>
+                @endif
+            </div>
             <div style="display: flex; gap: 0.5rem;">
-                <button type="submit" form="serie-edit-form" class="btn btn-primaer">Speichern</button>
+                @if($serieAktiv || $serieGeplant)
+                    <button type="submit" form="serie-edit-form" class="btn btn-primaer">Speichern</button>
+                    <form method="POST" action="{{ route('klienten.serien.beenden', [$klient, $serie]) }}" style="display:inline;">
+                        @csrf @method('PATCH')
+                        <input type="hidden" name="gueltig_bis" value="{{ today()->subDay()->format('Y-m-d') }}">
+                        <button type="submit" class="btn btn-gefahr"
+                            onclick="return confirm('Serie wirklich beenden? Zukünftige Einsätze werden gelöscht.')">
+                            Serie beenden
+                        </button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('klienten.serien.neustart', [$klient, $serie]) }}" style="display:inline;">
+                        @csrf
+                        <button type="submit" class="btn btn-primaer">Serie neu starten</button>
+                    </form>
+                @endif
                 <a href="{{ route('klienten.show', $klient) }}" class="btn btn-sekundaer">Abbrechen</a>
             </div>
         </div>
 
         <div style="font-size: 0.8125rem; color: var(--cs-text-hell); margin-bottom: 1.25rem; padding: 0.625rem 0.875rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius);">
-            Gültig ab: <strong>{{ $serie->gueltig_ab->format('d.m.Y') }}</strong>
-            · Einsätze bisher: <strong>{{ $serie->einsaetze()->count() }}</strong>
+            Einsätze bisher: <strong>{{ $serie->einsaetze()->count() }}</strong>
             · Zukünftig geplant: <strong>{{ $serie->einsaetze()->whereDate('datum', '>=', today())->where('status','geplant')->count() }}</strong>
         </div>
 
         <form id="serie-edit-form" method="POST" action="{{ route('klienten.serien.aktualisieren', [$klient, $serie]) }}">
             @csrf @method('PUT')
+            <fieldset {{ $serieAbgelaufen ? 'disabled' : '' }} style="{{ $serieAbgelaufen ? 'opacity:0.5;' : '' }}">
 
             {{-- Rhythmus --}}
             <div style="margin-bottom: 0.875rem;">
@@ -94,12 +124,38 @@
                 </div>
             </div>
 
-            {{-- Gültig bis --}}
+            {{-- Auto-Verlängerung --}}
             <div style="margin-bottom: 0.875rem;">
-                <label class="feld-label">Gültig bis</label>
-                <input type="date" name="gueltig_bis" class="feld" style="max-width:200px;"
-                    value="{{ old('gueltig_bis', $serie->gueltig_bis?->format('Y-m-d')) }}">
-                <div class="text-klein text-hell" style="margin-top:0.25rem;">Leer lassen = unbegrenzt</div>
+                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                    <input type="hidden" name="auto_verlaengern" value="0">
+                    <input type="checkbox" name="auto_verlaengern" value="1" id="cb-auto-verlaengern"
+                        {{ old('auto_verlaengern', $serie->auto_verlaengern) ? 'checked' : '' }}
+                        onchange="toggleGueltigBis(this)">
+                    <span>Automatisch verlängern</span>
+                </label>
+                <div class="text-klein text-hell" style="margin-top:0.25rem;" id="hint-auto-verlaengern">
+                    @if(old('auto_verlaengern', $serie->auto_verlaengern))
+                        Serie läuft unbegrenzt — der Cronjob generiert automatisch neue Einsätze
+                    @else
+                        Serie endet am eingegebenen Datum — danach werden keine Einsätze mehr generiert
+                    @endif
+                </div>
+            </div>
+
+            {{-- Gültig ab / bis --}}
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.875rem;">
+                <div>
+                    <label class="feld-label">Startdatum <span style="color:var(--cs-fehler)">*</span></label>
+                    <input type="date" name="gueltig_ab" class="feld"
+                        value="{{ old('gueltig_ab', $serie->gueltig_ab->format('Y-m-d')) }}" required>
+                </div>
+                <div>
+                    <label class="feld-label">Enddatum</label>
+                    <input type="date" name="gueltig_bis" id="feld-gueltig-bis" class="feld"
+                        value="{{ old('gueltig_bis', $serie->gueltig_bis?->format('Y-m-d')) }}"
+                        {{ old('auto_verlaengern', $serie->auto_verlaengern) ? 'disabled' : 'required' }}
+                        style="{{ old('auto_verlaengern', $serie->auto_verlaengern) ? 'opacity:0.4;' : '' }}">
+                </div>
             </div>
 
             {{-- Mitarbeiter --}}
@@ -132,6 +188,7 @@
                 <textarea name="bemerkung" class="feld" rows="2" maxlength="500">{{ old('bemerkung', $serie->bemerkung) }}</textarea>
             </div>
 
+            </fieldset>
         </form>
     </div>
 
@@ -139,6 +196,17 @@
 
 @push('scripts')
 <script>
+function toggleGueltigBis(cb) {
+    const feld = document.getElementById('feld-gueltig-bis');
+    const hint = document.getElementById('hint-auto-verlaengern');
+    feld.disabled       = cb.checked;
+    feld.required       = !cb.checked;
+    feld.style.opacity  = cb.checked ? '0.4' : '1';
+    if (cb.checked) feld.value = '';
+    hint.textContent = cb.checked
+        ? 'Serie läuft unbegrenzt — der Cronjob generiert automatisch neue Einsätze'
+        : 'Serie endet am eingegebenen Datum — danach werden keine Einsätze mehr generiert';
+}
 function zeigeWochentage(sel) {
     document.getElementById('block-wochentage').style.display = sel.value === 'taeglich' ? 'none' : '';
 }

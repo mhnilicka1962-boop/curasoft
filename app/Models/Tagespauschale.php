@@ -11,13 +11,14 @@ class Tagespauschale extends Model
 
     protected $fillable = [
         'organisation_id', 'klient_id', 'rechnungstyp',
-        'datum_von', 'datum_bis', 'ansatz', 'text', 'erstellt_von',
+        'datum_von', 'datum_bis', 'auto_verlaengern', 'ansatz', 'text', 'erstellt_von',
     ];
 
     protected $casts = [
-        'datum_von' => 'date',
-        'datum_bis' => 'date',
-        'ansatz'    => 'decimal:4',
+        'datum_von'        => 'date',
+        'datum_bis'        => 'date',
+        'ansatz'           => 'decimal:4',
+        'auto_verlaengern' => 'boolean',
     ];
 
     public function klient()      { return $this->belongsTo(Klient::class); }
@@ -25,25 +26,54 @@ class Tagespauschale extends Model
     public function ersteller()   { return $this->belongsTo(Benutzer::class, 'erstellt_von'); }
     public function einsaetze()   { return $this->hasMany(Einsatz::class); }
 
-    /**
-     * Generiert 1 Einsatz pro Tag für den definierten Zeitraum.
-     */
-    public function generiereEinsaetze(): int
+    public function istAktiv(): bool
     {
-        $current = $this->datum_von->copy();
-        $bis     = $this->datum_bis->copy();
-        $anzahl  = 0;
+        return $this->datum_von->lte(today())
+            && (!$this->datum_bis || $this->datum_bis->gt(today()));
+    }
 
+    public function istGeplant(): bool
+    {
+        return $this->datum_von->gt(today());
+    }
+
+    public function istBeendet(): bool
+    {
+        return $this->datum_bis !== null && $this->datum_bis->lt(today());
+    }
+
+    /**
+     * Generiert fehlende Einsätze vom letzten vorhandenen bis zum Horizont.
+     * Startet bei datum_von wenn noch keine Einsätze existieren (inklusive Vergangenheit).
+     */
+    public function generiereFehlende(Carbon $horizon): int
+    {
         $zustaendigId = $this->klient?->zustaendig_id ?? $this->erstellt_von;
 
-        while ($current <= $bis) {
+        // Effective end: min(datum_bis, horizon)
+        $bis = $this->datum_bis
+            ? ($this->datum_bis->lt($horizon) ? $this->datum_bis : $horizon)
+            : $horizon;
+
+        // Letzten vorhandenen Einsatz finden
+        $letzter = $this->einsaetze()->orderByDesc('datum')->value('datum');
+        $ab = $letzter
+            ? Carbon::parse($letzter)->addDay()
+            : $this->datum_von->copy();
+
+        if ($ab->gt($bis)) return 0;
+
+        $anzahl  = 0;
+        $current = $ab->copy()->startOfDay();
+
+        while ($current->lte($bis)) {
             Einsatz::create([
                 'organisation_id'   => $this->organisation_id,
                 'klient_id'         => $this->klient_id,
                 'benutzer_id'       => $zustaendigId,
                 'tagespauschale_id' => $this->id,
-                'datum'             => $current->copy(),
-                'datum_bis'         => $current->copy(),
+                'datum'             => $current->format('Y-m-d'),
+                'datum_bis'         => $current->format('Y-m-d'),
                 'verrechnet'        => false,
                 'status'            => $current->lt(today()) ? 'abgeschlossen' : 'geplant',
             ]);
@@ -66,7 +96,7 @@ class Tagespauschale extends Model
     }
 
     /**
-     * Anzahl bereits verrechneter Einsätze — zeigt ob Tagespauschale aktiv genutzt wurde.
+     * Anzahl bereits verrechneter Einsätze.
      */
     public function anzahlVerrechnet(): int
     {
@@ -82,20 +112,22 @@ class Tagespauschale extends Model
     }
 
     /**
-     * Prüft ob ein gegebener Zeitraum mit einer anderen Tagespauschale
-     * desselben Klienten überlappt (exkl. dieser Instanz).
+     * Prüft ob ein Zeitraum mit einer anderen Tagespauschale desselben Klienten überlappt.
+     * Unterstützt null datum_bis (= kein Enddatum, läuft unbegrenzt).
      */
     public static function hatUeberlappung(
         int $klientId,
         int $organisationId,
         string $datumVon,
-        string $datumBis,
+        ?string $datumBis,
         ?int $excludeId = null
     ): bool {
         return static::where('klient_id', $klientId)
             ->where('organisation_id', $organisationId)
-            ->where('datum_von', '<=', $datumBis)
-            ->where('datum_bis', '>=', $datumVon)
+            // Bestehende muss vor dem neuen Enddatum beginnen (null = unbegrenzt → überlappend mit allem)
+            ->when($datumBis !== null, fn($q) => $q->where('datum_von', '<=', $datumBis))
+            // Bestehende muss nach dem neuen Startdatum enden (null = unbegrenzt → immer überlappend)
+            ->where(fn($q) => $q->whereNull('datum_bis')->orWhere('datum_bis', '>=', $datumVon))
             ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
             ->exists();
     }
@@ -112,6 +144,7 @@ class Tagespauschale extends Model
 
     public function anzahlTage(): int
     {
+        if (!$this->datum_bis) return 0;
         return $this->datum_von->diffInDays($this->datum_bis) + 1;
     }
 }

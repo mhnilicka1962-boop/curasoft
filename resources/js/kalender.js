@@ -4,7 +4,7 @@ import interactionPlugin      from '@fullcalendar/interaction';
 import deLocale               from '@fullcalendar/core/locales/de';
 
 // Globale Referenz für Blade-View
-window.KalenderInit = function(mitarbeiter, klienten) {
+window.KalenderInit = function(mitarbeiter, klienten, horizont) {
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
     const ressourcenAngestellte = [
@@ -38,7 +38,25 @@ window.KalenderInit = function(mitarbeiter, klienten) {
         },
         resourceAreaHeaderContent: 'Angestellte',
         resources:  ressourcenAngestellte,
-        events:     '/kalender/einsaetze',
+        eventSources: [
+            '/kalender/einsaetze',
+            {
+                events: function(info, successCallback) {
+                    if (!horizont) { successCallback([]); return; }
+                    // Tag nach Horizont bis 2 Jahre voraus hellrot markieren
+                    const horizonDate = new Date(horizont);
+                    horizonDate.setDate(horizonDate.getDate() + 1);
+                    const bis = new Date(horizonDate);
+                    bis.setFullYear(bis.getFullYear() + 2);
+                    successCallback([{
+                        start:   horizonDate.toISOString().slice(0, 10),
+                        end:     bis.toISOString().slice(0, 10),
+                        display: 'background',
+                        color:   '#fee2e2',
+                    }]);
+                }
+            }
+        ],
         editable:   true,
         droppable:  true,
         slotMinTime: '06:00:00',

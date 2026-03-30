@@ -268,6 +268,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/klienten/{klient}/serien/{serie}/edit',          [SerienController::class, 'edit'])->name('klienten.serien.edit');
         Route::put('/klienten/{klient}/serien/{serie}',               [SerienController::class, 'update'])->name('klienten.serien.aktualisieren');
         Route::patch('/klienten/{klient}/serien/{serie}/beenden',     [SerienController::class, 'beenden'])->name('klienten.serien.beenden');
+        Route::post('/klienten/{klient}/serien/{serie}/neustart',    [SerienController::class, 'neustart'])->name('klienten.serien.neustart');
         Route::delete('/klienten/{klient}/serien/{serie}',            [SerienController::class, 'destroy'])->name('klienten.serien.loeschen');
         Route::get('/schnellerfassung',  [KlientenController::class, 'schnellerfassung'])->name('schnellerfassung');
         Route::post('/schnellerfassung', [KlientenController::class, 'schnellSpeichern'])->name('schnellerfassung.speichern');
@@ -343,7 +344,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/tagespauschalen/create',             [TagespauschaleController::class, 'create'])->name('tagespauschalen.create');
         Route::post('/tagespauschalen',                   [TagespauschaleController::class, 'store'])->name('tagespauschalen.store');
         Route::get('/tagespauschalen/{tagespauschale}',   [TagespauschaleController::class, 'show'])->name('tagespauschalen.show');
-        Route::patch('/tagespauschalen/{tagespauschale}', [TagespauschaleController::class, 'update'])->name('tagespauschalen.update');
+        Route::patch('/tagespauschalen/{tagespauschale}',          [TagespauschaleController::class, 'update'])->name('tagespauschalen.update');
+        Route::patch('/tagespauschalen/{tagespauschale}/beenden',  [TagespauschaleController::class, 'beenden'])->name('tagespauschalen.beenden');
+        Route::patch('/tagespauschalen/{tagespauschale}/neustart', [TagespauschaleController::class, 'neustart'])->name('tagespauschalen.neustart');
 
         // Personalabrechnung — Übersicht nur admin/buchhaltung
         Route::get('/personalabrechnung',              [PersonalabrechnungController::class, 'index'])->name('personalabrechnung.index');
@@ -392,6 +395,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/firma/logo', [FirmaController::class, 'logoLoeschen'])->name('firma.logo.loeschen');
         Route::post('/firma/bexio', [FirmaController::class, 'bexioSpeichern'])->name('firma.bexio.speichern');
         Route::get('/firma/bexio/testen', [FirmaController::class, 'bexioTesten'])->name('firma.bexio.testen');
+        Route::post('/firma/einsatz-vorlauf', [FirmaController::class, 'einsatzVorlaufSpeichern'])->name('firma.einsatz-vorlauf.speichern');
+        Route::post('/firma/einsaetze-generieren', [FirmaController::class, 'einsaetzeJetztGenerieren'])->name('firma.einsaetze.generieren');
 
         // Leistungsarten + Tarife
         Route::resource('/leistungsarten', LeistungsartenController::class)
