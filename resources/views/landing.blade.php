@@ -17,15 +17,11 @@
     <meta property="og:url"         content="https://curasoft.ch/">
     <meta property="og:title"       content="CuraSoft — Die Spitex-Software für die ganze Schweiz">
     <meta property="og:description" content="Einsatzplanung, Klientenverwaltung, Tiers-garant-Abrechnung und KI-Rapporte — für alle Spitex-Dienste in der Schweiz. Ab CHF 250/Monat.">
-    <meta property="og:image"       content="https://curasoft.ch/og-image.svg">
-    <meta property="og:image:width"  content="1200">
-    <meta property="og:image:height" content="630">
 
     {{-- ── Twitter Card ──────────────────────────────────────────────────── --}}
     <meta name="twitter:card"        content="summary_large_image">
     <meta name="twitter:title"       content="CuraSoft — Die Spitex-Software für die ganze Schweiz">
     <meta name="twitter:description" content="Einsatzplanung, Klientenverwaltung, Tiers-garant-Abrechnung und KI-Rapporte — einfach, sicher, schweizweit. Ab CHF 250/Monat.">
-    <meta name="twitter:image"       content="https://curasoft.ch/og-image.svg">
 
     {{-- ── Schema.org Structured Data ──────────────────────────────────── --}}
     <script type="application/ld+json">
