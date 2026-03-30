@@ -29,8 +29,10 @@ class FirmaController extends Controller
         $vorlauf  = max(5, min(30, $org->einsatz_vorlauf_tage ?? 10));
         $horizon  = today()->addDays($vorlauf);
         $einsaetzeOffen = $this->zaehleFehlende($horizon);
+        $generierungsLog = \Illuminate\Support\Facades\DB::table('generierungs_log')
+            ->orderByDesc('ausgefuehrt_at')->limit(10)->get();
 
-        return view('stammdaten.firma.index', compact('org', 'alleRegionen', 'orgRegionenMap', 'hatRechnungen', 'einsaetzeOffen', 'horizon'));
+        return view('stammdaten.firma.index', compact('org', 'alleRegionen', 'orgRegionenMap', 'hatRechnungen', 'einsaetzeOffen', 'horizon', 'generierungsLog'));
     }
 
     public function update(Request $request)
@@ -437,6 +439,16 @@ class FirmaController extends Controller
         }
 
         $org->update(['letzter_generierungs_lauf' => now()]);
+
+        \Illuminate\Support\Facades\DB::table('generierungs_log')->insert([
+            'ausgefuehrt_at'      => now(),
+            'einsaetze_generiert' => $total,
+            'fehler'              => 0,
+            'via'                 => 'manuell',
+            'meldung'             => null,
+            'created_at'          => now(),
+            'updated_at'          => now(),
+        ]);
 
         $meldung = $total > 0
             ? $total . ' Einsätze bis ' . $horizon->format('d.m.Y') . ' generiert.'

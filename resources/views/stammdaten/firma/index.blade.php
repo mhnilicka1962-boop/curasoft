@@ -599,6 +599,48 @@ function kantonBearbeiten(regionId, kuerzel, zsrNr, iban, postcheckkonto, esr, q
             <span class="text-klein text-hell">Noch nicht gelaufen</span>
         @endif
     </div>
+
+    {{-- Generierungs-Log --}}
+    @if($generierungsLog->isNotEmpty())
+    <div style="margin-top: 1rem;">
+        <div class="text-klein text-hell" style="margin-bottom: 0.375rem;">Protokoll (letzte 10 Läufe)</div>
+        <table class="tabelle" style="font-size: 0.8125rem;">
+            <thead>
+                <tr>
+                    <th>Zeit</th>
+                    <th class="text-mitte">Via</th>
+                    <th class="text-rechts">Generiert</th>
+                    <th class="text-mitte">Status</th>
+                    <th>Meldung</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($generierungsLog as $log)
+                <tr>
+                    <td style="white-space: nowrap;">{{ \Carbon\Carbon::parse($log->ausgefuehrt_at)->format('d.m.Y H:i') }}</td>
+                    <td class="text-mitte">
+                        @if($log->via === 'manuell')
+                            <span class="badge badge-grau" style="font-size: 0.7rem;">manuell</span>
+                        @else
+                            <span class="badge badge-info" style="font-size: 0.7rem; background:#e0f2fe; color:#0369a1;">auto</span>
+                        @endif
+                    </td>
+                    <td class="text-rechts">{{ $log->einsaetze_generiert }}</td>
+                    <td class="text-mitte">
+                        @if($log->fehler > 0)
+                            <span class="badge badge-gefahr" style="font-size: 0.7rem;">{{ $log->fehler }} Fehler</span>
+                        @else
+                            <span class="badge badge-erfolg" style="font-size: 0.7rem;">OK</span>
+                        @endif
+                    </td>
+                    <td class="text-hell">{{ $log->meldung ?? '—' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
+</div>
 </div>
 @endif
 

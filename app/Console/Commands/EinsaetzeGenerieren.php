@@ -147,6 +147,17 @@ class EinsaetzeGenerieren extends Command
         // Letzten Lauf festhalten
         $org->update(['letzter_generierungs_lauf' => now()]);
 
+        // Log-Eintrag schreiben
+        DB::table('generierungs_log')->insert([
+            'ausgefuehrt_at'      => now(),
+            'einsaetze_generiert' => $totalGeneriert,
+            'fehler'              => $fehler,
+            'via'                 => 'auto',
+            'meldung'             => $fehler > 0 ? "{$fehler} Fehler beim Generieren" : null,
+            'created_at'          => now(),
+            'updated_at'          => now(),
+        ]);
+
         $this->line("   ✓ {$totalGeneriert} Einsätze generiert" . ($fehler > 0 ? ", {$fehler} Fehler" : ''));
 
         if ($fehler > 0) {
