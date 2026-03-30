@@ -70,7 +70,7 @@ $out .= 'echo count($passkeys)." Passkey(s) gesichert\n\n";' . "\n\n";
 // Organisation updaten
 $orgSets = [];
 foreach ($org as $col => $val) {
-    if ($col === 'id' || $col === 'created_at') continue;
+    if (in_array($col, ['id', 'created_at', 'logo_pfad', 'is_demo'])) continue;
     $isBool = in_array($col, $orgBoolCols);
     $orgSets[] = '"' . $col . '"=' . escVal($val, $isBool);
 }
