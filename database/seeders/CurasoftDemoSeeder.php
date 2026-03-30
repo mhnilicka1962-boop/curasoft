@@ -50,6 +50,13 @@ class CurasoftDemoSeeder extends Seeder
             $this->command->error('Keine Organisation gefunden. Zuerst Setup ausführen.');
             return;
         }
+
+        if (!$org->is_demo) {
+            $this->command->error('⛔ SCHUTZ: is_demo=false — CurasoftDemoSeeder darf auf dieser DB nicht ausgeführt werden!');
+            $this->command->error('   Nur auf Demo- und Testumgebungen erlaubt.');
+            return;
+        }
+
         $this->orgId = $org->id;
 
         DB::transaction(function () {
