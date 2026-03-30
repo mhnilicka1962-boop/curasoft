@@ -791,6 +791,10 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 13 Jahre Praxiserfahrung
             </span>
+            <span class="hero-trust-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Ab CHF 250 / Monat — monatlich kündbar
+            </span>
         </div>
     </div>
 </section>
@@ -911,6 +915,82 @@
                 <p>Kalender-Übersicht mit Drag &amp; Drop — alle Mitarbeitenden auf einen Blick. Doppelbelegungen werden sofort rot markiert. Wochen-, 2-Wochen- und Monatsansicht.</p>
             </div>
         </div>
+    </div>
+</section>
+
+{{-- ── Preismodell ──────────────────────────────────────────────────────── --}}
+<section class="preismodell" id="preise">
+    <div class="container">
+        <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
+            <p class="section-label">Preise</p>
+            <h2 class="section-title">Transparente Preise — ohne Überraschungen</h2>
+            <p class="section-lead">Pro Monat, inkl. Updates, Support und allen Funktionen. Keine Setup-Gebühr.</p>
+        </div>
+        <p style="text-align: center; font-size: 0.9375rem; color: var(--text-hell); margin-bottom: 2rem;">Alle Pläne inkl. Tiers-garant-Abrechnung — die einfache, direkte Lösung für die meisten Spitex-Dienste.</p>
+        <div class="preis-grid">
+
+            {{-- Starter --}}
+            <div class="preis-karte">
+                <div class="preis-karte-name">Starter</div>
+                <div class="preis-karte-betrag">CHF 250 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 10 Klienten</div>
+                <ul class="preis-karte-liste">
+                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
+                    <li><span class="check-gruen">✓</span> E-Mail Support</li>
+                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
+                </ul>
+                <a href="#kontakt" class="btn-preis">Anfragen</a>
+            </div>
+
+            {{-- Professional (Beliebteste Wahl) --}}
+            <div class="preis-karte beliebt">
+                <span class="beliebt-badge">Beliebteste Wahl</span>
+                <div class="preis-karte-name">Professional</div>
+                <div class="preis-karte-betrag">CHF 490 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 30 Klienten</div>
+                <ul class="preis-karte-liste">
+                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
+                    <li><span class="check-gruen">✓</span> Priority Support</li>
+                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
+                </ul>
+                <a href="#kontakt" class="btn-preis">Anfragen</a>
+            </div>
+
+            {{-- Business --}}
+            <div class="preis-karte">
+                <div class="preis-karte-name">Business</div>
+                <div class="preis-karte-betrag">CHF 790 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 75 Klienten</div>
+                <ul class="preis-karte-liste">
+                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
+                    <li><span class="check-gruen">✓</span> Telefon-Support</li>
+                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
+                </ul>
+                <a href="#kontakt" class="btn-preis">Anfragen</a>
+            </div>
+
+            {{-- Enterprise --}}
+            <div class="preis-karte">
+                <div class="preis-karte-name">Enterprise</div>
+                <div class="preis-karte-betrag">CHF 1'290 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 200 Klienten</div>
+                <ul class="preis-karte-liste">
+                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
+                    <li><span class="check-gruen">✓</span> Dedizierter Support</li>
+                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
+                </ul>
+                <a href="#kontakt" class="btn-preis">Anfragen</a>
+            </div>
+
+        </div>
+        <p class="preis-enterprise-link">
+            Über 200 Klienten oder Tiers-payant-Abrechnung? <a href="#kontakt">Individuelles Angebot anfragen →</a>
+        </p>
+        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar.</p>
     </div>
 </section>
 
@@ -1192,82 +1272,6 @@
             </div>
             <p style="font-size: 0.8125rem; color: #64748b;">Klienten mit Krankengeschichte, Touren, abgeschlossene Rechnungsläufe — so nah an der Realität wie möglich.</p>
         </div>
-    </div>
-</section>
-
-{{-- ── Preismodell ──────────────────────────────────────────────────────── --}}
-<section class="preismodell" id="preise">
-    <div class="container">
-        <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
-            <p class="section-label">Preise</p>
-            <h2 class="section-title">Transparente Preise — ohne Überraschungen</h2>
-            <p class="section-lead">Pro Monat, inkl. Updates, Support und allen Funktionen. Keine Setup-Gebühr.</p>
-        </div>
-        <p style="text-align: center; font-size: 0.9375rem; color: var(--text-hell); margin-bottom: 2rem;">Alle Pläne inkl. Tiers-garant-Abrechnung — die einfache, direkte Lösung für die meisten Spitex-Dienste.</p>
-        <div class="preis-grid">
-
-            {{-- Starter --}}
-            <div class="preis-karte">
-                <div class="preis-karte-name">Starter</div>
-                <div class="preis-karte-betrag">CHF 250 <span>/ Monat</span></div>
-                <div class="preis-karte-klienten">bis 10 Klienten</div>
-                <ul class="preis-karte-liste">
-                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
-                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
-                    <li><span class="check-gruen">✓</span> E-Mail Support</li>
-                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
-                </ul>
-                <a href="#kontakt" class="btn-preis">Anfragen</a>
-            </div>
-
-            {{-- Professional (Beliebteste Wahl) --}}
-            <div class="preis-karte beliebt">
-                <span class="beliebt-badge">Beliebteste Wahl</span>
-                <div class="preis-karte-name">Professional</div>
-                <div class="preis-karte-betrag">CHF 490 <span>/ Monat</span></div>
-                <div class="preis-karte-klienten">bis 30 Klienten</div>
-                <ul class="preis-karte-liste">
-                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
-                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
-                    <li><span class="check-gruen">✓</span> Priority Support</li>
-                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
-                </ul>
-                <a href="#kontakt" class="btn-preis">Anfragen</a>
-            </div>
-
-            {{-- Business --}}
-            <div class="preis-karte">
-                <div class="preis-karte-name">Business</div>
-                <div class="preis-karte-betrag">CHF 790 <span>/ Monat</span></div>
-                <div class="preis-karte-klienten">bis 75 Klienten</div>
-                <ul class="preis-karte-liste">
-                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
-                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
-                    <li><span class="check-gruen">✓</span> Telefon-Support</li>
-                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
-                </ul>
-                <a href="#kontakt" class="btn-preis">Anfragen</a>
-            </div>
-
-            {{-- Enterprise --}}
-            <div class="preis-karte">
-                <div class="preis-karte-name">Enterprise</div>
-                <div class="preis-karte-betrag">CHF 1'290 <span>/ Monat</span></div>
-                <div class="preis-karte-klienten">bis 200 Klienten</div>
-                <ul class="preis-karte-liste">
-                    <li><span class="check-gruen">✓</span> Alle Funktionen</li>
-                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
-                    <li><span class="check-gruen">✓</span> Dedizierter Support</li>
-                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
-                </ul>
-                <a href="#kontakt" class="btn-preis">Anfragen</a>
-            </div>
-
-        </div>
-        <p class="preis-enterprise-link">
-            Über 200 Klienten oder Tiers-payant-Abrechnung? <a href="#kontakt">Individuelles Angebot anfragen →</a>
-        </p>
-        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar.</p>
     </div>
 </section>
 
