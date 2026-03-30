@@ -23,6 +23,7 @@
             <a href="#script-lohnabrechnung" class="badge badge-info" style="text-decoration: none;">▶ Lohnabrechnung</a>
             <a href="#script-einsatz" class="badge badge-info" style="text-decoration: none;">▶ Einsatz erfassen</a>
             <a href="#kap-rapportierung" class="badge badge-info" style="text-decoration: none;">▶ Rapportierung</a>
+            <a href="#script-serie" class="badge badge-info" style="text-decoration: none;">▶ Einsatzserie</a>
         </div>
     </div>
 
@@ -607,6 +608,55 @@
             </div>
         </div>
 
+        {{-- SCRIPT 11: Einsatzserie --}}
+        <div class="karte script-karte" id="script-serie" style="margin-bottom: 1.5rem;">
+            <div class="script-kopf" onclick="toggleScript('s11')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 1rem; font-weight: 600;">🔄 Einsatzserie einrichten</span>
+                    <span class="text-klein text-hell" style="margin-left: 0.75rem;">Wiederkehrende Einsätze automatisch generieren lassen</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span class="badge badge-grau text-klein" id="fortschritt-s11">0 / 5</span>
+                    <span id="pfeil-s11">▼</span>
+                </div>
+            </div>
+            <div id="body-s11" style="display: none; margin-top: 1rem;">
+                <div class="info-box" style="margin-bottom: 0.75rem; font-size: 0.875rem;">
+                    <strong>Konzept:</strong> Eine Serie generiert automatisch alle wiederkehrenden Einsätze. Mit «Automatisch verlängern» läuft die Serie unbegrenzt — der Cronjob füllt täglich neue Einsätze bis 10 Tage im Voraus auf. Kein manuelles Nacherfassen nötig.
+                </div>
+                <ol class="script-liste" data-script="s11">
+                    <li data-step="0">
+                        <label><input type="checkbox" data-script="s11" data-step="0">
+                            Klient öffnen → Sektion «Serien» → <strong>«+ Neue Serie»</strong>
+                        </label>
+                    </li>
+                    <li data-step="1">
+                        <label><input type="checkbox" data-script="s11" data-step="1">
+                            Rhythmus wählen (Wöchentlich / Täglich), Wochentage anklicken, Von/Bis-Zeit und Leistungsarten festlegen
+                        </label>
+                    </li>
+                    <li data-step="2">
+                        <label><input type="checkbox" data-script="s11" data-step="2">
+                            <strong>«Automatisch verlängern»</strong> aktivieren → Serie läuft unbegrenzt; oder Enddatum setzen für befristete Serie
+                        </label>
+                    </li>
+                    <li data-step="3">
+                        <label><input type="checkbox" data-script="s11" data-step="3">
+                            Mitarbeiter zuweisen — bei Angehörigenpflege: Leistungserbringer «Pflegender Angehöriger» + Angehörigen wählen
+                        </label>
+                    </li>
+                    <li data-step="4">
+                        <label><input type="checkbox" data-script="s11" data-step="4">
+                            Serie speichern — Einsätze werden sofort bis Horizont generiert; danach täglich automatisch nachgefüllt
+                        </label>
+                    </li>
+                </ol>
+                <div style="margin-top: 0.75rem;">
+                    <button onclick="resetScript('s11')" class="btn btn-sekundaer" style="font-size: 0.8125rem;">Script zurücksetzen</button>
+                </div>
+            </div>
+        </div>
+
     </div>
     {{-- Ende Scripts --}}
 
@@ -722,7 +772,7 @@
             <tbody>
                 <tr><td><strong>Direkt tippen</strong></td><td>Text im Bericht-Feld eingeben</td><td>Kurze Einträge</td></tr>
                 <tr><td><strong>Diktieren in Bericht</strong></td><td>🎙 <strong>„Direkt in Bericht diktieren"</strong> antippen → sprechen → Stop</td><td>Schnelle Bericht-Erfassung</td></tr>
-                <tr><td><strong>KI Bericht schreiben</strong></td><td>Stichworte oben diktieren oder tippen → <strong>„✨ KI Bericht schreiben"</strong> klicken</td><td>Ausformulierter Bericht aus Stichworten</td></tr>
+                <tr><td><strong>KI Bericht schreiben</strong></td><td>Stichworte oben diktieren oder tippen (in <strong>beliebiger Sprache</strong>) → <strong>„✨ KI Bericht schreiben"</strong> klicken</td><td>Ausformulierter <strong>deutscher</strong> Bericht — egal in welcher Sprache diktiert wurde</td></tr>
             </tbody>
         </table>
         </div>
@@ -827,6 +877,12 @@
             <div><strong>Rechnung wurde doppelt erstellt?</strong><br>Den neueren Eintrag öffnen → «Stornieren»</div>
             <div class="abschnitt-trenn"></div>
             <div><strong>Rechnungslauf zeigt Klient nicht in der Vorschau?</strong><br>Mögliche Gründe: keine abgeschlossenen Einsätze (kein Check-out), alle Einsätze bereits verrechnet, oder der Klient ist inaktiv</div>
+            <div class="abschnitt-trenn"></div>
+            <div><strong>Serie beenden oder pausieren?</strong><br>Klient → Serien → Serie öffnen → <strong>«Serie beenden»</strong> — löscht alle zukünftigen Einsätze. Zum Neustart: <strong>«Serie neu starten»</strong></div>
+            <div class="abschnitt-trenn"></div>
+            <div><strong>KI schreibt Bericht auf Französisch / Serbisch / Englisch?</strong><br>Die KI schreibt den Bericht immer auf <strong>Deutsch</strong> — egal in welcher Sprache diktiert wurde. Einfach lossprechen.</div>
+            <div class="abschnitt-trenn"></div>
+            <div><strong>Wer hat was geändert?</strong><br><a href="{{ route('audit.index') }}" class="link-primaer">Audit-Log</a> → vollständige Protokollierung aller Aktionen mit Benutzer, Datum und Änderungsdetails</div>
         </div>
     </div>
 

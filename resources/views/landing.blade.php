@@ -862,13 +862,13 @@
             <div class="feature-card highlight">
                 <span class="feature-tag">Kernfunktion</span>
                 <div class="feature-icon">📄</div>
-                <h3>Direkte KK- & Gemeindeabrechnung</h3>
-                <p>Spitex verrechnet KK und Gemeinde direkt — Rechnungen auf Knopfdruck, automatische Tarifaufteilung garant/payant. XML 450.100 via MediData folgt.</p>
+                <h3>Abrechnung im Tiers-garant-Modell</h3>
+                <p>Standard: Spitex stellt Rechnung an den Klienten — automatische Tarifaufteilung, QR-Rechnung, Versand per E-Mail oder Post. Tiers payant auf Anfrage.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📅</div>
-                <h3>Einsatzplanung & Touren</h3>
-                <p>Wochenübersicht, Tourenplanung, Doppelbelegungen sofort erkennen. Wiederkehrende Einsätze mit einem Klick erstellen.</p>
+                <h3>Einsatzplanung & Serien</h3>
+                <p>Wochenübersicht, Tourenplanung, Doppelbelegungen sofort erkennen. Wiederkehrende Einsätze als Serie einrichten — der Cronjob generiert automatisch neue Einsätze täglich im Voraus.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">👤</div>
@@ -887,8 +887,13 @@
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📝</div>
-                <h3>Rapporte & Dokumentation</h3>
-                <p>Pflegebericht direkt nach dem Einsatz erfassen — auch unterwegs, synchronisiert sich automatisch.</p>
+                <h3>KI-Rapporte & Dokumentation</h3>
+                <p>Einsprechen in beliebiger Sprache — die KI erstellt daraus automatisch einen sauberen deutschen Bericht. Direkt nach dem Einsatz, auch unterwegs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👪</div>
+                <h3>Angehörigenpflege</h3>
+                <p>Pflegende Angehörige werden wie Mitarbeitende geführt — mit eigenem Login, Zeitnachweis und Lohnabrechnung. Einsätze direkt dem Angehörigen zuweisen.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🔒</div>
@@ -1116,8 +1121,8 @@
                 <div class="zahl-text">Mindestlaufzeit — monatlich kündbar</div>
             </div>
             <div>
-                <div class="zahl-gross">12 Monate</div>
-                <div class="zahl-text">Pilot — 40% Rabatt im ersten Jahr</div>
+                <div class="zahl-gross">0 CHF</div>
+                <div class="zahl-text">Setup-Gebühr — sofort startklar</div>
             </div>
             <div>
                 <div class="zahl-gross">Direkt</div>
@@ -1127,47 +1132,7 @@
     </div>
 </section>
 
-{{-- ── Pilot ────────────────────────────────────────────────────────────── --}}
-<section class="pilot">
-    <div class="container">
-        <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
-            <p class="section-label">Frühstarter-Angebot</p>
-            <h2 class="section-title">Jetzt einsteigen — 40% Rabatt im ersten Jahr</h2>
-            <p class="section-lead">
-                Wir suchen Spitex-Dienste, die das Produkt mit uns zusammen aufbauen.
-                Ihr Feedback prägt direkt, was als nächstes gebaut wird.
-            </p>
-        </div>
-        <div class="pilot-grid">
-            <div class="pilot-card">
-                <div class="pilot-icon">💰</div>
-                <h3>40% Rabatt — 1. Jahr</h3>
-                <p>Auf die gesamte Jahresrechnung. Danach zum regulären Preis.</p>
-            </div>
-            <div class="pilot-card">
-                <div class="pilot-icon">🎯</div>
-                <h3>Direkter Einfluss</h3>
-                <p>Sie entscheiden mit, was gebaut wird. Ca. 1 Stunde Feedback pro Monat.</p>
-            </div>
-            <div class="pilot-card">
-                <div class="pilot-icon">🤝</div>
-                <h3>Persönliche Betreuung</h3>
-                <p>Direkte Erreichbarkeit. Kein Ticketsystem, kein Callcenter.</p>
-            </div>
-            <div class="pilot-card">
-                <div class="pilot-icon">🔒</div>
-                <h3>Keine Mindestlaufzeit</h3>
-                <p>Monatlich kündbar. Keine versteckten Kosten.</p>
-            </div>
-        </div>
-        <div class="pilot-cta">
-            <a href="#kontakt" class="btn-primaer">
-                Jetzt Angebot anfragen
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </a>
-        </div>
-    </div>
-</section>
+{{-- Pilot-Sektion entfernt --}}
 
 {{-- ── Testimonials ──────────────────────────────────────────────────────── --}}
 <section id="testimonials" style="background: #f9fafb; padding: 5rem 1.5rem;">
@@ -1238,64 +1203,69 @@
             <h2 class="section-title">Transparente Preise — ohne Überraschungen</h2>
             <p class="section-lead">Pro Monat, inkl. Updates, Support und allen Funktionen. Keine Setup-Gebühr.</p>
         </div>
+        <p style="text-align: center; font-size: 0.9375rem; color: var(--text-hell); margin-bottom: 2rem;">Alle Pläne inkl. Tiers-garant-Abrechnung — die einfache, direkte Lösung für die meisten Spitex-Dienste.</p>
         <div class="preis-grid">
 
             {{-- Starter --}}
             <div class="preis-karte">
                 <div class="preis-karte-name">Starter</div>
-                <div class="preis-karte-betrag">CHF 150 <span>/ Monat</span></div>
-                <div class="preis-karte-klienten">bis 20 Klienten</div>
+                <div class="preis-karte-betrag">CHF 250 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 10 Klienten</div>
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
                     <li><span class="check-gruen">✓</span> E-Mail Support</li>
-                    <li><span class="check-gruen">✓</span> Updates inklusive</li>
+                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
                 </ul>
-                <a href="{{ route('login') }}" class="btn-preis">Jetzt starten</a>
+                <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
 
             {{-- Professional (Beliebteste Wahl) --}}
             <div class="preis-karte beliebt">
                 <span class="beliebt-badge">Beliebteste Wahl</span>
                 <div class="preis-karte-name">Professional</div>
-                <div class="preis-karte-betrag">CHF 290 <span>/ Monat</span></div>
-                <div class="preis-karte-klienten">bis 50 Klienten</div>
+                <div class="preis-karte-betrag">CHF 490 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 30 Klienten</div>
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
                     <li><span class="check-gruen">✓</span> Priority Support</li>
-                    <li><span class="check-gruen">✓</span> Updates inklusive</li>
+                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
                 </ul>
-                <a href="{{ route('login') }}" class="btn-preis">Jetzt starten</a>
+                <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
 
             {{-- Business --}}
             <div class="preis-karte">
                 <div class="preis-karte-name">Business</div>
-                <div class="preis-karte-betrag">CHF 490 <span>/ Monat</span></div>
-                <div class="preis-karte-klienten">bis 100 Klienten</div>
+                <div class="preis-karte-betrag">CHF 790 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 75 Klienten</div>
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
                     <li><span class="check-gruen">✓</span> Telefon-Support</li>
-                    <li><span class="check-gruen">✓</span> Updates inklusive</li>
+                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
                 </ul>
-                <a href="{{ route('login') }}" class="btn-preis">Jetzt starten</a>
+                <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
 
             {{-- Enterprise --}}
             <div class="preis-karte">
                 <div class="preis-karte-name">Enterprise</div>
-                <div class="preis-karte-betrag">CHF 790 <span>/ Monat</span></div>
+                <div class="preis-karte-betrag">CHF 1'290 <span>/ Monat</span></div>
                 <div class="preis-karte-klienten">bis 200 Klienten</div>
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
+                    <li><span class="check-gruen">✓</span> Tiers-garant-Abrechnung</li>
                     <li><span class="check-gruen">✓</span> Dedizierter Support</li>
-                    <li><span class="check-gruen">✓</span> Updates inklusive</li>
+                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
                 </ul>
-                <a href="{{ route('login') }}" class="btn-preis">Jetzt starten</a>
+                <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
 
         </div>
         <p class="preis-enterprise-link">
-            Über 200 Klienten? <a href="#kontakt">Kontakt für individuelles Angebot →</a>
+            Über 200 Klienten oder Tiers-payant-Abrechnung? <a href="#kontakt">Individuelles Angebot anfragen →</a>
         </p>
         <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar.</p>
     </div>
@@ -1318,7 +1288,7 @@
                 </button>
                 <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                     <div class="faq-antwort-inner" itemprop="text">
-                        In der Regel 2 bis 4 Wochen — je nach Grösse der Organisation. Wir begleiten Sie persönlich beim Einrichten: Stammdaten, Kantonstariife, erste Klienten, erster Rechnungslauf. Kein Ticketsystem, kein Callcenter — Sie haben eine direkte Ansprechperson.
+                        In der Regel 2 bis 3 Stunden — der geführte Lernpfad direkt in der App führt Sie durch alle Schritte. Wir begleiten Sie persönlich beim Einrichten: Stammdaten, Kantonstariife, erste Klienten, erster Rechnungslauf. Kein Ticketsystem, kein Callcenter — Sie haben eine direkte Ansprechperson.
                     </div>
                 </div>
             </div>
@@ -1354,7 +1324,7 @@
                 </button>
                 <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                     <div class="faq-antwort-inner" itemprop="text">
-                        Sie starten am Monatsende einen Rechnungslauf — CuraSoft berechnet alle Einsätze, wendet die korrekten Kantonstariife an und erstellt Rechnungen für Patienten, Krankenkassen und Gemeinden. Die Tarifaufteilung garant/payant erfolgt automatisch. Rechnungen werden als PDF erstellt und können per Post, E-Mail oder manuell versandt werden. XML 450.100 via MediData folgt.
+                        Standard ist das Tiers-garant-Modell: die Spitex stellt dem Klienten Rechnung — dieser rechnet mit seiner Krankenkasse ab. CuraSoft berechnet alle Einsätze, wendet die korrekten Kantonstariife an und erstellt die Rechnungen automatisch. Versand per PDF per Post oder E-Mail, inkl. QR-Rechnung. Tiers payant (direkte KK-Abrechnung) auf Anfrage.
                     </div>
                 </div>
             </div>

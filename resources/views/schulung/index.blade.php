@@ -35,11 +35,11 @@
             ['nr' => 3, 'dauer' => '10 min', 'titel' => 'Mitarbeiterin einladen', 'beschreibung' => 'E-Mail eingeben → Einladungslink automatisch versendet → fertig', 'links' => [
                 ['label' => 'Mitarbeitende', 'route' => 'mitarbeiter.index'],
             ]],
-            ['nr' => 4, 'dauer' => '10 min', 'titel' => 'Einsatz planen', 'beschreibung' => 'Klient + Mitarbeiterin + Datum + Zeit → Einsatz erscheint im Kalender', 'links' => [
+            ['nr' => 4, 'dauer' => '10 min', 'titel' => 'Einsatz planen', 'beschreibung' => 'Klient + Mitarbeiterin + Datum + Zeit → Einsatz erscheint im Kalender. Wiederkehrende Einsätze als Serie anlegen mit automatischer Verlängerung — kein manuelles Nacherfassen.', 'links' => [
                 ['label' => 'Einsatz erstellen', 'route' => 'einsaetze.create'],
                 ['label' => 'Kalender', 'route' => 'kalender.index'],
             ]],
-            ['nr' => 5, 'dauer' => '10 min', 'titel' => 'Rapport schreiben', 'beschreibung' => 'Nach dem Einsatz: Vor-Ort-Seite → Rapport → KI schreibt den Text automatisch', 'links' => [
+            ['nr' => 5, 'dauer' => '10 min', 'titel' => 'Rapport schreiben', 'beschreibung' => 'Nach dem Einsatz: Vor-Ort-Seite → Rapport → in beliebiger Sprache einsprechen → KI schreibt automatisch einen sauberen deutschen Bericht', 'links' => [
                 ['label' => 'Rapporte', 'route' => 'rapporte.index'],
             ]],
             ['nr' => 6, 'dauer' => '15 min', 'titel' => 'Monatliche Abrechnung', 'beschreibung' => 'Rechnungslauf → alle Klienten mit einem Klick abrechnen → PDF/XML → Versand', 'links' => [
@@ -171,6 +171,8 @@
         ['F', 'Kann ich das Handy verwenden?', 'Ja — die Vor-Ort-Ansicht ist für Mobile optimiert. Check-in, Rapport, Leistungen — alles geht am Telefon.'],
         ['F', 'Was ist der Unterschied Einsatz / Tour?', 'Einsatz = ein Besuch bei einem Klienten. Tour = Tagesroute einer Pflegerin mit mehreren Einsätzen. Eine Pflegerin hat eine Tour, darin mehrere Einsätze.'],
         ['F', 'Wie funktioniert die Abrechnung?', 'Monatsende: Rechnungslauf → alle Einsätze des Monats automatisch zu Rechnungen → PDF ausdrucken oder per E-Mail versenden.'],
+        ['F', 'Was ist eine Einsatzserie?', 'Eine Serie generiert automatisch alle wiederkehrenden Einsätze — z.B. jeden Montag und Mittwoch. Mit «Automatisch verlängern» läuft sie unbegrenzt weiter, ohne dass jemand manuell eingreifen muss.'],
+        ['F', 'Kann die Pflegerin in einer anderen Sprache diktieren?', 'Ja — die KI versteht beliebige Sprachen (Serbisch, Albanisch, Portugiesisch usw.) und schreibt den Bericht immer auf Deutsch.'],
         ['F', 'Was ist Tiers payant / Tiers garant?', 'Tiers payant: Krankenkasse bezahlt direkt. Tiers garant: Klient bezahlt, KK erstattet. Wird pro Klient/KK eingestellt.'],
         ['F', 'Wie ändere ich Tarife?', 'Einstellungen → Regionen → Kanton wählen → Tarif für Leistungsart anpassen. Alte Tarife bleiben als Historie gespeichert.'],
         ['F', 'Was ist Angehörigenpflege?', 'Familienangehörige werden als Mitarbeitende angestellt und pflegen ihre Verwandten gegen Lohn (CHF ~37.90/h). Die Spitex übernimmt Aufsicht und Lohnabrechnung.'],
