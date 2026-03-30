@@ -200,6 +200,9 @@
                         {{ $einsatz->benutzer?->vorname ?? '—' }} {{ $einsatz->benutzer?->nachname ?? '' }}
                         @if($einsatz->leistungserbringer_typ === 'angehoerig')
                             <span class="badge badge-info" style="font-size: 0.7rem; margin-left: 0.25rem;">Pfl. Angeh.</span>
+                            @if($einsatz->helfer)
+                                <span style="font-size: 0.8rem;">{{ $einsatz->helfer->vorname }} {{ $einsatz->helfer->nachname }}</span>
+                            @endif
                         @endif
                     </td>
                     <td style="padding: 0.625rem 1rem;">

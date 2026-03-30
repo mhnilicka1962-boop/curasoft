@@ -176,11 +176,26 @@
             {{-- Leistungserbringer --}}
             <div style="margin-bottom: 0.875rem;">
                 <label class="feld-label">Leistungserbringer</label>
-                <select name="leistungserbringer_typ" class="feld" style="max-width:260px;">
+                <select name="leistungserbringer_typ" id="leistungserbringer_typ_edit" class="feld" style="max-width:260px;" onchange="zeigeHelferBereich(this)">
                     <option value="fachperson" {{ old('leistungserbringer_typ', $serie->leistungserbringer_typ) === 'fachperson' ? 'selected' : '' }}>Fachperson</option>
                     <option value="angehoerig" {{ old('leistungserbringer_typ', $serie->leistungserbringer_typ) === 'angehoerig' ? 'selected' : '' }}>Pflegender Angehöriger</option>
                 </select>
             </div>
+
+            {{-- Helfer (pflegender Angehöriger) --}}
+            @if(isset($angehoerige) && $angehoerige->isNotEmpty())
+            <div id="helfer-bereich" style="margin-bottom: 0.875rem; {{ old('leistungserbringer_typ', $serie->leistungserbringer_typ) !== 'angehoerig' ? 'display:none;' : '' }}">
+                <label class="feld-label">Pflegender Angehöriger</label>
+                <select name="helfer_id" class="feld" style="max-width:320px;">
+                    <option value="">— kein Helfer —</option>
+                    @foreach($angehoerige as $a)
+                    <option value="{{ $a->id }}" {{ old('helfer_id', $serie->helfer_id) == $a->id ? 'selected' : '' }}>
+                        {{ $a->nachname }} {{ $a->vorname }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
 
             {{-- Bemerkung --}}
             <div style="margin-bottom: 0.875rem;">
@@ -206,6 +221,10 @@ function toggleGueltigBis(cb) {
     hint.textContent = cb.checked
         ? 'Serie läuft unbegrenzt — der Cronjob generiert automatisch neue Einsätze'
         : 'Serie endet am eingegebenen Datum — danach werden keine Einsätze mehr generiert';
+}
+function zeigeHelferBereich(sel) {
+    const bereich = document.getElementById('helfer-bereich');
+    if (bereich) bereich.style.display = sel.value === 'angehoerig' ? '' : 'none';
 }
 function zeigeWochentage(sel) {
     document.getElementById('block-wochentage').style.display = sel.value === 'taeglich' ? 'none' : '';

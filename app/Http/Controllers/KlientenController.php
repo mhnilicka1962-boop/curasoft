@@ -245,7 +245,7 @@ class KlientenController extends Controller
             ->where('datum', '>=', today())
             ->where('datum', '<=', today()->addDays(7))
             ->whereNotIn('status', ['storniert'])
-            ->with('benutzer', 'tour', 'einsatzLeistungsarten.leistungsart')
+            ->with('benutzer', 'helfer', 'tour', 'einsatzLeistungsarten.leistungsart')
             ->orderBy('datum')
             ->orderBy('zeit_von')
             ->get();
@@ -265,7 +265,7 @@ class KlientenController extends Controller
 
         $heute = today();
         $alle  = $klient->einsaetze()
-            ->with('einsatzLeistungsarten.leistungsart', 'benutzer', 'tour')
+            ->with('einsatzLeistungsarten.leistungsart', 'benutzer', 'helfer', 'tour')
             ->orderBy('datum')
             ->orderBy('zeit_von')
             ->get();

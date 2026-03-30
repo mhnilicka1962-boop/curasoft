@@ -217,6 +217,7 @@ class EinsaetzeGenerieren extends Command
                     'organisation_id'        => $serie->organisation_id,
                     'klient_id'              => $klient->id,
                     'benutzer_id'            => $benutzerId,
+                    'helfer_id'              => $serie->helfer_id ?? null,
                     'region_id'              => $klient->region_id,
                     'datum'                  => $current->format('Y-m-d'),
                     'zeit_von'               => $serie->zeit_von,

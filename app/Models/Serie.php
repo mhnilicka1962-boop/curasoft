@@ -10,7 +10,7 @@ class Serie extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'id', 'organisation_id', 'klient_id', 'benutzer_id',
+        'id', 'organisation_id', 'klient_id', 'benutzer_id', 'helfer_id',
         'rhythmus', 'wochentage', 'leistungsarten',
         'gueltig_ab', 'gueltig_bis', 'auto_verlaengern',
         'zeit_von', 'zeit_bis',
@@ -35,6 +35,11 @@ class Serie extends Model
     public function benutzer()
     {
         return $this->belongsTo(Benutzer::class);
+    }
+
+    public function helfer()
+    {
+        return $this->belongsTo(Benutzer::class, 'helfer_id');
     }
 
     public function einsaetze()

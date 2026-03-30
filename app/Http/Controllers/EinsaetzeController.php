@@ -45,7 +45,7 @@ class EinsaetzeController extends Controller
         $heute   = today();
         $ansicht = $request->get('ansicht', 'anstehend');
 
-        $q = Einsatz::with(['klient', 'benutzer', 'einsatzLeistungsarten.leistungsart'])
+        $q = Einsatz::with(['klient', 'benutzer', 'helfer', 'einsatzLeistungsarten.leistungsart'])
             ->where('organisation_id', $this->orgId());
 
         if ($rolle === 'pflege') {
@@ -162,8 +162,12 @@ class EinsaetzeController extends Controller
                             ? $b->nachname . ' ' . $b->vorname : '?',
             ])->values());
 
-        return view('einsaetze.form', compact('klienten', 'leistungsarten', 'mitarbeiter', 'angehoerigeMap'))
-            ->with('einsatz', new Einsatz());
+        $angehoerigenBenutzer = Benutzer::whereIn('id',
+            \App\Models\KlientBenutzer::where('klient_id', $einsatz->klient_id)
+                ->where('beziehungstyp', 'angehoerig_pflegend')->where('aktiv', true)->pluck('benutzer_id')
+        )->orderBy('nachname')->get();
+
+        return view('einsaetze.form', compact('einsatz', 'klienten', 'leistungsarten', 'mitarbeiter', 'angehoerigeMap', 'angehoerigenBenutzer'));
     }
 
     public function store(Request $request)

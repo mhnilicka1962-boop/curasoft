@@ -556,6 +556,28 @@
                                 @endforeach
                             </select>
                         </div>
+
+                        {{-- Leistungserbringer --}}
+                        <div style="margin-bottom: 0.75rem;">
+                            <label class="feld-label" style="font-size:0.75rem;">Leistungserbringer</label>
+                            <select name="leistungserbringer_typ" class="feld" style="max-width:260px;" onchange="zeigeSerieHelfer(this)">
+                                <option value="fachperson">Fachperson</option>
+                                <option value="angehoerig">Pflegender Angehöriger</option>
+                            </select>
+                        </div>
+
+                        {{-- Helfer --}}
+                        @if($pflegendeAngehoerige->isNotEmpty())
+                        <div id="serie-helfer-bereich" style="margin-bottom: 0.75rem; display:none;">
+                            <label class="feld-label" style="font-size:0.75rem;">Pflegender Angehöriger</label>
+                            <select name="helfer_id" class="feld">
+                                <option value="">— kein Helfer —</option>
+                                @foreach($pflegendeAngehoerige as $pa)
+                                <option value="{{ $pa->benutzer_id }}">{{ $pa->benutzer->nachname }} {{ $pa->benutzer->vorname }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
                         @endif
 
                         {{-- Preview + Submit --}}
@@ -601,8 +623,11 @@
                     {{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}
                 </span>
                 <span class="text-hell" style="font-size: 0.8rem; white-space: nowrap;">{{ $e->benutzer?->vorname }} {{ $e->benutzer?->nachname }}</span>
-                @if($e->benutzer?->anstellungsart === 'angehoerig')
-                    <span class="badge badge-grau" style="font-size: 0.7rem; white-space: nowrap;">Angehörig</span>
+                @if($e->leistungserbringer_typ === 'angehoerig')
+                    <span class="badge badge-grau" style="font-size: 0.7rem; white-space: nowrap;">Pfl. Angeh.</span>
+                    @if($e->helfer)
+                        <span class="text-hell" style="font-size: 0.8rem; white-space: nowrap;">{{ $e->helfer->vorname }} {{ $e->helfer->nachname }}</span>
+                    @endif
                 @elseif($e->tour)
                     <a href="{{ route('touren.show', $e->tour) }}" class="badge badge-primaer" style="font-size: 0.7rem; text-decoration: none; white-space: nowrap;">{{ $e->tour->bezeichnung }}</a>
                 @else
@@ -662,7 +687,12 @@
                     @if($e->benutzer)
                         <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
                     @endif
-                    @if($e->tour)
+                    @if($e->leistungserbringer_typ === 'angehoerig')
+                        <span class="badge badge-grau" style="font-size: 0.7rem;">Pfl. Angeh.</span>
+                        @if($e->helfer)
+                            <span class="text-hell" style="font-size: 0.8rem;">{{ $e->helfer->vorname }} {{ $e->helfer->nachname }}</span>
+                        @endif
+                    @elseif($e->tour)
                         <a href="{{ route('touren.show', $e->tour) }}" class="badge badge-primaer" style="font-size: 0.7rem; text-decoration: none;">{{ $e->tour->bezeichnung }}</a>
                     @elseif(!$e->tagespauschale_id && $e->status === 'geplant')
                         <span class="badge badge-warnung" style="font-size: 0.7rem;">⚠ Keine Tour</span>
@@ -702,6 +732,12 @@
                     @if($e->benutzer)
                         <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
                     @endif
+                    @if($e->leistungserbringer_typ === 'angehoerig')
+                        <span class="badge badge-grau" style="font-size: 0.7rem;">Pfl. Angeh.</span>
+                        @if($e->helfer)
+                            <span class="text-hell" style="font-size: 0.8rem;">{{ $e->helfer->vorname }} {{ $e->helfer->nachname }}</span>
+                        @endif
+                    @endif
                 </div>
                 <div style="display: flex; gap: 0.375rem; align-items: center; flex-shrink: 0;">
                     <span class="badge {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
@@ -729,6 +765,12 @@
                     <span>{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</span>
                     @if($e->benutzer)
                         <span class="text-hell" style="font-size: 0.8rem;">{{ $e->benutzer->vorname }} {{ $e->benutzer->nachname }}</span>
+                    @endif
+                    @if($e->leistungserbringer_typ === 'angehoerig')
+                        <span class="badge badge-grau" style="font-size: 0.7rem;">Pfl. Angeh.</span>
+                        @if($e->helfer)
+                            <span class="text-hell" style="font-size: 0.8rem;">{{ $e->helfer->vorname }} {{ $e->helfer->nachname }}</span>
+                        @endif
                     @endif
                 </div>
                 <div style="display: flex; gap: 0.375rem; align-items: center; flex-shrink: 0;">
@@ -1944,6 +1986,10 @@ if (window.location.hash === '#serien-abschnitt') {
 }
 
 // Serien-Formular JS
+function zeigeSerieHelfer(sel) {
+    const bereich = document.getElementById('serie-helfer-bereich');
+    if (bereich) bereich.style.display = sel.value === 'angehoerig' ? '' : 'none';
+}
 function zeigeSerieWochentage(sel) {
     document.getElementById('serie-wochentage').style.display = sel.value === 'woechentlich' ? '' : 'none';
     aktualisiereSeriePreview();

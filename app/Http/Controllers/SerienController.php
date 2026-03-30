@@ -41,6 +41,7 @@ class SerienController extends Controller
             'zeit_von'                 => ['nullable', 'date_format:H:i'],
             'zeit_bis'                 => ['nullable', 'date_format:H:i'],
             'benutzer_id'              => ['nullable', 'exists:benutzer,id'],
+            'helfer_id'                => ['nullable', 'exists:benutzer,id'],
             'leistungserbringer_typ'   => ['nullable', 'in:fachperson,angehoerig'],
             'bemerkung'                => ['nullable', 'string', 'max:500'],
         ], [
@@ -57,6 +58,7 @@ class SerienController extends Controller
             'organisation_id'        => $this->orgId(),
             'klient_id'              => $klient->id,
             'benutzer_id'            => $daten['benutzer_id'] ?? null,
+            'helfer_id'              => $daten['helfer_id'] ?? null,
             'rhythmus'               => $daten['rhythmus'],
             'wochentage'             => ($daten['rhythmus'] === 'woechentlich') ? ($daten['wochentage'] ?? []) : null,
             'leistungsarten'         => $daten['leistungsarten'],
@@ -98,8 +100,12 @@ class SerienController extends Controller
         $leistungsarten = Leistungsart::where('aktiv', true)->where('einheit', '!=', 'tage')->orderBy('bezeichnung')->get();
         $mitarbeiter    = Benutzer::where('organisation_id', $this->orgId())
             ->where('aktiv', true)->where('anstellungsart', '!=', 'angehoerig')->orderBy('nachname')->get();
+        $angehoerige    = Benutzer::whereIn('id',
+            \App\Models\KlientBenutzer::where('klient_id', $klient->id)
+                ->where('beziehungstyp', 'angehoerig_pflegend')->where('aktiv', true)->pluck('benutzer_id')
+        )->orderBy('nachname')->get();
 
-        return view('serien.edit', compact('klient', 'serie', 'leistungsarten', 'mitarbeiter'));
+        return view('serien.edit', compact('klient', 'serie', 'leistungsarten', 'mitarbeiter', 'angehoerige'));
     }
 
     public function update(Request $request, Klient $klient, Serie $serie)
@@ -125,6 +131,7 @@ class SerienController extends Controller
             'zeit_von'                 => ['nullable', 'date_format:H:i'],
             'zeit_bis'                 => ['nullable', 'date_format:H:i'],
             'benutzer_id'              => ['nullable', 'exists:benutzer,id'],
+            'helfer_id'                => ['nullable', 'exists:benutzer,id'],
             'leistungserbringer_typ'   => ['nullable', 'in:fachperson,angehoerig'],
             'bemerkung'                => ['nullable', 'string', 'max:500'],
         ], [
@@ -146,6 +153,7 @@ class SerienController extends Controller
             'zeit_von'               => $daten['zeit_von'] ?? null,
             'zeit_bis'               => $daten['zeit_bis'] ?? null,
             'benutzer_id'            => $daten['benutzer_id'] ?? null,
+            'helfer_id'              => $daten['helfer_id'] ?? null,
             'leistungserbringer_typ' => $daten['leistungserbringer_typ'] ?? 'fachperson',
             'bemerkung'              => $daten['bemerkung'] ?? null,
         ]);
@@ -249,6 +257,7 @@ class SerienController extends Controller
         $minuten    = collect($daten['leistungsarten'])->sum('minuten');
         $wochentage = array_map('intval', $daten['wochentage'] ?? []);
         $leTyp      = $daten['leistungserbringer_typ'] ?? 'fachperson';
+        $helferId   = $daten['helfer_id'] ?? null;
         $current    = $von->copy()->startOfDay();
         $anzahl     = 0;
 
@@ -264,6 +273,7 @@ class SerienController extends Controller
                     'organisation_id'        => $this->orgId(),
                     'klient_id'              => $klient->id,
                     'benutzer_id'            => $benutzerId,
+                    'helfer_id'              => $helferId,
                     'region_id'              => $klient->region_id,
                     'datum'                  => $current->format('Y-m-d'),
                     'zeit_von'               => $daten['zeit_von'] ?? null,
