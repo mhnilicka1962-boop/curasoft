@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CuraSoft ist die Spitex-Software für alle Kantone der Schweiz. Automatische Kantonstarife, direkte KK- und Gemeindeabrechnung, Einsatzplanung. Ab CHF 150/Monat. Jetzt testen.">
+    <meta name="description" content="CuraSoft ist die Spitex-Software für alle Kantone der Schweiz. Automatische Kantonstarife, Tiers-garant-Abrechnung, Einsatzplanung, KI-Rapporte. Ab CHF 250/Monat. Jetzt testen.">
     <meta name="keywords" content="Spitex Software Schweiz, Spitex Abrechnung, KVG Abrechnung, Spitex Einsatzplanung, Spitex Klientenverwaltung">
     <title>CuraSoft — Spitex-Software für die Schweiz | Alle 26 Kantone</title>
 
@@ -62,32 +62,19 @@
                     {
                         "@type": "Offer",
                         "name": "Starter",
-                        "price": "150",
+                        "price": "250",
                         "priceCurrency": "CHF",
                         "priceSpecification": {
                             "@type": "UnitPriceSpecification",
-                            "price": "150",
+                            "price": "250",
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
-                        "description": "Bis 20 Klienten, alle Funktionen, E-Mail Support"
+                        "description": "Bis 10 Klienten, alle Funktionen, E-Mail Support"
                     },
                     {
                         "@type": "Offer",
                         "name": "Professional",
-                        "price": "290",
-                        "priceCurrency": "CHF",
-                        "priceSpecification": {
-                            "@type": "UnitPriceSpecification",
-                            "price": "290",
-                            "priceCurrency": "CHF",
-                            "unitText": "Monat"
-                        },
-                        "description": "Bis 50 Klienten, alle Funktionen, Priority Support"
-                    },
-                    {
-                        "@type": "Offer",
-                        "name": "Business",
                         "price": "490",
                         "priceCurrency": "CHF",
                         "priceSpecification": {
@@ -96,16 +83,29 @@
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
-                        "description": "Bis 100 Klienten, alle Funktionen, Telefon-Support"
+                        "description": "Bis 30 Klienten, alle Funktionen, Priority Support"
                     },
                     {
                         "@type": "Offer",
-                        "name": "Enterprise",
+                        "name": "Business",
                         "price": "790",
                         "priceCurrency": "CHF",
                         "priceSpecification": {
                             "@type": "UnitPriceSpecification",
                             "price": "790",
+                            "priceCurrency": "CHF",
+                            "unitText": "Monat"
+                        },
+                        "description": "Bis 75 Klienten, alle Funktionen, Telefon-Support"
+                    },
+                    {
+                        "@type": "Offer",
+                        "name": "Enterprise",
+                        "price": "1290",
+                        "priceCurrency": "CHF",
+                        "priceSpecification": {
+                            "@type": "UnitPriceSpecification",
+                            "price": "1290",
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
@@ -1140,7 +1140,7 @@
         <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
             <p class="section-label">Stimmen aus der Praxis</p>
             <h2 class="section-title">Was Spitex-Fachleute sagen</h2>
-            <p class="section-lead">Erste Rückmeldungen aus der Pilotphase</p>
+            <p class="section-lead">Erste Rückmeldungen aus der Praxis</p>
         </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
             <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
@@ -1166,7 +1166,7 @@
             </div>
         </div>
         <p style="text-align: center; font-size: 0.8125rem; color: #9ca3af; margin-top: 2rem;">
-            * Aussagen aus der aktuellen Pilotphase — anonymisiert auf Wunsch der Betriebe
+            * Aussagen aus der Praxis — anonymisiert auf Wunsch der Betriebe
         </p>
     </div>
 </section>
@@ -1365,7 +1365,7 @@
             <h2 class="section-title">Interesse? Schreiben Sie uns.</h2>
         </div>
         <div class="kontakt-box">
-            <h3>Demo oder Pilotpartner anfragen</h3>
+            <h3>Demo anfragen oder Angebot einholen</h3>
             <p>Kurze Nachricht genügt — wir melden uns innerhalb von 24 Stunden.</p>
 
             <div id="form-erfolg" class="alert-erfolg">
