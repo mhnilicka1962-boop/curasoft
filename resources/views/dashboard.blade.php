@@ -181,7 +181,11 @@
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: 0.2rem;">
                 <div class="text-klein text-hell">
-                    @if($e->tagespauschale_id)Tagespauschale@elseif($e->einsatzLeistungsarten->isNotEmpty()){{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}@endif
+                    @if($e->tagespauschale_id)
+                        Tagespauschale
+                    @elseif($e->einsatzLeistungsarten->isNotEmpty())
+                        {{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}
+                    @endif
                     @if(auth()->user()->rolle === 'admin' && $e->benutzer) · {{ $e->benutzer->vorname }}@endif
                 </div>
                 <a href="{{ route('einsaetze.vor-ort', $e) }}" class="badge badge-klein badge-grau" style="text-decoration: none; flex-shrink: 0;">Vor Ort →</a>
