@@ -35,7 +35,7 @@
             ['nr' => 3, 'dauer' => '10 min', 'titel' => 'Mitarbeiterin einladen', 'beschreibung' => 'E-Mail eingeben → Einladungslink automatisch versendet → fertig', 'links' => [
                 ['label' => 'Mitarbeitende', 'route' => 'mitarbeiter.index'],
             ]],
-            ['nr' => 4, 'dauer' => '10 min', 'titel' => 'Einsatz planen', 'beschreibung' => 'Klient + Mitarbeiterin + Datum + Zeit → Einsatz erscheint im Kalender. Wiederkehrende Einsätze als Serie anlegen mit automatischer Verlängerung — kein manuelles Nacherfassen.', 'links' => [
+            ['nr' => 4, 'dauer' => '10 min', 'titel' => 'Einsatz planen', 'beschreibung' => 'Klient + Mitarbeiterin + Datum + Zeit → Einsatz erscheint im Kalender. Tipp: Doppelklick auf eine freie Zeitstelle im Kalender erstellt direkt einen neuen Einsatz — Mitarbeiter und Zeit werden automatisch übernommen. Wiederkehrende Einsätze als Serie anlegen mit automatischer Verlängerung — kein manuelles Nacherfassen.', 'links' => [
                 ['label' => 'Einsatz erstellen', 'route' => 'einsaetze.create'],
                 ['label' => 'Kalender', 'route' => 'kalender.index'],
             ]],

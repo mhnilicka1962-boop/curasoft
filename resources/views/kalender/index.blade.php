@@ -42,6 +42,10 @@
     <a href="{{ route('einsaetze.create') }}" class="btn btn-primaer">+ Neuer Einsatz</a>
 </div>
 
+<div style="background:#fffbeb; border:1px solid #fde68a; border-radius:var(--cs-radius); padding:0.5rem 0.875rem; margin-bottom:0.75rem; font-size:0.8125rem; color:#92400e;">
+    💡 Doppelklick auf eine freie Zeitstelle erstellt direkt einen neuen Einsatz — Mitarbeiter und Zeit werden automatisch übernommen.
+</div>
+
 <div class="kl-controls">
     <label>Von
         <select id="kl-von" class="feld">
