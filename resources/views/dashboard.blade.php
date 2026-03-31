@@ -172,21 +172,19 @@
 
         @forelse($einsaetzeListe as $e)
         <div class="listen-zeile">
-            <div class="listen-zeile-inner" style="flex-wrap: wrap; gap: 0.25rem 0.5rem;">
-                <div class="flex-1-min" style="min-width: 160px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem;">
+                <div>
                     <a href="{{ route('klienten.show', $e->klient) }}" class="text-fett link-primaer">{{ $e->klient->vollname() }}</a>
                     <span class="badge badge-klein ml-klein {{ $e->statusBadgeKlasse() }}">{{ $e->statusLabel() }}</span>
-                    @if($e->einsatzLeistungsarten->isNotEmpty())
-                        <div class="text-hell listen-meta">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</div>
-                    @endif
                 </div>
-                <div class="text-mini text-hell text-rechts flex-shrink-0" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem;">
-                    @if($e->zeit_von) <div>{{ substr($e->zeit_von, 0, 5) }}@if($e->zeit_bis) – {{ substr($e->zeit_bis, 0, 5) }}@endif</div> @endif
-                    @if(auth()->user()->rolle === 'admin' && $e->benutzer)
-                        <div>{{ $e->benutzer->vorname }}</div>
-                    @endif
-                    <a href="{{ route('einsaetze.vor-ort', $e) }}" class="badge badge-klein badge-grau" style="text-decoration: none;">Vor Ort →</a>
+                @if($e->zeit_von)<div class="text-mini text-hell">{{ substr($e->zeit_von, 0, 5) }}@if($e->zeit_bis)–{{ substr($e->zeit_bis, 0, 5) }}@endif</div>@endif
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: 0.2rem;">
+                <div class="text-klein text-hell">
+                    @if($e->tagespauschale_id)Tagespauschale@elseif($e->einsatzLeistungsarten->isNotEmpty()){{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}@endif
+                    @if(auth()->user()->rolle === 'admin' && $e->benutzer) · {{ $e->benutzer->vorname }}@endif
                 </div>
+                <a href="{{ route('einsaetze.vor-ort', $e) }}" class="badge badge-klein badge-grau" style="text-decoration: none; flex-shrink: 0;">Vor Ort →</a>
             </div>
         </div>
         @empty
