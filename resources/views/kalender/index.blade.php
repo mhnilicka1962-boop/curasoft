@@ -38,12 +38,8 @@
 @endpush
 
 <div class="seiten-kopf" style="margin-bottom:0.5rem;">
-    <h1>Einsatzplanung</h1>
+    <h1>Einsatzplanung <span style="font-size:0.75rem; font-weight:400; color:#92400e; background:#fffbeb; border:1px solid #fde68a; border-radius:999px; padding:0.15rem 0.6rem; vertical-align:middle;">💡 Doppelklick = neuer Einsatz</span></h1>
     <a href="{{ route('einsaetze.create') }}" class="btn btn-primaer">+ Neuer Einsatz</a>
-</div>
-
-<div style="background:#fffbeb; border:1px solid #fde68a; border-radius:var(--cs-radius); padding:0.5rem 0.875rem; margin-bottom:0.75rem; font-size:0.8125rem; color:#92400e;">
-    💡 Doppelklick auf eine freie Zeitstelle erstellt direkt einen neuen Einsatz — Mitarbeiter und Zeit werden automatisch übernommen.
 </div>
 
 <div class="kl-controls">
