@@ -27,7 +27,7 @@
         {{-- Aktions-Buttons (nur bei bestehendem Einsatz) --}}
         @if($einsatz->exists)
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            @if($einsatz->status === 'geplant' && !$einsatz->tour_id)
+            @if(auth()->user()->rolle === 'admin' && !$einsatz->checkin_zeit && $einsatz->status !== 'abgeschlossen')
             <form method="POST" action="{{ route('einsaetze.destroy', $einsatz) }}"
                 onsubmit="return confirm('Einsatz wirklich löschen?')">
                 @csrf @method('DELETE')

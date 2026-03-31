@@ -106,7 +106,11 @@
             </a>
 
             <span class="text-hell" style="font-size: 0.8125rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                {{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}
+                @if(!$e->zeit_von)
+                    Tagespauschale
+                @else
+                    {{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}
+                @endif
             </span>
 
             @if($e->zeit_von)

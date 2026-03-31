@@ -162,10 +162,8 @@ class EinsaetzeController extends Controller
                             ? $b->nachname . ' ' . $b->vorname : '?',
             ])->values());
 
-        $angehoerigenBenutzer = Benutzer::whereIn('id',
-            \App\Models\KlientBenutzer::where('klient_id', $einsatz->klient_id)
-                ->where('beziehungstyp', 'angehoerig_pflegend')->where('aktiv', true)->pluck('benutzer_id')
-        )->orderBy('nachname')->get();
+        $angehoerigenBenutzer = collect();
+        $einsatz = new \App\Models\Einsatz();
 
         return view('einsaetze.form', compact('einsatz', 'klienten', 'leistungsarten', 'mitarbeiter', 'angehoerigeMap', 'angehoerigenBenutzer'));
     }
@@ -460,18 +458,17 @@ class EinsaetzeController extends Controller
         if ($einsatz->tagespauschale_id) {
             return back()->with('fehler', 'Tagespauschalen-Einsätze können nicht manuell gelöscht werden.');
         }
-        if ($einsatz->status !== 'geplant') {
-            return back()->with('fehler', 'Nur geplante Einsätze können gelöscht werden.');
-        }
-        if ($einsatz->tour_id) {
-            return back()->with('fehler', 'Einsatz ist einer Tour zugewiesen — zuerst aus der Tour entfernen.');
+        if ($einsatz->checkin_zeit || $einsatz->status === 'abgeschlossen') {
+            return back()->with('fehler', 'Bereits gestartete oder abgeschlossene Einsätze können nicht gelöscht werden.');
         }
 
-        $klientId = $einsatz->klient_id;
+        $tourId = $einsatz->tour_id;
         $einsatz->delete();
 
-        return redirect()->route('klienten.show', $klientId)
-            ->with('erfolg', 'Einsatz wurde gelöscht.');
+        if ($tourId) {
+            return redirect()->route('touren.show', $tourId)->with('erfolg', 'Einsatz wurde gelöscht.');
+        }
+        return redirect()->route('einsaetze.index')->with('erfolg', 'Einsatz wurde gelöscht.');
     }
 
     public function destroySerie(Request $request, string $serieId)

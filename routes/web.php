@@ -289,6 +289,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('/rapporte', RapporteController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update'])->parameters(['rapporte' => 'rapport']);
 
         // Touren
+        Route::post('/touren/generieren', [TourenController::class, 'generieren'])->name('touren.generieren');
         Route::resource('/touren', TourenController::class)
             ->only(['index', 'create', 'store', 'show', 'update', 'destroy'])
             ->parameters(['touren' => 'tour']);

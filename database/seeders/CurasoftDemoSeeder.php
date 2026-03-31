@@ -11,13 +11,14 @@ use Illuminate\Support\Str;
 /**
  * CurasoftDemoSeeder — Vollständiger Demo- und Testdatensatz
  *
- * 5 Klienten mit mehreren Leistungsarten:
- *   Brunner   (ZH): Grundpflege Mo–Fr + Hauswirtschaft Di/Fr, Sandra
- *   Weber     (ZH): UB Injektion Mo–Fr + UB Verband Mo/Mi/Fr, Sandra
- *   Schneider (ZG): Grundpflege tägl. + UB Vitalzeichen Mo/Mi/Fr, Peter, tiers_payant
- *   Keller    (ZG): Hauswirtschaft Di/Do + Grundpflege Mo/Mi/Fr, Peter
- *   Gerber    (ZG): Grundpflege Mo–Fr, Angehörigenpflege Ruth
+ * 14 Klienten, 6 Mitarbeitende (4 Pflege, 1 Admin, 1 Buchhaltung):
+ *   Brunner / Weber / Müller M. (ZH): Sandra
+ *   Schneider / Keller / Hofer   (ZG): Peter
+ *   Wenger / Bauer / Vogel / Linder (ZH): Lisa
+ *   Ritter / Klauser / Fuchs     (ZH): Thomas
+ *   Gerber                       (ZG): Ruth (Angehörige)
  *
+ * GPS-Koordinaten hardcoded → Karte + Route-Optimierung sofort verfügbar.
  * Enthält: einsatz_aktivitaeten, Touren, Rapporte, 4 Rechnungsläufe.
  * Idempotent: kann beliebig oft ausgeführt werden.
  */
@@ -233,8 +234,11 @@ class CurasoftDemoSeeder extends Seeder
             'admin'  => ['email' => 'admin@curasoft-demo.ch',  'vorname' => 'Demo',   'nachname' => 'Admin',   'rolle' => 'admin',  'anstellungsart' => 'fachperson'],
             'sandra' => ['email' => 'sandra@curasoft-demo.ch', 'vorname' => 'Sandra', 'nachname' => 'Meier',   'rolle' => 'pflege', 'anstellungsart' => 'fachperson'],
             'peter'  => ['email' => 'peter@curasoft-demo.ch',  'vorname' => 'Peter',  'nachname' => 'Keller',  'rolle' => 'pflege', 'anstellungsart' => 'fachperson'],
-            'anna'   => ['email' => 'anna@curasoft-demo.ch',   'vorname' => 'Anna',   'nachname' => 'Brunner', 'rolle' => 'pflege', 'anstellungsart' => 'fachperson'],
-            'ruth'   => ['email' => 'ruth@curasoft-demo.ch',   'vorname' => 'Ruth',   'nachname' => 'Gerber',  'rolle' => 'pflege', 'anstellungsart' => 'angehoerig'],
+            'anna'   => ['email' => 'anna@curasoft-demo.ch',   'vorname' => 'Anna',   'nachname' => 'Brunner', 'rolle' => 'pflege',       'anstellungsart' => 'fachperson'],
+            'lisa'   => ['email' => 'lisa@curasoft-demo.ch',   'vorname' => 'Lisa',   'nachname' => 'Frei',    'rolle' => 'pflege',       'anstellungsart' => 'fachperson'],
+            'thomas' => ['email' => 'thomas@curasoft-demo.ch', 'vorname' => 'Thomas', 'nachname' => 'Müller',  'rolle' => 'pflege',       'anstellungsart' => 'fachperson'],
+            'buch'   => ['email' => 'buch@curasoft-demo.ch',   'vorname' => 'Monika', 'nachname' => 'Schwarz', 'rolle' => 'buchhaltung',  'anstellungsart' => 'fachperson'],
+            'ruth'   => ['email' => 'ruth@curasoft-demo.ch',   'vorname' => 'Ruth',   'nachname' => 'Gerber',  'rolle' => 'pflege',       'anstellungsart' => 'angehoerig'],
         ];
 
         foreach ($liste as $key => $data) {
@@ -293,6 +297,15 @@ class CurasoftDemoSeeder extends Seeder
         $this->erstelleKlient3();
         $this->erstelleKlient4();
         $this->erstelleKlient5();
+        $this->erstelleKlient6();
+        $this->erstelleKlient7();
+        $this->erstelleKlient8();
+        $this->erstelleKlient9();
+        $this->erstelleKlient10();
+        $this->erstelleKlient11();
+        $this->erstelleKlient12();
+        $this->erstelleKlient13();
+        $this->erstelleKlient14();
     }
 
     private function erstelleKlient1(): void
@@ -310,6 +323,8 @@ class CurasoftDemoSeeder extends Seeder
             'adresse'         => 'Seefeldstrasse 45',
             'plz'             => '8008',
             'ort'             => 'Zürich',
+            'klient_lat'      => 47.3613,
+            'klient_lng'      => 8.5522,
             'telefon'         => '044 444 55 66',
             'notfallnummer'   => '079 333 22 11',
             'region_id'       => $this->regionen['ZH'],
@@ -376,6 +391,8 @@ class CurasoftDemoSeeder extends Seeder
             'adresse'         => 'Rämistrasse 28',
             'plz'             => '8001',
             'ort'             => 'Zürich',
+            'klient_lat'      => 47.3741,
+            'klient_lng'      => 8.5479,
             'email'           => 'h.weber@muster.ch',
             'telefon'         => '044 891 23 45',
             'notfallnummer'   => '078 123 45 67',
@@ -443,6 +460,8 @@ class CurasoftDemoSeeder extends Seeder
             'adresse'         => 'Baarerstrasse 12',
             'plz'             => '6300',
             'ort'             => 'Zug',
+            'klient_lat'      => 47.1730,
+            'klient_lng'      => 8.5168,
             'email'           => 'm.schneider@muster.ch',
             'telefon'         => '041 711 78 90',
             'notfallnummer'   => '076 789 01 23',
@@ -510,6 +529,8 @@ class CurasoftDemoSeeder extends Seeder
             'adresse'         => 'Alpenstrasse 5',
             'plz'             => '6300',
             'ort'             => 'Zug',
+            'klient_lat'      => 47.1698,
+            'klient_lng'      => 8.5150,
             'telefon'         => '041 222 34 56',
             'notfallnummer'   => '079 234 56 78',
             'region_id'       => $this->regionen['ZG'],
@@ -566,6 +587,8 @@ class CurasoftDemoSeeder extends Seeder
             'adresse'         => 'Kolinplatz 3',
             'plz'             => '6300',
             'ort'             => 'Zug',
+            'klient_lat'      => 47.1663,
+            'klient_lng'      => 8.5148,
             'telefon'         => '041 311 56 78',
             'notfallnummer'   => '079 456 78 90',
             'region_id'       => $this->regionen['ZG'],
@@ -605,6 +628,186 @@ class CurasoftDemoSeeder extends Seeder
             'created_at'    => now(),
             'updated_at'    => now(),
         ]);
+    }
+
+    private function erstelleKlient6(): void
+    {
+        // Martha Müller — ZH, Sandra, GP Mo/Mi/Fr
+        $id = DB::table('klienten')->insertGetId([
+            'organisation_id' => $this->orgId, 'anrede' => 'Frau', 'klient_typ' => 'patient',
+            'vorname' => 'Martha', 'nachname' => 'Müller', 'geburtsdatum' => '1938-09-04',
+            'geschlecht' => 'w', 'zivilstand' => 'verwitwet',
+            'adresse' => 'Kreuzstrasse 15', 'plz' => '8008', 'ort' => 'Zürich',
+            'klient_lat' => 47.3575, 'klient_lng' => 8.5501,
+            'telefon' => '044 381 22 33', 'notfallnummer' => '079 111 22 33',
+            'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['sandra'],
+            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->kl['mueller_m'] = $id;
+        $kkId = $this->ladeKrankenkasse('Helsana');
+        if ($kkId) DB::table('klient_krankenkassen')->insert(['klient_id' => $id, 'krankenkasse_id' => $kkId, 'versicherungs_typ' => 'kvg', 'deckungstyp' => 'allgemein', 'versichertennummer' => '756.1111.2222.33', 'tiers_payant' => false, 'gueltig_ab' => '2026-01-01', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('klient_diagnosen')->insert([['klient_id' => $id, 'icd10_code' => 'G20', 'icd10_bezeichnung' => 'Parkinson-Krankheit', 'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]]);
+        DB::table('klient_benutzer')->insert(['klient_id' => $id, 'benutzer_id' => $this->ma['sandra'], 'rolle' => 'hauptbetreuer', 'beziehungstyp' => 'fachperson', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    private function erstelleKlient7(): void
+    {
+        // Fritz Hofer — ZG, Peter, HWL Di/Do + GP Mo
+        $id = DB::table('klienten')->insertGetId([
+            'organisation_id' => $this->orgId, 'anrede' => 'Herr', 'klient_typ' => 'patient',
+            'vorname' => 'Fritz', 'nachname' => 'Hofer', 'geburtsdatum' => '1943-06-17',
+            'geschlecht' => 'm', 'zivilstand' => 'verheiratet',
+            'adresse' => 'Zugerbergstrasse 3', 'plz' => '6300', 'ort' => 'Zug',
+            'klient_lat' => 47.1762, 'klient_lng' => 8.5183,
+            'telefon' => '041 760 44 55', 'notfallnummer' => '079 444 55 66',
+            'region_id' => $this->regionen['ZG'], 'zustaendig_id' => $this->ma['peter'],
+            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->kl['hofer'] = $id;
+        $kkId = $this->ladeKrankenkasse('CSS');
+        if ($kkId) DB::table('klient_krankenkassen')->insert(['klient_id' => $id, 'krankenkasse_id' => $kkId, 'versicherungs_typ' => 'kvg', 'deckungstyp' => 'allgemein', 'versichertennummer' => '756.2222.3333.44', 'tiers_payant' => false, 'gueltig_ab' => '2026-01-01', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('klient_diagnosen')->insert([['klient_id' => $id, 'icd10_code' => 'I63', 'icd10_bezeichnung' => 'Hirninfarkt', 'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]]);
+        DB::table('klient_benutzer')->insert(['klient_id' => $id, 'benutzer_id' => $this->ma['peter'], 'rolle' => 'hauptbetreuer', 'beziehungstyp' => 'fachperson', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    private function erstelleKlient8(): void
+    {
+        // Rosa Wenger — ZH, Lisa, GP Mo/Mi/Fr + HWL Di
+        $id = DB::table('klienten')->insertGetId([
+            'organisation_id' => $this->orgId, 'anrede' => 'Frau', 'klient_typ' => 'patient',
+            'vorname' => 'Rosa', 'nachname' => 'Wenger', 'geburtsdatum' => '1936-02-28',
+            'geschlecht' => 'w', 'zivilstand' => 'verwitwet',
+            'adresse' => 'Badenerstrasse 85', 'plz' => '8004', 'ort' => 'Zürich',
+            'klient_lat' => 47.3762, 'klient_lng' => 8.5175,
+            'telefon' => '044 241 33 44', 'notfallnummer' => '079 555 66 77',
+            'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['lisa'],
+            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->kl['wenger'] = $id;
+        $kkId = $this->ladeKrankenkasse('Sanitas');
+        if ($kkId) DB::table('klient_krankenkassen')->insert(['klient_id' => $id, 'krankenkasse_id' => $kkId, 'versicherungs_typ' => 'kvg', 'deckungstyp' => 'allgemein', 'versichertennummer' => '756.3333.4444.55', 'tiers_payant' => false, 'gueltig_ab' => '2026-01-01', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('klient_diagnosen')->insert([['klient_id' => $id, 'icd10_code' => 'M17', 'icd10_bezeichnung' => 'Gonarthrose', 'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]]);
+        DB::table('klient_benutzer')->insert(['klient_id' => $id, 'benutzer_id' => $this->ma['lisa'], 'rolle' => 'hauptbetreuer', 'beziehungstyp' => 'fachperson', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    private function erstelleKlient9(): void
+    {
+        // Max Bauer — ZH, Lisa, UB Mo–Fr
+        $id = DB::table('klienten')->insertGetId([
+            'organisation_id' => $this->orgId, 'anrede' => 'Herr', 'klient_typ' => 'patient',
+            'vorname' => 'Max', 'nachname' => 'Bauer', 'geburtsdatum' => '1952-11-03',
+            'geschlecht' => 'm', 'zivilstand' => 'verheiratet',
+            'adresse' => 'Langstrasse 104', 'plz' => '8004', 'ort' => 'Zürich',
+            'klient_lat' => 47.3798, 'klient_lng' => 8.5271,
+            'telefon' => '044 242 55 66', 'notfallnummer' => '079 666 77 88',
+            'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['lisa'],
+            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->kl['bauer'] = $id;
+        $kkId = $this->ladeKrankenkasse('SWICA');
+        if ($kkId) DB::table('klient_krankenkassen')->insert(['klient_id' => $id, 'krankenkasse_id' => $kkId, 'versicherungs_typ' => 'kvg', 'deckungstyp' => 'allgemein', 'versichertennummer' => '756.4444.5555.66', 'tiers_payant' => true, 'gueltig_ab' => '2026-01-01', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('klient_diagnosen')->insert([['klient_id' => $id, 'icd10_code' => 'E11', 'icd10_bezeichnung' => 'Diabetes mellitus Typ 2', 'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]]);
+        DB::table('klient_benutzer')->insert(['klient_id' => $id, 'benutzer_id' => $this->ma['lisa'], 'rolle' => 'hauptbetreuer', 'beziehungstyp' => 'fachperson', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    private function erstelleKlient10(): void
+    {
+        // Heidi Vogel — ZH, Lisa, GP Di/Do + HWL Fr
+        $id = DB::table('klienten')->insertGetId([
+            'organisation_id' => $this->orgId, 'anrede' => 'Frau', 'klient_typ' => 'patient',
+            'vorname' => 'Heidi', 'nachname' => 'Vogel', 'geburtsdatum' => '1948-07-19',
+            'geschlecht' => 'w', 'zivilstand' => 'verheiratet',
+            'adresse' => 'Goldbrunnenstrasse 12', 'plz' => '8003', 'ort' => 'Zürich',
+            'klient_lat' => 47.3704, 'klient_lng' => 8.5088,
+            'telefon' => '044 462 77 88', 'notfallnummer' => '079 777 88 99',
+            'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['lisa'],
+            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->kl['vogel'] = $id;
+        $kkId = $this->ladeKrankenkasse('Helsana');
+        if ($kkId) DB::table('klient_krankenkassen')->insert(['klient_id' => $id, 'krankenkasse_id' => $kkId, 'versicherungs_typ' => 'kvg', 'deckungstyp' => 'allgemein', 'versichertennummer' => '756.5555.6666.77', 'tiers_payant' => false, 'gueltig_ab' => '2026-01-01', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('klient_diagnosen')->insert([['klient_id' => $id, 'icd10_code' => 'I10', 'icd10_bezeichnung' => 'Essentielle Hypertonie', 'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]]);
+        DB::table('klient_benutzer')->insert(['klient_id' => $id, 'benutzer_id' => $this->ma['lisa'], 'rolle' => 'hauptbetreuer', 'beziehungstyp' => 'fachperson', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    private function erstelleKlient11(): void
+    {
+        // Urs Linder — ZH, Lisa, GP Mo–Fr
+        $id = DB::table('klienten')->insertGetId([
+            'organisation_id' => $this->orgId, 'anrede' => 'Herr', 'klient_typ' => 'patient',
+            'vorname' => 'Urs', 'nachname' => 'Linder', 'geburtsdatum' => '1944-04-12',
+            'geschlecht' => 'm', 'zivilstand' => 'verwitwet',
+            'adresse' => 'Hardturmstrasse 55', 'plz' => '8005', 'ort' => 'Zürich',
+            'klient_lat' => 47.3845, 'klient_lng' => 8.5213,
+            'telefon' => '044 271 88 99', 'notfallnummer' => '079 888 99 00',
+            'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['lisa'],
+            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->kl['linder'] = $id;
+        $kkId = $this->ladeKrankenkasse('CSS');
+        if ($kkId) DB::table('klient_krankenkassen')->insert(['klient_id' => $id, 'krankenkasse_id' => $kkId, 'versicherungs_typ' => 'kvg', 'deckungstyp' => 'allgemein', 'versichertennummer' => '756.6666.7777.88', 'tiers_payant' => false, 'gueltig_ab' => '2026-01-01', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('klient_diagnosen')->insert([['klient_id' => $id, 'icd10_code' => 'J44', 'icd10_bezeichnung' => 'COPD', 'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]]);
+        DB::table('klient_benutzer')->insert(['klient_id' => $id, 'benutzer_id' => $this->ma['lisa'], 'rolle' => 'hauptbetreuer', 'beziehungstyp' => 'fachperson', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    private function erstelleKlient12(): void
+    {
+        // Emma Ritter — ZH, Thomas, GP Mo/Mi/Fr + UB Di
+        $id = DB::table('klienten')->insertGetId([
+            'organisation_id' => $this->orgId, 'anrede' => 'Frau', 'klient_typ' => 'patient',
+            'vorname' => 'Emma', 'nachname' => 'Ritter', 'geburtsdatum' => '1950-01-30',
+            'geschlecht' => 'w', 'zivilstand' => 'verwitwet',
+            'adresse' => 'Wipkingerstrasse 40', 'plz' => '8037', 'ort' => 'Zürich',
+            'klient_lat' => 47.3917, 'klient_lng' => 8.5262,
+            'telefon' => '044 363 11 22', 'notfallnummer' => '079 100 22 33',
+            'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['thomas'],
+            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->kl['ritter'] = $id;
+        $kkId = $this->ladeKrankenkasse('Concordia');
+        if ($kkId) DB::table('klient_krankenkassen')->insert(['klient_id' => $id, 'krankenkasse_id' => $kkId, 'versicherungs_typ' => 'kvg', 'deckungstyp' => 'allgemein', 'versichertennummer' => '756.7777.8888.99', 'tiers_payant' => false, 'gueltig_ab' => '2026-01-01', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('klient_diagnosen')->insert([['klient_id' => $id, 'icd10_code' => 'N18', 'icd10_bezeichnung' => 'Chronische Niereninsuffizienz', 'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]]);
+        DB::table('klient_benutzer')->insert(['klient_id' => $id, 'benutzer_id' => $this->ma['thomas'], 'rolle' => 'hauptbetreuer', 'beziehungstyp' => 'fachperson', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    private function erstelleKlient13(): void
+    {
+        // Hans Klauser — ZH, Thomas, HWL Mo/Mi + GP Fr
+        $id = DB::table('klienten')->insertGetId([
+            'organisation_id' => $this->orgId, 'anrede' => 'Herr', 'klient_typ' => 'patient',
+            'vorname' => 'Hans', 'nachname' => 'Klauser', 'geburtsdatum' => '1937-12-05',
+            'geschlecht' => 'm', 'zivilstand' => 'verheiratet',
+            'adresse' => 'Hofwiesenstrasse 8', 'plz' => '8050', 'ort' => 'Zürich',
+            'klient_lat' => 47.4075, 'klient_lng' => 8.5413,
+            'telefon' => '044 312 33 44', 'notfallnummer' => '079 200 33 44',
+            'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['thomas'],
+            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->kl['klauser'] = $id;
+        $kkId = $this->ladeKrankenkasse('Sanitas');
+        if ($kkId) DB::table('klient_krankenkassen')->insert(['klient_id' => $id, 'krankenkasse_id' => $kkId, 'versicherungs_typ' => 'kvg', 'deckungstyp' => 'allgemein', 'versichertennummer' => '756.8888.9999.00', 'tiers_payant' => false, 'gueltig_ab' => '2026-01-01', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('klient_diagnosen')->insert([['klient_id' => $id, 'icd10_code' => 'F00', 'icd10_bezeichnung' => 'Demenz bei Alzheimer-Krankheit', 'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]]);
+        DB::table('klient_benutzer')->insert(['klient_id' => $id, 'benutzer_id' => $this->ma['thomas'], 'rolle' => 'hauptbetreuer', 'beziehungstyp' => 'fachperson', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    private function erstelleKlient14(): void
+    {
+        // Lena Fuchs — ZH, Thomas, GP Di/Do/Sa
+        $id = DB::table('klienten')->insertGetId([
+            'organisation_id' => $this->orgId, 'anrede' => 'Frau', 'klient_typ' => 'patient',
+            'vorname' => 'Lena', 'nachname' => 'Fuchs', 'geburtsdatum' => '1957-08-22',
+            'geschlecht' => 'w', 'zivilstand' => 'ledig',
+            'adresse' => 'Affolternstrasse 30', 'plz' => '8050', 'ort' => 'Zürich',
+            'klient_lat' => 47.4098, 'klient_lng' => 8.5441,
+            'telefon' => '044 313 55 66', 'notfallnummer' => '079 300 44 55',
+            'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['thomas'],
+            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->kl['fuchs'] = $id;
+        $kkId = $this->ladeKrankenkasse('SWICA');
+        if ($kkId) DB::table('klient_krankenkassen')->insert(['klient_id' => $id, 'krankenkasse_id' => $kkId, 'versicherungs_typ' => 'kvg', 'deckungstyp' => 'allgemein', 'versichertennummer' => '756.9999.0000.11', 'tiers_payant' => false, 'gueltig_ab' => '2026-01-01', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('klient_diagnosen')->insert([['klient_id' => $id, 'icd10_code' => 'M79', 'icd10_bezeichnung' => 'Fibromyalgie', 'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]]);
+        DB::table('klient_benutzer')->insert(['klient_id' => $id, 'benutzer_id' => $this->ma['thomas'], 'rolle' => 'hauptbetreuer', 'beziehungstyp' => 'fachperson', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -685,6 +888,15 @@ class CurasoftDemoSeeder extends Seeder
             'schneider' => ['region' => 'ZG', 'ansatz_kunde' =>  8.00, 'ansatz_spitex' => 68.00, 'limit' => 10],
             'keller'    => ['region' => 'ZG', 'ansatz_kunde' =>  8.00, 'ansatz_spitex' => 68.00, 'limit' => 10],
             'gerber'    => ['region' => 'ZG', 'ansatz_kunde' =>  8.00, 'ansatz_spitex' => 68.00, 'limit' =>  0],
+            'mueller_m' => ['region' => 'ZH', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
+            'hofer'     => ['region' => 'ZG', 'ansatz_kunde' =>  8.00, 'ansatz_spitex' => 68.00, 'limit' => 10],
+            'wenger'    => ['region' => 'ZH', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
+            'bauer'     => ['region' => 'ZH', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
+            'vogel'     => ['region' => 'ZH', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
+            'linder'    => ['region' => 'ZH', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
+            'ritter'    => ['region' => 'ZH', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
+            'klauser'   => ['region' => 'ZH', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
+            'fuchs'     => ['region' => 'ZH', 'ansatz_kunde' => 43.40, 'ansatz_spitex' => 98.00, 'limit' => 20],
         ];
 
         foreach ($beitraege as $klientKey => $b) {
@@ -711,7 +923,7 @@ class CurasoftDemoSeeder extends Seeder
         $heute          = Carbon::today();
         $vonDat         = $heute->copy()->startOfMonth()->subMonths(4);
         $bisDat         = $heute->copy()->addWeeks(6)->endOfDay();
-        $einsatzBis     = $heute->copy()->subDay(); // nur bis gestern → Batch generiert Rest
+        $einsatzBis     = $heute->copy()->addWeeks(2); // bis +2 Wochen → Demo zeigt "Nicht eingeplante Einsätze"
         $weberEnde      = $heute->copy()->addMonths(2)->format('Y-m-d');   // Serie endet demnächst
         $kellerEnde     = $heute->copy()->subDays(14)->format('Y-m-d');    // Serie bereits beendet
         $gerberEnde     = $heute->copy()->addWeeks(3)->format('Y-m-d');    // Serie endet bald
@@ -764,6 +976,64 @@ class CurasoftDemoSeeder extends Seeder
             ['gerber',    'ruth',   $rBe, [1,2,3,4,5],  '10:00', false, 'angehoerig', [
                 [$laGp,  35, 'Grundpflege',             'Mobilisation'],
             ], false, $gerberEnde],
+            // ── Sandra: 3. Klient ──────────────────────────────────────────
+            // Müller M: GP Mo/Mi/Fr
+            ['mueller_m', 'sandra', $rAg, [1,3,5],       '11:00', true, 'fachperson', [
+                [$laGp,  40, 'Grundpflege',             'Körperpflege'],
+            ], true, null],
+            // ── Peter: 3. Klient ───────────────────────────────────────────
+            // Hofer: GP Mo + HWL Di/Do
+            ['hofer',     'peter',  $rBe, [1],            '11:30', true, 'fachperson', [
+                [$laGp,  30, 'Grundpflege',             'An-/Auskleiden'],
+            ], true, null],
+            ['hofer',     'peter',  $rBe, [2,4],          '14:30', true, 'fachperson', [
+                [$laHwl, 60, 'Hauswirtschaft',          'Reinigung + Einkauf'],
+            ], true, null],
+            // ── Lisa: 4 Klienten ───────────────────────────────────────────
+            // Wenger: GP Mo/Mi/Fr
+            ['wenger',    'lisa',   $rAg, [1,3,5],        '08:00', true, 'fachperson', [
+                [$laGp,  45, 'Grundpflege',             'Duschen + Ankleiden'],
+            ], true, null],
+            // Wenger: HWL Di
+            ['wenger',    'lisa',   $rAg, [2],             '14:00', true, 'fachperson', [
+                [$laHwl, 45, 'Hauswirtschaft',          'Wäsche + Kochen'],
+            ], true, null],
+            // Bauer: UB Mo–Fr (Injektion)
+            ['bauer',     'lisa',   $rAg, [1,2,3,4,5],    '09:15', true, 'fachperson', [
+                [$laUb,  20, 'Untersuchung/Behandlung', 'Injektion subcutan'],
+            ], true, null],
+            // Vogel: GP Di/Do
+            ['vogel',     'lisa',   $rAg, [2,4],           '10:00', true, 'fachperson', [
+                [$laGp,  40, 'Grundpflege',             'Körperpflege'],
+            ], true, null],
+            // Vogel: HWL Fr
+            ['vogel',     'lisa',   $rAg, [5],             '14:00', true, 'fachperson', [
+                [$laHwl, 60, 'Hauswirtschaft',          'Reinigung + Einkauf'],
+            ], true, null],
+            // Linder: GP Mo–Fr
+            ['linder',    'lisa',   $rAg, [1,2,3,4,5],    '11:00', true, 'fachperson', [
+                [$laGp,  35, 'Grundpflege',             'Mobilisation + Transfer'],
+            ], true, null],
+            // ── Thomas: 3 Klienten ─────────────────────────────────────────
+            // Ritter: GP Mo/Mi/Fr
+            ['ritter',    'thomas', $rAg, [1,3,5],        '08:00', true, 'fachperson', [
+                [$laGp,  50, 'Grundpflege',             'Körperpflege komplett'],
+            ], true, null],
+            // Ritter: UB Di (Verbandwechsel)
+            ['ritter',    'thomas', $rAg, [2],             '09:00', true, 'fachperson', [
+                [$laUb,  30, 'Untersuchung/Behandlung', 'Verbandwechsel'],
+            ], true, null],
+            // Klauser: HWL Mo/Mi + GP Fr
+            ['klauser',   'thomas', $rAg, [1,3],           '10:30', true, 'fachperson', [
+                [$laHwl, 60, 'Hauswirtschaft',          'Einkauf + Kochen'],
+            ], true, null],
+            ['klauser',   'thomas', $rAg, [5],             '10:30', true, 'fachperson', [
+                [$laGp,  30, 'Grundpflege',             'Körperpflege'],
+            ], true, null],
+            // Fuchs: GP Di/Do/Sa
+            ['fuchs',     'thomas', $rAg, [2,4,6],         '14:00', true, 'fachperson', [
+                [$laGp,  40, 'Grundpflege',             'Duschen + Ankleiden'],
+            ], true, null],
         ];
 
         $tourenCache = [];
@@ -874,6 +1144,7 @@ class CurasoftDemoSeeder extends Seeder
     private function holeTourId(array &$cache, bool $mitTour, int $benutzerId, string $datumStr, bool $istVergangen, bool $istHeute): ?int
     {
         if (!$mitTour) return null;
+        if (!$istVergangen) return null; // Heute + Zukunft → kein Tour-ID → erscheint in "Nicht eingeplant"
 
         $tourKey = $benutzerId . '_' . $datumStr;
         if (!isset($cache[$tourKey])) {
@@ -1294,7 +1565,7 @@ class CurasoftDemoSeeder extends Seeder
     private function tagespauschalen(): void
     {
         $heute   = Carbon::today();
-        $horizon = $heute->copy()->subDay(); // nur bis gestern → Batch generiert Rest
+        $horizon = $heute->copy()->addWeeks(2); // bis +2 Wochen, passend zu einsaetzeUndTouren
 
         // [klientKey, benKey, autoVerlaengern, datumVon, datumBis, ansatz, text]
         $fälle = [

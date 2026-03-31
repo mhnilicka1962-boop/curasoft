@@ -40,6 +40,7 @@ class TourenController extends Controller
         $ohneTouren = Einsatz::where('organisation_id', $this->orgId())
             ->whereDate('datum', $datum)
             ->whereNull('tour_id')
+            ->where(fn($q) => $q->whereNotNull('serie_id')->orWhereNotNull('tagespauschale_id'))
             ->whereHas('benutzer', fn($q) => $q->where('anstellungsart', '!=', 'angehoerig'))
             ->with('klient', 'benutzer', 'einsatzLeistungsarten.leistungsart')
             ->orderBy('benutzer_id')
@@ -128,6 +129,7 @@ class TourenController extends Controller
             ->whereDate('datum', $tour->datum)
             ->where('benutzer_id', $tour->benutzer_id)
             ->whereNull('tour_id')
+            ->where(fn($q) => $q->whereNotNull('serie_id')->orWhereNotNull('tagespauschale_id'))
             ->with('klient', 'einsatzLeistungsarten.leistungsart')
             ->orderBy('zeit_von')
             ->get();
@@ -271,6 +273,114 @@ class TourenController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    // Touren automatisch aus Einsätzen generieren (Reset + Neu)
+    public function generieren(Request $request)
+    {
+        $datum = $request->validate(['datum' => ['required', 'date']])['datum'];
+
+        // Bestehende Touren des Tages zurücksetzen — nur wenn kein Einsatz bereits gestartet/abgeschlossen
+        $bestehende = Tour::where('organisation_id', $this->orgId())
+            ->where('datum', $datum)
+            ->get();
+        foreach ($bestehende as $t) {
+            $hatAktiveEinsaetze = $t->einsaetze()
+                ->where(fn($q) => $q->whereNotNull('checkin_zeit')->orWhere('status', 'abgeschlossen'))
+                ->exists();
+            if ($hatAktiveEinsaetze) {
+                return redirect()->route('touren.index', ['datum' => $datum])
+                    ->with('fehler', 'Tour "' . $t->bezeichnung . '" kann nicht zurückgesetzt werden — ein Einsatz wurde bereits gestartet.');
+            }
+        }
+        foreach ($bestehende as $t) {
+            // Tagespauschalen: auch zeit_von/zeit_bis zurücksetzen (haben keine feste Zeit)
+            $t->einsaetze()->whereNotNull('tagespauschale_id')->update(['tour_id' => null, 'tour_reihenfolge' => null, 'zeit_von' => null, 'zeit_bis' => null]);
+            $t->einsaetze()->whereNull('tagespauschale_id')->update(['tour_id' => null, 'tour_reihenfolge' => null]);
+            $t->delete();
+        }
+
+        $einsaetze = Einsatz::where('organisation_id', $this->orgId())
+            ->whereDate('datum', $datum)
+            ->where(fn($q) => $q->whereNotNull('serie_id')->orWhereNotNull('tagespauschale_id'))
+            ->whereHas('benutzer', fn($q) => $q->where('anstellungsart', '!=', 'angehoerig'))
+            ->with('klient', 'benutzer')
+            ->orderBy('benutzer_id')
+            ->orderBy('zeit_von')
+            ->get();
+
+        if ($einsaetze->isEmpty()) {
+            return redirect()->route('touren.index', ['datum' => $datum])
+                ->with('warnung', 'Keine Einsätze für diesen Tag gefunden.');
+        }
+
+        $toursErstellt  = 0;
+        $einsatzZaehler = 0;
+
+        foreach ($einsaetze->groupBy('benutzer_id') as $benutzerId => $gruppe) {
+            $benutzer = $gruppe->first()->benutzer;
+
+            $fruehesteZeit = $gruppe->filter(fn($e) => $e->zeit_von)->min('zeit_von') ?? '08:00';
+
+            $tour = Tour::firstOrCreate(
+                ['organisation_id' => $this->orgId(), 'benutzer_id' => $benutzerId, 'datum' => $datum],
+                [
+                    'bezeichnung' => 'Tour ' . $benutzer->vorname . ' · ' . \Carbon\Carbon::parse($datum)->format('d.m.Y'),
+                    'start_zeit'  => substr($fruehesteZeit, 0, 5),
+                    'status'      => 'geplant',
+                ]
+            );
+
+            if ($tour->wasRecentlyCreated) $toursErstellt++;
+
+            $max = $tour->einsaetze()->max('tour_reihenfolge') ?? 0;
+            $i   = 0;
+            foreach ($gruppe as $einsatz) {
+                $einsatz->update(['tour_id' => $tour->id, 'tour_reihenfolge' => $max + ++$i]);
+                $einsatzZaehler++;
+            }
+
+            // Route optimieren — nur reguläre Einsätze (keine Tagespauschalen)
+            $alleEinsaetze = $tour->einsaetze()->with('klient')->get();
+            $regulaere     = $alleEinsaetze->whereNull('tagespauschale_id');
+            $pauschalen    = $alleEinsaetze->whereNotNull('tagespauschale_id');
+
+            $punkte = $regulaere
+                ->filter(fn($e) => $e->klient?->klient_lat && $e->klient?->klient_lng)
+                ->map(fn($e) => ['id' => $e->id, 'lat' => (float) $e->klient->klient_lat, 'lng' => (float) $e->klient->klient_lng])
+                ->values()->toArray();
+
+            if (count($punkte) >= 2) {
+                $optimiert = GeocodingService::optimiereReihenfolge($punkte);
+                foreach ($optimiert as $reihenfolge => $einsatzId) {
+                    Einsatz::where('id', $einsatzId)->update(['tour_reihenfolge' => $reihenfolge + 1]);
+                }
+            }
+
+            // Zeiten sequenziell neu berechnen — nur reguläre Einsätze
+            $start   = $tour->start_zeit ?: '08:00:00';
+            $current = \Carbon\Carbon::createFromFormat('H:i:s', strlen($start) === 5 ? $start . ':00' : $start);
+            foreach ($regulaere->sortBy('tour_reihenfolge') as $einsatz) {
+                $minuten = $einsatz->minuten ?: 60;
+                $einsatz->update([
+                    'zeit_von' => $current->format('H:i'),
+                    'zeit_bis' => $current->copy()->addMinutes($minuten)->format('H:i'),
+                ]);
+                $current->addMinutes($minuten);
+            }
+
+            // Tagespauschalen ans Ende der Tour setzen (ohne Zeitberechnung)
+            $maxReihenfolge = $regulaere->max('tour_reihenfolge') ?? 0;
+            foreach ($pauschalen as $i => $einsatz) {
+                $einsatz->update(['tour_reihenfolge' => $maxReihenfolge + $i + 1]);
+            }
+        }
+
+        $meldung = $toursErstellt > 0
+            ? "$toursErstellt Tour(en) erstellt mit $einsatzZaehler Einsätzen — Routen optimiert."
+            : "$einsatzZaehler Einsätze zu bestehenden Touren hinzugefügt — Routen optimiert.";
+
+        return redirect()->route('touren.index', ['datum' => $datum])->with('erfolg', $meldung);
     }
 
     // Route optimieren: Nearest-Neighbor nach GPS-Koordinaten

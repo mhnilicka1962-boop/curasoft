@@ -114,17 +114,20 @@ window.KalenderInit = function(mitarbeiter, klienten, horizont) {
         },
 
         dateClick: function(info) {
-            if (ansicht !== 'angestellte') return;
             const jetzt = Date.now();
             if (kalender._letzterKlick && jetzt - kalender._letzterKlick < 400
                 && kalender._letzterKlickRes === info.resource?.id
                 && kalender._letzterKlickDate === info.dateStr) {
-                const benutzerId = info.resource?.id;
-                if (!benutzerId || benutzerId === 'unzugeteilt') return;
+                const resId   = info.resource?.id;
                 const datum   = info.dateStr.split('T')[0];
                 const zeitVon = info.dateStr.includes('T') ? info.dateStr.split('T')[1].slice(0, 5) : '';
-                let url = `/einsaetze/create?benutzer_id=${benutzerId}&datum=${datum}`;
+                let url = `/einsaetze/create?datum=${datum}`;
                 if (zeitVon) url += `&zeit_von=${zeitVon}`;
+                if (ansicht === 'angestellte' && resId && resId !== 'unzugeteilt') {
+                    url += `&benutzer_id=${resId}`;
+                } else if (ansicht === 'klienten' && resId && resId.startsWith('k')) {
+                    url += `&klient_id=${resId.slice(1)}`;
+                }
                 window.location.href = url;
             }
             kalender._letzterKlick     = jetzt;

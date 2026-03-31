@@ -1,8 +1,76 @@
 <x-layouts.app titel="Tourenplanung">
 <div style="max-width: 1000px;">
 
+    {{-- Hilfe-Panel Tourenplanung (floating, nicht blockierend) --}}
+    <div id="touren-hilfe-modal" style="display:none; position:fixed; top:1rem; right:1rem; z-index:9999; width:min(420px, calc(100vw - 2rem)); max-height:calc(100vh - 2rem); overflow-y:auto; background:#fff; border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.18); border:1px solid var(--cs-border);">
+        <div style="padding:1.5rem; position:relative;">
+            <button onclick="document.getElementById('touren-hilfe-modal').style.display='none'"
+                style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.25rem; cursor:pointer; color:var(--cs-text-hell);">✕</button>
+
+            <div style="font-size:1.0625rem; font-weight:700; margin-bottom:1.25rem;">Wie funktioniert die Tourenplanung?</div>
+
+            {{-- Schritt 1 --}}
+            <div style="display:flex; gap:1rem; margin-bottom:1.25rem; align-items:flex-start;">
+                <div style="width:32px; height:32px; border-radius:50%; background:var(--cs-primaer); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem; flex-shrink:0;">1</div>
+                <div>
+                    <div style="font-weight:600; margin-bottom:0.2rem;">Einsätze entstehen automatisch aus Serien</div>
+                    <div class="text-klein text-hell" style="line-height:1.6;">
+                        Jede Einsatzserie weiss: wer geht hin (Pflegeperson), wann (Wochentag + Zeit) und was (Leistungsart).
+                        Jeden Tag generiert das System die fälligen Einsätze automatisch — ohne manuellen Aufwand.
+                    </div>
+                </div>
+            </div>
+
+            {{-- Schritt 2 --}}
+            <div style="display:flex; gap:1rem; margin-bottom:1.25rem; align-items:flex-start;">
+                <div style="width:32px; height:32px; border-radius:50%; background:var(--cs-primaer); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem; flex-shrink:0;">2</div>
+                <div>
+                    <div style="font-weight:600; margin-bottom:0.2rem;">⚡ Touren generieren — ein Klick, alles erledigt</div>
+                    <div class="text-klein text-hell" style="line-height:1.6;">
+                        Das System gruppiert alle Einsätze des Tages nach Pflegeperson und erstellt pro Person eine Tour.
+                        Danach werden die Routen automatisch optimiert — die Reihenfolge der Besuche wird so gewählt,
+                        dass die Gesamtfahrstrecke möglichst kurz ist.
+                    </div>
+                </div>
+            </div>
+
+            {{-- Schritt 3 --}}
+            <div style="display:flex; gap:1rem; margin-bottom:1.25rem; align-items:flex-start;">
+                <div style="width:32px; height:32px; border-radius:50%; background:var(--cs-primaer); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem; flex-shrink:0;">3</div>
+                <div>
+                    <div style="font-weight:600; margin-bottom:0.2rem;">Prüfen, anpassen, fertig</div>
+                    <div class="text-klein text-hell" style="line-height:1.6;">
+                        Die generierten Touren können jederzeit manuell angepasst werden: Reihenfolge per Drag &amp; Drop,
+                        Einsatz hinzufügen oder entfernen, Route neu optimieren.
+                        Die Karte zeigt die geplante Route visuell — rot markierte Segmente warnen vor zu knapper Fahrzeit.
+                    </div>
+                </div>
+            </div>
+
+            {{-- Schritt 4 --}}
+            <div style="display:flex; gap:1rem; margin-bottom:1.5rem; align-items:flex-start;">
+                <div style="width:32px; height:32px; border-radius:50%; background:var(--cs-primaer); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem; flex-shrink:0;">4</div>
+                <div>
+                    <div style="font-weight:600; margin-bottom:0.2rem;">Der Alltag ändert sich kaum — das ist Absicht</div>
+                    <div class="text-klein text-hell" style="line-height:1.6;">
+                        Da die Serien stabil bleiben, produziert der Generieren-Knopf jeden Montag dieselben Touren.
+                        Ausnahmen (Krankheit, Ferien) werden manuell angepasst.
+                        Einsätze ohne zugewiesene Person erscheinen im orangen Warnbereich — so gehen keine Besuche vergessen.
+                    </div>
+                </div>
+            </div>
+
+            <div style="background:var(--cs-hintergrund); border-radius:var(--cs-radius); padding:0.875rem 1rem; font-size:0.8125rem; color:var(--cs-text-hell); line-height:1.6;">
+                <strong style="color:var(--cs-text);">Kurzfassung:</strong>
+                Serien planen → System generiert Einsätze → ein Klick erstellt optimierte Touren →
+                Pflegende sehen ihre Route und können loslegen.
+            </div>
+        </div>
+    </div>
+
     <div class="seiten-kopf">
-        <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+        <h1 style="font-size:1.25rem; font-weight:700; margin:0;">
             @if(auth()->user()->rolle === 'pflege')
                 Deine Tour heute
             @else
@@ -10,7 +78,23 @@
             @endif
         </h1>
         @if(auth()->user()->rolle !== 'pflege')
-        <a href="{{ route('touren.create') }}" class="btn btn-primaer">+ Neue Tour</a>
+        <button onclick="document.getElementById('touren-hilfe-modal').style.display='flex'"
+            style="width:22px; height:22px; border-radius:50%; background:var(--cs-hintergrund); border:1px solid var(--cs-border); font-size:0.75rem; font-weight:700; cursor:pointer; color:var(--cs-text-hell); display:flex; align-items:center; justify-content:center; flex-shrink:0;"
+            title="Wie funktioniert die Tourenplanung?">?</button>
+        @endif
+        </div>
+        @if(auth()->user()->rolle === 'admin')
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <form method="POST" action="{{ route('touren.generieren') }}" style="margin: 0;">
+                @csrf
+                <input type="hidden" name="datum" value="{{ $datum->format('Y-m-d') }}">
+                <button type="submit" class="btn btn-primaer"
+                    onclick="return confirm('Touren für {{ $datum->format('d.m.Y') }} neu generieren?\nBestehende Touren dieses Tages werden zurückgesetzt.')">
+                    ⚡ Touren generieren
+                </button>
+            </form>
+            <a href="{{ route('touren.create') }}" class="btn btn-sekundaer">+ Neue Tour</a>
+        </div>
         @endif
     </div>
 
@@ -90,7 +174,7 @@
                                 {{ $e->klient?->vollname() }}
                             </a>
                         </td>
-                        <td class="col-desktop text-hell" style="font-size: 0.8125rem;">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</td>
+                        <td class="col-desktop text-hell" style="font-size: 0.8125rem;">{{ $e->zeit_von ? $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') : 'Tagespauschale' }}</td>
                         <td style="font-size: 0.8125rem;">{{ $e->benutzer?->vorname }} {{ $e->benutzer?->nachname }}</td>
                         <td>
                             @if($t)
@@ -135,7 +219,7 @@
             <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.625rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; overflow: hidden;">
                 <span class="text-hell" style="font-size: 0.8rem; min-width: 18px; flex-shrink: 0;">{{ $idx + 1 }}.</span>
                 <span class="text-fett" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->klient?->vollname() }}</span>
-                <span class="text-hell" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
+                <span class="text-hell" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->zeit_von ? $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') : 'Tagespauschale' }}</span>
                 @if($e->zeit_von)
                     <span class="text-hell" style="flex-shrink: 0; font-size: 0.8rem;">{{ $e->zeit_von }}</span>
                 @endif
@@ -165,7 +249,7 @@
                     @foreach($eigeneEinsaetze as $e)
                     <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--cs-hintergrund); border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; border: 1px solid var(--cs-border); overflow: hidden;">
                         <span class="text-fett" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->klient?->vollname() }}</span>
-                        <span class="text-hell" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
+                        <span class="text-hell" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $e->zeit_von ? $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') : 'Tagespauschale' }}</span>
                         @if($e->zeit_von)
                             <span class="text-hell" style="flex-shrink: 0; font-size: 0.8rem;">{{ substr($e->zeit_von,0,5) }}</span>
                         @endif
@@ -202,7 +286,7 @@
             <a href="{{ route('einsaetze.vor-ort', $e) }}" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: #fff5f5; border-radius: var(--cs-radius); font-size: 0.875rem; text-decoration: none; color: inherit; border: 1px solid #fca5a5;">
                 <span style="font-size: 0.8rem; color: var(--cs-fehler); min-width: 60px;">{{ $e->datum->format('d.m.') }}</span>
                 <span class="text-fett">{{ $e->klient?->vollname() }}</span>
-                <span class="text-hell">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
+                <span class="text-hell">{{ $e->zeit_von ? $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') : 'Tagespauschale' }}</span>
                 <span class="badge badge-fehler" style="margin-left: auto; font-size: 0.7rem;">{{ $e->statusLabel() }}</span>
             </a>
             @endforeach
@@ -251,7 +335,7 @@
                         <span class="text-hell" style="min-width: 45px;">—</span>
                     @endif
                     <span style="font-weight: 500; flex: 1;">{{ $e->klient?->vollname() }}</span>
-                    <span class="text-hell" style="flex: 1;">{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') }}</span>
+                    <span class="text-hell" style="flex: 1;">{{ $e->zeit_von ? $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') : 'Tagespauschale' }}</span>
                     <a href="{{ route('einsaetze.edit', $e) }}" class="btn btn-sekundaer" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; flex-shrink: 0;">Detail</a>
                 </div>
                 @endforeach

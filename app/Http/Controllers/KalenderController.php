@@ -85,7 +85,7 @@ class KalenderController extends Controller
                 'extendedProps'   => [
                     'status'       => $e->status,
                     'statusLabel'  => $e->statusLabel(),
-                    'leistungsart' => $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', '),
+                    'leistungsart' => $e->tagespauschale_id ? 'Tagespauschale' : $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', '),
                     'klient_id'    => $e->klient_id,
                     'klient_name'  => $e->klient ? $e->klient->vorname . ' ' . $e->klient->nachname : '?',
                     'benutzer_name'=> $e->benutzer ? $e->benutzer->vorname . ' ' . $e->benutzer->nachname : '—',
