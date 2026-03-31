@@ -497,14 +497,9 @@
                             <div style="display:flex; align-items:center; gap:0.5rem; padding:0.2rem 0; font-size:0.875rem;">
                                 <label style="display:flex; align-items:center; gap:0.4rem; flex:1; cursor:pointer;">
                                     <input type="checkbox" name="leistungsarten[{{ $i }}][id]" value="{{ $la->id }}"
-                                        onchange="toggleSerieMin(this)"
                                         style="width:1rem; height:1rem; accent-color:var(--cs-primaer);">
                                     {{ $la->bezeichnung }}
                                 </label>
-                                <input type="number" name="leistungsarten[{{ $i }}][minuten]"
-                                    value="30" min="5" step="5"
-                                    style="width:65px; opacity:0.3;" class="feld serie-min-input">
-                                <span class="text-hell" style="font-size:0.8rem;">Min.</span>
                             </div>
                             @endforeach
                         </div>
@@ -1994,10 +1989,7 @@ function zeigeSerieWochentage(sel) {
     document.getElementById('serie-wochentage').style.display = sel.value === 'woechentlich' ? '' : 'none';
     aktualisiereSeriePreview();
 }
-function toggleSerieMin(cb) {
-    const input = cb.closest('div').querySelector('.serie-min-input');
-    if (input) input.style.opacity = cb.checked ? '1' : '0.3';
-}
+
 function aktualisiereSeriePreview() {
     const rhythmus = document.querySelector('[name="rhythmus"]')?.value;
     const ab   = document.querySelector('[name="gueltig_ab"]')?.value;

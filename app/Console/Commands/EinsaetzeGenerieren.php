@@ -211,8 +211,6 @@ class EinsaetzeGenerieren extends Command
             };
 
             if ($passt) {
-                $minuten = collect($serie->leistungsarten)->sum('minuten');
-
                 $e = Einsatz::create([
                     'organisation_id'        => $serie->organisation_id,
                     'klient_id'              => $klient->id,
@@ -222,7 +220,7 @@ class EinsaetzeGenerieren extends Command
                     'datum'                  => $current->format('Y-m-d'),
                     'zeit_von'               => $serie->zeit_von,
                     'zeit_bis'               => $serie->zeit_bis,
-                    'minuten'                => $minuten ?: null,
+                    'minuten'                => null,
                     'leistungserbringer_typ' => $leTyp,
                     'bemerkung'              => $serie->bemerkung,
                     'status'                 => 'geplant',
@@ -233,7 +231,7 @@ class EinsaetzeGenerieren extends Command
                     EinsatzLeistungsart::create([
                         'einsatz_id'      => $e->id,
                         'leistungsart_id' => $la['id'],
-                        'minuten'         => $la['minuten'],
+                        'minuten'         => 0,
                     ]);
                 }
 

@@ -337,7 +337,6 @@ class FirmaController extends Controller
                 };
 
                 if ($passt) {
-                    $minuten = collect($serie->leistungsarten)->sum('minuten');
                     $e = \App\Models\Einsatz::create([
                         'organisation_id'        => $serie->organisation_id,
                         'klient_id'              => $serie->klient_id,
@@ -346,7 +345,7 @@ class FirmaController extends Controller
                         'datum'                  => $current->format('Y-m-d'),
                         'zeit_von'               => $serie->zeit_von,
                         'zeit_bis'               => $serie->zeit_bis,
-                        'minuten'                => $minuten ?: null,
+                        'minuten'                => null,
                         'leistungserbringer_typ' => $leTyp,
                         'bemerkung'              => $serie->bemerkung,
                         'status'                 => 'geplant',
@@ -357,7 +356,7 @@ class FirmaController extends Controller
                         \App\Models\EinsatzLeistungsart::create([
                             'einsatz_id'      => $e->id,
                             'leistungsart_id' => $la['id'],
-                            'minuten'         => $la['minuten'],
+                            'minuten'         => 0,
                         ]);
                     }
 

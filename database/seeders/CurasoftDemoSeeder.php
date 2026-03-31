@@ -1047,7 +1047,7 @@ class CurasoftDemoSeeder extends Seeder
             $reihenfolge = [];
 
             // Serie-Datensatz anlegen
-            $laJson = array_map(fn($la) => ['id' => $la[0], 'minuten' => $la[1]], $leistungsarten);
+            $laJson = array_map(fn($la) => ['id' => $la[0]], $leistungsarten);
             $hatAlleTage = count(array_diff([0,1,2,3,4,5,6], $wochentage)) === 0;
             DB::table('serien')->insert([
                 'id'                     => $serieId,
@@ -1100,7 +1100,7 @@ class CurasoftDemoSeeder extends Seeder
                     'datum'                  => $datumStr,
                     'zeit_von'               => $von,
                     'zeit_bis'               => $bis,
-                    'minuten'                => $totalMin,
+                    'minuten'                => $abgeschlossen ? $totalMin : null,
                     'status'                 => $status,
                     'checkin_zeit'           => $abgeschlossen ? $datumStr . ' ' . $von . ':00' : null,
                     'checkout_zeit'          => $abgeschlossen ? $datumStr . ' ' . $bis . ':00' : null,
@@ -1117,19 +1117,21 @@ class CurasoftDemoSeeder extends Seeder
                     DB::table('einsatz_leistungsarten')->insert([
                         'einsatz_id'      => $eid,
                         'leistungsart_id' => $laId,
-                        'minuten'         => $laMin,
+                        'minuten'         => $abgeschlossen ? $laMin : 0,
                         'created_at'      => now(),
                         'updated_at'      => now(),
                     ]);
-                    DB::table('einsatz_aktivitaeten')->insert([
-                        'einsatz_id'      => $eid,
-                        'organisation_id' => $this->orgId,
-                        'kategorie'       => $kategorie,
-                        'aktivitaet'      => $aktivitaet,
-                        'minuten'         => $laMin,
-                        'created_at'      => now(),
-                        'updated_at'      => now(),
-                    ]);
+                    if ($abgeschlossen) {
+                        DB::table('einsatz_aktivitaeten')->insert([
+                            'einsatz_id'      => $eid,
+                            'organisation_id' => $this->orgId,
+                            'kategorie'       => $kategorie,
+                            'aktivitaet'      => $aktivitaet,
+                            'minuten'         => $laMin,
+                            'created_at'      => now(),
+                            'updated_at'      => now(),
+                        ]);
+                    }
                 }
 
                 $current->addDay();
@@ -1213,7 +1215,7 @@ class CurasoftDemoSeeder extends Seeder
                 'datum'                  => $datumStr,
                 'zeit_von'               => $von,
                 'zeit_bis'               => $bis,
-                'minuten'                => 45,
+                'minuten'                => $abgeschlossen ? 45 : null,
                 'status'                 => $status,
                 'checkin_zeit'           => $abgeschlossen ? $datumStr . ' ' . $von . ':00' : null,
                 'checkout_zeit'          => $abgeschlossen ? $datumStr . ' ' . $bis . ':00' : null,
@@ -1228,20 +1230,21 @@ class CurasoftDemoSeeder extends Seeder
             DB::table('einsatz_leistungsarten')->insert([
                 'einsatz_id'      => $eid,
                 'leistungsart_id' => $laId,
-                'minuten'         => 45,
+                'minuten'         => $abgeschlossen ? 45 : 0,
                 'created_at'      => now(),
                 'updated_at'      => now(),
             ]);
-
-            DB::table('einsatz_aktivitaeten')->insert([
-                'einsatz_id'      => $eid,
-                'organisation_id' => $this->orgId,
-                'kategorie'       => $kat,
-                'aktivitaet'      => $aktivitaet,
-                'minuten'         => 45,
-                'created_at'      => now(),
-                'updated_at'      => now(),
-            ]);
+            if ($abgeschlossen) {
+                DB::table('einsatz_aktivitaeten')->insert([
+                    'einsatz_id'      => $eid,
+                    'organisation_id' => $this->orgId,
+                    'kategorie'       => $kat,
+                    'aktivitaet'      => $aktivitaet,
+                    'minuten'         => 45,
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ]);
+            }
 
             $current->addDay();
         }

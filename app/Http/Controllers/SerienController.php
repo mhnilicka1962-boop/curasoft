@@ -25,25 +25,26 @@ class SerienController extends Controller
 
         $request->merge([
             'leistungsarten' => collect($request->input('leistungsarten', []))
-                ->filter(fn($la) => !empty($la['id']))->values()->toArray(),
+                ->filter(fn($la) => !empty($la['id']))
+                ->map(fn($la) => ['id' => (int)$la['id']])
+                ->values()->toArray(),
         ]);
 
         $daten = $request->validate([
-            'rhythmus'                 => ['required', 'in:taeglich,woechentlich'],
-            'wochentage'               => ['nullable', 'array'],
-            'wochentage.*'             => ['integer', 'between:0,6'],
-            'leistungsarten'           => ['required', 'array', 'min:1'],
-            'leistungsarten.*.id'      => ['required', 'exists:leistungsarten,id'],
-            'leistungsarten.*.minuten' => ['required', 'integer', 'min:5'],
-            'gueltig_ab'               => ['required', 'date'],
-            'gueltig_bis'              => ['required_if:auto_verlaengern,0', 'nullable', 'date', 'after_or_equal:gueltig_ab'],
-            'auto_verlaengern'         => ['boolean'],
-            'zeit_von'                 => ['nullable', 'date_format:H:i'],
-            'zeit_bis'                 => ['nullable', 'date_format:H:i'],
-            'benutzer_id'              => ['nullable', 'exists:benutzer,id'],
-            'helfer_id'                => ['nullable', 'exists:benutzer,id'],
-            'leistungserbringer_typ'   => ['nullable', 'in:fachperson,angehoerig'],
-            'bemerkung'                => ['nullable', 'string', 'max:500'],
+            'rhythmus'            => ['required', 'in:taeglich,woechentlich'],
+            'wochentage'          => ['nullable', 'array'],
+            'wochentage.*'        => ['integer', 'between:0,6'],
+            'leistungsarten'      => ['required', 'array', 'min:1'],
+            'leistungsarten.*.id' => ['required', 'exists:leistungsarten,id'],
+            'gueltig_ab'          => ['required', 'date'],
+            'gueltig_bis'         => ['required_if:auto_verlaengern,0', 'nullable', 'date', 'after_or_equal:gueltig_ab'],
+            'auto_verlaengern'    => ['boolean'],
+            'zeit_von'            => ['nullable', 'date_format:H:i'],
+            'zeit_bis'            => ['nullable', 'date_format:H:i'],
+            'benutzer_id'         => ['nullable', 'exists:benutzer,id'],
+            'helfer_id'           => ['nullable', 'exists:benutzer,id'],
+            'leistungserbringer_typ' => ['nullable', 'in:fachperson,angehoerig'],
+            'bemerkung'           => ['nullable', 'string', 'max:500'],
         ], [
             'gueltig_bis.required_if' => 'Enddatum ist erforderlich wenn keine automatische Verlängerung aktiv ist.',
         ]);
@@ -115,25 +116,26 @@ class SerienController extends Controller
 
         $request->merge([
             'leistungsarten' => collect($request->input('leistungsarten', []))
-                ->filter(fn($la) => !empty($la['id']))->values()->toArray(),
+                ->filter(fn($la) => !empty($la['id']))
+                ->map(fn($la) => ['id' => (int)$la['id']])
+                ->values()->toArray(),
         ]);
 
         $daten = $request->validate([
-            'rhythmus'                 => ['required', 'in:taeglich,woechentlich'],
-            'wochentage'               => ['nullable', 'array'],
-            'wochentage.*'             => ['integer', 'between:0,6'],
-            'leistungsarten'           => ['required', 'array', 'min:1'],
-            'leistungsarten.*.id'      => ['required', 'exists:leistungsarten,id'],
-            'leistungsarten.*.minuten' => ['required', 'integer', 'min:5'],
-            'gueltig_ab'               => ['required', 'date'],
-            'gueltig_bis'              => ['required_if:auto_verlaengern,0', 'nullable', 'date', 'after_or_equal:gueltig_ab'],
-            'auto_verlaengern'         => ['boolean'],
-            'zeit_von'                 => ['nullable', 'date_format:H:i'],
-            'zeit_bis'                 => ['nullable', 'date_format:H:i'],
-            'benutzer_id'              => ['nullable', 'exists:benutzer,id'],
-            'helfer_id'                => ['nullable', 'exists:benutzer,id'],
-            'leistungserbringer_typ'   => ['nullable', 'in:fachperson,angehoerig'],
-            'bemerkung'                => ['nullable', 'string', 'max:500'],
+            'rhythmus'            => ['required', 'in:taeglich,woechentlich'],
+            'wochentage'          => ['nullable', 'array'],
+            'wochentage.*'        => ['integer', 'between:0,6'],
+            'leistungsarten'      => ['required', 'array', 'min:1'],
+            'leistungsarten.*.id' => ['required', 'exists:leistungsarten,id'],
+            'gueltig_ab'          => ['required', 'date'],
+            'gueltig_bis'         => ['required_if:auto_verlaengern,0', 'nullable', 'date', 'after_or_equal:gueltig_ab'],
+            'auto_verlaengern'    => ['boolean'],
+            'zeit_von'            => ['nullable', 'date_format:H:i'],
+            'zeit_bis'            => ['nullable', 'date_format:H:i'],
+            'benutzer_id'         => ['nullable', 'exists:benutzer,id'],
+            'helfer_id'           => ['nullable', 'exists:benutzer,id'],
+            'leistungserbringer_typ' => ['nullable', 'in:fachperson,angehoerig'],
+            'bemerkung'           => ['nullable', 'string', 'max:500'],
         ], [
             'gueltig_bis.required_if' => 'Enddatum ist erforderlich wenn keine automatische Verlängerung aktiv ist.',
         ]);
@@ -254,7 +256,6 @@ class SerienController extends Controller
         \Carbon\Carbon $bis,
         int $maxEintraege = 30
     ): int {
-        $minuten    = collect($daten['leistungsarten'])->sum('minuten');
         $wochentage = array_map('intval', $daten['wochentage'] ?? []);
         $leTyp      = $daten['leistungserbringer_typ'] ?? 'fachperson';
         $helferId   = $daten['helfer_id'] ?? null;
@@ -278,7 +279,7 @@ class SerienController extends Controller
                     'datum'                  => $current->format('Y-m-d'),
                     'zeit_von'               => $daten['zeit_von'] ?? null,
                     'zeit_bis'               => $daten['zeit_bis'] ?? null,
-                    'minuten'                => $minuten ?: null,
+                    'minuten'                => null,
                     'leistungserbringer_typ' => $leTyp,
                     'bemerkung'              => $daten['bemerkung'] ?? null,
                     'status'                 => 'geplant',
@@ -288,7 +289,7 @@ class SerienController extends Controller
                 foreach ($daten['leistungsarten'] as $la) {
                     $e->einsatzLeistungsarten()->create([
                         'leistungsart_id' => $la['id'],
-                        'minuten'         => $la['minuten'],
+                        'minuten'         => 0,
                     ]);
                 }
 

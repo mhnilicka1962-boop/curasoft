@@ -93,19 +93,14 @@
                         ->keyBy(fn($la) => (int)($la['id'] ?? 0));
                 @endphp
                 @foreach($leistungsarten as $i => $la)
-                @php $el = $gespeicherteLa[$la->id] ?? null; $checked = !!$el; @endphp
+                @php $checked = isset($gespeicherteLa[$la->id]); @endphp
                 <div style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0; border-bottom:1px solid var(--cs-border); font-size:0.875rem;">
                     <label style="display:flex; align-items:center; gap:0.4rem; flex:1; cursor:pointer;">
                         <input type="checkbox" name="leistungsarten[{{ $i }}][id]" value="{{ $la->id }}"
                             {{ $checked ? 'checked' : '' }}
-                            onchange="toggleMin(this)"
                             style="width:1rem; height:1rem; accent-color:var(--cs-primaer);">
                         {{ $la->bezeichnung }}
                     </label>
-                    <input type="number" name="leistungsarten[{{ $i }}][minuten]"
-                        value="{{ $el['minuten'] ?? 30 }}" min="5" step="5"
-                        style="width:65px; {{ $checked ? '' : 'opacity:0.3;' }}" class="feld la-min">
-                    <span class="text-hell" style="font-size:0.8rem;">Min.</span>
                 </div>
                 @endforeach
             </div>
@@ -229,9 +224,7 @@ function zeigeHelferBereich(sel) {
 function zeigeWochentage(sel) {
     document.getElementById('block-wochentage').style.display = sel.value === 'taeglich' ? 'none' : '';
 }
-function toggleMin(cb) {
-    cb.closest('div').querySelector('.la-min').style.opacity = cb.checked ? '1' : '0.3';
-}
+
 document.querySelectorAll('.wochentag-cb').forEach(cb => {
     const label = cb.closest('label');
     function upd() {
