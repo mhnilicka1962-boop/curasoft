@@ -22,8 +22,10 @@ class AuthController extends Controller
             return redirect()->route('dashboard');
         }
         // QR Check-in: ?redirect=URL in Session als intended URL speichern
-        if ($request->has('redirect')) {
-            session()->put('url.intended', $request->get('redirect'));
+        // Nur relative URLs akzeptieren — verhindert Open Redirect auf externe Domains
+        $redirect = $request->get('redirect', '');
+        if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, '//')) {
+            session()->put('url.intended', $redirect);
         }
         return view('auth.login');
     }
