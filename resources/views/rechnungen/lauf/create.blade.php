@@ -20,12 +20,14 @@
         <div class="form-grid">
             <div class="form-feld">
                 <label class="form-label">Periode von</label>
-                <input type="date" name="periode_von" class="feld" value="{{ request('periode_von') }}"
+                <input type="date" name="periode_von" class="feld"
+                    value="{{ request('periode_von', now()->subMonth()->startOfMonth()->format('Y-m-d')) }}"
                     max="{{ today()->format('Y-m-d') }}" required>
             </div>
             <div class="form-feld">
                 <label class="form-label">Periode bis</label>
-                <input type="date" name="periode_bis" class="feld" value="{{ request('periode_bis') }}"
+                <input type="date" name="periode_bis" class="feld"
+                    value="{{ request('periode_bis', now()->subMonth()->endOfMonth()->format('Y-m-d')) }}"
                     max="{{ today()->format('Y-m-d') }}" required>
             </div>
             <div class="form-feld" style="display: flex; align-items: flex-end; gap: 0.5rem;">
