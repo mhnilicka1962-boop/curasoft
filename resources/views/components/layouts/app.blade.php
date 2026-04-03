@@ -1,6 +1,7 @@
 @php
     $org = auth()->check() ? \App\Models\Organisation::first() : null;
-    $layout = $org?->theme_layout ?? config('theme.layout', 'sidebar');
+    $isMobile = (bool) preg_match('/Mobile|Android|iPhone|iPad/i', request()->userAgent() ?? '');
+    $layout = $isMobile ? 'topnav' : ($org?->theme_layout ?? config('theme.layout', 'sidebar'));
     $farbePrimaer = $org?->theme_farbe_primaer ?? config('theme.farbe_primaer');
     if ($org?->logo_pfad) config(['theme.logo' => $org->logo_pfad]);
     // Abgeleitete Farben berechnen
