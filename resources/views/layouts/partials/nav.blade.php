@@ -75,7 +75,7 @@ $einstellungenAktiv = request()->routeIs('firma.*') || request()->routeIs('leist
 <details {{ $einstellungenAktiv ? 'open' : '' }} style="margin-top: 0.25rem;">
     <summary class="nav-abschnitt" style="cursor: pointer; user-select: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
         <span>Einstellungen</span>
-        <span style="font-size: 0.7rem; opacity: 0.5;">▾</span>
+        <span style="font-size: 1rem; opacity: 0.75;">▾</span>
     </summary>
     <a href="{{ route('firma.index') }}" class="nav-link {{ request()->routeIs('firma.*') ? 'aktiv' : '' }}">
         Firma
