@@ -12,7 +12,10 @@ class AuditLogController extends Controller
         $query = AuditLog::query()->orderByDesc('created_at');
 
         if ($request->filled('benutzer')) {
-            $query->where('benutzer_email', 'like', '%' . $request->benutzer . '%');
+            $query->where(function ($q) use ($request) {
+                $q->whereRaw('benutzer_email ilike ?', ['%' . $request->benutzer . '%'])
+                  ->orWhereRaw('benutzer_name ilike ?', ['%' . $request->benutzer . '%']);
+            });
         }
         if ($request->filled('aktion')) {
             $query->where('aktion', $request->aktion);

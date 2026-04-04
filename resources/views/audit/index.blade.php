@@ -10,8 +10,8 @@
 <div class="karte" style="margin-bottom: 1.25rem; padding: 1rem;">
     <form method="GET" action="{{ route('audit.index') }}" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
         <div>
-            <label class="feld-label" style="font-size: 0.75rem;">Benutzer (E-Mail)</label>
-            <input type="text" name="benutzer" class="feld" style="width: 180px;" value="{{ request('benutzer') }}" placeholder="@beispiel.ch">
+            <label class="feld-label" style="font-size: 0.75rem;">Benutzer (Name / E-Mail)</label>
+            <input type="text" name="benutzer" class="feld" style="width: 200px;" value="{{ request('benutzer') }}" placeholder="Name oder E-Mail">
         </div>
         <div>
             <label class="feld-label" style="font-size: 0.75rem;">Aktion</label>
