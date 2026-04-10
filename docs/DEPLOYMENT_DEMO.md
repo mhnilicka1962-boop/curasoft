@@ -70,6 +70,42 @@ php artisan tenant:create X "Name GmbH" admin@x.ch --skip-create-db --db=devitjo
 
 ---
 
+## Automatische DB-Backups
+
+Täglich 03:00 Uhr via Cron — alle aktiven Tenants werden gesichert.
+
+### Was gesichert wird
+- Alle Tenants aus der `tenants`-Tabelle (`aktiv = true`)
+- Struktur + Daten (`pg_dump` Standard)
+- Aufbewahrung: 30 Tage, danach automatisch gelöscht
+
+### Speicherort (Server)
+```
+/home/devitjob/public_html/spitex/storage/app/backups/
+```
+Dateiname: `YYYY-MM-DD_HHMMSS_subdomain.sql`
+
+### Manuell ausführen
+```bash
+php /home/devitjob/public_html/spitex/artisan db:backup
+```
+
+### Neuen Tenant hinzufügen
+Kein Anpassen nötig — neuer Eintrag in `tenants`-Tabelle wird automatisch mitgesichert.
+
+### Cron (cPanel)
+```
+0 3 * * * /usr/local/bin/php /home/devitjob/public_html/spitex/artisan db:backup >> /home/devitjob/logs/db_backup.log 2>&1
+```
+
+### Lokal testen
+```bash
+php artisan db:backup
+```
+Backups landen in `storage/app/backups/`.
+
+---
+
 ## Lokale Entwicklung
 
 ```bash
