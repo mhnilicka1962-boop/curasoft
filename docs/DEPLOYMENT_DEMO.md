@@ -93,6 +93,9 @@ php /home/devitjob/public_html/spitex/artisan db:backup
 ### Neuen Tenant hinzufügen
 Kein Anpassen nötig — neuer Eintrag in `tenants`-Tabelle wird automatisch mitgesichert.
 
+### Geplant (noch nicht umgesetzt)
+- Monatlicher Dump der Produktiv-DBs per E-Mail versenden — externe Sicherung falls Server crasht
+
 ### Cron (cPanel)
 ```
 0 3 * * * /usr/local/bin/php /home/devitjob/public_html/spitex/artisan db:backup >> /home/devitjob/logs/db_backup.log 2>&1
