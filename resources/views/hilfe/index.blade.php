@@ -24,6 +24,7 @@
             <a href="#script-einsatz" class="badge badge-info" style="text-decoration: none;">▶ Einsatz erfassen</a>
             <a href="#kap-rapportierung" class="badge badge-info" style="text-decoration: none;">▶ Rapportierung</a>
             <a href="#script-serie" class="badge badge-info" style="text-decoration: none;">▶ Einsatzserie</a>
+            <a href="#kap5-pdf" class="badge badge-info" style="text-decoration: none;">▶ Rapport-PDF</a>
         </div>
     </div>
 
@@ -279,6 +280,8 @@
                             Rapporte vollständig? Zwischenfälle bearbeitet?
                         </label>
                         <a href="{{ route('rapporte.index') }}" class="script-link" target="_blank">Rapporte →</a>
+                        <div class="text-klein text-hell" style="margin: 0.2rem 0 0 1.5rem;">Tipp: Sammel-PDF erstellen (Filter: Klient + Zeitraum) → ideal für Arztberichte oder KK-Anfragen</div>
+                        <a href="{{ route('rapporte.sammel-pdf') }}" class="script-link" target="_blank">Rapport Sammel-PDF →</a>
                     </li>
                     <li data-step="2">
                         <label><input type="checkbox" data-script="s5" data-step="2">
@@ -777,9 +780,29 @@
         </table>
         </div>
         <div class="info-box" style="margin-bottom: 1rem;">Das Diktat funktioniert nur in <strong>Chrome, Edge oder Safari</strong> — nicht in Firefox.</div>
-        <ol start="4" style="margin: 0 0 0 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
+        <ol start="4" style="margin: 0 0 1rem 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
             <li>Vertraulich-Häkchen setzen wenn nötig → <strong>Speichern</strong></li>
         </ol>
+        <div class="abschnitt-trenn"></div>
+        <div id="kap5-pdf" style="font-weight: 600; margin: 1rem 0 0.5rem;">PDF-Export</div>
+        <div class="tabelle-wrapper" style="margin-bottom: 1rem;">
+        <table class="tabelle">
+            <thead><tr><th>Schaltfläche</th><th>Wo</th><th>Zweck</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><strong>PDF</strong></td>
+                    <td>Rapport-Detail (oben rechts) oder Rapport-Liste (Zeile)</td>
+                    <td>Einzelnen Rapport als PDF — für Ablage oder Weiterleitung</td>
+                </tr>
+                <tr>
+                    <td><strong>&#128196; Sammel-PDF</strong></td>
+                    <td>Rapporte-Liste (oben rechts, neben Filter)</td>
+                    <td>Alle gefilterten Rapporte in einem PDF — ideal für Arztberichte oder KK-Anfragen. Filter: Klient + Zeitraum + Typ</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        <div class="info-box">Beim Sammel-PDF werden nur die Rapporte exportiert, die der aktuelle Filter anzeigt — Klient und/oder Zeitraum vor dem Klick setzen.</div>
     </div>
 
     {{-- Kapitel 6: Rechnung --}}
