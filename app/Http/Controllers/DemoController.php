@@ -37,6 +37,12 @@ class DemoController extends Controller
 
         Auth::login($benutzer, remember: true);
 
-        return redirect()->intended('/dashboard');
+        $goto = request('goto', '/dashboard');
+        // Nur interne Pfade erlaubt — kein Open Redirect
+        if (!str_starts_with($goto, '/') || str_starts_with($goto, '//')) {
+            $goto = '/dashboard';
+        }
+
+        return redirect($goto);
     }
 }

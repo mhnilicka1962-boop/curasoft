@@ -7,7 +7,9 @@ use App\Models\Einsatz;
 use App\Models\Klient;
 use App\Models\Nachricht;
 use App\Models\NachrichtEmpfaenger;
+use App\Models\Organisation;
 use App\Models\Rapport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class RapporteController extends Controller
@@ -159,6 +161,64 @@ class RapporteController extends Controller
         if ($rapport->organisation_id !== $this->orgId()) abort(403);
         $rapport->load('klient', 'benutzer', 'einsatz');
         return view('rapporte.show', compact('rapport'));
+    }
+
+    public function sammelPdf(Request $request)
+    {
+        $query = Rapport::where('organisation_id', $this->orgId())
+            ->with('klient', 'benutzer')
+            ->orderBy('datum')
+            ->orderBy('id');
+
+        if ($request->filled('klient_id'))  $query->where('klient_id',    $request->klient_id);
+        if ($request->filled('typ'))        $query->where('rapport_typ',   $request->typ);
+        if ($request->filled('datum_von'))  $query->where('datum', '>=',   $request->datum_von);
+        if ($request->filled('datum_bis'))  $query->where('datum', '<=',   $request->datum_bis);
+
+        if (auth()->user()->rolle === 'pflege') {
+            $query->where('benutzer_id', auth()->id());
+        }
+
+        $rapporte = $query->get();
+        abort_if($rapporte->isEmpty(), 404, 'Keine Rapporte gefunden.');
+
+        $org = Organisation::findOrFail($this->orgId());
+
+        $filter = [
+            'klient_id' => $request->klient_id,
+            'typ'       => $request->typ,
+            'datum_von' => $request->datum_von,
+            'datum_bis' => $request->datum_bis,
+        ];
+
+        $html = view('pdfs.rapport_sammel', compact('rapporte', 'org', 'filter'))->render();
+        $pdf  = Pdf::loadHTML($html)->setPaper('A4', 'portrait');
+
+        $datei = 'rapporte_' . now()->format('Y-m-d') . '.pdf';
+        return response($pdf->output(), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $datei . '"',
+        ]);
+    }
+
+    public function pdf(Rapport $rapport)
+    {
+        if ($rapport->organisation_id !== $this->orgId()) abort(403);
+        if (auth()->user()->rolle === 'pflege' && $rapport->benutzer_id !== auth()->id()) abort(403);
+
+        $rapport->load('klient', 'benutzer');
+        $org = Organisation::findOrFail($this->orgId());
+
+        $html = view('pdfs.rapport', compact('rapport', 'org'))->render();
+        $pdf  = Pdf::loadHTML($html)->setPaper('A4', 'portrait');
+
+        $typ      = \App\Models\Rapport::$typen[$rapport->rapport_typ] ?? $rapport->rapport_typ;
+        $datei    = 'rapport_' . $rapport->klient->nachname . '_' . $rapport->datum->format('Y-m-d') . '.pdf';
+
+        return response($pdf->output(), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $datei . '"',
+        ]);
     }
 
     // ── Hilfsmethoden ──────────────────────────────────────────────

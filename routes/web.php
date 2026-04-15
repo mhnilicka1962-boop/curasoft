@@ -286,7 +286,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('/einsaetze/{einsatz}', [EinsaetzeController::class, 'destroy'])->name('einsaetze.destroy');
 
         // Rapporte
+        Route::get('/rapporte/sammel-pdf', [RapporteController::class, 'sammelPdf'])->name('rapporte.sammel-pdf');
         Route::resource('/rapporte', RapporteController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update'])->parameters(['rapporte' => 'rapport']);
+        Route::get('/rapporte/{rapport}/pdf', [RapporteController::class, 'pdf'])->name('rapporte.pdf');
 
         // Touren
         Route::post('/touren/generieren', [TourenController::class, 'generieren'])->name('touren.generieren');

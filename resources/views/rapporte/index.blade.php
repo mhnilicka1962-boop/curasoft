@@ -34,6 +34,8 @@
         @if(request()->hasAny(['klient_id','typ','benutzer_id','datum_von','datum_bis']))
             <a href="{{ route('rapporte.index') }}" class="btn btn-sekundaer">×</a>
         @endif
+        <a href="{{ route('rapporte.sammel-pdf', request()->only(['klient_id','typ','datum_von','datum_bis'])) }}"
+           target="_blank" class="btn btn-sekundaer">&#128196; Sammel-PDF</a>
     </form>
 
     <div class="karte-null">
@@ -83,6 +85,7 @@
                     </td>
                     <td class="text-rechts" style="padding: 0.625rem 0.875rem;">
                         <a href="{{ route('rapporte.show', $r) }}" class="link-primaer" style="font-size: 0.8125rem;">Detail →</a>
+                        <a href="{{ route('rapporte.pdf', $r) }}" target="_blank" class="link-gedaempt" style="font-size: 0.8125rem; margin-left: 0.5rem;">PDF</a>
                     </td>
                 </tr>
                 @empty

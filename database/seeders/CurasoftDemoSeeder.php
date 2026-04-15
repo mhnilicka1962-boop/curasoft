@@ -1141,12 +1141,35 @@ class CurasoftDemoSeeder extends Seeder
         $this->annaSpringerEinsaetze($tourenCache, $vonDat, $einsatzBis, $heute, $laGp, $rAg, $aktuellerMonat);
         $this->einmaligeEinsaetze($rAg, $rBe);
         $this->tagespauschalen();
+        $this->tourloeseFutureFixen($tourenCache, $heute);
+    }
+
+    private function tourloeseFutureFixen(array &$tourenCache, Carbon $heute): void
+    {
+        $einsaetze = DB::table('einsaetze as e')
+            ->where('e.status', 'geplant')
+            ->where('e.datum', '>=', $heute->toDateString())
+            ->whereNull('e.tour_id')
+            ->where('e.leistungserbringer_typ', '!=', 'angehoerig')
+            ->select('e.id', 'e.benutzer_id', 'e.datum')
+            ->get();
+
+        $reihenfolge = [];
+        foreach ($einsaetze as $e) {
+            $tourId = $this->holeTourId($tourenCache, true, $e->benutzer_id, $e->datum, false, $heute->isSameDay(Carbon::parse($e->datum)));
+            if (!$tourId) continue;
+            $rkKey = $tourId . '_' . $e->datum;
+            $reihenfolge[$rkKey] = ($reihenfolge[$rkKey] ?? 0) + 1;
+            DB::table('einsaetze')->where('id', $e->id)->update([
+                'tour_id'          => $tourId,
+                'tour_reihenfolge' => $reihenfolge[$rkKey],
+            ]);
+        }
     }
 
     private function holeTourId(array &$cache, bool $mitTour, int $benutzerId, string $datumStr, bool $istVergangen, bool $istHeute): ?int
     {
         if (!$mitTour) return null;
-        if (!$istVergangen) return null; // Heute + Zukunft → kein Tour-ID → erscheint in "Nicht eingeplant"
 
         $tourKey = $benutzerId . '_' . $datumStr;
         if (!isset($cache[$tourKey])) {
@@ -1341,52 +1364,112 @@ class CurasoftDemoSeeder extends Seeder
 
     private function rapporte(): void
     {
-        $texte = [
-            'brunner'   => [
-                'Frau Brunner in gutem Allgemeinzustand angetroffen. Körperpflege vollständig durchgeführt, beim Ankleiden assistiert. Blutdruck 138/82 mmHg, Puls regelmässig. Klientin war gut gestimmt.',
-                'Grundpflege und Hauswirtschaft durchgeführt. Frau Brunner berichtete über leichte Knieschmerzen. Wohnung aufgeräumt, Küche sauber gemacht. Medikamente gerichtet und übergeben.',
-            ],
-            'weber'     => [
-                'Herr Weber war wach und kooperativ. Injektion verabreicht (Insulin 8 IE). Verband gewechselt, Wunde heilt gut. Keine Auffälligkeiten.',
-                'Herr Weber klagte über Müdigkeit. Injektion durchgeführt. Vitalzeichen: RR 142/88, Puls 74. Verband Mo/Mi/Fr gewechselt. Hinweis: auf Flüssigkeitszufuhr achten.',
-            ],
-            'schneider' => [
-                'Frau Schneider zeigte sich heute unruhig und zeitweise desorientiert. Grundpflege behutsam durchgeführt. Vitalzeichen: RR 122/78, Puls 68, Temp. 36.8°. Angehörige telefonisch informiert.',
-                'Frau Schneider ruhig und freundlich gestimmt. Körperwäsche, Ankleiden und Mundpflege durchgeführt. Vitalzeichen stabil. Hat gut gefrühstückt.',
-            ],
-            'keller'    => [
-                'Herr Keller klagte über leichte Atemnot bei Belastung. Hauswirtschaft durchgeführt. Grundpflege: Kompressionsstrümpfe angelegt. RR 145/90, Puls 78. Arzt informiert.',
-                'Herr Keller in gutem Zustand, kooperativ. Wohnung gereinigt, Wäsche gemacht. Grundpflege inkl. Kompressionsstrümpfe. RR 138/86. Keine wesentlichen Veränderungen.',
-            ],
-            'gerber'    => [
-                'Herr Gerber durch Tochter Ruth Gerber gepflegt. Mobilisation und Körperpflege durchgeführt. Herr Gerber in stabilem Zustand, guter Laune.',
-                'Grundpflege durch Angehörige Ruth Gerber. Herr Gerber hat Morgengymnastik gemacht. Vitalzeichen unauffällig. Allgemeinzustand gut.',
-            ],
+        $h = Carbon::today();
+
+        $eintraege = [
+            // ── BRUNNER (Sandra) ─────────────────────────────────────────────
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 88, 'typ' => 'pflege',
+             'inhalt' => 'Frau Brunner in gutem Allgemeinzustand angetroffen. Körperpflege vollständig durchgeführt, beim Ankleiden assistiert. Blutdruck 138/82 mmHg, Puls regelmässig 72. Klientin gut gestimmt, berichtete über Besuch der Enkelin am Wochenende.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 85, 'typ' => 'medikament',
+             'inhalt' => 'Blutdruckmessung: 148/90 — erhöht. Ramipril 5mg eingenommen. Dr. Meier telefonisch informiert, empfiehlt Kontrolle in 3 Tagen. Klientin über Massnahmen informiert: weniger Salz, mehr Flüssigkeit.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 80, 'typ' => 'pflege',
+             'inhalt' => 'Grundpflege und Hauswirtschaft durchgeführt. Frau Brunner berichtete über leichte Knieschmerzen rechts. Einreibung mit Voltaren Gel. Wohnung aufgeräumt, Küche sauber gemacht. Appetit gut.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 72, 'typ' => 'verlauf',
+             'inhalt' => 'Monatsevaluation: Allgemeinzustand stabil. Blutdruck nach Anpassung Lebensstil wieder im Zielbereich (132/80). Knieschmerzen abgeklungen. Mobilität gut, schafft Treppen selbstständig. Compliance bei Medikation sehr gut.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 65, 'typ' => 'information',
+             'inhalt' => 'Tochter Frau Brunner-Keller hat angerufen: Familie plant Ferienabwesenheit 20.–27. März. Bitte Einsatzplan anpassen. Admin informiert. Frau Brunner wünscht während dieser Zeit täglichen Einsatz.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 58, 'typ' => 'pflege',
+             'inhalt' => 'Routine-Pflege ohne Besonderheiten. Blutdruck 130/78, Puls 70. Medikamente eingenommen. Klientin wirkt erholt und ausgeruht. Hat gut gefrühstückt. Wohnung ordentlich.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 50, 'typ' => 'zwischenfall', 'vertraulich' => true,
+             'inhalt' => 'Frau Brunner beim Transfer vom Bett in den Rollstuhl fast gestürzt — konnte aufgefangen werden. Keine Verletzungen. Klientin sehr erschrocken, weinte kurz. Angehörige und Dr. Meier informiert. Transfertechnik besprochen und angepasst. Nächste Einsätze mit erhöhter Vorsicht.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 42, 'typ' => 'pflege',
+             'inhalt' => 'Körperpflege komplett. Klientin nach Zwischenfall letzte Woche wieder sicherer. Transfer problemlos. Blutdruck 134/80. Knieschmerzen nicht mehr erwähnt. Gute Stimmung.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 35, 'typ' => 'medikament',
+             'inhalt' => 'Neue Verordnung Dr. Meier: ASS 100mg täglich als Prophylaxe. Erste Einnahme heute. Klientin über Zweck und mögliche Nebenwirkungen informiert. Medikamentenliste aktualisiert.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 28, 'typ' => 'verlauf',
+             'inhalt' => 'Quartalsevaluation: Sehr zufriedenstellender Verlauf. Blutdruck konstant im Zielbereich. Mobilität stabil. Klientin gut eingestellt auf alle Medikamente. Nächste Evaluation in 3 Monaten.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 18, 'typ' => 'pflege',
+             'inhalt' => 'Morgenpflege. Klientin klagte über Schlafprobleme letzte Nacht. Blutdruck 136/82, Puls 74. Medikamente eingenommen. Frühstück gut gegessen. Empfehlung: abends weniger Kaffee.'],
+            ['k' => 'brunner', 'ma' => 'sandra', 'tage' => 8, 'typ' => 'pflege',
+             'inhalt' => 'Routine-Morgenpflege. Frau Brunner ausgeruht und gut gelaunt. Blutdruck 128/76 — bester Wert seit Wochen. Hat heute Abend Besuch von Enkelin, freut sich sehr. Alles ohne Auffälligkeiten.'],
+
+            // ── WEBER (Sandra) ────────────────────────────────────────────────
+            ['k' => 'weber', 'ma' => 'sandra', 'tage' => 90, 'typ' => 'pflege',
+             'inhalt' => 'Herr Weber wach und kooperativ. Injektion Insulin 8 IE s.c. verabreicht. Verband Wunde rechter Unterschenkel gewechselt — Wunde heilt gut, keine Rötung. Vitalzeichen: RR 136/84, Puls 76.'],
+            ['k' => 'weber', 'ma' => 'sandra', 'tage' => 83, 'typ' => 'medikament',
+             'inhalt' => 'Blutzucker-Kontrolle: 8.4 mmol/l — leicht erhöht. Insulin-Dosis auf Anordnung Dr. Huber angepasst: neu 10 IE morgens. Herr Weber informiert. Kontrolle übermorgen.'],
+            ['k' => 'weber', 'ma' => 'sandra', 'tage' => 75, 'typ' => 'zwischenfall', 'vertraulich' => true,
+             'inhalt' => 'Herr Weber klagte über starke Schmerzen im linken Bein, Schwellung festgestellt. Einsatz unterbrochen, Notruf 144 verständigt. Verdacht auf tiefe Venenthrombose. Ins Spital eingewiesen. Familie informiert. Nächste Einsätze bis auf Weiteres sistiert.'],
+            ['k' => 'weber', 'ma' => 'sandra', 'tage' => 62, 'typ' => 'information',
+             'inhalt' => 'Rückkehr aus Spital nach 10 Tagen. TVT bestätigt, Antikoagulation mit Xarelto 20mg eingeleitet. Neue Medikamentenliste erhalten. Erste Pflege nach Spitalaufenthalt — Herr Weber geschwächt aber stabil.'],
+            ['k' => 'weber', 'ma' => 'sandra', 'tage' => 55, 'typ' => 'pflege',
+             'inhalt' => 'Grundpflege nach Spitalaufenthalt. Herr Weber erholt sich gut. Wunde am Unterschenkel sauber verheilt. Insulin weiter 10 IE, Blutzucker 7.8 mmol/l. Kompressionsstrümpfe angelegt.'],
+            ['k' => 'weber', 'ma' => 'sandra', 'tage' => 45, 'typ' => 'verlauf',
+             'inhalt' => 'Evaluation nach TVT: Allgemeinzustand deutlich besser. Antikoagulation gut verträglich, keine Blutungszeichen. Blutzucker seit 2 Wochen stabil 7.2–8.1 mmol/l. Nächster Arzttermin Dr. Huber in 4 Wochen.'],
+            ['k' => 'weber', 'ma' => 'sandra', 'tage' => 30, 'typ' => 'pflege',
+             'inhalt' => 'Routine-Pflege. Herr Weber deutlich erholt. Verband nicht mehr nötig, Wunde vollständig verheilt. Insulin 10 IE, Blutzucker 7.6 mmol/l. Kompressionsstrümpfe weiter. Stimmung gut.'],
+            ['k' => 'weber', 'ma' => 'sandra', 'tage' => 12, 'typ' => 'pflege',
+             'inhalt' => 'Morgenpflege. Herr Weber fit und selbstständiger als vor dem Spitalaufenthalt. Blutzucker 7.4 mmol/l. Insulin 10 IE. Xarelto eingenommen. Keine Beschwerden.'],
+
+            // ── SCHNEIDER (Peter) ─────────────────────────────────────────────
+            ['k' => 'schneider', 'ma' => 'peter', 'tage' => 87, 'typ' => 'pflege',
+             'inhalt' => 'Frau Schneider zeitweise desorientiert, fragte mehrfach nach dem Datum. Grundpflege behutsam durchgeführt. Vitalzeichen: RR 122/78, Puls 68, Temp. 36.8°. Hat gut gefrühstückt. Angehörige über Zustand informiert.'],
+            ['k' => 'schneider', 'ma' => 'peter', 'tage' => 80, 'typ' => 'information',
+             'inhalt' => 'Sohn Herr Schneider-Jung angerufen: bittet um Einschätzung Mutter. Zustand seit letzter Woche unverändert, Orientierungsprobleme morgens häufiger. Empfehlung: Gedächtnistraining, Hausarzt-Konsultation. Notizen für nächsten Arzttermin vorbereitet.'],
+            ['k' => 'schneider', 'ma' => 'peter', 'tage' => 72, 'typ' => 'verlauf',
+             'inhalt' => 'Monatsevaluation: Kognitive Einschränkungen morgens zunehmend. Körperlicher Zustand stabil. RR konstant 120–128/76–82. Arzt wurde kontaktiert, Zuweisung Gedächtnissprechstunde eingeleitet. Familie über Verlauf informiert.'],
+            ['k' => 'schneider', 'ma' => 'peter', 'tage' => 60, 'typ' => 'pflege',
+             'inhalt' => 'Frau Schneider heute ruhig und freundlich gestimmt. Körperwäsche, Ankleiden und Mundpflege durchgeführt. Hat Enkelin auf Foto erkannt — positives Zeichen. Vitalzeichen stabil. Frühstück komplett gegessen.'],
+            ['k' => 'schneider', 'ma' => 'peter', 'tage' => 48, 'typ' => 'medikament',
+             'inhalt' => 'Neue Verordnung nach Gedächtnissprechstunde: Donepezil 5mg abends neu eingeführt. Klientin informiert, erste Einnahme heute Abend. Mögliche Nebenwirkungen erklärt (Übelkeit, Schlafprobleme anfangs). Kontrolle in 4 Wochen.'],
+            ['k' => 'schneider', 'ma' => 'peter', 'tage' => 32, 'typ' => 'pflege',
+             'inhalt' => 'Morgenpflege. Frau Schneider heute sehr orientiert, erkannte Pflegerin sofort. Donepezil gut vertragen, keine Nebenwirkungen. Hat selbstständig Frühstück zubereitet — sehr erfreulich. RR 124/78.'],
+            ['k' => 'schneider', 'ma' => 'peter', 'tage' => 15, 'typ' => 'verlauf',
+             'inhalt' => 'Evaluation nach 6 Wochen Donepezil: Deutliche Verbesserung der Orientierung morgens. Klientin erkennt Pflegepersonen zuverlässig. Stimmung stabiler. Arzt sehr zufrieden. Dosis vorerst beibehalten.'],
+
+            // ── KELLER (Peter) ────────────────────────────────────────────────
+            ['k' => 'keller', 'ma' => 'peter', 'tage' => 92, 'typ' => 'pflege',
+             'inhalt' => 'Herr Keller klagte über leichte Atemnot bei Belastung. Hauswirtschaft durchgeführt. Grundpflege: Kompressionsstrümpfe angelegt. RR 145/90, Puls 78, SpO2 96%. Arzt informiert, Termin vereinbart.'],
+            ['k' => 'keller', 'ma' => 'peter', 'tage' => 84, 'typ' => 'medikament',
+             'inhalt' => 'Nach Arzttermin neue Medikation: Bisoprolol 2.5mg morgens. Klient eingewiesen, erste Einnahme heute. RR-Kontrolle morgen geplant. Herr Keller versteht Wichtigkeit Compliance, kooperativ.'],
+            ['k' => 'keller', 'ma' => 'peter', 'tage' => 78, 'typ' => 'pflege',
+             'inhalt' => 'Routine-Pflege. RR 138/86, Puls 68 — Bisoprolol wirkt. Atemnot subjektiv besser. Kompressionsstrümpfe. Wohnung gereinigt, Wäsche gemacht. Herr Keller zufrieden mit Verbesserung.'],
+            ['k' => 'keller', 'ma' => 'peter', 'tage' => 68, 'typ' => 'zwischenfall', 'vertraulich' => true,
+             'inhalt' => 'Herr Keller klagte über Brustschmerzen und starke Atemnot. Notruf 144 verständigt. Verdacht auf akute Herzinsuffizienz. Ins Spital eingewiesen. Ehefrau und Sohn informiert. Einsätze bis auf Weiteres sistiert.'],
+            ['k' => 'keller', 'ma' => 'peter', 'tage' => 52, 'typ' => 'information',
+             'inhalt' => 'Herr Keller nach 14 Tagen aus Spital entlassen. Diagnose: dekompensierte Herzinsuffizienz. Neue Medikamente: Furosemid 40mg, Spironolacton 25mg zusätzlich. Gewichtskontrolle täglich angeordnet. Familie gut informiert.'],
+            ['k' => 'keller', 'ma' => 'peter', 'tage' => 40, 'typ' => 'verlauf',
+             'inhalt' => 'Evaluation 3 Wochen nach Spitalaustritt: Allgemeinzustand stabil. Gewicht 82.5kg (-2.5kg Ödem). Atemnot deutlich besser, SpO2 98%. RR 132/82. Klient motiviert, nimmt alle Medikamente zuverlässig.'],
+            ['k' => 'keller', 'ma' => 'peter', 'tage' => 22, 'typ' => 'pflege',
+             'inhalt' => 'Morgenpflege. Herr Keller fit und zufrieden. Gewicht 81.8kg — stabil. RR 128/80, Puls 64, SpO2 99%. Kompressionsstrümpfe. Keine Ödeme sichtbar. Sehr gute Compliance.'],
+            ['k' => 'keller', 'ma' => 'peter', 'tage' => 7, 'typ' => 'pflege',
+             'inhalt' => 'Routine-Pflege. Herr Keller in bester Stimmung — hat gestern Enkel besucht. Gewicht stabil 82.0kg. Alle Vitalzeichen im Normbereich. Keine Beschwerden. Hauswirtschaft durchgeführt.'],
+
+            // ── GERBER (Ruth/Angehörige) ──────────────────────────────────────
+            ['k' => 'gerber', 'ma' => 'ruth', 'tage' => 86, 'typ' => 'pflege',
+             'inhalt' => 'Herr Gerber durch Tochter Ruth Gerber gepflegt. Mobilisation und Körperpflege durchgeführt. Herr Gerber in stabilem Zustand, guter Laune. Hat Morgengymnastik mitgemacht.'],
+            ['k' => 'gerber', 'ma' => 'ruth', 'tage' => 70, 'typ' => 'verlauf',
+             'inhalt' => 'Monatsevaluation Angehörigenpflege: Pflege durch Tochter Ruth sehr engagiert und kompetent. Herr Gerber zeigt gute Mitarbeit. Vitalzeichen unauffällig. Unterstützungsbedarf durch Spitex unverändert.'],
+            ['k' => 'gerber', 'ma' => 'ruth', 'tage' => 45, 'typ' => 'information',
+             'inhalt' => 'Ruth Gerber meldet: Sie ist 2 Wochen verreist (10.–24. Mai). Ersatzpflege organisiert? Admin kontaktiert. Überbrückungslösung mit Lisa besprochen. Herr Gerber und Familie informiert.'],
+            ['k' => 'gerber', 'ma' => 'ruth', 'tage' => 20, 'typ' => 'pflege',
+             'inhalt' => 'Grundpflege durch Angehörige Ruth Gerber. Herr Gerber hat Morgengymnastik gemacht, 15 Minuten. Vitalzeichen unauffällig. Allgemeinzustand gut. Freut sich auf Sommerausflug mit Familie.'],
         ];
 
-        foreach ($texte as $klientKey => $rapportTexte) {
-            $klientId = $this->kl[$klientKey];
-            $einsaetze = DB::table('einsaetze')
-                ->where('klient_id', $klientId)
-                ->where('status', 'abgeschlossen')
-                ->orderBy('datum')
-                ->limit(2)
-                ->get();
-
-            foreach ($einsaetze as $i => $einsatz) {
-                DB::table('rapporte')->insert([
-                    'organisation_id' => $this->orgId,
-                    'klient_id'       => $klientId,
-                    'benutzer_id'     => $einsatz->benutzer_id,
-                    'einsatz_id'      => $einsatz->id,
-                    'datum'           => $einsatz->datum,
-                    'inhalt'          => $rapportTexte[$i] ?? $rapportTexte[0],
-                    'rapport_typ'     => 'pflege',
-                    'vertraulich'     => false,
-                    'created_at'      => now(),
-                    'updated_at'      => now(),
-                ]);
-            }
+        foreach ($eintraege as $e) {
+            DB::table('rapporte')->insert([
+                'organisation_id' => $this->orgId,
+                'klient_id'       => $this->kl[$e['k']],
+                'benutzer_id'     => $this->ma[$e['ma']],
+                'datum'           => $h->copy()->subDays($e['tage'])->format('Y-m-d'),
+                'zeit_von'        => '08:00',
+                'zeit_bis'        => '08:45',
+                'rapport_typ'     => $e['typ'],
+                'inhalt'          => $e['inhalt'],
+                'vertraulich'     => $e['vertraulich'] ?? false,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
         }
     }
 

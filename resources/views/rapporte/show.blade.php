@@ -18,6 +18,7 @@
             @if($rapport->vertraulich)
                 <span class="badge badge-warnung">Vertraulich</span>
             @endif
+            <a href="{{ route('rapporte.pdf', $rapport) }}" target="_blank" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.375rem 0.75rem;">PDF</a>
         </div>
     </div>
 

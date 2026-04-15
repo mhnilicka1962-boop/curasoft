@@ -60,6 +60,7 @@ class KlientenController extends Controller
                 ->where('status', 'geplant')
                 ->where('datum', '>=', today()->toDateString())
                 ->whereNull('tour_id')
+                ->where('leistungserbringer_typ', '!=', 'angehoerig')
             ])
             ->paginate(25)->withQueryString();
 
