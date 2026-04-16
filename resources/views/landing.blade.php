@@ -86,19 +86,6 @@
                     {
                         "@type": "Offer",
                         "name": "Business",
-                        "price": "300",
-                        "priceCurrency": "CHF",
-                        "priceSpecification": {
-                            "@type": "UnitPriceSpecification",
-                            "price": "300",
-                            "priceCurrency": "CHF",
-                            "unitText": "Monat"
-                        },
-                        "description": "Bis 75 Klienten, alle Funktionen inkl. Tiers payant, Telefon-Support"
-                    },
-                    {
-                        "@type": "Offer",
-                        "name": "Enterprise",
                         "price": "500",
                         "priceCurrency": "CHF",
                         "priceSpecification": {
@@ -107,7 +94,20 @@
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
-                        "description": "Bis 200 Klienten, alle Funktionen inkl. Tiers payant, dedizierter Support"
+                        "description": "Bis 50 Klienten, alle Funktionen inkl. Tiers payant, Telefon-Support"
+                    },
+                    {
+                        "@type": "Offer",
+                        "name": "Enterprise",
+                        "price": "700",
+                        "priceCurrency": "CHF",
+                        "priceSpecification": {
+                            "@type": "UnitPriceSpecification",
+                            "price": "700",
+                            "priceCurrency": "CHF",
+                            "unitText": "Monat"
+                        },
+                        "description": "Bis 100 Klienten, alle Funktionen inkl. Tiers payant, dedizierter Support"
                     }
                 ],
                 "publisher": {
@@ -962,8 +962,8 @@
             {{-- Business --}}
             <div class="preis-karte">
                 <div class="preis-karte-name">Business</div>
-                <div class="preis-karte-betrag">CHF 300 <span>/ Monat</span></div>
-                <div class="preis-karte-klienten">bis 75 Klienten</div>
+                <div class="preis-karte-betrag">CHF 500 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 50 Klienten</div>
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
@@ -976,8 +976,8 @@
             {{-- Enterprise --}}
             <div class="preis-karte">
                 <div class="preis-karte-name">Enterprise</div>
-                <div class="preis-karte-betrag">CHF 500 <span>/ Monat</span></div>
-                <div class="preis-karte-klienten">bis 200 Klienten</div>
+                <div class="preis-karte-betrag">CHF 700 <span>/ Monat</span></div>
+                <div class="preis-karte-klienten">bis 100 Klienten</div>
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
