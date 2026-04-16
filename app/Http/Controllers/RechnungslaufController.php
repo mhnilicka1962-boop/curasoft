@@ -317,6 +317,11 @@ class RechnungslaufController extends Controller
                 ->where(fn($r) => !$r->medidata_versand_datum)->count()
             : 0;
 
+        $medidataVersendetAnzahl = $tiersPayant
+            ? $lauf->rechnungen->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+                ->where(fn($r) => !!$r->medidata_versand_datum)->count()
+            : 0;
+
         $kannStornieren = $lauf->rechnungen->every(fn($r) =>
             $r->status === 'entwurf'
             && !$r->email_versand_datum
@@ -327,7 +332,7 @@ class RechnungslaufController extends Controller
         return view('rechnungen.lauf.show', compact(
             'lauf', 'emailAnzahl', 'postAnzahl', 'kvgAnzahl',
             'postEntwurfAnzahl', 'postVersendetAnzahl', 'xmlEntwurfAnzahl',
-            'tiersPayant', 'gemeindeAnzahl', 'gemeindeVersendetAnzahl', 'mediDataAnzahl', 'org',
+            'tiersPayant', 'gemeindeAnzahl', 'gemeindeVersendetAnzahl', 'mediDataAnzahl', 'medidataVersendetAnzahl', 'org',
             'kannStornieren'
         ));
     }

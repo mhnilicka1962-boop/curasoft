@@ -88,14 +88,18 @@
             <div class="abschnitt-label" style="margin-bottom: 0.5rem;">Krankenkasse</div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
                 @if($tiersPayant)
-                    @if($org->medidata_url)
-                    <form method="POST" action="{{ route('rechnungslauf.medidata', $lauf) }}"
-                        onsubmit="return confirm('{{ $mediDataAnzahl }} KVG-Rechnung(en) zu MediData übertragen?')">
-                        @csrf
-                        <button type="submit" class="btn btn-primaer">MediData Upload ({{ $mediDataAnzahl }})</button>
-                    </form>
-                    @else
-                    <a href="{{ route('firma.index') }}#medidata" class="btn btn-sekundaer" style="color:#6b7280; font-size:0.8125rem;">MediData konfigurieren →</a>
+                    @if($mediDataAnzahl > 0)
+                        @if($org->medidata_url)
+                        <form method="POST" action="{{ route('rechnungslauf.medidata', $lauf) }}"
+                            onsubmit="return confirm('{{ $mediDataAnzahl }} KVG-Rechnung(en) zu MediData übertragen?')">
+                            @csrf
+                            <button type="submit" class="btn btn-aktion">MediData Upload ({{ $mediDataAnzahl }})</button>
+                        </form>
+                        @else
+                        <a href="{{ route('firma.index') }}#medidata" class="btn btn-sekundaer" style="color:#6b7280; font-size:0.8125rem;">MediData konfigurieren →</a>
+                        @endif
+                    @elseif($medidataVersendetAnzahl > 0)
+                        <span class="badge badge-ok">✓ {{ $medidataVersendetAnzahl }}× MediData versendet</span>
                     @endif
                     <a href="{{ route('rechnungslauf.xml-zip', $lauf) }}" class="btn btn-sekundaer">XML-ZIP ({{ $kvgAnzahl }})</a>
                 @else
