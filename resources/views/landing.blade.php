@@ -1154,8 +1154,8 @@
     <div class="container">
         <div class="container-sm" style="margin-bottom: 3rem;">
             <p class="section-label">Für wen</p>
-            <h2 class="section-title">Für jeden Spitex-Dienst in der Schweiz</h2>
-            <p class="section-lead">Egal ob kleiner Privatbetrieb oder kantonsübergreifende Organisation — die Software passt sich an.</p>
+            <h2 class="section-title">Gemacht für die KMU-Spitex — nicht für Konzerne</h2>
+            <p class="section-lead">CuraSoft ist bewusst nicht für Spitäler, Gesundheitskonzerne oder Grossorganisationen gebaut. Sondern für Spitex-Dienste, die einfach arbeiten wollen.</p>
         </div>
         <div class="fuer-wen-grid">
             <div class="fuer-wen-card">
@@ -1184,6 +1184,32 @@
                     <li><span class="check">✓</span><span>Korrekte Abrechnung je Kanton</span></li>
                     <li><span class="check">✓</span><span>Alle 26 Kantone unterstützt</span></li>
                 </ul>
+            </div>
+        </div>
+
+        {{-- Abgrenzung gegen Grossanbieter --}}
+        <div style="margin-top: 3rem; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 1rem; padding: 2rem 2.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start;">
+                <div>
+                    <p style="font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #dc2626; margin-bottom: 0.75rem;">Nicht für Sie, wenn…</p>
+                    <ul class="check-list">
+                        <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie ein Spital oder Grosskonzern sind</span></li>
+                        <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie ein Microsoft-Ökosystem mit Azure-Integration brauchen</span></li>
+                        <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie monatelange Einführungsprojekte gewohnt sind</span></li>
+                        <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie bereit sind, CHF 200/h Support zu bezahlen</span></li>
+                        <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Jedes Zusatzmodul extra kostet — und der Preis erst nach Demo-Termin kommt</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <p style="font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gruen); margin-bottom: 0.75rem;">CuraSoft ist für Sie, wenn…</p>
+                    <ul class="check-list">
+                        <li><span class="check">✓</span><span>Sie eine kleine bis mittlere Spitex führen (bis 100 Klienten)</span></li>
+                        <li><span class="check">✓</span><span>Sie transparente Preise ohne Überraschungen wollen</span></li>
+                        <li><span class="check">✓</span><span>Support direkt beim Entwickler — gleicher Tag, keine Tickets</span></li>
+                        <li><span class="check">✓</span><span>Moderne Technologie ohne Legacy-Ballast</span></li>
+                        <li><span class="check">✓</span><span>Morgen starten — nicht in drei Monaten</span></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
