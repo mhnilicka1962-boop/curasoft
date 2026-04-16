@@ -287,7 +287,7 @@ Route::middleware('auth')->group(function () {
 
         // Rapporte
         Route::get('/rapporte/sammel-pdf', [RapporteController::class, 'sammelPdf'])->name('rapporte.sammel-pdf');
-        Route::resource('/rapporte', RapporteController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update'])->parameters(['rapporte' => 'rapport']);
+        Route::resource('/rapporte', RapporteController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])->parameters(['rapporte' => 'rapport']);
         Route::get('/rapporte/{rapport}/pdf', [RapporteController::class, 'pdf'])->name('rapporte.pdf');
 
         // Touren

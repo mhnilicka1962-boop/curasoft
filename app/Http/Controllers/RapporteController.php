@@ -221,6 +221,17 @@ class RapporteController extends Controller
         ]);
     }
 
+    public function destroy(Rapport $rapport)
+    {
+        if ($rapport->organisation_id !== $this->orgId()) abort(403);
+        if (auth()->user()->rolle !== 'admin') abort(403);
+
+        $rapport->delete();
+
+        return redirect()->route('rapporte.index')
+            ->with('erfolg', 'Rapport wurde gelöscht.');
+    }
+
     // ── Hilfsmethoden ──────────────────────────────────────────────
 
     private function benachrichtigeAdmins(Rapport $rapport): void

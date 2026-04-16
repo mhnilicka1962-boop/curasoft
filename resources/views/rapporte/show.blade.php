@@ -19,6 +19,15 @@
                 <span class="badge badge-warnung">Vertraulich</span>
             @endif
             <a href="{{ route('rapporte.pdf', $rapport) }}" target="_blank" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.375rem 0.75rem;">PDF</a>
+            @if(auth()->user()->rolle === 'admin' || auth()->id() === $rapport->benutzer_id)
+                <a href="{{ route('rapporte.edit', $rapport) }}" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.375rem 0.75rem;">Bearbeiten</a>
+            @endif
+            @if(auth()->user()->rolle === 'admin')
+                <form method="POST" action="{{ route('rapporte.destroy', $rapport) }}" onsubmit="return confirm('Rapport wirklich löschen?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-gefahr" style="font-size: 0.8125rem; padding: 0.375rem 0.75rem;">Löschen</button>
+                </form>
+            @endif
         </div>
     </div>
 
