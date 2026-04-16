@@ -1,5 +1,5 @@
 # Abrechnungslogik Schweizer Spitex — vollständige Dokumentation
-# Stand: 2026-03-19 (Session 26)
+# Stand: 2026-04-16 — Tiers payant vollständig implementiert
 
 ---
 
@@ -167,15 +167,35 @@ Rechnung 3 → Gemeinde/Kanton:
 
 | Punkt | Beschreibung | Status |
 |---|---|---|
-| `verrechnung` Flag | Billing-Logik prüft verrechnung=true/false | ✅ behoben (Session 31) |
-| Rapportblatt Seite 3 | Tagesaufstellung PDF (Landscape) | ✅ implementiert (Session 26) |
-| Kfm. Rundung 0.05 CHF | Alle Beträge in Vorschau + Rechnung | ✅ implementiert (Session 31) |
-| `einsatz_leistungsarten` Pivot | 1 Einsatz → n Leistungsarten, `leistungsart_id` entfernt | ✅ migriert (Session 32) |
-| Rechnungsadresse tiers_garant | `abrechnungslogik=tiers_garant` → immer Patientenadresse im PDF | ✅ implementiert (Session 32) |
-| Rechnungslauf 1 Position/LA | Pro Einsatz 1 RechnungsPosition je Leistungsart | ✅ implementiert (Session 32) |
+| `verrechnung` Flag | Billing-Logik prüft verrechnung=true/false | ✅ behoben |
+| Rapportblatt Seite 3 | Tagesaufstellung PDF (Landscape) | ✅ implementiert |
+| Kfm. Rundung 0.05 CHF | Alle Beträge in Vorschau + Rechnung | ✅ implementiert |
+| `einsatz_leistungsarten` Pivot | 1 Einsatz → n Leistungsarten, `leistungsart_id` entfernt | ✅ migriert |
+| Rechnungsadresse tiers_garant | `abrechnungslogik=tiers_garant` → immer Patientenadresse im PDF | ✅ implementiert |
+| Rechnungslauf 1 Position/LA | Pro Einsatz 1 RechnungsPosition je Leistungsart | ✅ implementiert |
+| **Tiers payant vollständig** | MediData XML, Gemeinde-PDF/Email, Patient-Anteil | ✅ implementiert 2026-04-16 |
+| `abrechnungslogik` Snapshot | Gespeichert auf Rechnungslauf bei Erstellung | ✅ implementiert 2026-04-16 |
 | `einsatz_minuten/stunden/tage` ignoriert | Immer Stundenberechnung, Flags wirkungslos | offen |
-| `tiers_payant` in PDF ignoriert | QR-Zahlteil zeigt immer betrag_total | offen |
 | `kassenpflichtig` ignoriert | Feld existiert aber nie geprüft | offen |
+
+## 10. Tiers payant — technische Umsetzung (2026-04-16)
+
+### Rechnungslauf show — Versand-Flows
+- **Patient (Email/Post)**: wie bisher
+- **KK → MediData**: XML 450.100 pro Rechnung hochladen, Badge nach Versand
+- **Gemeinde**: PDF generieren + per Mail senden, Badge nach Versand (irreversibel)
+- **Einzel-Resend**: `/rechnungen/{id}/gemeinde-email` — Gemeinde-Email pro Rechnung erneut senden
+
+### abrechnungslogik Snapshot
+`rechnungslaeufe.abrechnungslogik` wird beim Erstellen von `$org->abrechnungslogik` kopiert.
+Alte Läufe zeigen immer ihre ursprüngliche Logik — unabhängig von späteren Org-Änderungen.
+
+### MediData Konfiguration (Org)
+- `medidata_url`, `medidata_username`, `medidata_passwort` (String — NICHT encrypted!)
+- Test-Endpoint lokal: `POST /test/medidata` (CSRF-exempt)
+
+### Klient-Felder
+- `gemeinde_name`, `gemeinde_plz`, `gemeinde_ort`, `gemeinde_email`
 
 ### ⚠ Betriebshinweis: «Gültig ab» bei Tarifen
 
@@ -185,9 +205,9 @@ Das System sucht den Tarif mit dem **höchsten `gueltig_ab` ≤ Einsatzdatum**. 
 
 ---
 
-## 10. Noch offen / zu klären
+## 11. Noch offen / zu klären
 
-- [ ] Wie genau Gemeinde-Rechnung Format pro Kanton?
-- [x] `organisationen.abrechnungslogik` = `tiers_garant` | `tiers_payant` — implementiert, Default `tiers_garant`
+- [ ] Gemeinde-Rechnung Format pro Kanton (ab 2026 zunehmend elektronisch)
 - [ ] Rapportblatt: exakte Spaltenstruktur aus Altsystem übernehmen
 - [ ] Patientenbeitrag-Berechnung: woher kommt der max. Betrag pro Kanton? (aus `klient_beitraege`?)
+- [ ] `kassenpflichtig` Flag auswerten

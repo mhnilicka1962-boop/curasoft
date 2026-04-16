@@ -139,7 +139,28 @@ Funktioniert auf jedem Gerät, keine Konfiguration nötig.
 3. Übersicht zeigt alle Klienten mit verrechenbaren Einsätzen
 4. **„Rechnungslauf starten"** → alle Rechnungen werden automatisch erstellt
 5. Pro Klient: PDF herunterladen oder per E-Mail versenden
-6. XML-Export für Krankenkasse: Rechnung öffnen → **„XML"**
+
+### Tiers garant (Standard)
+- Sammel-PDF drucken und per Post versenden
+- Oder: E-Mail-Versand direkt aus dem Lauf
+
+### Tiers payant (grosse/öffentliche Spitex)
+Nach dem Erstellen des Laufs erscheinen drei Versand-Bereiche:
+
+**Patient:**
+- E-Mail versenden: direkt aus dem Lauf
+- Post: Sammel-PDF drucken, dann „Postversand bestätigen"
+
+**Krankenkasse:**
+- **MediData Upload**: XML wird automatisch pro KVG-Rechnung hochgeladen
+- Nach Versand: Badge „✓ N× MediData versendet", Button verschwindet
+- Bei Fehler: roter Hinweis pro Rechnung, Upload kann wiederholt werden
+
+**Gemeinde:**
+- **Gemeinde-Email senden**: PDF wird generiert und direkt an Gemeinde-Email geschickt
+- **Gemeinde Sammel-PDF**: alle Gemeinde-PDFs zusammengeführt zum Drucken
+- Badge nach Versand (nicht rückgängig machbar)
+- Einzelne Rechnung erneut senden: Rechnungs-Detail → „📧 Gemeinde-Email"
 
 ### Einzelrechnung
 1. `Rechnungen` → **„+ Neue Rechnung"**
