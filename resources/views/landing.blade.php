@@ -1241,40 +1241,6 @@
 
 {{-- Pilot-Sektion entfernt --}}
 
-{{-- ── Testimonials ──────────────────────────────────────────────────────── --}}
-<section id="testimonials" style="background: #f9fafb; padding: 5rem 1.5rem;">
-    <div class="container">
-        <div class="container-sm" style="text-align: center; margin-bottom: 3rem;">
-            <p class="section-label">Stimmen aus der Praxis</p>
-            <h2 class="section-title">Was Spitex-Fachleute sagen</h2>
-            <p class="section-lead">Erste Rückmeldungen aus der Praxis</p>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-            <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                <div style="color: #f59e0b; font-size: 1.125rem; margin-bottom: 1rem;">★★★★★</div>
-                <p style="font-size: 0.9375rem; color: #374151; line-height: 1.7; margin-bottom: 1.25rem;">
-                    „Endlich eine Software die unsere Kantonstariife automatisch kennt. Die Einführung war in zwei Wochen erledigt — ohne IT-Abteilung."
-                </p>
-                <p style="font-size: 0.8125rem; font-weight: 700; color: #111827;">Spitex-Leiterin, Kanton AG</p>
-            </div>
-            <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                <div style="color: #f59e0b; font-size: 1.125rem; margin-bottom: 1rem;">★★★★★</div>
-                <p style="font-size: 0.9375rem; color: #374151; line-height: 1.7; margin-bottom: 1.25rem;">
-                    „Die Abrechnung läuft auf Knopfdruck — KK und Gemeinde direkt, Tarifaufteilung automatisch. Wir sparen mindestens 3 Stunden pro Woche."
-                </p>
-                <p style="font-size: 0.8125rem; font-weight: 700; color: #111827;">Geschäftsführerin, private Spitex ZH</p>
-            </div>
-            <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                <div style="color: #f59e0b; font-size: 1.125rem; margin-bottom: 1rem;">★★★★★</div>
-                <p style="font-size: 0.9375rem; color: #374151; line-height: 1.7; margin-bottom: 1.25rem;">
-                    „Günstiger als alle anderen Anbieter, und der Support antwortet am gleichen Tag. Genau das brauchen wir."
-                </p>
-                <p style="font-size: 0.8125rem; font-weight: 700; color: #111827;">Inhaber, kleine Spitex BE</p>
-            </div>
-        </div>
-    </div>
-</section>
-
 {{-- ── Demo ─────────────────────────────────────────────────────────────── --}}
 <section id="demo-live" style="background: #1e293b; padding: 5rem 1.5rem; text-align: center;">
     <div class="container">
