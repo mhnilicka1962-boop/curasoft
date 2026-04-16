@@ -22,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'rolle' => \App\Http\Middleware\CheckRolle::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'test/medidata',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

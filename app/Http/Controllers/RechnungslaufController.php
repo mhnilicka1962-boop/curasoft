@@ -13,6 +13,7 @@ use App\Models\Rechnung;
 use App\Models\RechnungsPosition;
 use App\Models\Rechnungslauf;
 use App\Services\BexioService;
+use App\Services\MediDataService;
 use App\Services\PdfExportService;
 use App\Services\XmlExportService;
 use Illuminate\Http\Request;
@@ -290,12 +291,45 @@ class RechnungslaufController extends Controller
             fn($r) => $r->klient->versandart_patient !== 'email' && $r->status === 'entwurf'
         )->count();
 
+        $postVersendetAnzahl = $lauf->rechnungen->filter(
+            fn($r) => $r->klient->versandart_patient !== 'email' && $r->status === 'gesendet'
+        )->count();
+
         $xmlEntwurfAnzahl = $lauf->rechnungen
             ->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
             ->where('status', 'entwurf')
             ->count();
 
-        return view('rechnungen.lauf.show', compact('lauf', 'emailAnzahl', 'postAnzahl', 'kvgAnzahl', 'postEntwurfAnzahl', 'xmlEntwurfAnzahl'));
+        // Tiers payant: Gemeinde-Email + MediData
+        $org = Organisation::findOrFail($this->orgId());
+        $tiersPayant = ($org->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant';
+
+        $gemeindeAnzahl = $tiersPayant
+            ? $lauf->rechnungen->filter(fn($r) => $r->klient->gemeinde_email && !$r->gemeinde_versand_datum)->count()
+            : 0;
+
+        $gemeindeVersendetAnzahl = $tiersPayant
+            ? $lauf->rechnungen->filter(fn($r) => $r->gemeinde_versand_datum)->count()
+            : 0;
+
+        $mediDataAnzahl = $tiersPayant
+            ? $lauf->rechnungen->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+                ->where(fn($r) => !$r->medidata_versand_datum)->count()
+            : 0;
+
+        $kannStornieren = $lauf->rechnungen->every(fn($r) =>
+            $r->status === 'entwurf'
+            && !$r->email_versand_datum
+            && !$r->medidata_versand_datum
+            && !$r->gemeinde_versand_datum
+        );
+
+        return view('rechnungen.lauf.show', compact(
+            'lauf', 'emailAnzahl', 'postAnzahl', 'kvgAnzahl',
+            'postEntwurfAnzahl', 'postVersendetAnzahl', 'xmlEntwurfAnzahl',
+            'tiersPayant', 'gemeindeAnzahl', 'gemeindeVersendetAnzahl', 'mediDataAnzahl', 'org',
+            'kannStornieren'
+        ));
     }
 
     public function emailVersand(Rechnungslauf $lauf)
@@ -345,6 +379,192 @@ class RechnungslaufController extends Controller
 
         $msg = "{$versendet} Email(s) versendet.";
         if ($fehler > 0) $msg .= " {$fehler} fehlgeschlagen — Details in der Tabelle.";
+
+        return back()->with($fehler > 0 && $versendet === 0 ? 'fehler' : 'erfolg', $msg);
+    }
+
+    public function gemeindeEmail(Rechnungslauf $lauf)
+    {
+        $this->autorisiereZugriff($lauf);
+
+        $org        = Organisation::findOrFail($this->orgId());
+        $pdfService = new PdfExportService($org);
+
+        $rechnungen = $lauf->rechnungen()
+            ->with(['klient.aktBeitrag', 'klient.region', 'positionen.einsatzLeistungsart.leistungsart'])
+            ->get()
+            ->filter(fn($r) => $r->klient->gemeinde_email && !$r->gemeinde_versand_datum);
+
+        if ($rechnungen->isEmpty()) {
+            return back()->with('fehler', 'Keine Gemeinde-Email-Adressen hinterlegt oder bereits alle versendet.');
+        }
+
+        $versendet = 0;
+        $fehler    = 0;
+
+        foreach ($rechnungen as $rechnung) {
+            $email = $rechnung->klient->gemeinde_email;
+            try {
+                $pfad = $pdfService->gemeindeRechnungExportieren($rechnung);
+                $rechnung->refresh();
+
+                \Illuminate\Support\Facades\Mail::send([], [], function ($m) use ($rechnung, $org, $pfad, $email) {
+                    $m->to($email)
+                      ->subject('Restfinanzierungsrechnung ' . $rechnung->klient->nachname . ' ' . $rechnung->klient->vorname
+                          . ' — ' . $rechnung->periode_von->format('M Y'))
+                      ->text('Sehr geehrte Damen und Herren' . "\n\n"
+                          . 'Beiliegend erhalten Sie die Restfinanzierungsrechnung für den Monat '
+                          . $rechnung->periode_von->format('F Y') . '.' . "\n\n"
+                          . 'Mit freundlichen Grüssen' . "\n"
+                          . $org->name)
+                      ->attach(\Illuminate\Support\Facades\Storage::path($pfad), [
+                          'as'   => 'GDE-' . $rechnung->rechnungsnummer . '.pdf',
+                          'mime' => 'application/pdf',
+                      ]);
+                });
+
+                $rechnung->update([
+                    'gemeinde_versand_datum' => now(),
+                    'gemeinde_versand_an'    => $email,
+                    'gemeinde_fehler'        => null,
+                ]);
+                $versendet++;
+            } catch (\Exception $e) {
+                $rechnung->update(['gemeinde_fehler' => mb_substr($e->getMessage(), 0, 500)]);
+                $fehler++;
+            }
+        }
+
+        $msg = "{$versendet} Gemeinde-Email(s) versendet.";
+        if ($fehler > 0) $msg .= " {$fehler} fehlgeschlagen.";
+
+        return back()->with($fehler > 0 && $versendet === 0 ? 'fehler' : 'erfolg', $msg);
+    }
+
+    public function gemeindeSammelPdf(Rechnungslauf $lauf)
+    {
+        $this->autorisiereZugriff($lauf);
+
+        $org        = Organisation::findOrFail($this->orgId());
+        $pdfService = new PdfExportService($org);
+
+        $rechnungen = $lauf->rechnungen()
+            ->with(['klient.aktBeitrag', 'klient.region', 'positionen.einsatzLeistungsart.leistungsart'])
+            ->get()
+            ->filter(fn($r) => !empty($r->klient->gemeinde_name));
+
+        if ($rechnungen->isEmpty()) {
+            return back()->with('fehler', 'Keine Klienten mit Wohngemeinde-Daten in diesem Lauf.');
+        }
+
+        $fpdi = new \setasign\Fpdi\Fpdi();
+        $fpdi->SetAutoPageBreak(false);
+
+        foreach ($rechnungen as $rechnung) {
+            try {
+                $pfad      = $pdfService->gemeindeRechnungExportieren($rechnung);
+                $fullPath  = Storage::path($pfad);
+                $seitenAnz = $fpdi->setSourceFile($fullPath);
+                for ($s = 1; $s <= $seitenAnz; $s++) {
+                    $tpl  = $fpdi->importPage($s);
+                    $size = $fpdi->getTemplateSize($tpl);
+                    $fpdi->AddPage($size['width'] > $size['height'] ? 'L' : 'P', [$size['width'], $size['height']]);
+                    $fpdi->useTemplate($tpl);
+                }
+            } catch (\Exception $e) {
+                // Einzelfehler überspringen
+            }
+        }
+
+        $dateiname = "gemeinde_sammelrechnung_{$lauf->periode_von->format('Y-m')}.pdf";
+        $inhalt    = $fpdi->Output('S');
+
+        return response($inhalt, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => "inline; filename=\"{$dateiname}\"",
+        ]);
+    }
+
+    public function gemeindeZip(Rechnungslauf $lauf)
+    {
+        $this->autorisiereZugriff($lauf);
+
+        $org        = Organisation::findOrFail($this->orgId());
+        $pdfService = new PdfExportService($org);
+
+        $rechnungen = $lauf->rechnungen()
+            ->with(['klient.aktBeitrag', 'klient.region', 'positionen.einsatzLeistungsart.leistungsart'])
+            ->get();
+
+        $dateiname = "gemeinde_lauf_{$lauf->periode_von->format('Y-m')}.zip";
+
+        return response()->stream(function () use ($rechnungen, $pdfService) {
+            $zipOpt = new ZipArchiveOptions(); $zipOpt->setSendHttpHeaders(false);
+            $zip = new ZipStream(null, $zipOpt);
+            foreach ($rechnungen as $rechnung) {
+                try {
+                    $pfad = $pdfService->gemeindeRechnungExportieren($rechnung);
+                    $zip->addFileFromPath(
+                        'GDE-' . $rechnung->rechnungsnummer . '.pdf',
+                        Storage::path($pfad),
+                    );
+                } catch (\Exception $e) {
+                    // Einzelfehler überspringen
+                }
+            }
+            $zip->finish();
+        }, 200, [
+            'Content-Type'        => 'application/zip',
+            'Content-Disposition' => "attachment; filename=\"{$dateiname}\"",
+        ]);
+    }
+
+    public function medidata(Rechnungslauf $lauf)
+    {
+        $this->autorisiereZugriff($lauf);
+
+        $org = Organisation::findOrFail($this->orgId());
+
+        if (empty($org->medidata_url) || empty($org->medidata_username) || empty($org->medidata_passwort)) {
+            return back()->with('fehler', 'MediData nicht konfiguriert — bitte URL, Benutzername und Passwort unter Firma hinterlegen.');
+        }
+
+        $xmlService    = new XmlExportService($org);
+        $mediService   = new MediDataService($org);
+
+        $rechnungen = $lauf->rechnungen()
+            ->with(['klient.region', 'klient.krankenkassen.krankenkasse', 'positionen.leistungstyp.leistungsart'])
+            ->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+            ->whereNull('medidata_versand_datum')
+            ->get();
+
+        if ($rechnungen->isEmpty()) {
+            return back()->with('erfolg', 'Alle KVG-Rechnungen wurden bereits zu MediData übertragen.');
+        }
+
+        $versendet = 0;
+        $fehler    = 0;
+
+        foreach ($rechnungen as $rechnung) {
+            try {
+                $xmlPfad = $xmlService->rechnungExportieren($rechnung);
+                $mediService->xmlHochladen($rechnung, $xmlPfad);
+                $rechnung->update([
+                    'medidata_versand_datum' => now(),
+                    'medidata_fehler'        => null,
+                ]);
+                $versendet++;
+            } catch (\Exception $e) {
+                $rechnung->update(['medidata_fehler' => mb_substr($e->getMessage(), 0, 500)]);
+                $fehler++;
+            }
+        }
+
+        AuditLog::schreiben('geaendert', 'Rechnungslauf', $lauf->id,
+            "MediData-Upload: {$versendet} übertragen, {$fehler} Fehler");
+
+        $msg = "{$versendet} Rechnung(en) zu MediData übertragen.";
+        if ($fehler > 0) $msg .= " {$fehler} fehlgeschlagen.";
 
         return back()->with($fehler > 0 && $versendet === 0 ? 'fehler' : 'erfolg', $msg);
     }
@@ -703,6 +923,18 @@ class RechnungslaufController extends Controller
             ->update(['status' => 'gesendet', 'updated_at' => now()]);
 
         return back()->with('erfolg', "{$anzahl} Post/Manuell-Rechnung(en) als versendet markiert.");
+    }
+
+    public function postZuruecksetzen(Rechnungslauf $lauf)
+    {
+        $this->autorisiereZugriff($lauf);
+
+        $anzahl = $lauf->rechnungen()
+            ->whereHas('klient', fn($q) => $q->where('versandart_patient', '!=', 'email'))
+            ->where('status', 'gesendet')
+            ->update(['status' => 'entwurf', 'updated_at' => now()]);
+
+        return back()->with('erfolg', "{$anzahl} Post-Rechnung(en) zurück auf Entwurf gesetzt.");
     }
 
     public function xmlAbschliessen(Rechnungslauf $lauf)

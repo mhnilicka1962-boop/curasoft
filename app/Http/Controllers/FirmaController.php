@@ -61,6 +61,9 @@ class FirmaController extends Controller
             'theme_farbe_primaer'      => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'theme_layout'             => ['nullable', 'in:sidebar,topnav'],
             'abrechnungslogik'         => ['nullable', 'in:tiers_garant,tiers_payant'],
+            'medidata_url'             => ['nullable', 'string', 'max:255'],
+            'medidata_username'        => ['nullable', 'string', 'max:100'],
+            'medidata_passwort'        => ['nullable', 'string', 'max:255'],
         ]);
 
         $org = $this->org();
@@ -71,6 +74,7 @@ class FirmaController extends Controller
                 'plz', 'ort', 'telefon', 'fax', 'email', 'website',
                 'bank', 'bankadresse', 'iban', 'postcheckkonto',
                 'rechnungsadresse_position', 'logo_ausrichtung', 'abrechnungslogik',
+                'medidata_url', 'medidata_username',
             ]),
             ['druck_mit_firmendaten' => $request->boolean('druck_mit_firmendaten', true)]
         );
@@ -105,6 +109,11 @@ class FirmaController extends Controller
         if (!empty($envUpdates)) {
             $this->updateEnv($envUpdates);
             \Artisan::call('config:clear');
+        }
+
+        // MediData-Passwort nur aktualisieren wenn neu eingegeben
+        if ($request->filled('medidata_passwort')) {
+            $updates['medidata_passwort'] = $request->medidata_passwort;
         }
 
         $org->update($updates);

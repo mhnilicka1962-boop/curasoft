@@ -322,6 +322,11 @@ class KlientenController extends Controller
             'versandart_patient'  => ['nullable', 'in:post,email,manuell'],
             'versandart_kvg'      => ['nullable', 'in:email,healthnet,manuell'],
             'rechnungstyp'        => ['nullable', 'in:kombiniert,kvg,klient,gemeinde'],
+            'gemeinde_name'       => ['nullable', 'string', 'max:255'],
+            'gemeinde_adresse'    => ['nullable', 'string', 'max:255'],
+            'gemeinde_plz'        => ['nullable', 'string', 'max:10'],
+            'gemeinde_ort'        => ['nullable', 'string', 'max:255'],
+            'gemeinde_email'      => ['nullable', 'email', 'max:255'],
             'aktiv'               => ['boolean'],
         ]);
 

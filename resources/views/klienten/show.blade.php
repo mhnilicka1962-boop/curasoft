@@ -210,6 +210,35 @@
                     <input type="date" name="einsatz_geplant_bis" class="feld" value="{{ old('einsatz_geplant_bis', $klient->einsatz_geplant_bis?->format('Y-m-d')) }}">
                 </div>
             </div>
+
+            {{-- Wohngemeinde (Tiers payant) --}}
+            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--cs-border);">
+                <div class="abschnitt-label" style="margin-bottom: 0.5rem;">Wohngemeinde (Tiers payant)</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div>
+                        <label class="feld-label">Gemeinde Name</label>
+                        <input type="text" name="gemeinde_name" class="feld" value="{{ old('gemeinde_name', $klient->gemeinde_name) }}" placeholder="Gemeinde Zürich">
+                    </div>
+                    <div>
+                        <label class="feld-label">Gemeinde E-Mail</label>
+                        <input type="email" name="gemeinde_email" class="feld" value="{{ old('gemeinde_email', $klient->gemeinde_email) }}" placeholder="finanzen@gemeinde.ch">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 80px 1fr; gap: 0.5rem;">
+                    <div>
+                        <label class="feld-label">Strasse</label>
+                        <input type="text" name="gemeinde_adresse" class="feld" value="{{ old('gemeinde_adresse', $klient->gemeinde_adresse) }}" placeholder="Stadthausallee 1">
+                    </div>
+                    <div>
+                        <label class="feld-label">PLZ</label>
+                        <input type="text" name="gemeinde_plz" class="feld" value="{{ old('gemeinde_plz', $klient->gemeinde_plz) }}" placeholder="8000">
+                    </div>
+                    <div>
+                        <label class="feld-label">Ort</label>
+                        <input type="text" name="gemeinde_ort" class="feld" value="{{ old('gemeinde_ort', $klient->gemeinde_ort) }}" placeholder="Zürich">
+                    </div>
+                </div>
+            </div>
         </div>
 
 

@@ -43,6 +43,7 @@ class Klient extends Model
         'versandart_patient',
         'versandart_kvg',
         'rechnungstyp',
+        'gemeinde_name', 'gemeinde_adresse', 'gemeinde_plz', 'gemeinde_ort', 'gemeinde_email',
         'aktiv',
         'qr_token',
         'klient_lat',

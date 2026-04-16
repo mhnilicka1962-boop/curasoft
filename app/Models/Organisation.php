@@ -17,6 +17,7 @@ class Organisation extends Model
         'druck_mit_firmendaten', 'rechnungsadresse_position', 'logo_ausrichtung',
         'aktiv',
         'bexio_api_key', 'bexio_mandant_id',
+        'medidata_url', 'medidata_username', 'medidata_passwort',
         'einsatz_vorlauf_tage', 'letzter_generierungs_lauf',
     ];
 
@@ -24,6 +25,7 @@ class Organisation extends Model
         'aktiv'                      => 'boolean',
         'druck_mit_firmendaten'      => 'boolean',
         'bexio_api_key'              => 'encrypted', // nDSG: API-Schlüssel verschlüsselt in DB
+        'medidata_passwort'          => 'encrypted', // nDSG: Passwort verschlüsselt in DB
         'letzter_generierungs_lauf'  => 'datetime',
     ];
 

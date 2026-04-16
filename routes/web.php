@@ -54,6 +54,16 @@ Route::get('/hilfe', function () {
     return view('hilfe.index');
 })->name('hilfe');
 
+// Test-Endpunkt: simuliert MediData-Schnittstelle für Demo/Test
+Route::post('/test/medidata', function (\Illuminate\Http\Request $request) {
+    \Illuminate\Support\Facades\Log::info('MediData Test-Endpunkt: XML empfangen', [
+        'bytes' => strlen($request->getContent()),
+        'content_type' => $request->header('Content-Type'),
+    ]);
+    return response('<?xml version="1.0"?><response><status>OK</status></response>', 200)
+        ->header('Content-Type', 'application/xml');
+})->name('test.medidata');
+
 // Layout umschalten (sidebar ↔ topnav)
 Route::post('/layout/toggle', function () {
     $org = \App\Models\Organisation::first();
@@ -338,9 +348,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/rechnungen/lauf/{lauf}',             [RechnungslaufController::class, 'destroy'])->name('rechnungslauf.destroy');
         Route::post('/rechnungen/lauf/{lauf}/wiederholen',   [RechnungslaufController::class, 'wiederholen'])->name('rechnungslauf.wiederholen');
         Route::get('/rechnungen/lauf/{lauf}/sammel-pdf',         [RechnungslaufController::class, 'sammelPdf'])->name('rechnungslauf.sammel-pdf');
-        Route::post('/rechnungen/lauf/{lauf}/post-abschliessen', [RechnungslaufController::class, 'postAbschliessen'])->name('rechnungslauf.post-abschliessen');
+        Route::post('/rechnungen/lauf/{lauf}/post-abschliessen',  [RechnungslaufController::class, 'postAbschliessen'])->name('rechnungslauf.post-abschliessen');
+        Route::post('/rechnungen/lauf/{lauf}/post-zuruecksetzen', [RechnungslaufController::class, 'postZuruecksetzen'])->name('rechnungslauf.post-zuruecksetzen');
         Route::post('/rechnungen/lauf/{lauf}/xml-abschliessen',  [RechnungslaufController::class, 'xmlAbschliessen'])->name('rechnungslauf.xml-abschliessen');
         Route::post('/rechnungen/lauf/{lauf}/bexio-abgleich',    [RechnungslaufController::class, 'bexioAbgleich'])->name('rechnungslauf.bexio-abgleich');
+        Route::post('/rechnungen/lauf/{lauf}/gemeinde-email',      [RechnungslaufController::class, 'gemeindeEmail'])->name('rechnungslauf.gemeinde-email');
+        Route::get('/rechnungen/lauf/{lauf}/gemeinde-zip',       [RechnungslaufController::class, 'gemeindeZip'])->name('rechnungslauf.gemeinde-zip');
+        Route::get('/rechnungen/lauf/{lauf}/gemeinde-sammel-pdf',[RechnungslaufController::class, 'gemeindeSammelPdf'])->name('rechnungslauf.gemeinde-sammel-pdf');
+        Route::post('/rechnungen/lauf/{lauf}/medidata',          [RechnungslaufController::class, 'medidata'])->name('rechnungslauf.medidata');
 
         // Tagespauschalen
         Route::get('/tagespauschalen',                    [TagespauschaleController::class, 'index'])->name('tagespauschalen.index');

@@ -45,75 +45,123 @@
 </div>
 
 {{-- Aktionsleiste --}}
-<div class="karte" style="margin-bottom: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-    @if($emailAnzahl > 0)
-    <form method="POST" action="{{ route('rechnungslauf.email', $lauf) }}"
-        onsubmit="return confirm('{{ $emailAnzahl }} Email(s) mit PDF-Anhang versenden?')">
-        @csrf
-        <button type="submit" class="btn btn-primaer">
-            Email versenden ({{ $emailAnzahl }})
-        </button>
-    </form>
-    @endif
+<div class="karte" style="margin-bottom: 1.5rem;">
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap; align-items: flex-start;">
 
-    @if($postAnzahl > 0)
-    <a href="{{ route('rechnungslauf.sammel-pdf', $lauf) }}" class="btn btn-primaer" target="_blank">
-        Sammel-PDF drucken ({{ $postAnzahl }})
-    </a>
-    <a href="{{ route('rechnungslauf.pdf-zip', $lauf) }}" class="btn btn-sekundaer">
-        PDF-ZIP ({{ $postAnzahl }})
-    </a>
-    @if($postEntwurfAnzahl > 0)
-    <form method="POST" action="{{ route('rechnungslauf.post-abschliessen', $lauf) }}"
-        onsubmit="return confirm('{{ $postEntwurfAnzahl }} Post/Manuell-Rechnung(en) als versendet markieren?')">
-        @csrf
-        <button type="submit" class="btn btn-sekundaer" style="color: #15803d; border-color: #86efac;">
-            ✓ Post/Manuell versendet ({{ $postEntwurfAnzahl }})
-        </button>
-    </form>
-    @endif
-    @endif
+        {{-- Gruppe: Patient --}}
+        @if($emailAnzahl > 0 || $postAnzahl > 0)
+        <div>
+            <div class="abschnitt-label" style="margin-bottom: 0.5rem;">Patient</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                @if($emailAnzahl > 0)
+                <form method="POST" action="{{ route('rechnungslauf.email', $lauf) }}"
+                    onsubmit="return confirm('{{ $emailAnzahl }} Email(s) mit PDF-Anhang versenden?')">
+                    @csrf
+                    <button type="submit" class="btn btn-aktion">Email versenden ({{ $emailAnzahl }})</button>
+                </form>
+                @endif
+                @if($postAnzahl > 0)
+                <a href="{{ route('rechnungslauf.sammel-pdf', $lauf) }}" class="btn btn-primaer" target="_blank">Sammel-PDF ({{ $postAnzahl }})</a>
+                <a href="{{ route('rechnungslauf.pdf-zip', $lauf) }}" class="btn btn-sekundaer">PDF-ZIP</a>
+                @if($postEntwurfAnzahl > 0)
+                <form method="POST" action="{{ route('rechnungslauf.post-abschliessen', $lauf) }}"
+                    onsubmit="return confirm('{{ $postEntwurfAnzahl }} Post/Manuell-Rechnung(en) als versendet markieren?')">
+                    @csrf
+                    <button type="submit" class="btn btn-aktion">✓ Post-Versand bestätigen ({{ $postEntwurfAnzahl }})</button>
+                </form>
+                @elseif($postVersendetAnzahl > 0)
+                <span class="badge badge-erfolg">✓ {{ $postVersendetAnzahl }}× Post versendet</span>
+                <form method="POST" action="{{ route('rechnungslauf.post-zuruecksetzen', $lauf) }}"
+                    onsubmit="return confirm('Post-Versand zurücksetzen? {{ $postVersendetAnzahl }} Rechnung(en) gehen zurück auf Entwurf.')">
+                    @csrf
+                    <button type="submit" class="btn btn-sekundaer" style="font-size:0.8125rem; padding:0.2rem 0.5rem;">↺ zurücksetzen</button>
+                </form>
+                @endif
+                @endif
+            </div>
+        </div>
+        @endif
 
-    @if($kvgAnzahl > 0)
-    <a href="{{ route('rechnungslauf.xml-zip', $lauf) }}" class="btn btn-sekundaer">
-        XML-ZIP KVG ({{ $kvgAnzahl }})
-    </a>
-    @if($xmlEntwurfAnzahl > 0)
-    <form method="POST" action="{{ route('rechnungslauf.xml-abschliessen', $lauf) }}"
-        onsubmit="return confirm('{{ $xmlEntwurfAnzahl }} KVG/XML-Rechnung(en) als versendet markieren?')">
-        @csrf
-        <button type="submit" class="btn btn-sekundaer" style="color: #15803d; border-color: #86efac;">
-            ✓ XML versendet ({{ $xmlEntwurfAnzahl }})
-        </button>
-    </form>
-    @endif
-    @endif
+        {{-- Gruppe: Krankenkasse --}}
+        @if($kvgAnzahl > 0)
+        <div>
+            <div class="abschnitt-label" style="margin-bottom: 0.5rem;">Krankenkasse</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                @if($tiersPayant)
+                    @if($org->medidata_url)
+                    <form method="POST" action="{{ route('rechnungslauf.medidata', $lauf) }}"
+                        onsubmit="return confirm('{{ $mediDataAnzahl }} KVG-Rechnung(en) zu MediData übertragen?')">
+                        @csrf
+                        <button type="submit" class="btn btn-primaer">MediData Upload ({{ $mediDataAnzahl }})</button>
+                    </form>
+                    @else
+                    <a href="{{ route('firma.index') }}#medidata" class="btn btn-sekundaer" style="color:#6b7280; font-size:0.8125rem;">MediData konfigurieren →</a>
+                    @endif
+                    <a href="{{ route('rechnungslauf.xml-zip', $lauf) }}" class="btn btn-sekundaer">XML-ZIP ({{ $kvgAnzahl }})</a>
+                @else
+                    <a href="{{ route('rechnungslauf.xml-zip', $lauf) }}" class="btn btn-sekundaer">XML-ZIP ({{ $kvgAnzahl }})</a>
+                    @if($xmlEntwurfAnzahl > 0)
+                    <form method="POST" action="{{ route('rechnungslauf.xml-abschliessen', $lauf) }}"
+                        onsubmit="return confirm('{{ $xmlEntwurfAnzahl }} KVG/XML-Rechnung(en) als versendet markieren?')">
+                        @csrf
+                        <button type="submit" class="btn btn-sekundaer" style="color: #15803d; border-color: #86efac;">✓ XML-Versand bestätigen ({{ $xmlEntwurfAnzahl }})</button>
+                    </form>
+                    @endif
+                @endif
+            </div>
+        </div>
+        @endif
 
-    @if(auth()->user()->organisation->bexio_api_key)
-    <form method="POST" action="{{ route('rechnungslauf.bexio-abgleich', $lauf) }}" style="margin: 0;">
-        @csrf
-        <button type="submit" class="btn btn-sekundaer" title="Zahlungsstatus aller Rechnungen dieses Laufs von Bexio abrufen">
-            ✓ Bexio Zahlungsabgleich
-        </button>
-    </form>
-    @endif
+        {{-- Gruppe: Gemeinde (nur Tiers payant) --}}
+        @if($tiersPayant)
+        <div>
+            <div class="abschnitt-label" style="margin-bottom: 0.5rem;">Gemeinde</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <a href="{{ route('rechnungslauf.gemeinde-sammel-pdf', $lauf) }}" class="btn btn-primaer" target="_blank">Gemeinde Sammel-PDF</a>
+                <a href="{{ route('rechnungslauf.gemeinde-zip', $lauf) }}" class="btn btn-sekundaer">Gemeinde-PDF ZIP</a>
+                @if($gemeindeAnzahl > 0)
+                <form method="POST" action="{{ route('rechnungslauf.gemeinde-email', $lauf) }}"
+                    onsubmit="return confirm('{{ $gemeindeAnzahl }} Gemeinde-Email(s) mit Restfinanzierungsrechnung versenden?')">
+                    @csrf
+                    <button type="submit" class="btn btn-aktion">Gemeinde-Email senden ({{ $gemeindeAnzahl }})</button>
+                </form>
+                @endif
+                @if($gemeindeVersendetAnzahl > 0)
+                <span class="badge badge-erfolg">✓ {{ $gemeindeVersendetAnzahl }}× Gemeinde-Email versendet</span>
+                @endif
+            </div>
+        </div>
+        @endif
 
-    <form method="POST" action="{{ route('rechnungslauf.wiederholen', $lauf) }}" style="margin: 0; margin-left: 0.5rem;">
-        @csrf
-        <button type="submit" class="btn btn-sekundaer"
-            onclick="return confirm('Lauf #{{ $lauf->id }} stornieren und neu erstellen?\n\nAlle Rechnungen werden gelöscht und die Einsätze wieder auf «unverrechnet» gesetzt.\n\nDanach öffnet sich das Formular mit der gleichen Periode.')">
-            ↺ Lauf wiederholen
-        </button>
-    </form>
+        {{-- Verwaltung --}}
+        <div style="margin-left: auto;">
+            <div class="abschnitt-label" style="margin-bottom: 0.5rem;">Verwaltung</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                @if(auth()->user()->organisation->bexio_api_key)
+                <form method="POST" action="{{ route('rechnungslauf.bexio-abgleich', $lauf) }}" style="margin: 0;">
+                    @csrf
+                    <button type="submit" class="btn btn-sekundaer" title="Zahlungsstatus aller Rechnungen dieses Laufs von Bexio abrufen">Bexio Abgleich</button>
+                </form>
+                @endif
+                @if($kannStornieren)
+                <form method="POST" action="{{ route('rechnungslauf.wiederholen', $lauf) }}" style="margin: 0;">
+                    @csrf
+                    <button type="submit" class="btn btn-sekundaer"
+                        onclick="return confirm('Lauf #{{ $lauf->id }} stornieren und neu erstellen?\n\nAlle Rechnungen werden gelöscht und die Einsätze wieder auf «unverrechnet» gesetzt.\n\nDanach öffnet sich das Formular mit der gleichen Periode.')">↺ Wiederholen</button>
+                </form>
+                <form method="POST" action="{{ route('rechnungslauf.destroy', $lauf) }}" style="margin: 0;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sekundaer" style="color: #b91c1c; border-color: #fca5a5;"
+                        onclick="return confirm('Lauf #{{ $lauf->id }} stornieren?\n\nAlle {{ $lauf->anzahl_erstellt }} Rechnungen werden gelöscht und die Einsätze wieder auf «unverrechnet» gesetzt.\n\nNur möglich wenn noch keine Rechnungen versendet/bezahlt wurden.')">Stornieren</button>
+                </form>
+                @else
+                <span class="text-hell" style="font-size:0.8125rem;">Rechnungen bereits versendet</span>
+                @endif
+            </div>
+        </div>
 
-    <form method="POST" action="{{ route('rechnungslauf.destroy', $lauf) }}" style="margin: 0; margin-left: 0.5rem;">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="btn btn-sekundaer" style="color: #b91c1c; border-color: #fca5a5;"
-            onclick="return confirm('Lauf #{{ $lauf->id }} stornieren?\n\nAlle {{ $lauf->anzahl_erstellt }} Rechnungen werden gelöscht und die Einsätze wieder auf «unverrechnet» gesetzt.\n\nNur möglich wenn noch keine Rechnungen versendet/bezahlt wurden.')">
-            Lauf stornieren
-        </button>
-    </form>
+    </div>
 </div>
 
 {{-- Suche --}}
@@ -175,6 +223,9 @@
                 </td>
                 <td class="text-rechts" style="white-space: nowrap;">
                     <a href="{{ route('rechnungen.pdf', $r) }}" class="btn btn-sekundaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;" target="_blank">📄 PDF</a>
+                    @if(in_array($r->rechnungstyp, ['kvg', 'kombiniert']))
+                    <a href="{{ route('rechnungen.xml', $r) }}" class="btn btn-sekundaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;" target="_blank">📄 XML</a>
+                    @endif
                     <a href="{{ route('rechnungen.show', $r) }}" class="btn btn-sekundaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;">Detail</a>
                 </td>
             </tr>

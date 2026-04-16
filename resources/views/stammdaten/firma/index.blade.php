@@ -317,6 +317,35 @@
             @endif
         </div>
 
+        {{-- MediData --}}
+        <div class="karte" id="medidata" style="margin-bottom: 1rem;">
+            <div class="abschnitt-label" style="margin-bottom: 0.875rem;">MediData (Tiers payant)</div>
+            <div class="text-klein text-hell" style="margin-bottom: 0.875rem;">
+                Zugangsdaten für automatischen XML-Versand an Krankenkassen via MediData-Portal.
+            </div>
+            <div class="form-grid" style="margin-bottom: 0.75rem;">
+                <div>
+                    <label class="feld-label">MediData URL</label>
+                    <input type="text" name="medidata_url" class="feld"
+                        value="{{ old('medidata_url', $org->medidata_url) }}"
+                        placeholder="https://www.medidata.ch/mdi/InvoiceRequest">
+                </div>
+                <div>
+                    <label class="feld-label">Benutzername</label>
+                    <input type="text" name="medidata_username" class="feld"
+                        value="{{ old('medidata_username', $org->medidata_username) }}"
+                        placeholder="spitex_xyz">
+                </div>
+            </div>
+            <div style="max-width: 350px;">
+                <label class="feld-label">Passwort</label>
+                <input type="password" name="medidata_passwort" class="feld"
+                    placeholder="{{ $org->medidata_passwort ? '••••••••' : 'Noch nicht gesetzt' }}"
+                    autocomplete="new-password">
+                <div class="text-mini text-hell" style="margin-top: 0.2rem;">Leer lassen um bestehendes Passwort zu behalten.</div>
+            </div>
+        </div>
+
         <div style="margin-bottom: 2rem;">
             <button type="submit" class="btn btn-primaer">Firmadaten speichern</button>
         </div>

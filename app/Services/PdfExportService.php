@@ -191,6 +191,66 @@ class PdfExportService
     /** Kaufmännische Rundung auf 0.05 CHF */
     private function r5(float $x): float { return round($x * 20) / 20; }
 
+    /**
+     * Gemeinde-Rechnung (Restfinanzierung) als PDF generieren und speichern.
+     * Gibt Storage-Pfad zurück.
+     */
+    public function gemeindeRechnungExportieren(Rechnung $rechnung): string
+    {
+        $rechnung->loadMissing([
+            'klient.aktBeitrag',
+            'klient.region',
+            'positionen.einsatzLeistungsart.leistungsart',
+        ]);
+
+        $rapportDaten = $this->rapportblattDaten($rechnung);
+
+        if (!$rapportDaten) {
+            // Fallback: einfache Berechnung aus gespeicherten Beträgen
+            $tage   = [];
+            $summen = [
+                'vollkosten' => (float) $rechnung->betrag_total,
+                'kk'         => (float) $rechnung->betrag_kk,
+                'pat'        => (float) $rechnung->betrag_patient,
+                'gemeinde'   => (float) $rechnung->betrag_gemeinde,
+            ];
+        } else {
+            $tage   = $rapportDaten['tage'];
+            $summen = [
+                'vollkosten' => $this->r5(
+                    $rapportDaten['summen']['taxe_abkl'] +
+                    $rapportDaten['summen']['taxe_unt']  +
+                    $rapportDaten['summen']['taxe_gp']
+                ),
+                'kk'         => $this->r5(
+                    $rapportDaten['summen']['kvg_abkl'] +
+                    $rapportDaten['summen']['kvg_unt']  +
+                    $rapportDaten['summen']['kvg_gp']
+                ),
+                'pat'        => $rapportDaten['summen']['pat'],
+                'gemeinde'   => $rapportDaten['summen']['gemeinde'],
+            ];
+        }
+
+        $html = view('pdfs.gemeinde_rechnung', [
+            'rechnung' => $rechnung,
+            'org'      => $this->org,
+            'tage'     => $tage,
+            'summen'   => $summen,
+        ])->render();
+
+        $pdf  = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html, 'UTF-8')
+            ->setPaper('A4', 'portrait');
+
+        $pfad = 'pdf_export/' . $this->org->id . '/gemeinde_' . $rechnung->rechnungsnummer . '.pdf';
+        \Illuminate\Support\Facades\Storage::put($pfad, $pdf->output());
+
+        // betrag_gemeinde auf Rechnung speichern
+        $rechnung->update(['betrag_gemeinde' => $summen['gemeinde']]);
+
+        return $pfad;
+    }
+
     private function mergePdfs(string $portraitBytes, string $landscapeBytes): string
     {
         // Temp-Dateien — FPDI benötigt Dateipfade

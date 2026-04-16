@@ -18,9 +18,11 @@ class Rechnung extends Model
     protected $fillable = [
         'organisation_id', 'klient_id', 'rechnungsnummer',
         'periode_von', 'periode_bis', 'rechnungsdatum',
-        'betrag_patient', 'betrag_kk', 'betrag_total',
+        'betrag_patient', 'betrag_kk', 'betrag_gemeinde', 'betrag_total',
         'status', 'rechnungstyp', 'rechnungslauf_id', 'pdf_pfad',
         'email_versand_datum', 'email_versand_an', 'email_fehler',
+        'gemeinde_versand_datum', 'gemeinde_versand_an', 'gemeinde_fehler',
+        'medidata_versand_datum', 'medidata_fehler',
         'bexio_rechnung_id', 'bexio_bezahlt_am', 'bezahlt_am',
     ];
 
@@ -31,9 +33,12 @@ class Rechnung extends Model
         'email_versand_datum' => 'datetime',
         'bexio_bezahlt_am'    => 'datetime',
         'bezahlt_am'          => 'date',
-        'betrag_patient'      => 'decimal:2',
-        'betrag_kk'           => 'decimal:2',
-        'betrag_total'        => 'decimal:2',
+        'betrag_patient'       => 'decimal:2',
+        'betrag_kk'            => 'decimal:2',
+        'betrag_gemeinde'      => 'decimal:2',
+        'betrag_total'         => 'decimal:2',
+        'gemeinde_versand_datum' => 'datetime',
+        'medidata_versand_datum' => 'datetime',
     ];
 
     public function klient()     { return $this->belongsTo(Klient::class); }

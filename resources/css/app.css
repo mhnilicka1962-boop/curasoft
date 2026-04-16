@@ -233,6 +233,8 @@ body {
 .btn-primaer:hover    { background-color: var(--cs-primaer-dunkel); }
 .btn-sekundaer        { background-color: var(--cs-weiss); color: var(--cs-text); border: 1px solid var(--cs-border); }
 .btn-sekundaer:hover  { background-color: var(--cs-hintergrund); }
+.btn-aktion           { background-color: #ea580c; color: #fff; }
+.btn-aktion:hover     { background-color: #c2410c; }
 .btn-gefahr           { background-color: var(--cs-fehler); color: var(--cs-weiss); }
 
 /* Karten */

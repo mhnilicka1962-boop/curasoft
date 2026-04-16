@@ -180,4 +180,36 @@
                 value="{{ old('zahlbar_tage', $k?->zahlbar_tage ?? 30) }}">
         </div>
     </div>
+
+    {{-- Gemeinde (Tiers payant) --}}
+    <div class="abschnitt-label" style="margin-top: 1.25rem; margin-bottom: 0.625rem;">Wohngemeinde (Tiers payant)</div>
+    <div class="form-grid" style="margin-bottom: 0.75rem;">
+        <div>
+            <label class="feld-label">Gemeinde Name</label>
+            <input type="text" name="gemeinde_name" class="feld"
+                value="{{ old('gemeinde_name', $k?->gemeinde_name) }}" placeholder="Gemeinde Zürich">
+        </div>
+        <div>
+            <label class="feld-label">Gemeinde E-Mail</label>
+            <input type="email" name="gemeinde_email" class="feld"
+                value="{{ old('gemeinde_email', $k?->gemeinde_email) }}" placeholder="finanzen@gemeinde.ch">
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 90px 1fr; gap: 0.75rem; max-width: 600px; margin-bottom: 0.75rem;">
+        <div>
+            <label class="feld-label">Strasse</label>
+            <input type="text" name="gemeinde_adresse" class="feld"
+                value="{{ old('gemeinde_adresse', $k?->gemeinde_adresse) }}" placeholder="Stadthausallee 1">
+        </div>
+        <div>
+            <label class="feld-label">PLZ</label>
+            <input type="text" name="gemeinde_plz" class="feld"
+                value="{{ old('gemeinde_plz', $k?->gemeinde_plz) }}" placeholder="8000">
+        </div>
+        <div>
+            <label class="feld-label">Ort</label>
+            <input type="text" name="gemeinde_ort" class="feld"
+                value="{{ old('gemeinde_ort', $k?->gemeinde_ort) }}" placeholder="Zürich">
+        </div>
+    </div>
 </div>
