@@ -54,5 +54,5 @@
     Header always set X-XSS-Protection "1; mode=block"
 
     # Keine Browser-Features die nicht gebraucht werden
-    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set Permissions-Policy "camera=(), microphone=(self), geolocation=()"
 </IfModule>
