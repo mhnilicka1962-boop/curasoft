@@ -82,8 +82,8 @@
         </div>
         @endif
 
-        {{-- Gruppe: Krankenkasse --}}
-        @if($kvgAnzahl > 0)
+        {{-- Gruppe: Krankenkasse (nur Tiers payant) --}}
+        @if($kvgAnzahl > 0 && $tiersPayant)
         <div>
             <div class="abschnitt-label" style="margin-bottom: 0.5rem;">Krankenkasse</div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
