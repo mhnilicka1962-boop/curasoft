@@ -1193,7 +1193,7 @@
                 <div>
                     <p style="font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #dc2626; margin-bottom: 0.75rem;">Nicht für Sie, wenn…</p>
                     <ul class="check-list">
-                        <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie ein Spital oder Grosskonzern sind</span></li>
+                        <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie eine Grossorganisation mit über 100 Klienten sind</span></li>
                         <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie ein Microsoft-Ökosystem mit Azure-Integration brauchen</span></li>
                         <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie monatelange Einführungsprojekte gewohnt sind</span></li>
                         <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie bereit sind, CHF 200/h Support zu bezahlen</span></li>
