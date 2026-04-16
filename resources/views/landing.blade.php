@@ -1022,7 +1022,7 @@
             <div style="background: #fff; border: 1px solid #dbeafe; border-radius: 0.875rem; padding: 1.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
                 <div style="font-size: 1.75rem; margin-bottom: 0.75rem;">🤝</div>
                 <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Kein grosses Softwarehaus</h3>
-                <p style="font-size: 0.9rem; color: var(--text-hell); line-height: 1.6;">Direkter Kontakt zum Entwickler — Ihr Feedback fliesst direkt ins Produkt.</p>
+                <p style="font-size: 0.9rem; color: var(--text-hell); line-height: 1.6;">Direkter Kontakt zum Entwickler — Ihr Feedback fliesst direkt ins Produkt. Open Source, neueste Technologien, keine veralteten Legacy-Systeme.</p>
             </div>
         </div>
     </div>
