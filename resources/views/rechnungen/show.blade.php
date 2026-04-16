@@ -32,6 +32,14 @@
                     <button type="submit" class="btn btn-gefahr">✕ Stornieren</button>
                 </form>
             @endif
+            {{-- Gemeinde-Email erneut senden (nur Tiers payant) --}}
+            @if(($rechnung->rechnungslauf?->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant' && $rechnung->klient->gemeinde_email)
+            <form method="POST" action="{{ route('rechnungen.gemeinde-email', $rechnung) }}" style="display:inline;"
+                onsubmit="return confirm('Gemeinde-Email erneut senden an {{ $rechnung->klient->gemeinde_email }}?')">
+                @csrf
+                <button type="submit" class="btn btn-aktion">📧 Gemeinde-Email</button>
+            </form>
+            @endif
             {{-- XML 450.100 Export --}}
             <a href="{{ route('rechnungen.xml', $rechnung) }}" class="btn btn-sekundaer" title="XML 450.100 exportieren">📋 XML</a>
             {{-- PDF Export --}}

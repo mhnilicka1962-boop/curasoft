@@ -384,7 +384,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('/rechnungen/positionen/{position}', [RechnungenController::class, 'positionUpdate'])->name('rechnungen.position.update');
         Route::get('/rechnungen/{rechnung}/xml',        [RechnungenController::class, 'xmlExport'])->name('rechnungen.xml');
         Route::get('/rechnungen/{rechnung}/pdf',        [RechnungenController::class, 'pdfExport'])->name('rechnungen.pdf');
-        Route::post('/rechnungen/{rechnung}/stornieren',    [RechnungenController::class, 'stornieren'])->name('rechnungen.stornieren');
+        Route::post('/rechnungen/{rechnung}/stornieren',      [RechnungenController::class, 'stornieren'])->name('rechnungen.stornieren');
+        Route::post('/rechnungen/{rechnung}/gemeinde-email', [RechnungenController::class, 'gemeindeEmailEinzeln'])->name('rechnungen.gemeinde-email');
         Route::post('/rechnungen/{rechnung}/bexio/sync',   [RechnungenController::class, 'bexioSync'])->name('rechnungen.bexio.sync');
         Route::post('/rechnungen/{rechnung}/bexio/status', [RechnungenController::class, 'bexioStatusPruefen'])->name('rechnungen.bexio.status');
     });

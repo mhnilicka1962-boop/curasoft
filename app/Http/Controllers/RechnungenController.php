@@ -130,7 +130,7 @@ class RechnungenController extends Controller
     public function show(Rechnung $rechnung)
     {
         $this->autorisiereZugriff($rechnung);
-        $rechnung->load(['klient', 'positionen.einsatz.einsatzLeistungsarten.leistungsart', 'positionen.leistungstyp']);
+        $rechnung->load(['klient', 'rechnungslauf', 'positionen.einsatz.einsatzLeistungsarten.leistungsart', 'positionen.leistungstyp']);
         return view('rechnungen.show', compact('rechnung'));
     }
 
@@ -258,6 +258,54 @@ class RechnungenController extends Controller
             $ok ? 'erfolg' : 'fehler',
             $ok ? 'Rechnung wurde mit Bexio synchronisiert.' : 'Bexio-Sync fehlgeschlagen. Bitte Verbindung unter Firma prüfen.'
         );
+    }
+
+    public function gemeindeEmailEinzeln(Rechnung $rechnung)
+    {
+        $this->autorisiereZugriff($rechnung);
+
+        $org = Organisation::findOrFail(auth()->user()->organisation_id);
+        $pdfService = new PdfExportService($org);
+
+        $email = $rechnung->klient->gemeinde_email;
+
+        if (!$email) {
+            return back()->with('fehler', 'Keine Gemeinde-E-Mail-Adresse beim Klienten hinterlegt.');
+        }
+
+        try {
+            $rechnung->load(['klient.aktBeitrag', 'klient.region', 'positionen.einsatzLeistungsart.leistungsart']);
+            $pfad = $pdfService->gemeindeRechnungExportieren($rechnung);
+            $rechnung->refresh();
+
+            \Illuminate\Support\Facades\Mail::send([], [], function ($m) use ($rechnung, $org, $pfad, $email) {
+                $m->to($email)
+                  ->subject('Restfinanzierungsrechnung ' . $rechnung->klient->nachname . ' ' . $rechnung->klient->vorname
+                      . ' — ' . $rechnung->periode_von->format('M Y'))
+                  ->text('Sehr geehrte Damen und Herren' . "\n\n"
+                      . 'Beiliegend erhalten Sie die Restfinanzierungsrechnung für den Monat '
+                      . $rechnung->periode_von->format('F Y') . '.' . "\n\n"
+                      . 'Mit freundlichen Grüssen' . "\n"
+                      . $org->name)
+                  ->attach(\Illuminate\Support\Facades\Storage::path($pfad), [
+                      'as'   => 'GDE-' . $rechnung->rechnungsnummer . '.pdf',
+                      'mime' => 'application/pdf',
+                  ]);
+            });
+
+            $rechnung->update([
+                'gemeinde_versand_datum' => now(),
+                'gemeinde_versand_an'    => $email,
+                'gemeinde_fehler'        => null,
+            ]);
+
+            AuditLog::schreiben('geaendert', 'Rechnung', $rechnung->id, "Gemeinde-Email erneut versendet an {$email}");
+
+            return back()->with('erfolg', "Gemeinde-Email versendet an {$email}.");
+        } catch (\Exception $e) {
+            $rechnung->update(['gemeinde_fehler' => mb_substr($e->getMessage(), 0, 500)]);
+            return back()->with('fehler', 'Fehler beim Versand: ' . $e->getMessage());
+        }
     }
 
     public function stornieren(Rechnung $rechnung)
