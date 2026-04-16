@@ -1272,9 +1272,6 @@
                 <p style="font-size: 0.8125rem; font-weight: 700; color: #111827;">Inhaber, kleine Spitex BE</p>
             </div>
         </div>
-        <p style="text-align: center; font-size: 0.8125rem; color: #9ca3af; margin-top: 2rem;">
-            * Aussagen aus der Praxis — anonymisiert auf Wunsch der Betriebe
-        </p>
     </div>
 </section>
 
