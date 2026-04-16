@@ -99,7 +99,7 @@
                         <a href="{{ route('firma.index') }}#medidata" class="btn btn-sekundaer" style="color:#6b7280; font-size:0.8125rem;">MediData konfigurieren →</a>
                         @endif
                     @elseif($medidataVersendetAnzahl > 0)
-                        <span class="badge badge-ok">✓ {{ $medidataVersendetAnzahl }}× MediData versendet</span>
+                        <span class="badge badge-erfolg">✓ {{ $medidataVersendetAnzahl }}× MediData versendet</span>
                     @endif
                     <a href="{{ route('rechnungslauf.xml-zip', $lauf) }}" class="btn btn-sekundaer">XML-ZIP ({{ $kvgAnzahl }})</a>
                 @else
@@ -223,6 +223,18 @@
                              title="{{ $r->email_fehler }}">
                             ✗ {{ Str::limit($r->email_fehler, 80) }}
                         </div>
+                    @endif
+                    @if($tiersPayant && in_array($r->rechnungstyp, ['kvg', 'kombiniert']))
+                        @if($r->medidata_versand_datum)
+                            <div style="font-size:0.7rem; color:#15803d; margin-top:0.15rem;">
+                                ✓ MediData {{ $r->medidata_versand_datum->format('d.m.Y H:i') }}
+                            </div>
+                        @elseif($r->medidata_fehler)
+                            <div style="font-size:0.7rem; color:#dc2626; margin-top:0.15rem; max-width:260px;"
+                                 title="{{ $r->medidata_fehler }}">
+                                ✗ MediData: {{ Str::limit($r->medidata_fehler, 80) }}
+                            </div>
+                        @endif
                     @endif
                 </td>
                 <td class="text-rechts" style="white-space: nowrap;">
