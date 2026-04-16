@@ -33,7 +33,7 @@
                 </form>
             @endif
             {{-- Gemeinde-Email erneut senden (nur Tiers payant) --}}
-            @if(($rechnung->rechnungslauf?->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant' && $rechnung->klient->gemeinde_email)
+            @if(($rechnung->lauf?->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant' && $rechnung->klient->gemeinde_email)
             <form method="POST" action="{{ route('rechnungen.gemeinde-email', $rechnung) }}" style="display:inline;"
                 onsubmit="return confirm('Gemeinde-Email erneut senden an {{ $rechnung->klient->gemeinde_email }}?')">
                 @csrf

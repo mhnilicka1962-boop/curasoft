@@ -130,7 +130,7 @@ class RechnungenController extends Controller
     public function show(Rechnung $rechnung)
     {
         $this->autorisiereZugriff($rechnung);
-        $rechnung->load(['klient', 'rechnungslauf', 'positionen.einsatz.einsatzLeistungsarten.leistungsart', 'positionen.leistungstyp']);
+        $rechnung->load(['klient', 'lauf', 'positionen.einsatz.einsatzLeistungsarten.leistungsart', 'positionen.leistungstyp']);
         return view('rechnungen.show', compact('rechnung'));
     }
 
