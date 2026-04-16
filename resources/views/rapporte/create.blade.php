@@ -96,6 +96,8 @@
                     🎙 Diktat funktioniert nur in <strong>Chrome, Edge oder Safari</strong> — nicht in Firefox.<br>
                     <span style="opacity:0.8;">Der KI-Rapport (✨) funktioniert in allen Browsern.</span>
                 </div>
+                {{-- Diktat: Fehler-Meldung (z.B. Mikrofon verweigert) --}}
+                <div id="diktat-fehler" style="display:none; background:#fee2e2; border:1px solid #fca5a5; border-radius:0.5rem; padding:0.5rem 0.75rem; font-size:0.8125rem; color:#991b1b; margin-bottom:0.5rem;"></div>
 
                 {{-- Buttons: Mikrofon + KI --}}
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -275,6 +277,19 @@ function kiVorschlagUebernehmen() {
     document.getElementById('ki-vorschau').style.display = 'none';
 }
 
+// ── Diktat: Fehler anzeigen ───────────────────────────────────────
+function zeigeDiktatFehler(fehlerCode) {
+    const el = document.getElementById('diktat-fehler');
+    if (fehlerCode === 'not-allowed') {
+        el.textContent = '🚫 Mikrofon-Zugriff verweigert — bitte in den Chrome-Einstellungen für diese Seite erlauben (Schloss-Symbol in der Adressleiste).';
+    } else if (fehlerCode === 'network') {
+        el.textContent = '⚠ Netzwerkfehler — Diktat benötigt eine Internetverbindung.';
+    } else {
+        el.textContent = '⚠ Diktat-Fehler: ' + fehlerCode;
+    }
+    el.style.display = 'block';
+}
+
 // ── Web Speech API — Diktat (Stichworte) ─────────────────────────
 let diktatRec   = null;
 let diktatAktiv = false;
@@ -306,10 +321,12 @@ function toggleDiktat() {
     };
 
     diktatRec.onresult = (e) => {
-        const transkript = Array.from(e.results)
-            .map(r => r[0].transcript).join(' ');
-        const el = document.getElementById('stichworte');
-        el.value = (el.value + ' ' + transkript).trim();
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+            if (e.results[i].isFinal) {
+                const el = document.getElementById('stichworte');
+                el.value = (el.value + ' ' + e.results[i][0].transcript).trim();
+            }
+        }
     };
 
     const diktatReset = () => {
@@ -322,7 +339,10 @@ function toggleDiktat() {
     };
 
     diktatRec.onend  = diktatReset;
-    diktatRec.onerror = (e) => { diktatReset(); };
+    diktatRec.onerror = (e) => {
+        diktatReset();
+        zeigeDiktatFehler(e.error);
+    };
 
     diktatRec.start();
 }
@@ -330,6 +350,15 @@ function toggleDiktat() {
 // ── Web Speech API — Diktat (direkt in Bericht) ───────────────────
 let diktatHauptRec   = null;
 let diktatHauptAktiv = false;
+
+function diktatHauptReset() {
+    diktatHauptAktiv = false;
+    document.getElementById('btn-mikro-haupt').style.background = '#fff';
+    document.getElementById('btn-mikro-haupt').style.borderColor = 'var(--cs-border)';
+    document.getElementById('btn-mikro-haupt').style.color = '#374151';
+    document.getElementById('mikro-haupt-btn-text').textContent = '🎙 Direkt in Bericht diktieren';
+    document.getElementById('diktat-haupt-status').style.display = 'none';
+}
 
 function toggleDiktatHaupt() {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -358,20 +387,20 @@ function toggleDiktatHaupt() {
     };
 
     diktatHauptRec.onresult = (e) => {
-        const transkript = Array.from(e.results)
-            .map(r => r[0].transcript).join(' ');
-        const el = document.getElementById('inhalt');
-        el.value = (el.value + ' ' + transkript).trim();
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+            if (e.results[i].isFinal) {
+                const el = document.getElementById('inhalt');
+                el.value = (el.value + ' ' + e.results[i][0].transcript).trim();
+            }
+        }
     };
 
-    diktatHauptRec.onend = () => {
-        diktatHauptAktiv = false;
-        document.getElementById('btn-mikro-haupt').style.background = '#fff';
-        document.getElementById('btn-mikro-haupt').style.borderColor = 'var(--cs-border)';
-        document.getElementById('btn-mikro-haupt').style.color = '#374151';
-        document.getElementById('mikro-haupt-btn-text').textContent = '🎙 Direkt in Bericht diktieren';
-        document.getElementById('diktat-haupt-status').style.display = 'none';
+    diktatHauptRec.onerror = (e) => {
+        diktatHauptReset();
+        zeigeDiktatFehler(e.error);
     };
+
+    diktatHauptRec.onend = diktatHauptReset;
 
     diktatHauptRec.start();
 }
