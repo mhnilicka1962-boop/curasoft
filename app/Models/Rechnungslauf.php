@@ -19,6 +19,7 @@ class Rechnungslauf extends Model
         'anzahl_uebersprungen',
         'status',
         'erstellt_von',
+        'abrechnungslogik',
     ];
 
     protected $casts = [

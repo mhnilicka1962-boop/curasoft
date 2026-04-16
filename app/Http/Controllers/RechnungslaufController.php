@@ -300,9 +300,9 @@ class RechnungslaufController extends Controller
             ->where('status', 'entwurf')
             ->count();
 
-        // Tiers payant: Gemeinde-Email + MediData
+        // Tiers payant: basiert auf Modell zum Zeitpunkt der Lauf-Erstellung
         $org = Organisation::findOrFail($this->orgId());
-        $tiersPayant = ($org->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant';
+        $tiersPayant = ($lauf->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant';
 
         $gemeindeAnzahl = $tiersPayant
             ? $lauf->rechnungen->filter(fn($r) => $r->klient->gemeinde_email && !$r->gemeinde_versand_datum)->count()
@@ -1111,6 +1111,7 @@ class RechnungslaufController extends Controller
         }
 
         // Schritt 2: Lauf anlegen
+        $org  = Organisation::findOrFail($this->orgId());
         $lauf = Rechnungslauf::create([
             'organisation_id'     => $this->orgId(),
             'periode_von'         => $periode_von,
@@ -1119,6 +1120,7 @@ class RechnungslaufController extends Controller
             'anzahl_uebersprungen'=> 0,
             'status'              => 'abgeschlossen',
             'erstellt_von'        => auth()->id(),
+            'abrechnungslogik'    => $org->abrechnungslogik ?? 'tiers_garant',
         ]);
 
         // Schritt 3: Pro Klient — getrennte Rechnungen für normale Einsätze und Tagespauschalen
