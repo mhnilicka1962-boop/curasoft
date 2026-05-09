@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CuraSoft ist die Spitex-Software für alle Kantone der Schweiz. Automatische Kantonstarife, Tiers-garant- und Tiers-payant-Abrechnung, MediData, Einsatzplanung, KI-Rapporte. Ab CHF 150/Monat.">
+    <meta name="description" content="CuraSoft ist die Spitex-Software für alle Kantone der Schweiz. Automatische Kantonstarife, Tiers-garant- und Tiers-payant-Abrechnung, MediData, Einsatzplanung, KI-Rapporte. Ab CHF 250/Monat.">
     <meta name="keywords" content="Spitex Software Schweiz, Spitex Abrechnung, KVG Abrechnung, Spitex Einsatzplanung, Spitex Klientenverwaltung">
     <title>CuraSoft — Spitex-Software für die Schweiz | Alle 26 Kantone</title>
 
@@ -16,12 +16,12 @@
     <meta property="og:locale"      content="de_CH">
     <meta property="og:url"         content="https://curasoft.ch/">
     <meta property="og:title"       content="CuraSoft — Die Spitex-Software für die ganze Schweiz">
-    <meta property="og:description" content="Einsatzplanung, Klientenverwaltung, Tiers-garant- und Tiers-payant-Abrechnung mit MediData und KI-Rapporte — für alle Spitex-Dienste in der Schweiz. Ab CHF 150/Monat.">
+    <meta property="og:description" content="Einsatzplanung, Klientenverwaltung, Tiers-garant- und Tiers-payant-Abrechnung mit MediData und KI-Rapporte — für alle Spitex-Dienste in der Schweiz. Ab CHF 250/Monat.">
 
     {{-- ── Twitter Card ──────────────────────────────────────────────────── --}}
     <meta name="twitter:card"        content="summary_large_image">
     <meta name="twitter:title"       content="CuraSoft — Die Spitex-Software für die ganze Schweiz">
-    <meta name="twitter:description" content="Einsatzplanung, Klientenverwaltung, Tiers-garant- und Tiers-payant-Abrechnung mit MediData und KI-Rapporte — einfach, sicher, schweizweit. Ab CHF 150/Monat.">
+    <meta name="twitter:description" content="Einsatzplanung, Klientenverwaltung, Tiers-garant- und Tiers-payant-Abrechnung mit MediData und KI-Rapporte — einfach, sicher, schweizweit. Ab CHF 250/Monat.">
 
     {{-- ── Schema.org Structured Data ──────────────────────────────────── --}}
     <script type="application/ld+json">
@@ -60,11 +60,11 @@
                     {
                         "@type": "Offer",
                         "name": "Starter",
-                        "price": "150",
+                        "price": "250",
                         "priceCurrency": "CHF",
                         "priceSpecification": {
                             "@type": "UnitPriceSpecification",
-                            "price": "150",
+                            "price": "250",
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
@@ -73,11 +73,11 @@
                     {
                         "@type": "Offer",
                         "name": "Professional",
-                        "price": "200",
+                        "price": "350",
                         "priceCurrency": "CHF",
                         "priceSpecification": {
                             "@type": "UnitPriceSpecification",
-                            "price": "200",
+                            "price": "350",
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
@@ -86,11 +86,11 @@
                     {
                         "@type": "Offer",
                         "name": "Business",
-                        "price": "500",
+                        "price": "700",
                         "priceCurrency": "CHF",
                         "priceSpecification": {
                             "@type": "UnitPriceSpecification",
-                            "price": "500",
+                            "price": "700",
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
@@ -99,11 +99,11 @@
                     {
                         "@type": "Offer",
                         "name": "Enterprise",
-                        "price": "700",
+                        "price": "1000",
                         "priceCurrency": "CHF",
                         "priceSpecification": {
                             "@type": "UnitPriceSpecification",
-                            "price": "700",
+                            "price": "1000",
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
@@ -765,7 +765,7 @@
             </a>
         </div>
         <p style="font-size: 0.875rem; color: var(--text-hell); margin-top: 0.75rem;">
-            Kleine Spitex, kleine Kosten — ab CHF 150 / Monat, monatlich kündbar, keine Setup-Gebühr.
+            Kleine Spitex, kleine Kosten — ab CHF 250 / Monat, monatlich kündbar, keine Setup-Gebühr.
         </p>
         <div class="hero-trust">
             <span class="hero-trust-item">
@@ -840,7 +840,7 @@
             <div class="problem-card">
                 <div class="problem-icon">💸</div>
                 <h3>Teure Branchenlösungen</h3>
-                <p>Die grossen Anbieter kosten CHF 500–2000/Monat, sind überladen und brauchen Wochen Einführung. CuraSoft ab CHF 150/Monat.</p>
+                <p>Die grossen Anbieter kosten CHF 500–2000/Monat, sind überladen und brauchen Wochen Einführung. CuraSoft ab CHF 250/Monat.</p>
             </div>
         </div>
     </div>
@@ -933,13 +933,14 @@
             {{-- Starter --}}
             <div class="preis-karte">
                 <div class="preis-karte-name">Starter</div>
-                <div class="preis-karte-betrag">CHF 150 <span>/ Monat</span></div>
+                <div class="preis-karte-betrag">CHF 250 <span>/ Monat</span></div>
                 <div class="preis-karte-klienten">bis 10 Klienten</div>
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
                     <li><span class="check-gruen">✓</span> E-Mail Support</li>
-                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
+                    <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
+                    <li><span class="check-gruen">✓</span> Schulung via Handbuch</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -948,13 +949,14 @@
             <div class="preis-karte beliebt">
                 <span class="beliebt-badge">Beliebteste Wahl</span>
                 <div class="preis-karte-name">Professional</div>
-                <div class="preis-karte-betrag">CHF 200 <span>/ Monat</span></div>
+                <div class="preis-karte-betrag">CHF 350 <span>/ Monat</span></div>
                 <div class="preis-karte-klienten">bis 30 Klienten</div>
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
                     <li><span class="check-gruen">✓</span> Priority Support</li>
-                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
+                    <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
+                    <li><span class="check-gruen">✓</span> Schulung via Handbuch</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -962,13 +964,14 @@
             {{-- Business --}}
             <div class="preis-karte">
                 <div class="preis-karte-name">Business</div>
-                <div class="preis-karte-betrag">CHF 500 <span>/ Monat</span></div>
+                <div class="preis-karte-betrag">CHF 700 <span>/ Monat</span></div>
                 <div class="preis-karte-klienten">bis 50 Klienten</div>
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
                     <li><span class="check-gruen">✓</span> Telefon-Support</li>
-                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
+                    <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
+                    <li><span class="check-gruen">✓</span> Schulung via Handbuch</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -976,22 +979,23 @@
             {{-- Enterprise --}}
             <div class="preis-karte">
                 <div class="preis-karte-name">Enterprise</div>
-                <div class="preis-karte-betrag">CHF 700 <span>/ Monat</span></div>
+                <div class="preis-karte-betrag">CHF 1000 <span>/ Monat</span></div>
                 <div class="preis-karte-klienten">bis 100 Klienten</div>
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
                     <li><span class="check-gruen">✓</span> Dedizierter Support</li>
-                    <li><span class="check-gruen">✓</span> Keine Setup-Gebühr</li>
+                    <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
+                    <li><span class="check-gruen">✓</span> Schulung via Handbuch</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
 
         </div>
         <p class="preis-enterprise-link">
-            Über 200 Klienten? <a href="#kontakt">Individuelles Angebot anfragen →</a>
+            Über 100 Klienten? <a href="#kontakt">Individuelles Angebot anfragen →</a>
         </p>
-        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar.</p>
+        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar. Gültig ab 9.5.2026. Aufsetzen gratis. Schulung via Handbuch.</p>
     </div>
 </section>
 
