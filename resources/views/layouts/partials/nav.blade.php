@@ -5,9 +5,15 @@
 <a href="{{ route('hilfe') }}" class="nav-link {{ request()->routeIs('hilfe') ? 'aktiv' : '' }}">
     Hilfe
 </a>
+@if(auth()->user()?->rolle === 'pflege')
+<a href="{{ route('schulung.pflege') }}" class="nav-link {{ request()->routeIs('schulung.pflege') ? 'aktiv' : '' }}">
+    Schulung
+</a>
+@else
 <a href="{{ route('schulung') }}" class="nav-link {{ request()->routeIs('schulung') ? 'aktiv' : '' }}">
     Schulung
 </a>
+@endif
 
 <div class="nav-abschnitt">Kommunikation</div>
 <a href="{{ route('chat.index') }}" class="nav-link nav-link-mit-badge {{ request()->routeIs('chat.*') ? 'aktiv' : '' }}">

@@ -228,6 +228,7 @@ Route::middleware('auth')->group(function () {
 
     // Schulung
     Route::get('/schulung', fn() => view('schulung.index'))->name('schulung');
+    Route::get('/schulung/pflege', fn() => view('schulung.pflege'))->name('schulung.pflege');
 
     // Profil + WebAuthn (Passkeys) — alle eingeloggten Benutzer
     Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
