@@ -2,9 +2,15 @@
 <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'aktiv' : '' }}">
     Dashboard
 </a>
+@if(auth()->user()?->rolle === 'pflege')
+<a href="{{ route('hilfe.pflege') }}" class="nav-link {{ request()->routeIs('hilfe.pflege') ? 'aktiv' : '' }}">
+    Hilfe
+</a>
+@else
 <a href="{{ route('hilfe') }}" class="nav-link {{ request()->routeIs('hilfe') ? 'aktiv' : '' }}">
     Hilfe
 </a>
+@endif
 @if(auth()->user()?->rolle === 'pflege')
 <a href="{{ route('schulung.pflege') }}" class="nav-link {{ request()->routeIs('schulung.pflege') ? 'aktiv' : '' }}">
     Schulung

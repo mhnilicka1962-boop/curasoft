@@ -85,9 +85,9 @@
                     </li>
                     <li data-step="6">
                         <label><input type="checkbox" data-script="s1" data-step="6">
-                            Wiederkehrende Einsätze planen (Wochentage, Zeiten, Mitarbeiter)
+                            Einsatzserie anlegen: Klient öffnen → Sektion «Serien» → «+ Neue Serie» → Rhythmus, Zeiten, Mitarbeiter, Leistungsarten erfassen → «Automatisch verlängern» aktivieren
                         </label>
-                        <a href="{{ route('einsaetze.create') }}" class="script-link" target="_blank">+ Einsatz planen →</a>
+                        <a href="{{ route('klienten.index') }}" class="script-link" target="_blank">Klienten → Serie anlegen →</a>
                     </li>
                     <li data-step="7">
                         <label><input type="checkbox" data-script="s1" data-step="7">
@@ -511,7 +511,6 @@
                             <tr><td><strong>Mitarbeiter</strong></td><td>Zuständige Pflegeperson wählen</td><td>Angehörige erscheinen mit 👪</td></tr>
                             <tr><td><strong>Verordnung</strong></td><td>Ärztliche Verordnung verknüpfen (für KK-Abrechnung)</td><td>Nur nötig bei Behandlungspflege</td></tr>
                             <tr><td><strong>Leistungserbringer</strong></td><td>Fachperson oder Pflegender Angehöriger</td><td>Wird automatisch gesetzt wenn Angehöriger gewählt</td></tr>
-                            <tr><td><strong>Wiederholung</strong></td><td>Wöchentlich + Wochentage wählen + Enddatum</td><td>Erstellt alle Einsätze der Serie auf einmal</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -539,9 +538,9 @@
                     </li>
                     <li data-step="4">
                         <label><input type="checkbox" data-script="s9" data-step="4">
-                            Wiederkehrender Einsatz: Wiederholung «Wöchentlich» wählen → Wochentage anklicken → Enddatum →
-                            Vorschau zeigt Anzahl Einsätze
+                            Für wiederkehrende Einsätze: <strong>Klient → Serien → + Neue Serie</strong> verwenden — kein Wiederholungsfeld im Einsatz-Formular
                         </label>
+                        <a href="{{ route('schulung') }}#serie" class="script-link" target="_blank">→ Schulung: Einsatzserie</a>
                     </li>
                     <li data-step="5">
                         <label><input type="checkbox" data-script="s9" data-step="5">
@@ -743,8 +742,8 @@
         <ol style="margin: 0 0 0 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
             <li>Klienten → <strong>„+ Neuer Klient"</strong></li>
             <li>Pflichtfelder: Vorname, Nachname, Region (Kanton)</li>
-            <li>Danach ergänzen: Adresse, Krankenkasse, Pflegestufe, Arzt, Angehörige</li>
-            <li>Ersten Einsatz planen (Pflegeplan → „+ Einsatz planen")</li>
+            <li>Danach ergänzen: Adresse, Krankenkasse, Arzt, Ärztliche Verordnung</li>
+            <li>Einsatzserie anlegen: Klient-Detail → Sektion «Serien» → <strong>«+ Neue Serie»</strong></li>
         </ol>
     </div>
 
@@ -842,19 +841,26 @@
             <li>Im Lauf-Detail: Rechnungen versenden (Email / Post / XML an KK)</li>
         </ol>
         <div class="abschnitt-trenn"></div>
-        <div style="font-weight: 600; margin: 1rem 0 0.5rem;">Versandwege</div>
+        <div style="font-weight: 600; margin: 1rem 0 0.5rem;">Buttons im Lauf-Detail</div>
         <div class="tabelle-wrapper" style="margin-bottom: 1rem;">
         <table class="tabelle">
             <thead><tr><th>Schaltfläche</th><th>Was passiert</th></tr></thead>
             <tbody>
-                <tr><td><strong>Email versenden</strong></td><td>PDF-Rechnung per Mail an Klient</td></tr>
-                <tr><td><strong>Sammel-PDF drucken</strong></td><td>Alle Post-Rechnungen zusammen → Druckdialog</td></tr>
-                <tr><td><strong>XML-ZIP KVG</strong></td><td>Alle XML 450.100-Dateien als ZIP für MediData-Upload</td></tr>
-                <tr><td><strong>✓ Bexio Zahlungsabgleich</strong></td><td>Prüft alle Rechnungen des Laufs in Bexio auf Zahlungseingang</td></tr>
+                <tr><td><strong>Email versenden (N)</strong></td><td>PDF-Rechnung per Mail an N Klienten mit hinterlegter E-Mail</td></tr>
+                <tr><td><strong>Sammel-PDF (N)</strong></td><td>Alle Post-Rechnungen in einem PDF → drucken / per Post versenden</td></tr>
+                <tr><td><strong>PDF-ZIP</strong></td><td>Alle PDFs als ZIP herunterladen (Archivierung)</td></tr>
+                <tr><td><strong>✓ Post-Versand bestätigen</strong></td><td>Post-Rechnungen auf «Gesendet» setzen — nach dem Ausdrucken</td></tr>
+                <tr><td><strong>XML-ZIP</strong></td><td>Alle KVG-Dateien (XML 450.100) als ZIP für MediData</td></tr>
+                <tr><td><strong>MediData Upload</strong></td><td>Direkt-Übertragung an KK via MediData (nur Tiers payant + MediData konfiguriert)</td></tr>
+                <tr><td><strong>✓ XML-Versand bestätigen</strong></td><td>KVG-Rechnungen als versendet markieren</td></tr>
+                <tr><td><strong>Gemeinde Sammel-PDF</strong></td><td>Restfinanzierungsrechnungen für Gemeinden (nur Tiers payant)</td></tr>
+                <tr><td><strong>Bexio Abgleich</strong></td><td>Zahlungsstatus aller Rechnungen von Bexio abrufen</td></tr>
+                <tr><td><strong>↺ Wiederholen</strong></td><td>Lauf stornieren und gleiche Periode neu erstellen</td></tr>
+                <tr><td><strong>Stornieren</strong></td><td>Alle Rechnungen löschen, Einsätze zurück auf «unverrechnet» — nur möglich solange nichts versendet</td></tr>
             </tbody>
         </table>
         </div>
-        <div class="info-box">Solange keine Rechnung im Status «Gesendet» oder «Bezahlt» ist, kann der ganze Lauf storniert werden.</div>
+        <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; font-size: 0.875rem;">Solange keine Rechnung im Status «Gesendet» oder «Bezahlt» ist, kann der ganze Lauf storniert werden.</div>
     </div>
 
     {{-- Kapitel Rapportierung --}}
