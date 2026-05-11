@@ -303,6 +303,10 @@ body {
 .alert-fehler  { background-color: #fee2e2; color: #991b1b; border-left: 3px solid var(--cs-fehler); }
 .alert-warnung { background-color: #fef9c3; color: #854d0e; border-left: 3px solid var(--cs-warnung); }
 
+/* Formularfehler */
+.feld-fehler { color: var(--cs-fehler); font-size: 0.8125rem; font-weight: 500; margin-top: 0.25rem; }
+.fehler-box { background-color: #fee2e2; color: #991b1b; border-left: 3px solid var(--cs-fehler); padding: 0.75rem 1rem; border-radius: var(--cs-radius); }
+
 /* ============================================================
    Layout — Sidebar + Content
    ============================================================ */
