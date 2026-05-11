@@ -7,7 +7,7 @@
     @if($logoPfad)
         <img src="{{ asset($logoPfad) }}"
              alt="{{ $appName }}"
-             style="max-height: 90px; max-width: 210px; object-fit: contain;">
+             style="max-height: 36px; max-width: 160px; object-fit: contain;">
     @else
         <span class="logo-text">{{ $appName }}</span>
     @endif
