@@ -108,11 +108,11 @@
                     {{ $setup['einsatz'] ? '✓' : '5' }}
                 </div>
                 <div style="flex: 1;">
-                    <div class="text-fett" style="font-size: 0.9rem; {{ $setup['einsatz'] ? 'text-decoration: line-through; color: var(--cs-text-hell);' : '' }}">Ersten Einsatz planen</div>
-                    <div class="text-mini text-hell">Klient + Mitarbeiterin + Datum + Zeit — fertig</div>
+                    <div class="text-fett" style="font-size: 0.9rem; {{ $setup['einsatz'] ? 'text-decoration: line-through; color: var(--cs-text-hell);' : '' }}">Erste Einsatzserie anlegen</div>
+                    <div class="text-mini text-hell">Klient öffnen → Sektion «Serien» — Curasoft generiert die wiederkehrenden Einsätze automatisch</div>
                 </div>
                 @if(!$setup['einsatz'])
-                <a href="{{ route('einsaetze.create') }}" class="btn {{ $setup['mitarbeiter'] ? 'btn-primaer' : 'btn-sekundaer' }}" style="font-size: 0.8rem; padding: 0.25rem 0.75rem; white-space: nowrap;">Jetzt →</a>
+                <a href="{{ route('klienten.index') }}" class="btn {{ $setup['mitarbeiter'] ? 'btn-primaer' : 'btn-sekundaer' }}" style="font-size: 0.8rem; padding: 0.25rem 0.75rem; white-space: nowrap;">Jetzt →</a>
                 @endif
             </div>
 
