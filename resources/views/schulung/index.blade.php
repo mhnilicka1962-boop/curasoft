@@ -56,7 +56,7 @@
                         </div>
                         <div style="background: #fff; border: 1px solid #bfdbfe; border-radius: var(--cs-radius); padding: 0.5rem 0.75rem;">
                             <div class="text-fett" style="font-size: 0.8125rem;">Tiers payant</div>
-                            <div class="text-hell" style="font-size: 0.8125rem; margin-top: 0.2rem;">Spitex rechnet direkt mit Krankenkasse und Gemeinde ab via XML 450.100 / MediData. Klient zahlt nur seinen Eigenanteil. Mehr Aufwand für die Spitex, aber einfacher für den Klienten.</div>
+                            <div class="text-hell" style="font-size: 0.8125rem; margin-top: 0.2rem;">Spitex rechnet direkt mit Krankenkasse und Gemeinde ab via XML 450.100 / MediData. Klient zahlt nur seinen Eigenanteil. Mehr Aufwand für die Spitex, aber einfacher für den Klienten. <strong>Auch hier ist das Rapportblatt wertvoll</strong> — als interne Dokumentation, als Beilage zur Patient-Rechnung und bei Rückfragen von Krankenkassen oder Gemeinden.</div>
                         </div>
                     </div>
                     <div class="text-hell" style="font-size: 0.8125rem;">Nur eine Methode pro Organisation möglich. Kann später geändert werden — bestehende Rechnungen bleiben unverändert.</div>

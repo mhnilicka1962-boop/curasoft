@@ -555,12 +555,12 @@
             </div>
         </div>
 
-        {{-- SCRIPT 10: Monatsrapportierung --}}
+        {{-- SCRIPT 10: Monatsrapportierung & Rapportblatt --}}
         <div class="karte script-karte" id="script-rapportierung" style="margin-bottom: 1.5rem;">
             <div class="script-kopf" onclick="toggleScript('s10')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <span style="font-size: 1rem; font-weight: 600;">📋 Monatsrapportierung erfassen</span>
-                    <span class="text-klein text-hell" style="margin-left: 0.75rem;">Minuten pro Leistungstyp und Tag eintragen (Büro-Modus)</span>
+                    <span style="font-size: 1rem; font-weight: 600;">📋 Monatsrapportierung & Rapportblatt</span>
+                    <span class="text-klein text-hell" style="margin-left: 0.75rem;">Das zentrale Werkzeug für Monatsübersicht, Korrekturen und Dokumentation</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
                     <span class="badge badge-grau text-klein" id="fortschritt-s10">0 / 5</span>
@@ -569,8 +569,21 @@
             </div>
             <div id="body-s10" style="display: none; margin-top: 1rem;">
                 <div class="info-box" style="margin-bottom: 0.75rem; font-size: 0.875rem;">
-                    <strong>Rapportierung = Büro-Modus:</strong> Admin trägt Minuten nachträglich im Monatsraster ein — kein Check-in/out nötig.
-                    Die Einsätze werden automatisch erstellt und im nächsten Rechnungslauf normal abgerechnet.
+                    <strong>Mehr als nur «Minuten nachtragen»:</strong> Die Rapportierungs-Seite ist Ihre zentrale Monatsübersicht pro Klient:in:
+                    <ul style="margin: 0.4rem 0 0 1.25rem; padding: 0;">
+                        <li>Alle Leistungen des Monats auf einen Blick (Raster: Leistungstyp × Tag)</li>
+                        <li>App-Einsätze direkt korrigieren (z.B. wenn Pflegende Minuten falsch eingetragen)</li>
+                        <li>Einsätze nachträglich erfassen — Büro-Modus, ohne Check-in/out</li>
+                        <li>Rapportblatt-PDF erzeugen — unabhängig vom Abrechnungsmodell wertvoll</li>
+                    </ul>
+                </div>
+                <div class="info-box" style="margin-bottom: 0.75rem; font-size: 0.875rem; background: #f0f9ff; border-color: #bae6fd;">
+                    <strong>Wann das Rapportblatt nützlich ist:</strong>
+                    <ul style="margin: 0.4rem 0 0 1.25rem; padding: 0;">
+                        <li><strong>Tiers garant:</strong> Klient reicht das Rapportblatt bei Krankenkasse und Gemeinde ein</li>
+                        <li><strong>Tiers payant:</strong> Als Beilage zur Patient-Rechnung und bei Rückfragen von Krankenkassen oder Gemeinden</li>
+                        <li><strong>Intern:</strong> Dokumentation, Qualitätsnachweis, Übergabe bei Personalwechsel</li>
+                    </ul>
                 </div>
                 <ol class="script-liste" data-script="s10">
                     <li data-step="0">
@@ -586,20 +599,22 @@
                     </li>
                     <li data-step="2">
                         <label><input type="checkbox" data-script="s10" data-step="2">
-                            Minuten pro Leistungstyp und Tag eintragen — grüne Felder = bereits erfasst, blaue Buttons = App-Einsatz vorhanden
+                            Im Raster Minuten pro Leistungstyp und Tag eingeben oder korrigieren
                         </label>
-                        <div class="text-klein text-hell" style="margin: 0.2rem 0 0 1.5rem;">
-                            App-Einsätze (blau) können bei Bedarf korrigiert werden — Popup öffnet sich beim Klick.
+                        <div class="text-klein text-hell" style="margin: 0.2rem 0 0 1.5rem; line-height: 1.5;">
+                            • Grüne Felder = bereits erfasst<br>
+                            • Blaue Felder = App-Einsatz vorhanden (von Pflege via Check-in) — Klick öffnet Korrektur-Popup<br>
+                            • Gesperrte Felder = Mitarbeitende:r ist gerade vor Ort (eingecheckt) — Schutz vor Überschreiben
                         </div>
                     </li>
                     <li data-step="3">
                         <label><input type="checkbox" data-script="s10" data-step="3">
-                            <strong>«Speichern»</strong> klicken — Einsätze werden automatisch als Rapportierung erstellt
+                            <strong>«Speichern»</strong> klicken — bei Korrekturen wird automatisch ein Audit-Trail erzeugt («Alt: X Min. → Neu: Y Min.» mit Zeitstempel)
                         </label>
                     </li>
                     <li data-step="4">
                         <label><input type="checkbox" data-script="s10" data-step="4">
-                            Beim nächsten Rechnungslauf werden diese Einsätze automatisch einbezogen — keine weitere Aktion nötig
+                            <strong>«PDF Vorschau»</strong> (oben rechts) erzeugt jederzeit ein aktuelles Rapportblatt — auch vor dem Rechnungslauf. Im nächsten Rechnungslauf werden die Daten automatisch einbezogen.
                         </label>
                         <a href="{{ route('rechnungslauf.create') }}" class="script-link" target="_blank">Rechnungslauf erstellen →</a>
                     </li>
