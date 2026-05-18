@@ -995,7 +995,7 @@
         <p class="preis-enterprise-link">
             Über 100 Klienten? <a href="#kontakt">Individuelles Angebot anfragen →</a>
         </p>
-        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar. Gültig ab 9.5.2026. Aufsetzen gratis. Schulung via Handbuch.</p>
+        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar. Gültig ab 9.5.2026. Aufsetzen gratis. Selbständige Einführung möglich — oder CHF 500 Pauschal-Onboarding (Firma, Personal, Klienten, Serien &amp; erster Rechnungslauf).</p>
     </div>
 </section>
 
