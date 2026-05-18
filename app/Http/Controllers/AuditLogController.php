@@ -23,6 +23,9 @@ class AuditLogController extends Controller
         if ($request->filled('modell')) {
             $query->where('modell_typ', $request->modell);
         }
+        if ($request->filled('ip')) {
+            $query->where('ip_adresse', 'ilike', '%' . $request->ip . '%');
+        }
         if ($request->filled('von')) {
             $query->whereDate('created_at', '>=', $request->von);
         }

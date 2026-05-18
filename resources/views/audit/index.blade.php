@@ -32,6 +32,10 @@
             </select>
         </div>
         <div>
+            <label class="feld-label" style="font-size: 0.75rem;">IP-Adresse</label>
+            <input type="text" name="ip" class="feld" style="width: 140px;" value="{{ request('ip') }}" placeholder="z.B. 192.168.">
+        </div>
+        <div>
             <label class="feld-label" style="font-size: 0.75rem;">Von</label>
             <input type="date" name="von" class="feld" style="width: 140px;" value="{{ request('von') }}">
         </div>
