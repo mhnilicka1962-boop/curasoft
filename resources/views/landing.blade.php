@@ -735,7 +735,7 @@
         <a href="#schnittstellen" class="topbar-link">Schnittstellen</a>
         <a href="#preise" class="topbar-link">Preise</a>
         <a href="#faq" class="topbar-link">FAQ</a>
-        <a href="#kontakt" class="btn-sekundaer" style="padding: 0.375rem 0.875rem; font-size: 0.875rem;">Demo anfragen</a>
+        <a href="#kontakt" class="btn-sekundaer" style="padding: 0.375rem 0.875rem; font-size: 0.875rem;">Angebot einholen</a>
         <a href="{{ route('login') }}" class="btn-login">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             Login
@@ -757,7 +757,7 @@
         </p>
         <div class="hero-cta">
             <a href="#kontakt" class="btn-primaer">
-                Demo anfragen
+                Angebot einholen
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
             <a href="#preise" class="btn-sekundaer">
@@ -799,6 +799,39 @@
         </div>
     </div>
 </section>
+
+{{-- ── Live-Demo Banner ─────────────────────────────────────────────────── --}}
+<section style="background: #1e293b; padding: 2.5rem 1.5rem; text-align: center;">
+    <div class="container" style="max-width: 880px;">
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: #16a34a; color: #fff; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.3rem 0.75rem; border-radius: 999px; margin-bottom: 0.75rem;">
+            <span style="width: 8px; height: 8px; background: #fff; border-radius: 50%; animation: pulse 2s infinite;"></span>
+            Live
+        </div>
+        <h2 style="font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; margin: 0 0 0.5rem; color: #f1f5f9;">Jetzt live ausprobieren — kein Passwort nötig</h2>
+        <p style="font-size: 1rem; color: #94a3b8; margin: 0 0 1.5rem;">Realistische Testdaten, alles anklickbar, sofort startklar.</p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem;">
+            <a href="/demo/admin" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--blau); color: #fff; font-weight: 600; font-size: 1rem; padding: 0.875rem 1.75rem; border-radius: 0.625rem; text-decoration: none; transition: background 0.15s;"
+               onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blau)'">
+                <span style="font-size: 1.125rem;">💻</span>
+                Demo Verwaltung
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+            <a href="/demo/pflege" style="display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: #e2e8f0; font-weight: 600; font-size: 1rem; padding: 0.875rem 1.75rem; border-radius: 0.625rem; text-decoration: none; border: 2px solid #475569; transition: border-color 0.15s, color 0.15s;"
+               onmouseover="this.style.borderColor='#94a3b8';this.style.color='#fff'" onmouseout="this.style.borderColor='#475569';this.style.color='#e2e8f0'">
+                <span style="font-size: 1.125rem;">📱</span>
+                Demo Pflege (Smartphone)
+            </a>
+        </div>
+        <p style="font-size: 0.875rem; color: #94a3b8; margin: 0; line-height: 1.6;">Klienten mit Krankengeschichte, Touren, abgeschlossene Rechnungsläufe — so nah an der Realität wie möglich.</p>
+    </div>
+</section>
+
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+</style>
 
 {{-- ── Kantone Banner ───────────────────────────────────────────────────── --}}
 <div class="kantone-banner">
@@ -938,9 +971,9 @@
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
-                    <li><span class="check-gruen">✓</span> E-Mail Support</li>
+                    <li><span class="check-gruen">✓</span> Bug-Support direkt beim Entwickler</li>
                     <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
-                    <li><span class="check-gruen">✓</span> Schulung via Handbuch</li>
+                    <li><span class="check-gruen">✓</span> Online-Schulung in der App</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -954,9 +987,9 @@
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
-                    <li><span class="check-gruen">✓</span> Priority Support</li>
+                    <li><span class="check-gruen">✓</span> Bug-Support direkt beim Entwickler</li>
                     <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
-                    <li><span class="check-gruen">✓</span> Schulung via Handbuch</li>
+                    <li><span class="check-gruen">✓</span> Online-Schulung in der App</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -969,9 +1002,9 @@
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
-                    <li><span class="check-gruen">✓</span> Telefon-Support</li>
+                    <li><span class="check-gruen">✓</span> Bug-Support direkt beim Entwickler</li>
                     <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
-                    <li><span class="check-gruen">✓</span> Schulung via Handbuch</li>
+                    <li><span class="check-gruen">✓</span> Online-Schulung in der App</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -984,9 +1017,9 @@
                 <ul class="preis-karte-liste">
                     <li><span class="check-gruen">✓</span> Alle Funktionen</li>
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
-                    <li><span class="check-gruen">✓</span> Dedizierter Support</li>
+                    <li><span class="check-gruen">✓</span> Bug-Support direkt beim Entwickler</li>
                     <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
-                    <li><span class="check-gruen">✓</span> Schulung via Handbuch</li>
+                    <li><span class="check-gruen">✓</span> Online-Schulung in der App</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -995,7 +1028,41 @@
         <p class="preis-enterprise-link">
             Über 100 Klienten? <a href="#kontakt">Individuelles Angebot anfragen →</a>
         </p>
-        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar. Gültig ab 9.5.2026. Aufsetzen gratis. Selbständige Einführung möglich — oder CHF 500 Pauschal-Onboarding (Firma, Personal, Klienten, Serien &amp; erster Rechnungslauf).</p>
+        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar. Gültig ab 9.5.2026. Aufsetzen gratis. Selbständige Einführung über den Schulungs-Lernpfad in der Applikation (ca. 1 Stunde).</p>
+
+        {{-- Was ist inklusive – was kostet extra --}}
+        <div style="margin-top: 3rem; max-width: 900px; margin-left: auto; margin-right: auto;">
+            <h3 style="font-size: 1.375rem; font-weight: 700; text-align: center; margin-bottom: 1.5rem; color: var(--text);">Was ist inklusive – was kostet extra</h3>
+            <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 1rem; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9375rem;">
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #f3f4f6;">
+                            <td style="padding: 1rem 1.25rem;"><span style="color:#16a34a; font-weight:700; margin-right:0.5rem;">✓</span>Bug-Behebung &amp; technische Störungen</td>
+                            <td style="padding: 1rem 1.25rem; text-align: right; color: #16a34a; font-weight: 600; white-space: nowrap;">im Lizenzpreis</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f3f4f6;">
+                            <td style="padding: 1rem 1.25rem;"><span style="color:#16a34a; font-weight:700; margin-right:0.5rem;">✓</span>Online-Schulung &amp; Hilfetexte in der App</td>
+                            <td style="padding: 1rem 1.25rem; text-align: right; color: #16a34a; font-weight: 600; white-space: nowrap;">im Lizenzpreis</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f3f4f6;">
+                            <td style="padding: 1rem 1.25rem;">Support (Anwenderfragen per E-Mail/Telefon)</td>
+                            <td style="padding: 1rem 1.25rem; text-align: right; font-weight: 600; white-space: nowrap;">CHF 150 / h</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f3f4f6;">
+                            <td style="padding: 1rem 1.25rem;">Persönliche Schulung per Teams (2 h Paket)</td>
+                            <td style="padding: 1rem 1.25rem; text-align: right; font-weight: 600; white-space: nowrap;">CHF 500 einmalig</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1rem 1.25rem;">Weitere Schulungsstunden</td>
+                            <td style="padding: 1rem 1.25rem; text-align: right; font-weight: 600; white-space: nowrap;">CHF 250 / h</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-hell); line-height: 1.6; text-align: center;">
+                CuraSoft ist Standardsoftware — alle Kunden profitieren von allen Verbesserungen. Feature-Wünsche willkommen: bei breitem Interesse werden sie als Standard für alle umgesetzt. Anwenderfragen werden vorrangig über die Online-Schulung und Hilfetexte gelöst.
+            </p>
+        </div>
     </div>
 </section>
 
@@ -1200,7 +1267,7 @@
                         <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie eine Grossorganisation mit über 100 Klienten sind</span></li>
                         <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie ein Microsoft-Ökosystem mit Azure-Integration brauchen</span></li>
                         <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie monatelange Einführungsprojekte gewohnt sind</span></li>
-                        <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie bereit sind, CHF 200/h Support zu bezahlen</span></li>
+                        <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Sie monatelange Ticketsysteme und Eskalationsstufen tolerieren</span></li>
                         <li><span style="color:#dc2626; font-weight:700; flex-shrink:0;">✕</span><span>Jedes Zusatzmodul extra kostet — und der Preis erst nach Demo-Termin kommt</span></li>
                     </ul>
                 </div>
@@ -1209,7 +1276,7 @@
                     <ul class="check-list">
                         <li><span class="check">✓</span><span>Sie eine kleine bis mittlere Spitex führen (bis 100 Klienten)</span></li>
                         <li><span class="check">✓</span><span>Sie transparente Preise ohne Überraschungen wollen</span></li>
-                        <li><span class="check">✓</span><span>Support direkt beim Entwickler — gleicher Tag, keine Tickets</span></li>
+                        <li><span class="check">✓</span><span>Direkter Kontakt zum Entwickler — Bugs werden umgehend behoben</span></li>
                         <li><span class="check">✓</span><span>Moderne Technologie ohne Legacy-Ballast</span></li>
                         <li><span class="check">✓</span><span>Morgen starten — nicht in drei Monaten</span></li>
                     </ul>
@@ -1245,30 +1312,6 @@
 
 {{-- Pilot-Sektion entfernt --}}
 
-{{-- ── Demo ─────────────────────────────────────────────────────────────── --}}
-<section id="demo-live" style="background: #1e293b; padding: 5rem 1.5rem; text-align: center;">
-    <div class="container">
-        <div class="container-sm" style="margin: 0 auto;">
-            <p class="section-label" style="color: #93c5fd;">Live Demo</p>
-            <h2 class="section-title" style="color: #f1f5f9;">Jetzt live ausprobieren — kein Passwort nötig</h2>
-            <p class="section-lead" style="color: #94a3b8; margin-bottom: 2.5rem;">Realistische Testdaten, alles anklickbar, sofort startklar.</p>
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin-bottom: 1.5rem;">
-                <a href="https://www.curasoft.ch/demo/admin"
-                   style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--blau); color: #fff; font-weight: 600; font-size: 1rem; padding: 0.875rem 1.75rem; border-radius: 0.625rem; text-decoration: none; transition: background 0.15s;"
-                   onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blau)'">
-                    💻 Demo Verwaltung
-                </a>
-                <a href="https://www.curasoft.ch/demo/pflege"
-                   style="display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: #e2e8f0; font-weight: 600; font-size: 1rem; padding: 0.875rem 1.75rem; border-radius: 0.625rem; text-decoration: none; border: 2px solid #475569; transition: border-color 0.15s, color 0.15s;"
-                   onmouseover="this.style.borderColor='#94a3b8';this.style.color='#fff'" onmouseout="this.style.borderColor='#475569';this.style.color='#e2e8f0'">
-                    📱 Demo Pflege (Smartphone)
-                </a>
-            </div>
-            <p style="font-size: 0.8125rem; color: #64748b;">Klienten mit Krankengeschichte, Touren, abgeschlossene Rechnungsläufe — so nah an der Realität wie möglich.</p>
-        </div>
-    </div>
-</section>
-
 {{-- ── FAQ ───────────────────────────────────────────────────────────────── --}}
 <section class="faq" id="faq" itemscope itemtype="https://schema.org/FAQPage">
     <div class="container">
@@ -1286,7 +1329,7 @@
                 </button>
                 <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                     <div class="faq-antwort-inner" itemprop="text">
-                        In der Regel 2 bis 3 Stunden — der geführte Lernpfad direkt in der App führt Sie durch alle Schritte. Wir begleiten Sie persönlich beim Einrichten: Stammdaten, Kantonstariife, erste Klienten, erster Rechnungslauf. Kein Ticketsystem, kein Callcenter — Sie haben eine direkte Ansprechperson.
+                        In der Regel ca. 1 Stunde — der geführte Lernpfad direkt in der App führt Sie durch alle Schritte: Stammdaten, Kantonstarife, erste Klienten, erster Rechnungslauf. Bei Bedarf bieten wir persönliche Schulung als 2-Stunden-Paket per Teams (CHF 500). Kein Ticketsystem, kein Callcenter — Sie haben eine direkte Ansprechperson für technische Fragen.
                     </div>
                 </div>
             </div>
@@ -1363,7 +1406,7 @@
             <h2 class="section-title">Interesse? Schreiben Sie uns.</h2>
         </div>
         <div class="kontakt-box">
-            <h3>Demo anfragen oder Angebot einholen</h3>
+            <h3>Angebot einholen</h3>
             <p>Kurze Nachricht genügt — wir melden uns innerhalb von 24 Stunden.</p>
 
             <div id="form-erfolg" class="alert-erfolg">
