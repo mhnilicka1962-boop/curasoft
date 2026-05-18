@@ -68,7 +68,7 @@
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
-                        "description": "Bis 10 Klienten, alle Funktionen inkl. Tiers payant, E-Mail Support"
+                        "description": "Bis 10 Klienten, alle Funktionen inkl. Tiers payant, Bug-Support direkt beim Entwickler"
                     },
                     {
                         "@type": "Offer",
@@ -81,7 +81,7 @@
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
-                        "description": "Bis 30 Klienten, alle Funktionen inkl. Tiers payant, Priority Support"
+                        "description": "Bis 30 Klienten, alle Funktionen inkl. Tiers payant, Bug-Support direkt beim Entwickler"
                     },
                     {
                         "@type": "Offer",
@@ -94,7 +94,7 @@
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
-                        "description": "Bis 50 Klienten, alle Funktionen inkl. Tiers payant, Telefon-Support"
+                        "description": "Bis 50 Klienten, alle Funktionen inkl. Tiers payant, Bug-Support direkt beim Entwickler"
                     },
                     {
                         "@type": "Offer",
@@ -107,7 +107,7 @@
                             "priceCurrency": "CHF",
                             "unitText": "Monat"
                         },
-                        "description": "Bis 100 Klienten, alle Funktionen inkl. Tiers payant, dedizierter Support"
+                        "description": "Bis 100 Klienten, alle Funktionen inkl. Tiers payant, Bug-Support direkt beim Entwickler"
                     }
                 ],
                 "publisher": {
@@ -973,7 +973,8 @@
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
                     <li><span class="check-gruen">✓</span> Bug-Support direkt beim Entwickler</li>
                     <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
-                    <li><span class="check-gruen">✓</span> Online-Schulung in der App</li>
+                    <li><span class="check-gruen">✓</span> In die Software integrierte Schulung</li>
+                    <li><span class="check-gruen">✓</span> Onlinehilfe</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -989,7 +990,8 @@
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
                     <li><span class="check-gruen">✓</span> Bug-Support direkt beim Entwickler</li>
                     <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
-                    <li><span class="check-gruen">✓</span> Online-Schulung in der App</li>
+                    <li><span class="check-gruen">✓</span> In die Software integrierte Schulung</li>
+                    <li><span class="check-gruen">✓</span> Onlinehilfe</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -1004,7 +1006,8 @@
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
                     <li><span class="check-gruen">✓</span> Bug-Support direkt beim Entwickler</li>
                     <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
-                    <li><span class="check-gruen">✓</span> Online-Schulung in der App</li>
+                    <li><span class="check-gruen">✓</span> In die Software integrierte Schulung</li>
+                    <li><span class="check-gruen">✓</span> Onlinehilfe</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -1019,7 +1022,8 @@
                     <li><span class="check-gruen">✓</span> Tiers garant &amp; Tiers payant</li>
                     <li><span class="check-gruen">✓</span> Bug-Support direkt beim Entwickler</li>
                     <li><span class="check-gruen">✓</span> Aufsetzen gratis</li>
-                    <li><span class="check-gruen">✓</span> Online-Schulung in der App</li>
+                    <li><span class="check-gruen">✓</span> In die Software integrierte Schulung</li>
+                    <li><span class="check-gruen">✓</span> Onlinehilfe</li>
                 </ul>
                 <a href="#kontakt" class="btn-preis">Anfragen</a>
             </div>
@@ -1028,7 +1032,7 @@
         <p class="preis-enterprise-link">
             Über 100 Klienten? <a href="#kontakt">Individuelles Angebot anfragen →</a>
         </p>
-        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar. Gültig ab 9.5.2026. Aufsetzen gratis. Selbständige Einführung über den Schulungs-Lernpfad in der Applikation (ca. 1 Stunde).</p>
+        <p class="preis-mwst">Alle Preise in CHF, exkl. MwSt. Monatlich kündbar. Gültig ab 9.5.2026. Aufsetzen gratis. Selbständige Einführung — CuraSoft enthält Schulung und Onlinehilfe direkt in der Applikation.</p>
 
         {{-- Was ist inklusive – was kostet extra --}}
         <div style="margin-top: 3rem; max-width: 900px; margin-left: auto; margin-right: auto;">
@@ -1041,7 +1045,7 @@
                             <td style="padding: 1rem 1.25rem; text-align: right; color: #16a34a; font-weight: 600; white-space: nowrap;">im Lizenzpreis</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f3f4f6;">
-                            <td style="padding: 1rem 1.25rem;"><span style="color:#16a34a; font-weight:700; margin-right:0.5rem;">✓</span>Online-Schulung &amp; Hilfetexte in der App</td>
+                            <td style="padding: 1rem 1.25rem;"><span style="color:#16a34a; font-weight:700; margin-right:0.5rem;">✓</span>In die Software integrierte Schulung &amp; Onlinehilfe</td>
                             <td style="padding: 1rem 1.25rem; text-align: right; color: #16a34a; font-weight: 600; white-space: nowrap;">im Lizenzpreis</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f3f4f6;">
@@ -1049,18 +1053,18 @@
                             <td style="padding: 1rem 1.25rem; text-align: right; font-weight: 600; white-space: nowrap;">CHF 150 / h</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f3f4f6;">
-                            <td style="padding: 1rem 1.25rem;">Persönliche Schulung per Teams (2 h Paket)</td>
+                            <td style="padding: 1rem 1.25rem;">Persönliche Schulung online (2 h Paket)</td>
                             <td style="padding: 1rem 1.25rem; text-align: right; font-weight: 600; white-space: nowrap;">CHF 500 einmalig</td>
                         </tr>
                         <tr>
-                            <td style="padding: 1rem 1.25rem;">Weitere Schulungsstunden</td>
+                            <td style="padding: 1rem 1.25rem;">Weitere Schulungsstunden online</td>
                             <td style="padding: 1rem 1.25rem; text-align: right; font-weight: 600; white-space: nowrap;">CHF 250 / h</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-hell); line-height: 1.6; text-align: center;">
-                CuraSoft ist Standardsoftware — alle Kunden profitieren von allen Verbesserungen. Feature-Wünsche willkommen: bei breitem Interesse werden sie als Standard für alle umgesetzt. Anwenderfragen werden vorrangig über die Online-Schulung und Hilfetexte gelöst.
+                CuraSoft ist Standardsoftware — alle Kunden profitieren von allen Verbesserungen. Feature-Wünsche willkommen: bei breitem Interesse werden sie als Standard für alle umgesetzt. Anwenderfragen werden vorrangig über Schulung und Onlinehilfe gelöst.
             </p>
         </div>
     </div>
@@ -1329,7 +1333,7 @@
                 </button>
                 <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                     <div class="faq-antwort-inner" itemprop="text">
-                        In der Regel ca. 1 Stunde — der geführte Lernpfad direkt in der App führt Sie durch alle Schritte: Stammdaten, Kantonstarife, erste Klienten, erster Rechnungslauf. Bei Bedarf bieten wir persönliche Schulung als 2-Stunden-Paket per Teams (CHF 500). Kein Ticketsystem, kein Callcenter — Sie haben eine direkte Ansprechperson für technische Fragen.
+                        In der Regel ca. 1 Stunde — Schulung und Onlinehilfe direkt in der Applikation führen Sie durch alle Schritte: Stammdaten, Kantonstarife, erste Klienten, erster Rechnungslauf. Sie finden alles unter den Menüpunkten Schulung und Hilfe. Bei Bedarf bieten wir persönliche Schulung als 2-Stunden-Paket online (CHF 500). Kein Ticketsystem, kein Callcenter — Sie haben eine direkte Ansprechperson für technische Fragen.
                     </div>
                 </div>
             </div>
@@ -1377,7 +1381,7 @@
                 </button>
                 <div class="faq-antwort" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                     <div class="faq-antwort-inner" itemprop="text">
-                        Ja — schreiben Sie uns einfach kurz und wir richten einen Demo-Zugang für Sie ein. Keine Kreditkarte, keine Vertragsbindung. Sie sehen das System mit realistischen Testdaten, können alles durchklicken und Fragen direkt stellen. Wenn es passt, begleiten wir Sie bei der Einführung.
+                        Ja — testen Sie CuraSoft sofort über die Live-Demo am oberen Rand der Seite (Demo Verwaltung und Demo Pflege Smartphone). Kein Anschreiben, keine Anmeldung, keine Kreditkarte, kein Vertrag. Die Demo enthält realistische Testdaten mit Klienten, Krankengeschichten, Touren und abgeschlossenen Rechnungsläufen — alles anklickbar. Wenn es passt, richten wir Ihre eigene Instanz ein und Sie starten mit der integrierten Schulung in der App.
                     </div>
                 </div>
             </div>
