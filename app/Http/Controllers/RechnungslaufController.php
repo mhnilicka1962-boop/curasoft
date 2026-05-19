@@ -206,16 +206,20 @@ class RechnungslaufController extends Controller
 
     public function create(Request $request)
     {
+        $org      = Organisation::findOrFail($this->orgId());
         $vorschau = null;
 
         if ($request->filled('periode_von') && $request->filled('periode_bis')) {
             $vorschau = $this->vorschauBerechnen(
                 $request->periode_von,
                 $request->periode_bis,
+                $org,
             );
         }
 
-        return view('rechnungen.lauf.create', compact('vorschau'));
+        $tiersPayant = ($org->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant';
+
+        return view('rechnungen.lauf.create', compact('vorschau', 'org', 'tiersPayant'));
     }
 
     public function store(Request $request)
@@ -763,10 +767,14 @@ class RechnungslaufController extends Controller
         };
     }
 
-    private function vorschauBerechnen(string $von, string $bis): array
+    private function vorschauBerechnen(string $von, string $bis, ?Organisation $org = null): array
     {
+        $tiersPayant = $org && ($org->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant';
+        $pdfService  = $org ? new PdfExportService($org) : null;
+
         $klienten = Klient::where('organisation_id', $this->orgId())
             ->where('aktiv', true)
+            ->with(['krankenkassen.krankenkasse', 'aktBeitrag', 'region'])
             ->orderBy('nachname')
             ->get();
 
@@ -793,17 +801,19 @@ class RechnungslaufController extends Controller
             if ($einsaetze->isEmpty()) {
                 $anzahlOhne++;
                 $zeilen[] = [
-                    'klient'        => $klient,
-                    'rechnungstyp'  => 'kombiniert',
-                    'anzahl'        => 0,
-                    'minuten'       => 0,
-                    'betrag_patient'=> 0,
-                    'betrag_kk'     => 0,
-                    'betrag'        => 0,
-                    'versandart'    => $klient->versandart_patient ?? 'post',
-                    'ohne_tarif'    => false,
-                    'ohne_einsaetze'=> true,
-                    'grund'         => $this->grundErmitteln($klient->id, $von, $bis),
+                    'klient'         => $klient,
+                    'krankenkasse'   => $klient->krankenkassen->first()?->krankenkasse?->name,
+                    'rechnungstyp'   => 'kombiniert',
+                    'anzahl'         => 0,
+                    'minuten'        => 0,
+                    'betrag_patient' => 0,
+                    'betrag_kk'      => 0,
+                    'betrag_gemeinde'=> 0,
+                    'betrag'         => 0,
+                    'versandart'     => $klient->versandart_patient ?? 'post',
+                    'ohne_tarif'     => false,
+                    'ohne_einsaetze' => true,
+                    'grund'          => $this->grundErmitteln($klient->id, $von, $bis),
                 ];
                 continue;
             }
@@ -816,6 +826,7 @@ class RechnungslaufController extends Controller
             // Zeile für normale Einsätze
             if ($normale->isNotEmpty()) {
                 $betragPat = 0; $betragKk = 0; $minuten = 0; $ohneTypCount = 0;
+                $vorschauPositionen = collect();
                 foreach ($normale as $einsatz) {
                     if ($einsatz->einsatzLeistungsarten->isEmpty()) { $ohneTypCount++; continue; }
                     $regionId = $einsatz->region_id ?? $klient->region_id;
@@ -824,26 +835,73 @@ class RechnungslaufController extends Controller
                         [$tp, $tk] = $this->tarifeFuerLeistungsart($el->leistungsart_id, $regionId, $einsatz->datum, $rechnungstyp, $tarifCache);
                         if ($istTage) {
                             $tage       = $einsatz->anzahlTage() ?? 1;
-                            $betragPat += $this->r5($tage * $tp);
-                            $betragKk  += $this->r5($tage * $tk);
+                            $posPat     = $this->r5($tage * $tp);
+                            $posKk      = $this->r5($tage * $tk);
+                            $betragPat += $posPat;
+                            $betragKk  += $posKk;
+                            $vorschauPositionen->push((object)[
+                                'einsatzLeistungsart' => $el,
+                                'leistungsart_id'     => $el->leistungsart_id,
+                                'einheit'             => 'tage',
+                                'menge'               => $tage,
+                                'datum'               => $einsatz->datum,
+                                'betrag_patient'      => $posPat,
+                                'betrag_kk'           => $posKk,
+                            ]);
                         } else {
                             $m          = $this->minutenFuerLeistungsart($einsatz, $el->leistungsart_id, $ltMap);
-                            $betragPat += $this->r5($m / 60 * $tp);
-                            $betragKk  += $this->r5($m / 60 * $tk);
+                            $posPat     = $this->r5($m / 60 * $tp);
+                            $posKk      = $this->r5($m / 60 * $tk);
+                            $betragPat += $posPat;
+                            $betragKk  += $posKk;
                             $minuten   += $m;
+                            $vorschauPositionen->push((object)[
+                                'einsatzLeistungsart' => $el,
+                                'leistungsart_id'     => $el->leistungsart_id,
+                                'einheit'             => 'minuten',
+                                'menge'               => $m,
+                                'datum'               => $einsatz->datum,
+                                'betrag_patient'      => $posPat,
+                                'betrag_kk'           => $posKk,
+                            ]);
                         }
                     }
                 }
                 if ($ohneTypCount > 0) $ohneLeistungsart++;
-                $betrag = $betragPat + $betragKk;
+
+                $betragGemeinde = 0.0;
+                if ($tiersPayant && $pdfService && $vorschauPositionen->isNotEmpty()) {
+                    $tmpRechnung = new Rechnung();
+                    $tmpRechnung->forceFill([
+                        'periode_von' => $von,
+                        'periode_bis' => $bis,
+                    ]);
+                    $tmpRechnung->setRelation('klient', $klient);
+                    $tmpRechnung->setRelation('positionen', $vorschauPositionen);
+                    $daten = $pdfService->rapportblattDaten($tmpRechnung);
+                    if ($daten !== null) {
+                        $gemeinde = $this->r5((float) $daten['summen']['gemeinde']);
+                        if ($gemeinde > 0) {
+                            $betragGemeinde = $gemeinde;
+                            $betragPat      = $this->r5($betragPat - $gemeinde);
+                        }
+                    }
+                }
+
+                $betrag = $tiersPayant
+                    ? $betragPat
+                    : $this->r5($betragKk + $betragPat + $betragGemeinde);
+
                 $zeilen[] = [
                     'klient'         => $klient,
+                    'krankenkasse'   => $klient->krankenkassen->first()?->krankenkasse?->name,
                     'label'          => null,
                     'rechnungstyp'   => $rechnungstyp,
                     'anzahl'         => $normale->count(),
                     'minuten'        => $minuten,
                     'betrag_patient' => $betragPat,
                     'betrag_kk'      => $betragKk,
+                    'betrag_gemeinde'=> $betragGemeinde,
                     'betrag'         => $betrag,
                     'versandart'     => $klient->versandart_patient ?? 'post',
                     'ohne_tarif'     => $ohneTypCount > 0,
@@ -871,12 +929,14 @@ class RechnungslaufController extends Controller
                 $betrag = $betragPat + $betragKk;
                 $zeilen[] = [
                     'klient'         => $klient,
+                    'krankenkasse'   => $klient->krankenkassen->first()?->krankenkasse?->name,
                     'label'          => 'Pauschale',
                     'rechnungstyp'   => $tpRechnungstyp,
                     'anzahl'         => $tagespauschalen->count(),
                     'minuten'        => 0,
                     'betrag_patient' => $betragPat,
                     'betrag_kk'      => $betragKk,
+                    'betrag_gemeinde'=> 0,
                     'betrag'         => $betrag,
                     'versandart'     => $klient->versandart_patient ?? 'post',
                     'ohne_tarif'     => false,
@@ -891,12 +951,14 @@ class RechnungslaufController extends Controller
                 $betrag = $einzelleistungen->sum(fn($e) => (float) $e->betrag_fix);
                 $zeilen[] = [
                     'klient'         => $klient,
+                    'krankenkasse'   => $klient->krankenkassen->first()?->krankenkasse?->name,
                     'label'          => 'Einzelleistung',
                     'rechnungstyp'   => 'klient',
                     'anzahl'         => $einzelleistungen->count(),
                     'minuten'        => 0,
                     'betrag_patient' => $betrag,
                     'betrag_kk'      => 0,
+                    'betrag_gemeinde'=> 0,
                     'betrag'         => $betrag,
                     'versandart'     => $klient->versandart_patient ?? 'post',
                     'ohne_tarif'     => false,
@@ -1265,6 +1327,7 @@ class RechnungslaufController extends Controller
 
                 $rechnung->load('positionen');
                 $rechnung->berechneTotale();
+                $this->patientCapUndGemeinde($rechnung, $lauf->abrechnungslogik, $org);
                 AuditLog::schreiben('erstellt', 'Rechnung', $rechnung->id,
                     "Rechnungslauf {$lauf->id}: Rechnung {$rechnung->rechnungsnummer} (Einsätze) für {$klient->nachname}");
                 $erstellt++;
@@ -1426,6 +1489,25 @@ class RechnungslaufController extends Controller
     }
 
     private function r5(float $x): float { return round($x * 20) / 20; }
+
+    private function patientCapUndGemeinde(Rechnung $rechnung, string $abrechnungslogik, Organisation $org): void
+    {
+        if ($abrechnungslogik !== 'tiers_payant') return;
+
+        $rechnung->load(['klient.aktBeitrag', 'klient.region', 'positionen.einsatzLeistungsart.leistungsart']);
+
+        $daten = (new PdfExportService($org))->rapportblattDaten($rechnung);
+        if ($daten === null) return;
+
+        $gemeinde = $this->r5((float) $daten['summen']['gemeinde']);
+        if ($gemeinde <= 0) return;
+
+        $rechnung->betrag_patient  = $this->r5((float) $rechnung->betrag_patient - $gemeinde);
+        $rechnung->betrag_gemeinde = $gemeinde;
+        $rechnung->betrag_total    = $rechnung->betrag_patient;
+
+        $rechnung->save();
+    }
 
     private function autorisiereZugriff(Rechnungslauf $lauf): void
     {

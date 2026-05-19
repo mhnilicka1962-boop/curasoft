@@ -125,13 +125,12 @@
                                 style="cursor:pointer; width:15px; height:15px;">
                         </th>
                         <th>Klient</th>
-                        <th class="text-mitte">Typ</th>
-                        <th class="text-mitte">Einsätze</th>
-                        <th class="text-mitte">Minuten</th>
-                        <th class="text-mitte">Betrag Pat.</th>
-                        <th class="text-mitte">Betrag KK</th>
-                        <th class="text-mitte">Total CHF</th>
-                        <th class="text-mitte">Versand</th>
+                        <th>Krankenkasse</th>
+                        <th class="text-rechts">KK CHF</th>
+                        <th class="text-rechts">Patient CHF</th>
+                        @if($tiersPayant)<th class="text-rechts">Gemeinde CHF</th>@endif
+                        <th class="text-rechts">Total CHF</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody id="klient-tbody">
@@ -164,23 +163,13 @@
                                 </a>
                             </div>
                         </td>
-                        <td class="text-mitte">
-                            <span class="badge {{ $typenBadge[$z['rechnungstyp']] ?? 'badge-grau' }}">
-                                {{ $typen[$z['rechnungstyp']] ?? $z['rechnungstyp'] }}
-                            </span>
-                        </td>
-                        <td class="text-mitte">{{ $z['anzahl'] }}</td>
-                        <td class="text-mitte">{{ $z['minuten'] }}'</td>
-                        <td class="text-mitte">{{ number_format($z['betrag_patient'], 2, '.', "'") }}</td>
-                        <td class="text-mitte">{{ number_format($z['betrag_kk'], 2, '.', "'") }}</td>
-                        <td class="text-mitte text-fett">{{ number_format($z['betrag'], 2, '.', "'") }}</td>
-                        <td class="text-mitte">
-                            @php
-                                $va      = $z['versandart'];
-                                $vaLabel = match($va) { 'email' => 'Email', 'manuell' => 'Manuell', default => 'Post' };
-                                $vaBadge = match($va) { 'email' => 'badge-info', 'manuell' => 'badge-warnung', default => 'badge-grau' };
-                            @endphp
-                            <span class="badge {{ $vaBadge }}">{{ $vaLabel }}</span>
+                        <td style="font-size: 0.8125rem;">{{ $z['krankenkasse'] ?? '—' }}</td>
+                        <td class="text-rechts">{{ number_format($z['betrag_kk'], 2, '.', "'") }}</td>
+                        <td class="text-rechts">{{ number_format($z['betrag_patient'], 2, '.', "'") }}</td>
+                        @if($tiersPayant)<td class="text-rechts">{{ number_format($z['betrag_gemeinde'], 2, '.', "'") }}</td>@endif
+                        <td class="text-rechts text-fett">{{ number_format($z['betrag'], 2, '.', "'") }}</td>
+                        <td>
+                            <span class="badge badge-info">Vorschau</span>
                         </td>
                     </tr>
                     @else
@@ -198,23 +187,13 @@
                                 {{ $z['grund'] }}
                             </div>
                         </td>
-                        <td class="text-mitte">
-                            <span class="badge {{ $typenBadge[$z['rechnungstyp']] ?? 'badge-grau' }}" style="opacity:0.6;">
-                                {{ $typen[$z['rechnungstyp']] ?? $z['rechnungstyp'] }}
-                            </span>
-                        </td>
-                        <td class="text-mitte" style="color:#dc2626;">0</td>
-                        <td class="text-mitte text-hell">—</td>
-                        <td class="text-mitte text-hell">—</td>
-                        <td class="text-mitte text-hell">—</td>
-                        <td class="text-mitte text-hell">—</td>
-                        <td class="text-mitte">
-                            @php
-                                $va      = $z['versandart'];
-                                $vaLabel = match($va) { 'email' => 'Email', 'manuell' => 'Manuell', default => 'Post' };
-                                $vaBadge = match($va) { 'email' => 'badge-info', 'manuell' => 'badge-warnung', default => 'badge-grau' };
-                            @endphp
-                            <span class="badge {{ $vaBadge }}" style="opacity:0.6;">{{ $vaLabel }}</span>
+                        <td style="font-size: 0.8125rem;">{{ $z['krankenkasse'] ?? '—' }}</td>
+                        <td class="text-rechts text-hell">—</td>
+                        <td class="text-rechts text-hell">—</td>
+                        @if($tiersPayant)<td class="text-rechts text-hell">—</td>@endif
+                        <td class="text-rechts text-hell">—</td>
+                        <td>
+                            <span class="badge badge-grau" style="opacity:0.6;">keine Einsätze</span>
                         </td>
                     </tr>
                     @endif
@@ -223,10 +202,11 @@
                 <tfoot>
                     <tr style="font-weight: bold; background: var(--hintergrund-alt, #f8f9fa);">
                         <td></td>
-                        <td colspan="4">Total ausgewählt</td>
-                        <td class="text-mitte">{{ number_format($mitEinsaetzen->sum('betrag_patient'), 2, '.', "'") }}</td>
-                        <td class="text-mitte">{{ number_format($mitEinsaetzen->sum('betrag_kk'), 2, '.', "'") }}</td>
-                        <td class="text-mitte text-fett">CHF {{ number_format($vorschau['total_betrag'], 2, '.', "'") }}</td>
+                        <td colspan="2">Total ausgewählt</td>
+                        <td class="text-rechts">{{ number_format($mitEinsaetzen->sum('betrag_kk'), 2, '.', "'") }}</td>
+                        <td class="text-rechts">{{ number_format($mitEinsaetzen->sum('betrag_patient'), 2, '.', "'") }}</td>
+                        @if($tiersPayant)<td class="text-rechts">{{ number_format($mitEinsaetzen->sum('betrag_gemeinde'), 2, '.', "'") }}</td>@endif
+                        <td class="text-rechts text-fett">CHF {{ number_format($vorschau['total_betrag'], 2, '.', "'") }}</td>
                         <td></td>
                     </tr>
                 </tfoot>

@@ -293,7 +293,7 @@ class PdfExportService
      * Alle Tage der Periode werden zurückgegeben (auch leere).
      * Gibt null zurück wenn nicht zutreffend (Pauschale, kein Kanton).
      */
-    private function rapportblattDaten(Rechnung $rechnung): ?array
+    public function rapportblattDaten(Rechnung $rechnung): ?array
     {
         $positionen = $rechnung->positionen;
         if ($positionen->isEmpty()) return null;
