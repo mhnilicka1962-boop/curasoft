@@ -354,40 +354,66 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
             }
         @endphp
         <table class="positionen">
-            <thead>
-                <tr>
-                    <th style="width: {{ $beide ? '48%' : '60%' }}">Leistung</th>
-                    <th class="r" style="width: 10%">Minuten</th>
-                    @if($beide || $nurPatient)
-                    <th class="r" style="width: 11%">Tarif Pat.</th>
-                    <th class="r" style="width: 13%">Betrag Pat.</th>
-                    @endif
-                    @if($beide || $nurKK)
-                    <th class="r" style="width: 11%">Tarif {{ $kkLabel }}</th>
-                    <th class="r" style="width: 13%">Betrag {{ $kkLabel }}</th>
-                    @endif
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($gruppen as $g)
-                @php
-                    $tarifPatStd = $g['tarif_patient'];
-                    $tarifKkStd  = $g['tarif_kk'];
-                @endphp
-                <tr>
-                    <td>{{ $g['bezeichnung'] }}</td>
-                    <td class="r">{{ (int)$g['menge'] }}</td>
-                    @if($beide || $nurPatient)
-                    <td class="r">{{ number_format($tarifPatStd, 2, '.', "'") }}</td>
-                    <td class="r">{{ number_format($g['betrag_patient'], 2, '.', "'") }}</td>
-                    @endif
-                    @if($beide || $nurKK)
-                    <td class="r">{{ number_format($tarifKkStd, 2, '.', "'") }}</td>
-                    <td class="r">{{ number_format($g['betrag_kk'], 2, '.', "'") }}</td>
-                    @endif
-                </tr>
-                @endforeach
-            </tbody>
+            @if(!$tiersGarant && !$nurKK)
+                {{-- Tiers payant Patient-Rechnung: nur Vollkosten --}}
+                <thead>
+                    <tr>
+                        <th style="width: 50%">Leistung</th>
+                        <th class="r" style="width: 15%">Minuten</th>
+                        <th class="r" style="width: 17%">Ansatz CHF/h</th>
+                        <th class="r" style="width: 18%">Vollkosten CHF</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($gruppen as $g)
+                    @php
+                        $vollkostenAnsatz = (float)$g['tarif_patient'] + (float)$g['tarif_kk'];
+                        $vollkostenBetrag = (float)$g['betrag_patient'] + (float)$g['betrag_kk'];
+                    @endphp
+                    <tr>
+                        <td>{{ $g['bezeichnung'] }}</td>
+                        <td class="r">{{ (int)$g['menge'] }}</td>
+                        <td class="r">{{ number_format($vollkostenAnsatz, 2, '.', "'") }}</td>
+                        <td class="r">{{ number_format($vollkostenBetrag, 2, '.', "'") }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            @else
+                <thead>
+                    <tr>
+                        <th style="width: {{ $beide ? '48%' : '60%' }}">Leistung</th>
+                        <th class="r" style="width: 10%">Minuten</th>
+                        @if($beide || $nurPatient)
+                        <th class="r" style="width: 11%">Tarif Pat.</th>
+                        <th class="r" style="width: 13%">Betrag Pat.</th>
+                        @endif
+                        @if($beide || $nurKK)
+                        <th class="r" style="width: 11%">Tarif {{ $kkLabel }}</th>
+                        <th class="r" style="width: 13%">Betrag {{ $kkLabel }}</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($gruppen as $g)
+                    @php
+                        $tarifPatStd = $g['tarif_patient'];
+                        $tarifKkStd  = $g['tarif_kk'];
+                    @endphp
+                    <tr>
+                        <td>{{ $g['bezeichnung'] }}</td>
+                        <td class="r">{{ (int)$g['menge'] }}</td>
+                        @if($beide || $nurPatient)
+                        <td class="r">{{ number_format($tarifPatStd, 2, '.', "'") }}</td>
+                        <td class="r">{{ number_format($g['betrag_patient'], 2, '.', "'") }}</td>
+                        @endif
+                        @if($beide || $nurKK)
+                        <td class="r">{{ number_format($tarifKkStd, 2, '.', "'") }}</td>
+                        <td class="r">{{ number_format($g['betrag_kk'], 2, '.', "'") }}</td>
+                        @endif
+                    </tr>
+                    @endforeach
+                </tbody>
+            @endif
         </table>
         @endif
     </div>
@@ -395,26 +421,56 @@ table.totals td.r { text-align: right; font-family: DejaVu Sans Mono, monospace;
     {{-- 8. Totals ───────────────────────────────────────────── --}}
     <div class="totals-block">
         <table class="totals">
-            @if($beide || $nurPatient)
-            <tr>
-                <td>Summe Patientenanteil</td>
-                <td class="r">CHF {{ number_format($rechnung->betrag_patient, 2, '.', "'") }}</td>
-            </tr>
+            @if(!$tiersGarant && !$nurKK)
+                @php
+                    $vollkosten = (float)$rechnung->betrag_kk + (float)$rechnung->betrag_patient + (float)$rechnung->betrag_gemeinde;
+                @endphp
+                <tr>
+                    <td>Summe Vollkosten</td>
+                    <td class="r">CHF {{ number_format($vollkosten, 2, '.', "'") }}</td>
+                </tr>
+                @if($rechnung->betrag_kk > 0)
+                <tr>
+                    <td>Krankenkasse-Anteil (direkt abgerechnet)</td>
+                    <td class="r">CHF {{ number_format($rechnung->betrag_kk, 2, '.', "'") }}</td>
+                </tr>
+                @endif
+                @if($rechnung->betrag_gemeinde > 0)
+                <tr>
+                    <td>Gemeinde-Restfinanzierung (direkt abgerechnet)</td>
+                    <td class="r">CHF {{ number_format($rechnung->betrag_gemeinde, 2, '.', "'") }}</td>
+                </tr>
+                @endif
+                <tr class="total-zeile">
+                    <td>Ihr Anteil</td>
+                    <td class="r">CHF {{ number_format($rechnung->betrag_patient, 2, '.', "'") }}</td>
+                </tr>
+                <tr class="zahlbar-zeile">
+                    <td>Unser Guthaben CHF — zahlbar bis {{ $zahlbarBis }}</td>
+                    <td class="r">{{ number_format($rechnung->betrag_patient, 2, '.', "'") }}</td>
+                </tr>
+            @else
+                @if($beide || $nurPatient)
+                <tr>
+                    <td>Summe Patientenanteil</td>
+                    <td class="r">CHF {{ number_format($rechnung->betrag_patient, 2, '.', "'") }}</td>
+                </tr>
+                @endif
+                @if($beide || $nurKK)
+                <tr>
+                    <td>Summe {{ $kkLabel }}</td>
+                    <td class="r">CHF {{ number_format($rechnung->betrag_kk, 2, '.', "'") }}</td>
+                </tr>
+                @endif
+                <tr class="total-zeile">
+                    <td>TOTAL</td>
+                    <td class="r">CHF {{ number_format($rechnung->betrag_total, 2, '.', "'") }}</td>
+                </tr>
+                <tr class="zahlbar-zeile">
+                    <td>Unser Guthaben CHF — zahlbar bis {{ $zahlbarBis }}</td>
+                    <td class="r">{{ number_format($rechnung->betrag_total, 2, '.', "'") }}</td>
+                </tr>
             @endif
-            @if($beide || $nurKK)
-            <tr>
-                <td>Summe {{ $kkLabel }}</td>
-                <td class="r">CHF {{ number_format($rechnung->betrag_kk, 2, '.', "'") }}</td>
-            </tr>
-            @endif
-            <tr class="total-zeile">
-                <td>TOTAL</td>
-                <td class="r">CHF {{ number_format($rechnung->betrag_total, 2, '.', "'") }}</td>
-            </tr>
-            <tr class="zahlbar-zeile">
-                <td>Unser Guthaben CHF — zahlbar bis {{ $zahlbarBis }}</td>
-                <td class="r">{{ number_format($rechnung->betrag_total, 2, '.', "'") }}</td>
-            </tr>
         </table>
     </div>
 

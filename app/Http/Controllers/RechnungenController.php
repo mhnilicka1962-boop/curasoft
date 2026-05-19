@@ -130,8 +130,22 @@ class RechnungenController extends Controller
     public function show(Rechnung $rechnung)
     {
         $this->autorisiereZugriff($rechnung);
-        $rechnung->load(['klient', 'lauf', 'positionen.einsatz.einsatzLeistungsarten.leistungsart', 'positionen.leistungstyp']);
-        return view('rechnungen.show', compact('rechnung'));
+        $rechnung->load([
+            'klient.aktBeitrag', 'klient.region', 'klient.krankenkassen.krankenkasse',
+            'lauf',
+            'positionen.einsatz.einsatzLeistungsarten.leistungsart',
+            'positionen.einsatzLeistungsart.leistungsart',
+            'positionen.leistungstyp',
+        ]);
+
+        $org          = Organisation::find($rechnung->organisation_id);
+        $abrechLogik  = $rechnung->lauf?->abrechnungslogik ?? $org?->abrechnungslogik ?? 'tiers_garant';
+        $rapportDaten = null;
+        if ($abrechLogik === 'tiers_payant' && $org) {
+            $rapportDaten = (new PdfExportService($org))->rapportblattDaten($rechnung);
+        }
+
+        return view('rechnungen.show', compact('rechnung', 'rapportDaten', 'abrechLogik'));
     }
 
     public function statusUpdate(Request $request, Rechnung $rechnung)

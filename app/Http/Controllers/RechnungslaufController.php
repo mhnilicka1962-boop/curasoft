@@ -191,11 +191,26 @@ class RechnungslaufController extends Controller
         $rechnung->setRelation('positionen', $positionen);
         $rechnung->betrag_patient = $positionen->sum('betrag_patient');
         $rechnung->betrag_kk      = $positionen->sum('betrag_kk');
+        $rechnung->betrag_gemeinde = 0.0;
         $rechnung->betrag_total   = $rechnung->betrag_patient + $rechnung->betrag_kk;
 
         $org     = Organisation::findOrFail($this->orgId());
         $service = new PdfExportService($org);
-        $pdf     = $service->rechnungAlsPdfString($rechnung);
+
+        // Bei Tiers payant Cap anwenden (analog erstelleLauf)
+        if (($org->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant') {
+            $daten = $service->rapportblattDaten($rechnung);
+            if ($daten !== null) {
+                $gemeinde = $this->r5((float) $daten['summen']['gemeinde']);
+                if ($gemeinde > 0) {
+                    $rechnung->betrag_patient  = $this->r5((float) $rechnung->betrag_patient - $gemeinde);
+                    $rechnung->betrag_gemeinde = $gemeinde;
+                    $rechnung->betrag_total    = $rechnung->betrag_patient;
+                }
+            }
+        }
+
+        $pdf = $service->rechnungAlsPdfString($rechnung);
 
         $name = "vorschau_{$klient->nachname}_{$request->periode_von}.pdf";
         return response($pdf, 200, [

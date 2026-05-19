@@ -96,8 +96,9 @@ class PdfExportService
         }
 
         $rapportblattDaten = $this->rapportblattDaten($rechnung);
-        $zeigeRapportblatt = $rapportblattDaten !== null
-            && ($this->org->abrechnungslogik ?? 'tiers_garant') !== 'tiers_payant';
+        $isTiersPayant     = ($this->org->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant';
+        $zeigeRapportblatt = $rapportblattDaten !== null && !$isTiersPayant;
+        $zeigeBerechnung   = $rapportblattDaten !== null && $isTiersPayant;
 
         $html = view('pdfs.rechnung', [
             'rechnung'         => $rechnung,
@@ -125,6 +126,19 @@ class PdfExportService
 
             $landscapeBytes = Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output();
             $finalBytes     = $this->mergePdfs($portraitBytes, $landscapeBytes);
+        } elseif ($zeigeBerechnung) {
+            $klientName = trim(($rechnung->klient->anrede ? $rechnung->klient->anrede . ' ' : '')
+                . $rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
+
+            $beHtml = view('pdfs.berechnung_anteil', [
+                'rechnung'          => $rechnung,
+                'klientName'        => $klientName,
+                'rapportblattDaten' => $rapportblattDaten,
+                'nichtKvgGruppen'   => $this->nichtKvgGruppen($rechnung, $rapportblattDaten),
+            ])->render();
+
+            $beilageBytes = Pdf::loadHTML($beHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'portrait')->output();
+            $finalBytes   = $this->mergePdfs($portraitBytes, $beilageBytes);
         } else {
             $finalBytes = $portraitBytes;
         }
@@ -293,6 +307,29 @@ class PdfExportService
      * Alle Tage der Periode werden zurückgegeben (auch leere).
      * Gibt null zurück wenn nicht zutreffend (Pauschale, kein Kanton).
      */
+    private function nichtKvgGruppen(Rechnung $rechnung, array $rapportblattDaten): array
+    {
+        $kvgLaIds = collect($rapportblattDaten['tarife'] ?? [])->pluck('id')->filter()->all();
+
+        $gruppen = [];
+        foreach ($rechnung->positionen as $pos) {
+            if ($pos->menge <= 0) continue;
+            $laId = $pos->einsatzLeistungsart?->leistungsart_id ?? $pos->leistungsart_id ?? null;
+            if ($laId === null || in_array($laId, $kvgLaIds)) continue;
+
+            $bezeichnung = $pos->einsatzLeistungsart?->leistungsart?->bezeichnung
+                        ?? $pos->beschreibung
+                        ?? '—';
+
+            if (!isset($gruppen[$bezeichnung])) {
+                $gruppen[$bezeichnung] = ['bezeichnung' => $bezeichnung, 'menge' => 0, 'betrag' => 0.0];
+            }
+            $gruppen[$bezeichnung]['menge']  += (float) $pos->menge;
+            $gruppen[$bezeichnung]['betrag'] += (float) $pos->betrag_patient + (float) $pos->betrag_kk;
+        }
+        return array_values($gruppen);
+    }
+
     public function rapportblattDaten(Rechnung $rechnung): ?array
     {
         $positionen = $rechnung->positionen;
@@ -460,8 +497,9 @@ class PdfExportService
         }
 
         $rapportblattDaten = $this->rapportblattDaten($rechnung);
-        $zeigeRapportblatt = $rapportblattDaten !== null
-            && ($this->org->abrechnungslogik ?? 'tiers_garant') !== 'tiers_payant';
+        $isTiersPayant     = ($this->org->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant';
+        $zeigeRapportblatt = $rapportblattDaten !== null && !$isTiersPayant;
+        $zeigeBerechnung   = $rapportblattDaten !== null && $isTiersPayant;
 
         $html = view('pdfs.rechnung', [
             'rechnung'         => $rechnung,
@@ -493,6 +531,21 @@ class PdfExportService
 
             $landscapeBytes = Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output();
             return $this->mergePdfs($portraitBytes, $landscapeBytes);
+        }
+
+        if ($zeigeBerechnung) {
+            $klientName = trim(($rechnung->klient->anrede ? $rechnung->klient->anrede . ' ' : '')
+                . $rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
+
+            $beHtml = view('pdfs.berechnung_anteil', [
+                'rechnung'          => $rechnung,
+                'klientName'        => $klientName,
+                'rapportblattDaten' => $rapportblattDaten,
+                'nichtKvgGruppen'   => $this->nichtKvgGruppen($rechnung, $rapportblattDaten),
+            ])->render();
+
+            $beilageBytes = Pdf::loadHTML($beHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'portrait')->output();
+            return $this->mergePdfs($portraitBytes, $beilageBytes);
         }
 
         return $portraitBytes;
