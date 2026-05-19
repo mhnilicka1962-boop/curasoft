@@ -1,5 +1,5 @@
 # Abrechnungslogik Schweizer Spitex — vollständige Dokumentation
-# Stand: 2026-04-16 — Tiers payant vollständig implementiert
+# Stand: 2026-05-19 — Tiers payant Patient-Sicht überarbeitet (eager Cap, eigenes Beilageblatt)
 
 ---
 
@@ -66,19 +66,20 @@ Bedeutung: **"Wird diese Leistungsart separat verrechnet?"**
 
 ## 5. Patientenbeitrag (KVG Art. 25a Abs. 5)
 
-Max. **20% des höchsten Bundesratstarifs** — kantonal unterschiedlich:
+Max. **20% des höchsten Bundesratstarifs** — kantonal unterschiedlich, hinterlegt **pro Klient** in `klient_beitraege`:
 
-| Kanton | Max. Patientenbeitrag/Tag |
+| Feld | Bedeutung |
 |---|---|
-| Zürich | CHF 7.65 |
-| Luzern | CHF 15.35 |
-| Aargau | ~CHF 10-15 |
+| `ansatz_kunde` | Tages-Cap CHF (z.B. 43.40) |
+| `limit_restbetrag_prozent` | Limit % vom Netto (z.B. 20%) |
+| `ansatz_spitex` | (Hauswirtschafts-Subvention Patient — aktuell nur JS-Vorbelegung Pauschale) |
+| `kanton_abrechnung` | (Hauswirtschafts-Subvention Gemeinde — aktuell ungenutzt) |
 
-**Berechnung pro Tag:**
-- Patientenanteil = Vollkosten - KK-Anteil
-- Patient zahlt: `min(max_tag, 20% * Patientenanteil)`
-- Wenn 20% < max → Stern (*) auf Rapportblatt
-- Gemeinde zahlt: Patientenanteil - was Patient zahlt
+**Berechnung pro Tag** (in `PdfExportService::rapportblattDaten()`):
+- Netto = Vollkosten KVG − KK-Anteil KVG
+- `pat = min(ansatz_kunde, limit_restbetrag_prozent% * netto)`
+- `gemeinde = netto - pat`
+- Gilt nur für KVG-Leistungen (Grundpflege, Untersuchung, Abklärung); Hauswirtschaft separat, voll auf Patient
 
 ---
 
@@ -175,6 +176,13 @@ Rechnung 3 → Gemeinde/Kanton:
 | Rechnungslauf 1 Position/LA | Pro Einsatz 1 RechnungsPosition je Leistungsart | ✅ implementiert |
 | **Tiers payant vollständig** | MediData XML, Gemeinde-PDF/Email, Patient-Anteil | ✅ implementiert 2026-04-16 |
 | `abrechnungslogik` Snapshot | Gespeichert auf Rechnungslauf bei Erstellung | ✅ implementiert 2026-04-16 |
+| **Patient-Cap eager** | `patientCapUndGemeinde()` in `erstelleLauf` bei tiers_payant → DB-Werte konsistent (`betrag_patient` gekappt, `betrag_gemeinde` befüllt, `betrag_total = patient`) | ✅ implementiert 2026-05-19 |
+| **Patient-PDF Tiers payant vereinfacht** | Positions-Tabelle nur Vollkosten, Footer mit KK/Gemeinde/Ihr-Anteil-Aufteilung | ✅ implementiert 2026-05-19 |
+| **Beilageblatt `berechnung_anteil.blade.php`** | Bei tiers_payant statt Rapportblatt: Tages-Aufschlüsselung KVG-Cap + separater Hauswirtschafts-Block | ✅ implementiert 2026-05-19 |
+| **Rechnungs-Detail-Seite** | Bei tiers_payant gleiche Tabelle + Tages-Aufschlüsselung wie Beilage-PDF | ✅ implementiert 2026-05-19 |
+| **MediData-Retry** | Checkboxen pro fehlerhafter Zeile + Bulk-Button (`rechnungslauf.medidata-retry`) | ✅ implementiert 2026-05-18 |
+| **`betrag_kk > 0` Filter** | An allen MediData-relevanten Stellen — verhindert Versand reiner Patient-Rechnungen | ✅ implementiert 2026-05-18 |
+| Hauswirtschafts-Subvention | `klient_beitraege.ansatz_spitex` + `kanton_abrechnung` Patient-Gemeinde-Split | offen — aktuell kein Kunde mit Bedarf |
 | `einsatz_minuten/stunden/tage` ignoriert | Immer Stundenberechnung, Flags wirkungslos | offen |
 | `kassenpflichtig` ignoriert | Feld existiert aber nie geprüft | offen |
 
@@ -208,6 +216,31 @@ Das System sucht den Tarif mit dem **höchsten `gueltig_ab` ≤ Einsatzdatum**. 
 ## 11. Noch offen / zu klären
 
 - [ ] Gemeinde-Rechnung Format pro Kanton (ab 2026 zunehmend elektronisch)
-- [ ] Rapportblatt: exakte Spaltenstruktur aus Altsystem übernehmen
-- [ ] Patientenbeitrag-Berechnung: woher kommt der max. Betrag pro Kanton? (aus `klient_beitraege`?)
+- [x] Patientenbeitrag-Berechnung: aus `klient_beitraege.ansatz_kunde` + `limit_restbetrag_prozent`, pro Tag in `rapportblattDaten()`
+- [ ] Hauswirtschafts-Subvention: `ansatz_spitex` + `kanton_abrechnung` verdrahten (aktuell ungenutzt, Patient zahlt Hauswirtschaft voll)
 - [ ] `kassenpflichtig` Flag auswerten
+- [ ] Vorschau-PDF im Rapportierung-Modul (RapportierungController::vorschauPdf) auf Cap-Logik aktualisieren
+
+---
+
+## 12. Patient-Sicht Tiers payant (2026-05-19)
+
+Bei Tiers payant ist eine klassische Vollkostenrechnung verwirrend, weil der Patient nicht 306.50 zahlt sondern 24.00 (Cap). Deshalb:
+
+### Patient-PDF (`resources/views/pdfs/rechnung.blade.php`)
+Bei `abrechnungslogik = tiers_payant`:
+- Positions-Tabelle: nur 4 Spalten (Leistung / Minuten / Ansatz CHF/h / Vollkosten)
+- Footer: Summe Vollkosten → KK (direkt abgerechnet) → Gemeinde-Restfinanzierung (direkt) → **Ihr Anteil**
+- 2. Seite (statt Rapportblatt): **Beilageblatt `berechnung_anteil.blade.php`** mit Tages-Aufschlüsselung des Cap-Mechanismus + separater Hauswirtschafts-Block
+
+Bei `abrechnungslogik = tiers_garant`: bleibt Vollkostenrechnung + Rapportblatt (Patient reicht selbst bei KK/Gemeinde ein).
+
+### Detail-Seite (`resources/views/rechnungen/show.blade.php`)
+Spiegelt das PDF — bei Tiers payant gleiche Aufteilung + Tages-Aufschlüsselungs-Sektion. Bei Tiers garant alte Logik.
+
+### Daten-Konsistenz
+- DB-`betrag_patient` ist bei Tiers payant **gekappt** (= effektiver Patient-Anteil)
+- DB-`betrag_gemeinde` ist bei Tiers payant befüllt (= Restfinanzierung)
+- DB-`betrag_total` bei Tiers payant = `betrag_patient` (= was Patient zahlt)
+- Vollkosten = `betrag_kk + betrag_patient + betrag_gemeinde`
+- Bei Tiers garant: `betrag_total = betrag_kk + betrag_patient` (Vollkostenrechnung), `betrag_gemeinde` bleibt 0 (Cap nur on-the-fly im Rapportblatt-PDF)

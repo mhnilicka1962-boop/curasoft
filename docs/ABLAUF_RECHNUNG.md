@@ -12,12 +12,15 @@
 | rechnungsnummer | string | z.B. RE-2026-0001 (unique) |
 | periode_von / periode_bis | date | Abrechnungszeitraum |
 | rechnungsdatum | date | Ausstellungsdatum |
-| betrag_patient | decimal | Selbstbehalt Klient |
+| betrag_patient | decimal | Tiers garant: Restbetrag Patient. Tiers payant: **gekappter** Cap-Anteil (= was Patient effektiv zahlt) |
 | betrag_kk | decimal | Kassenanteil |
-| betrag_total | decimal | patient + kk |
+| betrag_gemeinde | decimal | Tiers payant: Restfinanzierung Gemeinde. Tiers garant: 0 (Cap-Aufteilung nur im Rapportblatt-PDF) |
+| betrag_total | decimal | Tiers garant: kk + patient (Vollkostenrechnung). Tiers payant: nur patient (Cap) |
 | status | enum | entwurf, gesendet, bezahlt, storniert |
 | pdf_pfad | string | optional |
 | bexio_rechnung_id | int | Bexio-Sync |
+| medidata_versand_datum, medidata_fehler | | KK-Versand (Tiers payant) |
+| gemeinde_versand_datum, gemeinde_versand_an, gemeinde_fehler | | Gemeinde-PDF Versand (Tiers payant) |
 | xml_export_datum, xml_export_pfad | | KK-XML-Export |
 | tarmed_fall_nr | string | Fall-Nr. für Kassenabrechnung |
 
