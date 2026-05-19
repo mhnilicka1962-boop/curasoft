@@ -316,7 +316,7 @@ class RapportierungController extends Controller
         $ltMap    = Leistungstyp::pluck('leistungsart_id', 'bezeichnung');
         $laModels = \App\Models\Leistungsart::all()->keyBy('id');
 
-        $rechnungstyp = $klient->rechnungstyp ?? 'kombiniert';
+        $rechnungstyp = 'kombiniert';
         $tarifCache   = [];
         $positionen   = collect();
 

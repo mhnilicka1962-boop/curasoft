@@ -175,20 +175,27 @@
 </div>
 
 {{-- Tabelle aller Rechnungen --}}
+<form method="POST" action="{{ route('rechnungslauf.medidata-retry', $lauf) }}" id="medidata-retry-form"
+      onsubmit="return confirm(document.getElementById('medidata-retry-btn').textContent.trim() + '?')">
+    @csrf
 <div class="karte-null">
     <table class="tabelle" id="lauf-tabelle">
         <thead>
             <tr>
                 <th>Nummer</th>
                 <th>Klient</th>
+                <th>Krankenkasse</th>
+                <th class="text-rechts">KK CHF</th>
+                <th class="text-rechts">Patient CHF</th>
+                @if($tiersPayant)<th class="text-rechts">Gemeinde CHF</th>@endif
                 <th class="text-rechts">Total CHF</th>
-                <th>Versandart</th>
-                <th>Status</th>
+                <th>Versand</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            @forelse($lauf->rechnungen as $r)
+            @forelse($lauf->rechnungen->sortBy(fn($r) => $r->klient->nachname.' '.$r->klient->vorname) as $r)
+            @php $hatKkBetrag = $r->betrag_kk > 0 && in_array($r->rechnungstyp, ['kvg', 'kombiniert']); @endphp
             <tr>
                 <td style="font-family: monospace; font-size: 0.8125rem; font-weight: 500;">
                     <a href="{{ route('rechnungen.show', $r) }}" class="link-primaer">{{ $r->rechnungsnummer }}</a>
@@ -202,44 +209,58 @@
                         <span class="badge badge-warnung" style="font-size:0.7rem; margin-left:0.25rem;">Einzelleistung</span>
                     @endif
                 </td>
+                <td style="font-size: 0.8125rem;">{{ $r->klient->krankenkassen->first()?->krankenkasse?->name ?? '—' }}</td>
+                <td class="text-rechts">{{ number_format($r->betrag_kk, 2, '.', "'") }}</td>
+                <td class="text-rechts">{{ number_format($r->betrag_patient, 2, '.', "'") }}</td>
+                @if($tiersPayant)<td class="text-rechts">{{ number_format($r->betrag_gemeinde, 2, '.', "'") }}</td>@endif
                 <td class="text-rechts text-fett">{{ number_format($r->betrag_total, 2, '.', "'") }}</td>
-                <td>
+                <td style="font-size: 0.75rem; line-height: 1.5;">
+                    {{-- Patient-Versand --}}
                     @php
                         $va = $r->klient->versandart_patient ?? 'post';
                         $vaLabel = match($va) { 'email' => 'Email', 'manuell' => 'Manuell', default => 'Post' };
-                        $vaBadge = match($va) { 'email' => 'badge-info', 'manuell' => 'badge-warnung', default => 'badge-grau' };
                     @endphp
-                    <span class="badge {{ $vaBadge }}">{{ $vaLabel }}</span>
-                </td>
-                <td>
-                    {!! $r->statusBadge() !!}
-                    @if($r->email_versand_datum)
-                        <div style="font-size:0.7rem; color:#6b7280; margin-top:0.15rem;">
-                            {{ $r->email_versand_datum->format('d.m.Y H:i') }}
-                            → {{ $r->email_versand_an }}
-                        </div>
-                    @elseif($r->email_fehler)
-                        <div style="font-size:0.7rem; color:#dc2626; margin-top:0.15rem; max-width:260px;"
-                             title="{{ $r->email_fehler }}">
-                            ✗ {{ Str::limit($r->email_fehler, 80) }}
+                    <div>
+                        <span style="color:#6b7280;">Patient ({{ $vaLabel }}):</span>
+                        @if($r->email_versand_datum)
+                            <span style="color:#15803d;">✓ {{ $r->email_versand_datum->format('d.m.') }}</span>
+                        @elseif($r->email_fehler)
+                            <span style="color:#dc2626;" title="{{ $r->email_fehler }}">✗ {{ Str::limit($r->email_fehler, 40) }}</span>
+                        @else
+                            <span style="color:#9ca3af;">offen</span>
+                        @endif
+                    </div>
+                    {{-- KK-Versand (nur wenn KK-Betrag > 0) --}}
+                    @if($tiersPayant && $hatKkBetrag)
+                        <div>
+                            <span style="color:#6b7280;">KK (MediData):</span>
+                            @if($r->medidata_versand_datum)
+                                <span style="color:#15803d;">✓ {{ $r->medidata_versand_datum->format('d.m.') }}</span>
+                            @elseif($r->medidata_fehler)
+                                <span style="color:#dc2626;" title="{{ $r->medidata_fehler }}">✗ {{ Str::limit($r->medidata_fehler, 40) }}</span>
+                                <input type="checkbox" name="rechnung_ids[]" value="{{ $r->id }}" class="medidata-retry-cb" onchange="updateRetryBtn()" style="margin-left:0.25rem; vertical-align:middle;" title="Für Retry markieren">
+                            @else
+                                <span style="color:#9ca3af;">offen</span>
+                            @endif
                         </div>
                     @endif
-                    @if($tiersPayant && in_array($r->rechnungstyp, ['kvg', 'kombiniert']))
-                        @if($r->medidata_versand_datum)
-                            <div style="font-size:0.7rem; color:#15803d; margin-top:0.15rem;">
-                                ✓ MediData {{ $r->medidata_versand_datum->format('d.m.Y H:i') }}
-                            </div>
-                        @elseif($r->medidata_fehler)
-                            <div style="font-size:0.7rem; color:#dc2626; margin-top:0.15rem; max-width:260px;"
-                                 title="{{ $r->medidata_fehler }}">
-                                ✗ MediData: {{ Str::limit($r->medidata_fehler, 80) }}
-                            </div>
-                        @endif
+                    {{-- Gemeinde-Versand (nur tiers payant) --}}
+                    @if($tiersPayant && $r->klient->gemeinde_email)
+                        <div>
+                            <span style="color:#6b7280;">Gemeinde:</span>
+                            @if($r->gemeinde_versand_datum)
+                                <span style="color:#15803d;">✓ {{ $r->gemeinde_versand_datum->format('d.m.') }}</span>
+                            @elseif($r->gemeinde_fehler)
+                                <span style="color:#dc2626;" title="{{ $r->gemeinde_fehler }}">✗ {{ Str::limit($r->gemeinde_fehler, 40) }}</span>
+                            @else
+                                <span style="color:#9ca3af;">offen</span>
+                            @endif
+                        </div>
                     @endif
                 </td>
                 <td class="text-rechts" style="white-space: nowrap;">
                     <a href="{{ route('rechnungen.pdf', $r) }}" class="btn btn-sekundaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;" target="_blank">📄 PDF</a>
-                    @if(in_array($r->rechnungstyp, ['kvg', 'kombiniert']))
+                    @if($hatKkBetrag)
                     <a href="{{ route('rechnungen.xml', $r) }}" class="btn btn-sekundaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;" target="_blank">📄 XML</a>
                     @endif
                     <a href="{{ route('rechnungen.show', $r) }}" class="btn btn-sekundaer" style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;">Detail</a>
@@ -247,7 +268,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6" class="text-mitte text-hell" style="padding: 2.5rem;">
+                <td colspan="{{ $tiersPayant ? 9 : 8 }}" class="text-mitte text-hell" style="padding: 2.5rem;">
                     Keine Rechnungen in diesem Lauf.
                 </td>
             </tr>
@@ -256,6 +277,15 @@
     </table>
 </div>
 
+@if($tiersPayant)
+<div style="margin-top: 0.75rem;">
+    <button type="submit" id="medidata-retry-btn" class="btn btn-aktion" disabled style="opacity: 0.5;">
+        ↺ Markierte erneut zu MediData senden (0)
+    </button>
+</div>
+@endif
+</form>
+
 <script>
 function laufSuche(q) {
     q = q.toLowerCase();
@@ -263,6 +293,14 @@ function laufSuche(q) {
         const text = tr.textContent.toLowerCase();
         tr.style.display = text.includes(q) ? '' : 'none';
     });
+}
+function updateRetryBtn() {
+    const btn = document.getElementById('medidata-retry-btn');
+    if (!btn) return;
+    const n = document.querySelectorAll('.medidata-retry-cb:checked').length;
+    btn.textContent = '↺ Markierte erneut zu MediData senden (' + n + ')';
+    btn.disabled = n === 0;
+    btn.style.opacity = n === 0 ? '0.5' : '1';
 }
 </script>
 

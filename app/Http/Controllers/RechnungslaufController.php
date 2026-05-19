@@ -88,8 +88,8 @@ class RechnungslaufController extends Controller
 
         // Temporäre Rechnung bauen (nicht speichern)
         $rechnungstyp = $nurPauschale
-            ? ($einsaetze->first()->tagespauschale->rechnungstyp ?? $klient->rechnungstyp ?? 'kombiniert')
-            : ($klient->rechnungstyp ?? 'kombiniert');
+            ? ($einsaetze->first()->tagespauschale->rechnungstyp ?? 'kombiniert')
+            : 'kombiniert';
 
         $rechnung = new Rechnung([
             'organisation_id' => $this->orgId(),
@@ -285,7 +285,10 @@ class RechnungslaufController extends Controller
             fn($r) => $r->klient->versandart_patient !== 'email'
         )->count();
 
-        $kvgAnzahl = $lauf->rechnungen->whereIn('rechnungstyp', ['kvg', 'kombiniert'])->count();
+        $kvgAnzahl = $lauf->rechnungen
+            ->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+            ->where(fn($r) => $r->betrag_kk > 0)
+            ->count();
 
         $postEntwurfAnzahl = $lauf->rechnungen->filter(
             fn($r) => $r->klient->versandart_patient !== 'email' && $r->status === 'entwurf'
@@ -297,6 +300,7 @@ class RechnungslaufController extends Controller
 
         $xmlEntwurfAnzahl = $lauf->rechnungen
             ->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+            ->where(fn($r) => $r->betrag_kk > 0)
             ->where('status', 'entwurf')
             ->count();
 
@@ -314,12 +318,12 @@ class RechnungslaufController extends Controller
 
         $mediDataAnzahl = $tiersPayant
             ? $lauf->rechnungen->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
-                ->where(fn($r) => !$r->medidata_versand_datum)->count()
+                ->where(fn($r) => $r->betrag_kk > 0 && !$r->medidata_versand_datum)->count()
             : 0;
 
         $medidataVersendetAnzahl = $tiersPayant
             ? $lauf->rechnungen->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
-                ->where(fn($r) => !!$r->medidata_versand_datum)->count()
+                ->where(fn($r) => $r->betrag_kk > 0 && !!$r->medidata_versand_datum)->count()
             : 0;
 
         $kannStornieren = $lauf->rechnungen->every(fn($r) =>
@@ -540,6 +544,7 @@ class RechnungslaufController extends Controller
         $rechnungen = $lauf->rechnungen()
             ->with(['klient.region', 'klient.krankenkassen.krankenkasse', 'positionen.leistungstyp.leistungsart'])
             ->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+            ->where('betrag_kk', '>', 0)
             ->whereNull('medidata_versand_datum')
             ->get();
 
@@ -569,6 +574,64 @@ class RechnungslaufController extends Controller
             "MediData-Upload: {$versendet} übertragen, {$fehler} Fehler");
 
         $msg = "{$versendet} Rechnung(en) zu MediData übertragen.";
+        if ($fehler > 0) $msg .= " {$fehler} fehlgeschlagen.";
+
+        return back()->with($fehler > 0 && $versendet === 0 ? 'fehler' : 'erfolg', $msg);
+    }
+
+    public function medidataRetry(Request $request, Rechnungslauf $lauf)
+    {
+        $this->autorisiereZugriff($lauf);
+
+        $org = Organisation::findOrFail($this->orgId());
+
+        if (empty($org->medidata_url) || empty($org->medidata_username) || empty($org->medidata_passwort)) {
+            return back()->with('fehler', 'MediData nicht konfiguriert — bitte URL, Benutzername und Passwort unter Firma hinterlegen.');
+        }
+
+        $validated = $request->validate([
+            'rechnung_ids'   => ['required', 'array', 'min:1'],
+            'rechnung_ids.*' => ['integer'],
+        ]);
+
+        $xmlService  = new XmlExportService($org);
+        $mediService = new MediDataService($org);
+
+        $rechnungen = $lauf->rechnungen()
+            ->with(['klient.region', 'klient.krankenkassen.krankenkasse', 'positionen.leistungstyp.leistungsart'])
+            ->whereIn('id', $validated['rechnung_ids'])
+            ->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+            ->where('betrag_kk', '>', 0)
+            ->whereNull('medidata_versand_datum')
+            ->whereNotNull('medidata_fehler')
+            ->get();
+
+        if ($rechnungen->isEmpty()) {
+            return back()->with('fehler', 'Keine passenden Rechnungen für Retry gefunden.');
+        }
+
+        $versendet = 0;
+        $fehler    = 0;
+
+        foreach ($rechnungen as $rechnung) {
+            try {
+                $xmlPfad = $xmlService->rechnungExportieren($rechnung);
+                $mediService->xmlHochladen($rechnung, $xmlPfad);
+                $rechnung->update([
+                    'medidata_versand_datum' => now(),
+                    'medidata_fehler'        => null,
+                ]);
+                $versendet++;
+            } catch (\Exception $e) {
+                $rechnung->update(['medidata_fehler' => mb_substr($e->getMessage(), 0, 500)]);
+                $fehler++;
+            }
+        }
+
+        AuditLog::schreiben('geaendert', 'Rechnungslauf', $lauf->id,
+            "MediData-Retry: {$versendet} übertragen, {$fehler} Fehler");
+
+        $msg = "{$versendet} Rechnung(en) erneut zu MediData übertragen.";
         if ($fehler > 0) $msg .= " {$fehler} fehlgeschlagen.";
 
         return back()->with($fehler > 0 && $versendet === 0 ? 'fehler' : 'erfolg', $msg);
@@ -620,6 +683,7 @@ class RechnungslaufController extends Controller
         $rechnungen = $lauf->rechnungen()
             ->with(['klient.region', 'klient.krankenkassen.krankenkasse', 'positionen.leistungstyp.leistungsart'])
             ->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+            ->where('betrag_kk', '>', 0)
             ->get();
 
         $dateiname = "xml_lauf_{$lauf->periode_von->format('Y-m')}.zip";
@@ -730,7 +794,7 @@ class RechnungslaufController extends Controller
                 $anzahlOhne++;
                 $zeilen[] = [
                     'klient'        => $klient,
-                    'rechnungstyp'  => $klient->rechnungstyp ?? 'kombiniert',
+                    'rechnungstyp'  => 'kombiniert',
                     'anzahl'        => 0,
                     'minuten'       => 0,
                     'betrag_patient'=> 0,
@@ -744,7 +808,7 @@ class RechnungslaufController extends Controller
                 continue;
             }
 
-            $rechnungstyp     = $klient->rechnungstyp ?? 'kombiniert';
+            $rechnungstyp     = 'kombiniert';
             $normale          = $einsaetze->filter(fn($e) => !$e->tagespauschale_id && $e->betrag_fix === null);
             $tagespauschalen  = $einsaetze->filter(fn($e) => $e->tagespauschale_id);
             $einzelleistungen = $einsaetze->filter(fn($e) => !$e->tagespauschale_id && $e->betrag_fix !== null);
@@ -948,6 +1012,7 @@ class RechnungslaufController extends Controller
 
         $anzahl = $lauf->rechnungen()
             ->whereIn('rechnungstyp', ['kvg', 'kombiniert'])
+            ->where('betrag_kk', '>', 0)
             ->where('status', 'entwurf')
             ->update(['status' => 'gesendet', 'updated_at' => now()]);
 
@@ -1131,7 +1196,7 @@ class RechnungslaufController extends Controller
         // Schritt 3: Pro Klient — getrennte Rechnungen für normale Einsätze und Tagespauschalen
         foreach ($klientenDaten as $daten) {
             $klient       = $daten['klient'];
-            $rechnungstyp = $klient->rechnungstyp ?? 'kombiniert';
+            $rechnungstyp = 'kombiniert';
 
             // Rechnung für normale Einsätze
             if ($daten['normale']->isNotEmpty()) {

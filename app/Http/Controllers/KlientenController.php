@@ -320,8 +320,6 @@ class KlientenController extends Controller
             'krankenkasse_nr'     => ['nullable', 'string', 'max:50'],
             'zahlbar_tage'        => ['nullable', 'integer', 'min:1', 'max:365'],
             'versandart_patient'  => ['nullable', 'in:post,email,manuell'],
-            'versandart_kvg'      => ['nullable', 'in:email,healthnet,manuell'],
-            'rechnungstyp'        => ['nullable', 'in:kombiniert,kvg,klient,gemeinde'],
             'gemeinde_name'       => ['nullable', 'string', 'max:255'],
             'gemeinde_adresse'    => ['nullable', 'string', 'max:255'],
             'gemeinde_plz'        => ['nullable', 'string', 'max:10'],

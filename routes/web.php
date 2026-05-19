@@ -358,6 +358,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/rechnungen/lauf/{lauf}/gemeinde-zip',       [RechnungslaufController::class, 'gemeindeZip'])->name('rechnungslauf.gemeinde-zip');
         Route::get('/rechnungen/lauf/{lauf}/gemeinde-sammel-pdf',[RechnungslaufController::class, 'gemeindeSammelPdf'])->name('rechnungslauf.gemeinde-sammel-pdf');
         Route::post('/rechnungen/lauf/{lauf}/medidata',          [RechnungslaufController::class, 'medidata'])->name('rechnungslauf.medidata');
+        Route::post('/rechnungen/lauf/{lauf}/medidata-retry',    [RechnungslaufController::class, 'medidataRetry'])->name('rechnungslauf.medidata-retry');
 
         // Tagespauschalen
         Route::get('/tagespauschalen',                    [TagespauschaleController::class, 'index'])->name('tagespauschalen.index');

@@ -892,30 +892,14 @@
         </summary>
         <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
 
-            @php
-                $tiersGarant = (\App\Models\Organisation::find($klient->organisation_id)?->abrechnungslogik ?? 'tiers_garant') === 'tiers_garant';
-            @endphp
-            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Abrechnung &amp; Versand{!! $tiersGarant ? ' <span class="text-hell" style="font-weight:400;">— Tiers garant</span>' : '' !!}</div>
+            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Abrechnung &amp; Versand</div>
             <form method="POST" action="{{ route('klienten.update', $klient) }}" style="margin-bottom: 1.25rem;">
                 @csrf @method('PUT')
                 <input type="hidden" name="vorname"   value="{{ $klient->vorname }}">
                 <input type="hidden" name="nachname"  value="{{ $klient->nachname }}">
                 <input type="hidden" name="aktiv"     value="{{ $klient->aktiv ? 1 : 0 }}">
                 <input type="hidden" name="region_id" value="{{ $klient->region_id }}">
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; align-items: end;">
-                    <div>
-                        <label class="form-label" style="font-size: 0.8125rem;">Rechnungstyp @if($tiersGarant)<span class="text-hell" style="font-weight:400;"> — Automatisch</span>@endif</label>
-                        @if($tiersGarant)
-                            <input type="hidden" name="rechnungstyp" value="kombiniert">
-                            <div class="feld" style="font-size: 0.875rem; background: var(--cs-hintergrund); color: var(--cs-text-hell); cursor: default;">Kombiniert</div>
-                        @else
-                            <select name="rechnungstyp" class="feld" style="font-size: 0.875rem;">
-                                @foreach(\App\Models\Rechnung::$typen as $val => $lab)
-                                    <option value="{{ $val }}" {{ ($klient->rechnungstyp ?? 'kombiniert') === $val ? 'selected' : '' }}>{{ $lab }}</option>
-                                @endforeach
-                            </select>
-                        @endif
-                    </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; align-items: end;">
                     <div>
                         <label class="form-label" style="font-size: 0.8125rem;">Versand Patient</label>
                         <select name="versandart_patient" class="feld" style="font-size: 0.875rem;">
@@ -925,19 +909,9 @@
                         </select>
                     </div>
                     <div>
-                        <label class="form-label" style="font-size: 0.8125rem;">Versand KVG @if($tiersGarant)<span class="text-hell" style="font-weight:400;"> — kein Versand</span>@endif</label>
-                        @if($tiersGarant)
-                            <div class="feld" style="font-size: 0.875rem; background: var(--cs-hintergrund); color: var(--cs-text-hell); cursor: default;">—</div>
-                        @else
-                            <select name="versandart_kvg" class="feld" style="font-size: 0.875rem;">
-                                <option value="manuell"   {{ ($klient->versandart_kvg ?? 'manuell') === 'manuell'   ? 'selected' : '' }}>Manuell</option>
-                                <option value="email"     {{ ($klient->versandart_kvg ?? 'manuell') === 'email'     ? 'selected' : '' }}>Email (KK)</option>
-                                <option value="healthnet" {{ ($klient->versandart_kvg ?? 'manuell') === 'healthnet' ? 'selected' : '' }}>Healthnet</option>
-                            </select>
-                        @endif
+                        <button type="submit" class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
             </form>
 
             <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Beiträge</div>
