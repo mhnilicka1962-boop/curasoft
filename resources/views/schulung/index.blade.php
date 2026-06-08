@@ -164,7 +164,7 @@
         </div>
 
         {{-- ── MODUL 4: Einsatzserie ── --}}
-        <div style="display: flex; gap: 0; border-bottom: 1px solid var(--cs-border); padding: 0.875rem 0;">
+        <div id="serie" style="display: flex; gap: 0; border-bottom: 1px solid var(--cs-border); padding: 0.875rem 0; scroll-margin-top: 5rem;">
             <div style="display: flex; flex-direction: column; align-items: center; margin-right: 1rem; flex-shrink: 0;">
                 <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--cs-primaer); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem;">4</div>
                 <div style="width: 2px; background: var(--cs-border); flex: 1; margin-top: 4px;"></div>
@@ -174,7 +174,7 @@
                     <span class="text-fett">Einsatzserie anlegen</span>
                     <span class="badge badge-grau" style="font-size: 0.7rem;">10 min</span>
                 </div>
-                <div class="text-klein text-hell" style="margin-bottom: 0.75rem;">Im Spitex-Alltag laufen fast alle Einsätze wiederkehrend. Die Serie generiert automatisch alle Einsätze — kein manuelles Nacherfassen. Einzelne Einsätze nur für Ausnahmen.</div>
+                <div class="text-klein text-hell" style="margin-bottom: 0.75rem;">Im Spitex-Alltag laufen fast alle Einsätze wiederkehrend. Die Serie generiert automatisch alle Einsätze — kein manuelles Nacherfassen. Einzelne Einsätze nur für Ausnahmen. Pro Klient sind <strong>mehrere Serien</strong> möglich — jede mit eigenem Rhythmus, eigenen Zeiten und Leistungsarten (z.B. Grundpflege Mo/Mi/Fr morgens + Hauswirtschaft 1× pro Woche). <strong>Grund:</strong> Eine Serie hat genau einen Rhythmus, ein Zeitfenster und einen Mitarbeiter. Sobald Leistungen an anderen Tagen, zu anderen Zeiten oder durch eine andere Person erfolgen, braucht es dafür eine eigene Serie.</div>
 
                 <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; margin-bottom: 0.75rem; font-size: 0.875rem;">
                     Klient öffnen → Sektion <strong>«Serien»</strong> → <strong>«+ Neue Serie»</strong>

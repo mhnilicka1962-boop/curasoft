@@ -500,6 +500,14 @@
                 </div>
             </div>
             <div id="body-s9" style="display: none; margin-top: 1rem;">
+                <div class="info-box" style="margin-bottom: 0.75rem; font-size: 0.875rem; background: #fffbeb; border-color: #fde68a;">
+                    <strong>⚠️ Zuerst lesen:</strong> Die meisten Einsätze sind <strong>wiederkehrend</strong> (z.B. täglich, jeden Mo/Mi/Fr). Dafür <strong>keine Einzel-Einsätze</strong> anlegen — sonst müssen Sie jeden Termin von Hand erfassen.
+                    <ul style="margin: 0.4rem 0 0 1.25rem; padding: 0;">
+                        <li>Wiederkehrend → <strong>Einsatzserie</strong> verwenden: einmal einrichten, alle Einsätze werden automatisch generiert und laufend nachgefüllt.</li>
+                        <li>Das Einzel-Einsatz-Formular unten ist nur für <strong>echte Einmal-Termine</strong> gedacht.</li>
+                    </ul>
+                    <a href="{{ route('schulung') }}#serie" class="script-link btn btn-primaer" style="display:inline-block; text-decoration:none; margin-top:0.5rem;" target="_blank">→ Zur Einsatzserie</a>
+                </div>
                 <div class="tabelle-wrapper" style="margin-bottom: 0.75rem;">
                     <table class="tabelle">
                         <thead><tr><th>Feld</th><th>Was eingeben</th><th>Hinweis</th></tr></thead>
