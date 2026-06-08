@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Benutzer;
 use App\Models\Einsatz;
+use App\Models\Tour;
 use Illuminate\Http\Request;
 
 class VertretungController extends Controller
@@ -63,9 +64,36 @@ class VertretungController extends Controller
             }
         }
 
+        // Zeitkonflikt: übertragbarer Einsatz überlappt mit einem bestehenden
+        // Einsatz der Vertretung am selben Tag (gleiche Formel wie Kalender/Tour).
+        // Weicher Hinweis — übertragbar bleibt es trotzdem.
+        $konflikte = [];
+        if ($vertretung) {
+            $eigene = Einsatz::where('organisation_id', $this->orgId())
+                ->where('benutzer_id', $vertretung->id)
+                ->whereBetween('datum', [$daten['datum_von'], $daten['datum_bis']])
+                ->where('status', 'geplant')
+                ->whereNotNull('zeit_von')
+                ->whereNotNull('zeit_bis')
+                ->with('klient')
+                ->get();
+
+            foreach ($einsaetzeOk as $e) {
+                if (!$e->zeit_von || !$e->zeit_bis) continue;
+                foreach ($eigene as $x) {
+                    if ($x->datum->format('Y-m-d') !== $e->datum->format('Y-m-d')) continue;
+                    if ($e->zeit_von < $x->zeit_bis && $x->zeit_von < $e->zeit_bis) {
+                        $konflikte[$e->id] = substr($x->zeit_von, 0, 5) . '–' . substr($x->zeit_bis, 0, 5)
+                            . ($x->klient ? ' · ' . $x->klient->vollname() : '');
+                        break;
+                    }
+                }
+            }
+        }
+
         return view('vertretung.vorschau', compact(
             'daten', 'einsaetzeOk', 'einsaetzeWarnung',
-            'mitarbeiter', 'benutzer', 'vertretung'
+            'mitarbeiter', 'benutzer', 'vertretung', 'konflikte'
         ));
     }
 
@@ -85,11 +113,46 @@ class VertretungController extends Controller
                 && $einsatz->status === 'geplant'
             ) {
                 $einsatz->update(['benutzer_id' => $daten['vertretung_id']]);
+                $this->einsatzInTourVerschieben($einsatz);
                 $anzahl++;
             }
         }
 
         return redirect()->route('vertretung.index')
             ->with('erfolg', $anzahl . ' Einsatz' . ($anzahl !== 1 ? 'ätze' : '') . ' auf die Vertretung übertragen.');
+    }
+
+    /**
+     * Einsatz in die Tour der (neuen) zuständigen Person am Einsatz-Tag legen.
+     * Ohne diesen Schritt bliebe der Einsatz in der Tour des Abwesenden und
+     * würde der Vertretung in ihrer Tagesansicht nicht angezeigt.
+     * Logik gespiegelt von EinsaetzeGenerieren::einsatzZurTourZuweisen.
+     */
+    private function einsatzInTourVerschieben(Einsatz $einsatz): void
+    {
+        $datum = $einsatz->datum->format('Y-m-d');
+
+        $tour = Tour::where('organisation_id', $einsatz->organisation_id)
+            ->where('benutzer_id', $einsatz->benutzer_id)
+            ->whereDate('datum', $datum)
+            ->first();
+
+        if (!$tour) {
+            $ma = Benutzer::find($einsatz->benutzer_id);
+            $tour = Tour::create([
+                'organisation_id' => $einsatz->organisation_id,
+                'benutzer_id'     => $einsatz->benutzer_id,
+                'datum'           => $datum,
+                'bezeichnung'     => 'Tour ' . ($ma?->vorname ?? '') . ' · ' . $einsatz->datum->format('d.m.Y'),
+                'start_zeit'      => $einsatz->zeit_von ?? '08:00:00',
+                'status'          => 'geplant',
+            ]);
+        }
+
+        $max = $tour->einsaetze()->max('tour_reihenfolge') ?? 0;
+        $einsatz->update([
+            'tour_id'          => $tour->id,
+            'tour_reihenfolge' => $max + 1,
+        ]);
     }
 }

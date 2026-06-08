@@ -74,6 +74,14 @@
             </div>
             @endif
 
+            @if(!empty($konflikte))
+            <div class="warn-box" style="margin-bottom: 1rem;">
+                <strong>⚠ {{ count($konflikte) }} Einsatz/Einsätze mit Zeitkonflikt</strong> —
+                {{ $vertretung?->vorname }} {{ $vertretung?->nachname }} hat zu dieser Zeit bereits eigene Einsätze.
+                Übertragung trotzdem möglich; bitte die betroffene Tour danach prüfen.
+            </div>
+            @endif
+
             <div style="margin-bottom: 0.75rem; display: flex; gap: 0.75rem; align-items: center;">
                 <label style="font-size: 0.875rem; font-weight: 500; cursor: pointer;">
                     <input type="checkbox" id="alle-waehlen" style="margin-right: 0.3rem;" checked>
@@ -104,7 +112,12 @@
                         <td>{{ $e->datum->format('d.m.Y') }}</td>
                         <td>{{ $e->klient?->vollname() ?? '—' }}</td>
                         <td>{{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: ($e->tagespauschale_id ? 'Tagespauschale' : '—') }}</td>
-                        <td>{{ $e->zeit_von ? substr($e->zeit_von,0,5) : '—' }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}</td>
+                        <td>
+                            {{ $e->zeit_von ? substr($e->zeit_von,0,5) : '—' }}{{ $e->zeit_bis ? '–'.substr($e->zeit_bis,0,5) : '' }}
+                            @if(!empty($konflikte[$e->id]))
+                                <br><span class="badge badge-warnung" title="Vertretung hat zu dieser Zeit bereits einen Einsatz">⚠ Zeitkonflikt: {{ $konflikte[$e->id] }}</span>
+                            @endif
+                        </td>
                         <td class="text-hell text-klein">{{ $e->tour?->bezeichnung ?? '—' }}</td>
                     </tr>
                     @endforeach
