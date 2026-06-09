@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Abwesenheit;
 use App\Models\Benutzer;
 use App\Models\Einsatz;
 use App\Models\EinsatzLeistungsart;
 use App\Models\Klient;
 use App\Models\Leistungsart;
+use App\Models\Serie;
 use Illuminate\Http\Request;
 
 class EinsaetzeController extends Controller
@@ -128,8 +130,18 @@ class EinsaetzeController extends Controller
                 ->groupBy(fn($e) => $e->datum->format('Y-m-d'));
         }
 
+        $abwesenheiten = Abwesenheit::where('organisation_id', $this->orgId())
+            ->where('datum_bis', '>=', today())
+            ->with('benutzer', 'vertretung')
+            ->get();
+        $abwesendeIds   = $abwesenheiten->pluck('benutzer_id')->flip();
+        $serieAbwesendMap = Serie::whereIn('benutzer_id', $abwesendeIds->keys()->all())
+            ->where('organisation_id', $this->orgId())
+            ->pluck('benutzer_id', 'id');
+
         return view('einsaetze.index', compact(
-            'einsaetze', 'leistungsarten', 'mitarbeiter', 'ansicht', 'meineWoche'
+            'einsaetze', 'leistungsarten', 'mitarbeiter', 'ansicht', 'meineWoche',
+            'abwesenheiten', 'abwesendeIds', 'serieAbwesendMap'
         ));
     }
 

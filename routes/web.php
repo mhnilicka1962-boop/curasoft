@@ -218,9 +218,20 @@ Route::middleware('auth')->group(function () {
             ->whereRaw('cn.id > COALESCE(ct.letzte_gesehen_id, 0)')
             ->count();
 
+        // Offene Vertretungen (Einsätze noch nicht übertragen)
+        $offeneVertretungen = 0;
+        if ($rolle === 'admin') {
+            $abwesenheiten = \App\Models\Abwesenheit::where('organisation_id', $orgId)
+                ->where('datum_bis', '>=', today())
+                ->get();
+            foreach ($abwesenheiten as $abw) {
+                $offeneVertretungen += $abw->offeneEinsaetze();
+            }
+        }
+
         return view('dashboard', compact(
             'klientenAktiv', 'einsaetzeHeute', 'einsaetzeGeplant',
-            'offeneRechnungen',
+            'offeneRechnungen', 'offeneVertretungen',
             'letzteRapporte', 'einsaetzeListe', 'einsaetzeDatumLabel',
             'setup', 'setupFertig', 'chatUngelesen'
         ));
@@ -316,8 +327,12 @@ Route::middleware('auth')->group(function () {
         // Ferienvertretung (nur Admin)
         Route::middleware('rolle:admin')->group(function () {
             Route::get('/vertretung',          [VertretungController::class, 'index'])->name('vertretung.index');
+            Route::get('/vertretung/vorschau', [VertretungController::class, 'vorschau'])->name('vertretung.vorschau.get');
             Route::post('/vertretung/vorschau',[VertretungController::class, 'vorschau'])->name('vertretung.vorschau');
             Route::post('/vertretung/ausfuehren',[VertretungController::class, 'ausfuehren'])->name('vertretung.ausfuehren');
+            Route::get('/vertretung/erstellen',   [VertretungController::class, 'erstellen'])->name('vertretung.erstellen');
+            Route::post('/vertretung/abwesenheit',[VertretungController::class, 'abwesenheitSpeichern'])->name('vertretung.abwesenheit.speichern');
+            Route::delete('/vertretung/abwesenheit/{abwesenheit}',[VertretungController::class, 'abwesenheitLoeschen'])->name('vertretung.abwesenheit.loeschen');
         });
 
         // Dokumente

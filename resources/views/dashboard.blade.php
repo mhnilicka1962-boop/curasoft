@@ -144,6 +144,14 @@
             <span class="stat-chip-zahl">{{ $einsaetzeHeute }}</span>
         </a>
 
+
+@if(auth()->user()->rolle === 'admin')
+        <a href="{{ route('vertretung.index') }}" class="stat-chip" style="{{ $offeneVertretungen > 0 ? 'border-color: var(--cs-fehler);' : '' }}">
+            <span class="stat-chip-label">Vertretung</span>
+            <span class="stat-chip-zahl {{ $offeneVertretungen > 0 ? 'fehler' : 'erfolg' }}">{{ $offeneVertretungen > 0 ? '🔴 ' . $offeneVertretungen : '✓' }}</span>
+        </a>
+        @endif
+
         @if(auth()->user()->rolle !== 'pflege')
         <a href="{{ route('rechnungen.index') }}" class="stat-chip">
             <span class="stat-chip-label">Offene Rechnungen</span>

@@ -1,62 +1,50 @@
-<x-layouts.app titel="Ferienvertretung / MA krank">
+<x-layouts.app titel="Vertretung">
 <div style="max-width: 640px;">
 
     <div class="seiten-kopf" style="margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Ferienvertretung / MA krank</h1>
-        <a href="{{ route('hilfe') }}#script-vertretung" class="btn btn-sekundaer" style="font-size: 0.8125rem;">← Zurück Hilfe</a>
+        <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Vertretung</h1>
+        <a href="{{ route('vertretung.erstellen') }}" class="btn btn-primaer">+ Neue Vertretung</a>
     </div>
 
     @if(session('erfolg'))
     <div class="erfolg-box" style="margin-bottom: 1.25rem;">{{ session('erfolg') }}</div>
     @endif
 
-    <div class="karte">
-        <div class="abschnitt-label" style="margin-bottom: 1rem;">Schritt 1 — Wer fällt aus, für welchen Zeitraum?</div>
-
-        <form action="{{ route('vertretung.vorschau') }}" method="POST">
-            @csrf
-
-            <div class="form-grid-2" style="margin-bottom: 1rem;">
-                <div>
-                    <label class="feld-label">Mitarbeiter (fällt aus)</label>
-                    <select name="benutzer_id" class="feld" required>
-                        <option value="">— wählen —</option>
-                        @foreach($mitarbeiter as $m)
-                            <option value="{{ $m->id }}" {{ old('benutzer_id') == $m->id ? 'selected' : '' }}>
-                                {{ $m->nachname }} {{ $m->vorname }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('benutzer_id')<div class="text-klein" style="color:var(--cs-fehler)">{{ $message }}</div>@enderror
-                </div>
-                <div>
-                    <label class="feld-label">Vertretung durch</label>
-                    <select name="vertretung_id" class="feld">
-                        <option value="">— noch offen —</option>
-                        @foreach($mitarbeiter as $m)
-                            <option value="{{ $m->id }}" {{ old('vertretung_id') == $m->id ? 'selected' : '' }}>
-                                {{ $m->nachname }} {{ $m->vorname }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="text-klein text-hell" style="margin-top: 0.25rem;">Optional — Qualifikation wird geprüft</div>
-                </div>
-            </div>
-
-            <div class="form-grid-2" style="margin-bottom: 1.25rem;">
-                <div>
-                    <label class="feld-label">Von</label>
-                    <input type="date" name="datum_von" class="feld" value="{{ old('datum_von', today()->format('Y-m-d')) }}" required>
-                </div>
-                <div>
-                    <label class="feld-label">Bis</label>
-                    <input type="date" name="datum_bis" class="feld" value="{{ old('datum_bis', today()->addDays(13)->format('Y-m-d')) }}" required>
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primaer">Betroffene Einsätze anzeigen →</button>
-        </form>
+    @if($abwesenheiten->isEmpty())
+    <div class="karte" style="text-align: center; padding: 2rem; color: var(--cs-text-hell);">
+        Keine aktiven Vertretungen.
     </div>
+    @else
+    @foreach($abwesenheiten as $abw)
+    @php $offen = $abw->offeneEinsaetze(); @endphp
+    <div class="karte" style="margin-bottom: 0.625rem; border-left: 3px solid {{ $offen > 0 ? 'var(--cs-fehler)' : 'var(--cs-erfolg)' }};">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+                <span style="font-weight: 600;">{{ $abw->benutzer->vorname }} {{ $abw->benutzer->nachname }}</span>
+                <span class="text-hell text-klein" style="margin-left: 0.5rem;">
+                    {{ $abw->datum_von->format('d.m.Y') }} – {{ $abw->datum_bis->format('d.m.Y') }}
+                </span>
+                @if($offen > 0)
+                    <span class="badge badge-fehler" style="margin-left: 0.5rem;">🔴 {{ $offen }} nicht übertragen</span>
+                @else
+                    <span class="badge badge-erfolg" style="margin-left: 0.5rem;">✓ Alle übertragen</span>
+                @endif
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <a href="{{ route('vertretung.vorschau.get', ['benutzer_id' => $abw->benutzer_id, 'datum_von' => $abw->datum_von->format('Y-m-d'), 'datum_bis' => $abw->datum_bis->format('Y-m-d')]) }}"
+                   class="btn {{ $offen > 0 ? 'btn-primaer' : 'btn-sekundaer' }}" style="font-size: 0.8125rem; padding: 0.25rem 0.625rem;">
+                    Detail →
+                </a>
+                <form method="POST" action="{{ route('vertretung.abwesenheit.loeschen', $abw) }}" style="margin: 0;">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.25rem 0.625rem;"
+                        onclick="return confirm('Vertretung löschen?')">✕</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endforeach
+    @endif
 
 </div>
 </x-layouts.app>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Abwesenheit;
 use App\Models\Benutzer;
 use App\Models\Einsatz;
 use App\Models\Tour;
@@ -48,7 +49,23 @@ class TourenController extends Controller
             ->get()
             ->groupBy('benutzer_id');
 
-        return view('touren.index', compact('touren', 'datum', 'mitarbeiter', 'ohneTouren'));
+        // Abwesenheiten für diesen Tag
+        $abwesenheiten = Abwesenheit::where('organisation_id', $this->orgId())
+            ->where('datum_von', '<=', $datum->toDateString())
+            ->where('datum_bis', '>=', $datum->toDateString())
+            ->with('benutzer', 'vertretung')
+            ->get();
+
+        // abwesende_id → true (für roten Badge)
+        $abwesendeIds = $abwesenheiten->pluck('benutzer_id')->flip();
+
+        // vertretung_id → abwesende Person (für grünen Badge)
+        $vertretungsMap = $abwesenheiten
+            ->whereNotNull('vertretung_id')
+            ->keyBy('vertretung_id')
+            ->map(fn($a) => $a->benutzer);
+
+        return view('touren.index', compact('touren', 'datum', 'mitarbeiter', 'ohneTouren', 'abwesendeIds', 'vertretungsMap', 'abwesenheiten'));
     }
 
     public function create(Request $request)

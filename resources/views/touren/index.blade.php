@@ -194,6 +194,13 @@
     </div>
     @endif
 
+    @php
+        // Serie → abwesende Person (für grünen Badge auf Vertretungs-Tour)
+        $serieAbwesendMap = \App\Models\Serie::whereIn('benutzer_id', $abwesendeIds->keys()->all())
+            ->where('organisation_id', auth()->user()->organisation_id)
+            ->pluck('benutzer_id', 'id');
+    @endphp
+
     <div id="panel-touren">
     @forelse($touren as $tour)
     <div class="karte" style="margin-bottom: 1rem;">
@@ -203,6 +210,31 @@
                 <span class="text-klein text-hell" style="margin-left: 0.75rem;">{{ $tour->benutzer?->vorname }} {{ $tour->benutzer?->nachname }}</span>
                 @if($tour->start_zeit)
                     <span class="text-klein text-hell" style="margin-left: 0.75rem;">{{ $tour->start_zeit }}</span>
+                @endif
+                @if(isset($abwesendeIds[$tour->benutzer_id]))
+                    @if($tour->einsaetze->count() > 0)
+                        @php $abwEintrag = $abwesenheiten->firstWhere('benutzer_id', $tour->benutzer_id); @endphp
+                        <a href="{{ route('vertretung.vorschau.get', ['benutzer_id' => $tour->benutzer_id, 'datum_von' => $datum->format('Y-m-d'), 'datum_bis' => $datum->format('Y-m-d')]) }}"
+                           class="badge badge-fehler" style="margin-left: 0.5rem; text-decoration: none;">🔴 {{ $tour->benutzer?->vorname }} abwesend{{ $abwEintrag?->vertretung ? ' — ' . $abwEintrag->vertretung->vorname : '' }} →</a>
+                    @else
+                        <a href="{{ route('vertretung.vorschau.get', ['benutzer_id' => $tour->benutzer_id, 'datum_von' => $datum->format('Y-m-d'), 'datum_bis' => $datum->format('Y-m-d')]) }}"
+                           class="badge badge-grau" style="margin-left: 0.5rem; text-decoration: none;">Abwesend ✓ →</a>
+                    @endif
+                @else
+                    @php
+                        $vertretungFuer = null;
+                        foreach ($tour->einsaetze as $e) {
+                            if ($e->serie_id && isset($serieAbwesendMap[$e->serie_id])) {
+                                $benutzerId = $serieAbwesendMap[$e->serie_id];
+                                $vertretungFuer = $abwesenheiten->firstWhere('benutzer_id', $benutzerId)?->benutzer;
+                                break;
+                            }
+                        }
+                    @endphp
+                    @if($vertretungFuer)
+                        <a href="{{ route('vertretung.vorschau.get', ['benutzer_id' => $vertretungFuer->id, 'datum_von' => $datum->format('Y-m-d'), 'datum_bis' => $datum->format('Y-m-d')]) }}"
+                           class="badge badge-erfolg" style="margin-left: 0.5rem; text-decoration: none;">🟢 Vertretung für {{ $vertretungFuer->vorname }} →</a>
+                    @endif
                 @endif
             </div>
             <div style="display: flex; gap: 0.5rem; align-items: center;">

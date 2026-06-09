@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Abwesenheit;
 use App\Models\Benutzer;
 use App\Models\Einsatz;
+use App\Models\Serie;
 use App\Models\Tour;
 use Illuminate\Http\Request;
 
@@ -22,7 +24,100 @@ class VertretungController extends Controller
             ->orderBy('nachname')
             ->get();
 
-        return view('vertretung.index', compact('mitarbeiter'));
+        $abwesenheiten = Abwesenheit::where('organisation_id', $this->orgId())
+            ->where('datum_bis', '>=', today())
+            ->with('benutzer')
+            ->orderBy('datum_von')
+            ->get();
+
+        return view('vertretung.index', compact('mitarbeiter', 'abwesenheiten'));
+    }
+
+    public function erstellen()
+    {
+        $mitarbeiter = Benutzer::where('organisation_id', $this->orgId())
+            ->where('aktiv', true)
+            ->where('anstellungsart', '!=', 'angehoerig')
+            ->orderBy('nachname')
+            ->get();
+
+        return view('vertretung.erstellen', compact('mitarbeiter'));
+    }
+
+    public function abwesenheitSpeichern(Request $request)
+    {
+        $daten = $request->validate([
+            'benutzer_id'  => ['required', 'exists:benutzer,id'],
+            'vertretung_id'=> ['nullable', 'exists:benutzer,id'],
+            'datum_von'    => ['required', 'date'],
+            'datum_bis'    => ['required', 'date', 'after_or_equal:datum_von'],
+        ]);
+
+        Abwesenheit::create([
+            'organisation_id' => $this->orgId(),
+            'benutzer_id'     => $daten['benutzer_id'],
+            'vertretung_id'   => $daten['vertretung_id'] ?? null,
+            'datum_von'       => $daten['datum_von'],
+            'datum_bis'       => $daten['datum_bis'],
+        ]);
+
+        // Wenn Standardvertretung gewählt → alle Einsätze ab heute sofort übertragen
+        $anzahl = 0;
+        if (!empty($daten['vertretung_id'])) {
+            $einsaetze = Einsatz::where('organisation_id', $this->orgId())
+                ->where('benutzer_id', $daten['benutzer_id'])
+                ->whereBetween('datum', [max($daten['datum_von'], today()->format('Y-m-d')), $daten['datum_bis']])
+                ->where('status', 'geplant')
+                ->get();
+
+            foreach ($einsaetze as $einsatz) {
+                $alteTourId = $einsatz->tour_id;
+                $einsatz->update(['benutzer_id' => $daten['vertretung_id']]);
+                $this->einsatzInTourVerschieben($einsatz);
+                $this->leereTourLoeschen($alteTourId);
+                $anzahl++;
+            }
+        }
+
+        $msg = $anzahl > 0
+            ? "Vertretung erfasst — {$anzahl} Einsätze automatisch übertragen."
+            : 'Vertretung erfasst — bitte Einsätze im Detail übertragen.';
+
+        return redirect()->route('vertretung.vorschau.get', [
+            'benutzer_id' => $daten['benutzer_id'],
+            'datum_von'   => $daten['datum_von'],
+            'datum_bis'   => $daten['datum_bis'],
+        ])->with('erfolg', $msg);
+    }
+
+    public function abwesenheitLoeschen(Abwesenheit $abwesenheit)
+    {
+        abort_if($abwesenheit->organisation_id !== $this->orgId(), 403);
+
+        // Zukünftige Einsätze aus den Serien der abwesenden Person zurück auf diese Person
+        $serieIds = Serie::where('benutzer_id', $abwesenheit->benutzer_id)
+            ->where('organisation_id', $abwesenheit->organisation_id)
+            ->pluck('id');
+
+        $zurueck = Einsatz::whereIn('serie_id', $serieIds)
+            ->where('organisation_id', $abwesenheit->organisation_id)
+            ->whereBetween('datum', [$abwesenheit->datum_von, $abwesenheit->datum_bis])
+            ->where('datum', '>=', today())
+            ->where('benutzer_id', '!=', $abwesenheit->benutzer_id)
+            ->where('status', 'geplant')
+            ->get();
+
+        foreach ($zurueck as $einsatz) {
+            $alteTourId = $einsatz->tour_id;
+            $einsatz->update(['benutzer_id' => $abwesenheit->benutzer_id]);
+            $this->einsatzInTourVerschieben($einsatz);
+            $this->leereTourLoeschen($alteTourId);
+        }
+
+        $name = optional(\App\Models\Benutzer::find($abwesenheit->benutzer_id))->vorname;
+        $abwesenheit->delete();
+
+        return back()->with('erfolg', 'Vertretung gelöscht — ' . $zurueck->count() . ' zukünftige Einsätze zurück auf ' . $name . '.');
     }
 
     public function vorschau(Request $request)
@@ -34,9 +129,12 @@ class VertretungController extends Controller
             'vertretung_id' => ['nullable', 'exists:benutzer,id'],
         ]);
 
+        $mitVergangenheit = $request->boolean('mit_vergangenheit');
+        $vonEffektiv      = $mitVergangenheit ? $daten['datum_von'] : max($daten['datum_von'], today()->format('Y-m-d'));
+
         $einsaetze = Einsatz::where('organisation_id', $this->orgId())
             ->where('benutzer_id', $daten['benutzer_id'])
-            ->whereBetween('datum', [$daten['datum_von'], $daten['datum_bis']])
+            ->whereBetween('datum', [$vonEffektiv, $daten['datum_bis']])
             ->where('status', 'geplant')
             ->with('klient', 'einsatzLeistungsarten.leistungsart', 'tour')
             ->orderBy('datum')
@@ -50,7 +148,19 @@ class VertretungController extends Controller
             ->get();
 
         $benutzer   = Benutzer::find($daten['benutzer_id']);
-        $vertretung = !empty($daten['vertretung_id']) ? Benutzer::find($daten['vertretung_id']) : null;
+
+        // Vertretung: explizit übergeben, sonst aus abwesenheiten-Eintrag
+        $vertretungId = $daten['vertretung_id'] ?? null;
+        if (!$vertretungId) {
+            $abwesenheit  = Abwesenheit::where('organisation_id', $this->orgId())
+                ->where('benutzer_id', $daten['benutzer_id'])
+                ->where('datum_von', '<=', $daten['datum_bis'])
+                ->where('datum_bis', '>=', $daten['datum_von'])
+                ->whereNotNull('vertretung_id')
+                ->first();
+            $vertretungId = $abwesenheit?->vertretung_id;
+        }
+        $vertretung = $vertretungId ? Benutzer::find($vertretungId) : null;
 
         // Qualifikationsprüfung
         $einsaetzeOk       = collect();
@@ -91,35 +201,65 @@ class VertretungController extends Controller
             }
         }
 
+        // Bereits übertragene Einsätze: aus Sandras Serien, jetzt bei jemand anderem
+        $serieIds = Serie::where('benutzer_id', $benutzer->id)
+            ->where('organisation_id', $this->orgId())
+            ->pluck('id');
+
+        $bereitsUebertragen = Einsatz::whereIn('serie_id', $serieIds)
+            ->where('organisation_id', $this->orgId())
+            ->whereBetween('datum', [$vonEffektiv, $daten['datum_bis']])
+            ->where('benutzer_id', '!=', $benutzer->id)
+            ->where('status', 'geplant')
+            ->with('klient', 'benutzer', 'einsatzLeistungsarten.leistungsart')
+            ->orderBy('datum')
+            ->orderBy('zeit_von')
+            ->get()
+            ->each(fn($e) => $e->bereits_uebertragen = true);
+
+        // Einheitliche Liste: offen + erledigt, nach Datum/Zeit sortiert
+        $alleEinsaetze = $einsaetzeOk
+            ->each(fn($e) => $e->bereits_uebertragen = false)
+            ->concat($bereitsUebertragen)
+            ->sortBy([['datum', 'asc'], ['zeit_von', 'asc']])
+            ->values();
+
         return view('vertretung.vorschau', compact(
-            'daten', 'einsaetzeOk', 'einsaetzeWarnung',
-            'mitarbeiter', 'benutzer', 'vertretung', 'konflikte'
+            'daten', 'alleEinsaetze', 'einsaetzeWarnung',
+            'mitarbeiter', 'benutzer', 'vertretung', 'konflikte', 'mitVergangenheit'
         ));
     }
 
     public function ausfuehren(Request $request)
     {
         $daten = $request->validate([
-            'einsatz_ids'   => ['required', 'array', 'min:1'],
-            'einsatz_ids.*' => ['exists:einsaetze,id'],
-            'vertretung_id' => ['required', 'exists:benutzer,id'],
+            'einsatz_ids'     => ['required', 'array', 'min:1'],
+            'einsatz_ids.*'   => ['exists:einsaetze,id'],
+            'vertretung_ids'  => ['required', 'array'],
+            'vertretung_ids.*'=> ['exists:benutzer,id'],
         ]);
 
         $anzahl = 0;
         foreach ($daten['einsatz_ids'] as $id) {
+            $vertretungId = $daten['vertretung_ids'][$id] ?? null;
+            if (!$vertretungId) continue;
             $einsatz = Einsatz::find($id);
             if ($einsatz
                 && $einsatz->organisation_id === $this->orgId()
                 && $einsatz->status === 'geplant'
             ) {
-                $einsatz->update(['benutzer_id' => $daten['vertretung_id']]);
+                $alteTourId = $einsatz->tour_id;
+                $einsatz->update(['benutzer_id' => $vertretungId]);
                 $this->einsatzInTourVerschieben($einsatz);
+                $this->leereTourLoeschen($alteTourId);
                 $anzahl++;
             }
         }
 
-        return redirect()->route('vertretung.index')
-            ->with('erfolg', $anzahl . ' Einsatz' . ($anzahl !== 1 ? 'ätze' : '') . ' auf die Vertretung übertragen.');
+        $params = $request->only(['benutzer_id', 'datum_von', 'datum_bis']);
+
+        return redirect()->route('vertretung.vorschau.get', $params)
+            ->with('erfolg', $anzahl . ' Einsatz' . ($anzahl !== 1 ? 'ätze' : '') . ' übertragen.');
     }
 
     /**
@@ -154,5 +294,14 @@ class VertretungController extends Controller
             'tour_id'          => $tour->id,
             'tour_reihenfolge' => $max + 1,
         ]);
+    }
+
+    private function leereTourLoeschen(?int $tourId): void
+    {
+        if (!$tourId) return;
+        $tour = Tour::find($tourId);
+        if ($tour && $tour->einsaetze()->count() === 0) {
+            $tour->delete();
+        }
     }
 }

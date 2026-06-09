@@ -47,7 +47,16 @@
     Einsatzplanung 📅
 </a>
 <a href="{{ route('vertretung.index') }}" class="nav-link {{ request()->routeIs('vertretung.*') ? 'aktiv' : '' }}">
-    Ferienvertretung
+    Vertretung
+    @php
+        $navOffeneVertretungen = \App\Models\Abwesenheit::where('organisation_id', auth()->user()->organisation_id)
+            ->where('datum_bis', '>=', today())
+            ->get()
+            ->sum(fn($a) => $a->offeneEinsaetze());
+    @endphp
+    @if($navOffeneVertretungen > 0)
+        <span style="background:#ef4444; color:white; border-radius:10px; font-size:0.65rem; font-weight:700; padding:1px 6px; margin-left:4px; vertical-align:middle;">{{ $navOffeneVertretungen }}</span>
+    @endif
 </a>
 @endif
 <a href="{{ route('rapporte.index') }}" class="nav-link {{ request()->routeIs('rapporte.*') ? 'aktiv' : '' }}">

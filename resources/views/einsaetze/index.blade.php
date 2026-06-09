@@ -198,6 +198,17 @@
                     </td>
                     <td class="col-desktop text-hell" style="padding: 0.625rem 1rem;">
                         {{ $einsatz->benutzer?->vorname ?? '—' }} {{ $einsatz->benutzer?->nachname ?? '' }}
+                        @if($einsatz->benutzer_id && isset($abwesendeIds[$einsatz->benutzer_id]))
+                            @php $abwEintrag = $abwesenheiten->firstWhere('benutzer_id', $einsatz->benutzer_id); @endphp
+                            <a href="{{ route('vertretung.vorschau.get', ['benutzer_id' => $einsatz->benutzer_id, 'datum_von' => $einsatz->datum->format('Y-m-d'), 'datum_bis' => $einsatz->datum->format('Y-m-d')]) }}"
+                               class="badge badge-fehler" style="font-size:0.65rem; margin-left:0.25rem; text-decoration:none;">🔴 {{ $einsatz->benutzer?->vorname }} abwesend{{ $abwEintrag?->vertretung ? ' — ' . $abwEintrag->vertretung->vorname : '' }} →</a>
+                        @elseif($einsatz->serie_id && isset($serieAbwesendMap[$einsatz->serie_id]))
+                            @php $abwId = $serieAbwesendMap[$einsatz->serie_id]; $abwPerson = $abwesenheiten->firstWhere('benutzer_id', $abwId)?->benutzer; @endphp
+                            @if($abwPerson)
+                            <a href="{{ route('vertretung.vorschau.get', ['benutzer_id' => $abwPerson->id, 'datum_von' => $einsatz->datum->format('Y-m-d'), 'datum_bis' => $einsatz->datum->format('Y-m-d')]) }}"
+                               class="badge badge-erfolg" style="font-size:0.65rem; margin-left:0.25rem; text-decoration:none;">🟢 Vertretung für {{ $abwPerson->vorname }} →</a>
+                            @endif
+                        @endif
                         @if($einsatz->leistungserbringer_typ === 'angehoerig')
                             <span class="badge badge-info" style="font-size: 0.7rem; margin-left: 0.25rem;">Pfl. Angeh.</span>
                             @if($einsatz->helfer)
