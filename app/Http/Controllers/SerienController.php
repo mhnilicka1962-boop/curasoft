@@ -51,7 +51,8 @@ class SerienController extends Controller
 
         $serieId        = (string) Str::uuid();
         $benutzerId     = $daten['benutzer_id'] ?? auth()->id();
-        $leTyp          = $daten['leistungserbringer_typ'] ?? 'fachperson';
+        $ma             = $benutzerId ? \App\Models\Benutzer::find($benutzerId) : null;
+        $leTyp          = ($ma?->anstellungsart === 'angehoerig') ? 'angehoerig' : ($daten['leistungserbringer_typ'] ?? 'fachperson');
         $autoVerlaengern = !empty($daten['auto_verlaengern']);
 
         Serie::create([
@@ -141,6 +142,8 @@ class SerienController extends Controller
         ]);
 
         $benutzerId      = $daten['benutzer_id'] ?? auth()->id();
+        $maUpdate        = $benutzerId ? \App\Models\Benutzer::find($benutzerId) : null;
+        $leTypUpdate     = ($maUpdate?->anstellungsart === 'angehoerig') ? 'angehoerig' : ($daten['leistungserbringer_typ'] ?? 'fachperson');
         $gueltigBis      = !empty($daten['gueltig_bis']) ? \Carbon\Carbon::parse($daten['gueltig_bis']) : null;
         $autoVerlaengern = !empty($daten['auto_verlaengern']);
 
@@ -156,7 +159,7 @@ class SerienController extends Controller
             'zeit_bis'               => $daten['zeit_bis'] ?? null,
             'benutzer_id'            => $daten['benutzer_id'] ?? null,
             'helfer_id'              => $daten['helfer_id'] ?? null,
-            'leistungserbringer_typ' => $daten['leistungserbringer_typ'] ?? 'fachperson',
+            'leistungserbringer_typ' => $leTypUpdate,
             'bemerkung'              => $daten['bemerkung'] ?? null,
         ]);
 

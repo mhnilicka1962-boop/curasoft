@@ -143,8 +143,10 @@ Route::middleware('auth')->group(function () {
                 ->get();
 
             $heute = today();
+            $angFilter = fn($q) => $q->where(fn($s) => $s->where('benutzer_id', $userId)->orWhere('helfer_id', $userId));
+
             $einsaetzeListe = \App\Models\Einsatz::where('organisation_id', $orgId)
-                ->where('benutzer_id', $userId)
+                ->where($angFilter)
                 ->whereDate('datum', $heute)
                 ->where('status', 'geplant')
                 ->with('klient', 'einsatzLeistungsarten.leistungsart')
@@ -153,14 +155,14 @@ Route::middleware('auth')->group(function () {
 
             if ($einsaetzeListe->isEmpty()) {
                 $naechster = \App\Models\Einsatz::where('organisation_id', $orgId)
-                    ->where('benutzer_id', $userId)
+                    ->where($angFilter)
                     ->whereDate('datum', '>', $heute)
                     ->where('status', 'geplant')
                     ->orderBy('datum')->orderBy('zeit_von')
                     ->first();
                 if ($naechster) {
                     $einsaetzeListe = \App\Models\Einsatz::where('organisation_id', $orgId)
-                        ->where('benutzer_id', $userId)
+                        ->where($angFilter)
                         ->whereDate('datum', $naechster->datum)
                         ->where('status', 'geplant')
                         ->with('klient', 'einsatzLeistungsarten.leistungsart')
@@ -170,7 +172,7 @@ Route::middleware('auth')->group(function () {
             }
 
             $stundenMonat = \App\Models\Einsatz::where('organisation_id', $orgId)
-                ->where('benutzer_id', $userId)
+                ->where($angFilter)
                 ->whereYear('datum', $heute->year)
                 ->whereMonth('datum', $heute->month)
                 ->where('status', 'abgeschlossen')
