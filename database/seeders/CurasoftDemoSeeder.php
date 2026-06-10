@@ -1851,11 +1851,16 @@ class CurasoftDemoSeeder extends Seeder
         $leistungsartId = DB::table('leistungsarten')->value('id');
 
         $daten = [
+            // April (hat Rechnungslauf → Warnung testen)
             ['klient' => 'brunner', 'ma' => 'sandra', 'datum' => '2026-04-03'],
             ['klient' => 'brunner', 'ma' => 'sandra', 'datum' => '2026-04-10'],
             ['klient' => 'weber',   'ma' => 'peter',  'datum' => '2026-04-07'],
             ['klient' => 'weber',   'ma' => 'peter',  'datum' => '2026-04-14'],
             ['klient' => 'keller',  'ma' => 'anna',   'datum' => '2026-04-22'],
+            // Mai (kein Rechnungslauf → Warnung beim neuen Lauf testen)
+            ['klient' => 'schneider', 'ma' => 'sandra', 'datum' => '2026-05-06'],
+            ['klient' => 'schneider', 'ma' => 'sandra', 'datum' => '2026-05-13'],
+            ['klient' => 'keller',    'ma' => 'anna',   'datum' => '2026-05-08'],
         ];
 
         foreach ($daten as $d) {
