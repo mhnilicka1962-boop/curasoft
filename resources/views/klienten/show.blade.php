@@ -477,6 +477,12 @@
                         @if($serie->benutzer)
                             <span>{{ $serie->benutzer->vorname }} {{ $serie->benutzer->nachname }}</span>
                         @endif
+                        @if($serie->leistungserbringer_typ === 'angehoerig')
+                            <span class="badge badge-grau" style="font-size: 0.7rem;">Pfl. Angeh.</span>
+                            @if($serie->helfer)
+                                <span>{{ $serie->helfer->vorname }} {{ $serie->helfer->nachname }}</span>
+                            @endif
+                        @endif
                         @if($serie->leistungsarten)
                             <span>{{ collect($serie->leistungsarten)->map(fn($la) => \App\Models\Leistungsart::find($la['id'] ?? 0)?->bezeichnung)->filter()->implode(', ') }}</span>
                         @endif

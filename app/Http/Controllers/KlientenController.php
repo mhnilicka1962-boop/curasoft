@@ -253,7 +253,7 @@ class KlientenController extends Controller
 
         $serien = Serie::where('organisation_id', $this->orgId())
             ->where('klient_id', $klient->id)
-            ->with('benutzer')
+            ->with('benutzer', 'helfer')
             ->orderBy('gueltig_ab', 'desc')
             ->get();
 
