@@ -185,28 +185,19 @@
                         </td>
                     </tr>
                     @else
-                    {{-- Klient ohne Einsätze — rot, nicht selektierbar --}}
-                    <tr class="klient-zeile" style="background:#fef2f2;"
+                    {{-- Klient ohne Einsätze — gedämpft --}}
+                    <tr class="klient-zeile" style="opacity:0.45;"
                         data-name="{{ strtolower($z['klient']->nachname . ' ' . $z['klient']->vorname) }}">
-                        <td style="text-align:center; color:#dc2626; font-weight:700;">—</td>
-                        <td>
-                            <a href="{{ route('klienten.show', $z['klient']) }}"
-                               style="color:#dc2626; font-weight:600; text-decoration:none;"
-                               title="Klient öffnen und Problem beheben">
-                                {{ $z['klient']->nachname }} {{ $z['klient']->vorname }}
-                            </a>
-                            <div style="font-size:0.75rem; color:#b91c1c; margin-top:0.15rem;">
-                                {{ $z['grund'] }}
-                            </div>
+                        <td style="text-align:center;">—</td>
+                        <td style="color:var(--cs-text-hell);">
+                            {{ $z['klient']->nachname }} {{ $z['klient']->vorname }}
                         </td>
-                        <td style="font-size: 0.8125rem;">{{ $z['krankenkasse'] ?? '—' }}</td>
+                        <td style="font-size: 0.8125rem; color:var(--cs-text-hell);">{{ $z['krankenkasse'] ?? '—' }}</td>
                         <td class="text-rechts text-hell">—</td>
                         <td class="text-rechts text-hell">—</td>
                         @if($tiersPayant)<td class="text-rechts text-hell">—</td>@endif
                         <td class="text-rechts text-hell">—</td>
-                        <td>
-                            <span class="badge badge-grau" style="opacity:0.6;">keine Einsätze</span>
-                        </td>
+                        <td><span class="text-hell text-klein">keine Einsätze</span></td>
                     </tr>
                     @endif
                     @endforeach
