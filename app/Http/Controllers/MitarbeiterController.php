@@ -27,6 +27,9 @@ class MitarbeiterController extends Controller
         if ($request->filled('rolle')) {
             $query->where('rolle', $request->rolle);
         }
+        if ($request->filled('anstellungsart')) {
+            $query->where('anstellungsart', $request->anstellungsart);
+        }
         if ($request->aktiv === '0') {
             $query->where('aktiv', false);
         } elseif ($request->aktiv !== '') {

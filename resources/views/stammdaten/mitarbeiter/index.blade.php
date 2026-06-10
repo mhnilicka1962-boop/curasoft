@@ -29,6 +29,16 @@
             </select>
         </div>
         <div>
+            <label class="feld-label">Anstellungsart</label>
+            <select name="anstellungsart" class="feld">
+                <option value="">Alle</option>
+                <option value="fachperson"  {{ request('anstellungsart') === 'fachperson'  ? 'selected' : '' }}>Fachperson</option>
+                <option value="angehoerig"  {{ request('anstellungsart') === 'angehoerig'  ? 'selected' : '' }}>Pfl. Angehöriger</option>
+                <option value="freiwillig"  {{ request('anstellungsart') === 'freiwillig'  ? 'selected' : '' }}>Freiwillig</option>
+                <option value="praktikum"   {{ request('anstellungsart') === 'praktikum'   ? 'selected' : '' }}>Praktikum</option>
+            </select>
+        </div>
+        <div>
             <label class="feld-label">Status</label>
             <select name="aktiv" class="feld">
                 <option value="1" {{ !request()->exists('aktiv') || request('aktiv') === '1' ? 'selected' : '' }}>Aktiv</option>
