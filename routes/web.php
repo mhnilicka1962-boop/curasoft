@@ -134,6 +134,62 @@ Route::middleware('auth')->group(function () {
         $userId = auth()->id();
         $rolle = auth()->user()->rolle;
 
+        // Pflegender Angehöriger → eigene schlanke View
+        if (auth()->user()->anstellungsart === 'angehoerig') {
+            $meineKlienten = \App\Models\KlientBenutzer::where('benutzer_id', $userId)
+                ->where('beziehungstyp', 'angehoerig_pflegend')
+                ->where('aktiv', true)
+                ->with('klient')
+                ->get();
+
+            $heute = today();
+            $einsaetzeListe = \App\Models\Einsatz::where('organisation_id', $orgId)
+                ->where('benutzer_id', $userId)
+                ->whereDate('datum', $heute)
+                ->where('status', 'geplant')
+                ->with('klient', 'einsatzLeistungsarten.leistungsart')
+                ->orderBy('zeit_von')
+                ->get();
+
+            if ($einsaetzeListe->isEmpty()) {
+                $naechster = \App\Models\Einsatz::where('organisation_id', $orgId)
+                    ->where('benutzer_id', $userId)
+                    ->whereDate('datum', '>', $heute)
+                    ->where('status', 'geplant')
+                    ->orderBy('datum')->orderBy('zeit_von')
+                    ->first();
+                if ($naechster) {
+                    $einsaetzeListe = \App\Models\Einsatz::where('organisation_id', $orgId)
+                        ->where('benutzer_id', $userId)
+                        ->whereDate('datum', $naechster->datum)
+                        ->where('status', 'geplant')
+                        ->with('klient', 'einsatzLeistungsarten.leistungsart')
+                        ->orderBy('zeit_von')
+                        ->get();
+                }
+            }
+
+            $stundenMonat = \App\Models\Einsatz::where('organisation_id', $orgId)
+                ->where('benutzer_id', $userId)
+                ->whereYear('datum', $heute->year)
+                ->whereMonth('datum', $heute->month)
+                ->where('status', 'abgeschlossen')
+                ->sum('minuten');
+
+            $chatUngelesen = \DB::table('chat_nachrichten as cn')
+                ->join('chat_teilnehmer as ct', function ($j) use ($userId) {
+                    $j->on('ct.chat_id', '=', 'cn.chat_id')->where('ct.benutzer_id', $userId);
+                })
+                ->whereNull('cn.geloescht_am')
+                ->where('cn.absender_id', '!=', $userId)
+                ->whereRaw('cn.id > COALESCE(ct.letzte_gesehen_id, 0)')
+                ->count();
+
+            return view('angehoerigenpflege.mein_dashboard', compact(
+                'meineKlienten', 'einsaetzeListe', 'stundenMonat', 'chatUngelesen'
+            ));
+        }
+
         $heute = today();
 
         $klientenAktiv = \App\Models\Klient::where('organisation_id', $orgId)
