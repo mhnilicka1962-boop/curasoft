@@ -100,6 +100,9 @@ class PdfExportService
         $zeigeRapportblatt = $rapportblattDaten !== null && !$isTiersPayant;
         $zeigeBerechnung   = $rapportblattDaten !== null && $isTiersPayant;
 
+        $klientName = trim(($rechnung->klient->anrede ? $rechnung->klient->anrede . ' ' : '')
+            . $rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
+
         $html = view('pdfs.rechnung', [
             'rechnung'         => $rechnung,
             'org'              => $this->org,
@@ -113,9 +116,6 @@ class PdfExportService
         $portraitBytes = Pdf::loadHTML($html)->setPaper('A4', 'portrait')->output();
 
         if ($zeigeRapportblatt) {
-            $klientName = trim(($rechnung->klient->anrede ? $rechnung->klient->anrede . ' ' : '')
-                . $rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
-
             $rbHtml = view('pdfs.rapportblatt', [
                 'rechnung'          => $rechnung,
                 'org'               => $this->org,
@@ -127,9 +127,6 @@ class PdfExportService
             $landscapeBytes = Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output();
             $finalBytes     = $this->mergePdfs($portraitBytes, $landscapeBytes);
         } elseif ($zeigeBerechnung) {
-            $klientName = trim(($rechnung->klient->anrede ? $rechnung->klient->anrede . ' ' : '')
-                . $rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
-
             $beHtml = view('pdfs.berechnung_anteil', [
                 'rechnung'          => $rechnung,
                 'klientName'        => $klientName,
@@ -141,6 +138,20 @@ class PdfExportService
             $finalBytes   = $this->mergePdfs($portraitBytes, $beilageBytes);
         } else {
             $finalBytes = $portraitBytes;
+        }
+
+        // Leistungsnachweis immer anhängen wenn Einzelleistungen vorhanden
+        $rechnung->load('positionen.einsatz.benutzer', 'positionen.einsatzLeistungsart.leistungsart');
+        $hatEinzelleistungen = $rechnung->positionen->filter(fn($p) => $p->menge > 0 && !in_array($p->einheit, ['tage', 'pauschal']))->isNotEmpty();
+        if ($hatEinzelleistungen) {
+            $lnHtml = view('pdfs.leistungsnachweis', [
+                'rechnung'   => $rechnung,
+                'org'        => $this->org,
+                'klientName' => $klientName,
+                'positionen' => $rechnung->positionen,
+            ])->render();
+            $lnBytes    = Pdf::loadHTML($lnHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'portrait')->output();
+            $finalBytes = $this->mergePdfs($finalBytes, $lnBytes);
         }
 
         $pfad = "pdf_export/{$this->org->id}/rechnung_{$rechnung->rechnungsnummer}.pdf";
