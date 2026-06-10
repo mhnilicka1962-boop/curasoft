@@ -71,9 +71,8 @@
                     <input type="date" name="eintrittsdatum" class="feld" required value="{{ old('eintrittsdatum', now()->startOfMonth()->format('Y-m-d')) }}">
                 </div>
                 <div>
-                    <label class="feld-label">Betreuter Klient</label>
-                    <select name="klient_id" class="feld">
-                        <option value="">— später zuweisen —</option>
+                    <label class="feld-label">Betreuter Klient *</label>
+                    <select name="klient_id" class="feld" required>
                         @foreach($klienten as $k)
                             <option value="{{ $k->id }}" {{ old('klient_id') == $k->id ? 'selected' : '' }}>
                                 {{ $k->nachname }} {{ $k->vorname }}
