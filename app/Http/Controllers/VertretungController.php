@@ -33,6 +33,48 @@ class VertretungController extends Controller
         return view('vertretung.index', compact('mitarbeiter', 'abwesenheiten'));
     }
 
+    public function archiv(Request $request)
+    {
+        $suche = trim($request->input('q', ''));
+
+        $abwesenheiten = Abwesenheit::where('organisation_id', $this->orgId())
+            ->where('datum_bis', '<', today())
+            ->with('benutzer', 'vertretung')
+            ->orderByDesc('datum_bis')
+            ->get()
+            ->map(function ($abw) {
+                $serieIds = Serie::where('benutzer_id', $abw->benutzer_id)
+                    ->where('organisation_id', $abw->organisation_id)
+                    ->pluck('id');
+                $einsaetze = Einsatz::whereIn('serie_id', $serieIds)
+                    ->whereBetween('datum', [$abw->datum_von, $abw->datum_bis])
+                    ->with('klient')
+                    ->get();
+                $abw->anzahl_einsaetze = $einsaetze->count();
+                $abw->klienten = $einsaetze
+                    ->pluck('klient')
+                    ->filter()
+                    ->unique('id')
+                    ->map(fn($k) => $k->vorname . ' ' . $k->nachname)
+                    ->sort()
+                    ->values();
+                return $abw;
+            })
+            ->when($suche !== '', function ($col) use ($suche) {
+                $s = mb_strtolower($suche);
+                return $col->filter(function ($abw) use ($s) {
+                    $maName = mb_strtolower($abw->benutzer->vorname . ' ' . $abw->benutzer->nachname);
+                    if (str_contains($maName, $s)) return true;
+                    foreach ($abw->klienten as $k) {
+                        if (str_contains(mb_strtolower($k), $s)) return true;
+                    }
+                    return false;
+                })->values();
+            });
+
+        return view('vertretung.archiv', compact('abwesenheiten', 'suche'));
+    }
+
     public function erstellen()
     {
         $mitarbeiter = Benutzer::where('organisation_id', $this->orgId())

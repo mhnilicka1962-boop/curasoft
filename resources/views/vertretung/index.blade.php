@@ -3,7 +3,10 @@
 
     <div class="seiten-kopf" style="margin-bottom: 1.5rem;">
         <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Vertretung</h1>
-        <a href="{{ route('vertretung.erstellen') }}" class="btn btn-primaer">+ Neue Vertretung</a>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="{{ route('vertretung.archiv') }}" class="btn btn-sekundaer">Archiv</a>
+            <a href="{{ route('vertretung.erstellen') }}" class="btn btn-primaer">+ Neue Vertretung</a>
+        </div>
     </div>
 
     @if(session('erfolg'))

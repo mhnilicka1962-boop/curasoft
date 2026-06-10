@@ -72,6 +72,7 @@ class CurasoftDemoSeeder extends Seeder
             $this->einsaetzeUndTouren();
             $this->rapporte();
             $this->rechnungslaeufe();
+            $this->abwesenheiten();
         });
 
         $klienten  = DB::table('klienten')->where('organisation_id', $this->orgId)->count();
@@ -1727,6 +1728,51 @@ class CurasoftDemoSeeder extends Seeder
                 ]);
                 $current->addDay();
             }
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ABWESENHEITEN (Archiv-Testdaten)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function abwesenheiten(): void
+    {
+        DB::table('abwesenheiten')->where('organisation_id', $this->orgId)->delete();
+
+        $eintraege = [
+            // Sandra krank, Peter vertritt — 2 Wochen
+            [
+                'benutzer_id'  => $this->ma['sandra'],
+                'vertretung_id'=> $this->ma['peter'],
+                'datum_von'    => '2026-02-09',
+                'datum_bis'    => '2026-02-20',
+            ],
+            // Anna Ferien, Lisa vertritt — 1 Woche
+            [
+                'benutzer_id'  => $this->ma['anna'],
+                'vertretung_id'=> $this->ma['lisa'],
+                'datum_von'    => '2026-03-24',
+                'datum_bis'    => '2026-03-28',
+            ],
+            // Thomas abwesend, keine Vertretung erfasst
+            [
+                'benutzer_id'  => $this->ma['thomas'],
+                'vertretung_id'=> null,
+                'datum_von'    => '2026-04-22',
+                'datum_bis'    => '2026-04-24',
+            ],
+        ];
+
+        foreach ($eintraege as $e) {
+            DB::table('abwesenheiten')->insert([
+                'organisation_id' => $this->orgId,
+                'benutzer_id'     => $e['benutzer_id'],
+                'vertretung_id'   => $e['vertretung_id'],
+                'datum_von'       => $e['datum_von'],
+                'datum_bis'       => $e['datum_bis'],
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
         }
     }
 }

@@ -327,6 +327,7 @@ Route::middleware('auth')->group(function () {
         // Ferienvertretung (nur Admin)
         Route::middleware('rolle:admin')->group(function () {
             Route::get('/vertretung',          [VertretungController::class, 'index'])->name('vertretung.index');
+            Route::get('/vertretung/archiv',   [VertretungController::class, 'archiv'])->name('vertretung.archiv');
             Route::get('/vertretung/vorschau', [VertretungController::class, 'vorschau'])->name('vertretung.vorschau.get');
             Route::post('/vertretung/vorschau',[VertretungController::class, 'vorschau'])->name('vertretung.vorschau');
             Route::post('/vertretung/ausfuehren',[VertretungController::class, 'ausfuehren'])->name('vertretung.ausfuehren');
