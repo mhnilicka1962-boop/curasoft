@@ -72,9 +72,16 @@
                         {{ $e->einsatzLeistungsarten->map(fn($el) => $el->leistungsart?->bezeichnung)->filter()->implode(', ') ?: '—' }}
                     </div>
                 </div>
+                @if(!$e->datum->isFuture())
                 <a href="{{ route('einsaetze.vor-ort', $e) }}" class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.25rem 0.75rem;">
                     Vor-Ort →
                 </a>
+                @else
+                <span class="btn btn-sekundaer" style="font-size: 0.8125rem; padding: 0.25rem 0.75rem; cursor: default; opacity: 0.6;"
+                      title="Erst am {{ $e->datum->format('d.m.Y') }} verfügbar">
+                    Ab {{ $e->datum->format('d.m.') }}
+                </span>
+                @endif
             </div>
             @endforeach
         </div>
