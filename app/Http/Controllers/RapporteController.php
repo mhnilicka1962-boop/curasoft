@@ -83,7 +83,7 @@ class RapporteController extends Controller
         $daten = $request->validate([
             'klient_id'   => ['required', 'exists:klienten,id'],
             'einsatz_id'  => ['nullable', 'exists:einsaetze,id'],
-            'datum'       => ['required', 'date'],
+            'datum'       => ['required', 'date', 'before_or_equal:today'],
             'zeit_von'    => ['nullable', 'date_format:H:i'],
             'zeit_bis'    => ['nullable', 'date_format:H:i'],
             'rapport_typ' => ['required', 'in:pflege,verlauf,information,zwischenfall,medikament'],
