@@ -51,9 +51,13 @@ class EinsaetzeController extends Controller
             ->where('organisation_id', $this->orgId());
 
         if ($rolle === 'pflege') {
-            $q->where('benutzer_id', $userId);
+            $q->where(function ($sq) use ($userId) {
+                $sq->where('benutzer_id', $userId)->orWhere('helfer_id', $userId);
+            });
         } elseif ($request->filled('benutzer_id')) {
-            $q->where('benutzer_id', $request->benutzer_id);
+            $q->where(function ($sq) use ($request) {
+                $sq->where('benutzer_id', $request->benutzer_id)->orWhere('helfer_id', $request->benutzer_id);
+            });
         }
 
         if ($ansicht === 'vergangen') {
