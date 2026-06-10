@@ -189,8 +189,10 @@
                     <tr class="klient-zeile" style="opacity:0.45;"
                         data-name="{{ strtolower($z['klient']->nachname . ' ' . $z['klient']->vorname) }}">
                         <td style="text-align:center;">—</td>
-                        <td style="color:var(--cs-text-hell);">
-                            {{ $z['klient']->nachname }} {{ $z['klient']->vorname }}
+                        <td>
+                            <a href="{{ route('klienten.show', $z['klient']) }}" class="link-primaer">
+                                {{ $z['klient']->nachname }} {{ $z['klient']->vorname }}
+                            </a>
                         </td>
                         <td style="font-size: 0.8125rem; color:var(--cs-text-hell);">{{ $z['krankenkasse'] ?? '—' }}</td>
                         <td class="text-rechts text-hell">—</td>
