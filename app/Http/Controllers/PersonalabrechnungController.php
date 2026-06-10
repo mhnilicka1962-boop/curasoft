@@ -29,6 +29,19 @@ class PersonalabrechnungController extends Controller
         return [$von, $von->copy()->endOfMonth()];
     }
 
+    private function parseJahrMonat(Request $request): array
+    {
+        $raw = $request->input('monat', '');
+        if ($raw && str_contains($raw, '-')) {
+            [$j, $m] = array_map('intval', explode('-', $raw, 2));
+            return [$j, $m];
+        }
+        return [
+            (int) $request->input('jahr',  now()->format('Y')),
+            (int) $request->input('monat', now()->format('n')),
+        ];
+    }
+
     private function mitarbeiterMitStats(Carbon $von, Carbon $bis, ?string $suche = null)
     {
         $stats = Einsatz::where('organisation_id', $this->orgId())
@@ -75,8 +88,7 @@ class PersonalabrechnungController extends Controller
 
     public function index(Request $request)
     {
-        $jahr  = (int) $request->input('jahr',  now()->format('Y'));
-        $monat = (int) $request->input('monat', now()->format('n'));
+        [$jahr, $monat] = $this->parseJahrMonat($request);
         $suche = trim($request->input('suche', ''));
 
         [$von, $bis] = $this->vonBis($jahr, $monat);
@@ -96,8 +108,7 @@ class PersonalabrechnungController extends Controller
             abort_if($benutzer->id !== auth()->id(), 403);
         }
 
-        $jahr  = (int) $request->input('jahr',  now()->format('Y'));
-        $monat = (int) $request->input('monat', now()->format('n'));
+        [$jahr, $monat] = $this->parseJahrMonat($request);
         [$von, $bis] = $this->vonBis($jahr, $monat);
 
         $einsaetze = Einsatz::where('organisation_id', $this->orgId())
@@ -128,8 +139,7 @@ class PersonalabrechnungController extends Controller
             abort_if($benutzer->id !== auth()->id(), 403);
         }
 
-        $jahr  = (int) $request->input('jahr',  now()->format('Y'));
-        $monat = (int) $request->input('monat', now()->format('n'));
+        [$jahr, $monat] = $this->parseJahrMonat($request);
         [$von, $bis] = $this->vonBis($jahr, $monat);
 
         $einsaetze = Einsatz::where('organisation_id', $this->orgId())
@@ -216,8 +226,7 @@ class PersonalabrechnungController extends Controller
             abort_if($benutzer->id !== auth()->id(), 403);
         }
 
-        $jahr  = (int) $request->input('jahr',  now()->format('Y'));
-        $monat = (int) $request->input('monat', now()->format('n'));
+        [$jahr, $monat] = $this->parseJahrMonat($request);
         [$von, $bis] = $this->vonBis($jahr, $monat);
 
         $org = Organisation::findOrFail($this->orgId());
@@ -261,8 +270,7 @@ class PersonalabrechnungController extends Controller
         abort_if($benutzer->organisation_id !== $this->orgId(), 403);
         abort_unless($benutzer->email_privat, 422, 'Keine private E-Mail-Adresse hinterlegt.');
 
-        $jahr  = (int) $request->input('jahr',  now()->format('Y'));
-        $monat = (int) $request->input('monat', now()->format('n'));
+        [$jahr, $monat] = $this->parseJahrMonat($request);
         [$von, $bis] = $this->vonBis($jahr, $monat);
 
         $org = Organisation::findOrFail($this->orgId());
@@ -282,8 +290,7 @@ class PersonalabrechnungController extends Controller
 
     public function sammelMail(Request $request)
     {
-        $jahr  = (int) $request->input('jahr',  now()->format('Y'));
-        $monat = (int) $request->input('monat', now()->format('n'));
+        [$jahr, $monat] = $this->parseJahrMonat($request);
         $suche = trim($request->input('suche', '')) ?: null;
         [$von, $bis] = $this->vonBis($jahr, $monat);
 
@@ -314,8 +321,7 @@ class PersonalabrechnungController extends Controller
 
     public function sammelCsv(Request $request)
     {
-        $jahr  = (int) $request->input('jahr',  now()->format('Y'));
-        $monat = (int) $request->input('monat', now()->format('n'));
+        [$jahr, $monat] = $this->parseJahrMonat($request);
         $suche = trim($request->input('suche', '')) ?: null;
         [$von, $bis] = $this->vonBis($jahr, $monat);
 
@@ -390,8 +396,7 @@ class PersonalabrechnungController extends Controller
 
     public function sammelPdf(Request $request)
     {
-        $jahr  = (int) $request->input('jahr',  now()->format('Y'));
-        $monat = (int) $request->input('monat', now()->format('n'));
+        [$jahr, $monat] = $this->parseJahrMonat($request);
         $suche = trim($request->input('suche', '')) ?: null;
         [$von, $bis] = $this->vonBis($jahr, $monat);
 
