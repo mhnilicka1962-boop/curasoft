@@ -1531,12 +1531,6 @@ class CurasoftDemoSeeder extends Seeder
                 'lauf_status'     => 'abgeschlossen',
                 'rechnung_status' => 'gesendet',
             ],
-            [
-                'von'             => $heute->copy()->startOfMonth()->subMonth(),
-                'bis'             => $heute->copy()->startOfMonth()->subMonth()->endOfMonth(),
-                'lauf_status'     => 'abgeschlossen',
-                'rechnung_status' => 'entwurf',
-            ],
         ];
 
         foreach ($perioden as $periode) {
@@ -1800,12 +1794,12 @@ class CurasoftDemoSeeder extends Seeder
         }
 
         // Ruth Gerber → Josef Gerber (Hauswirtschaft, 2x/Woche)
-        $tageRuth = ['2026-04-01','2026-04-03','2026-04-07','2026-04-09','2026-04-11',
-                     '2026-04-14','2026-04-17','2026-04-22','2026-04-25','2026-04-28'];
+        $tageRuth = ['2026-05-02','2026-05-05','2026-05-07','2026-05-09','2026-05-12',
+                     '2026-05-14','2026-05-16','2026-05-19','2026-05-21','2026-05-26'];
 
         // Hans Brunner → Elisabeth Brunner (Hauswirtschaft, 2x/Woche)
-        $tageHans = ['2026-04-02','2026-04-06','2026-04-08','2026-04-11','2026-04-15',
-                     '2026-04-17','2026-04-23','2026-04-25','2026-04-29'];
+        $tageHans = ['2026-05-04','2026-05-06','2026-05-08','2026-05-12','2026-05-15',
+                     '2026-05-18','2026-05-20','2026-05-25','2026-05-27'];
 
         foreach ([
             ['tage' => $tageRuth, 'ma' => 'ruth',  'klient' => 'gerber',  'min' => 90, 'von' => '09:00', 'bis' => '10:30'],
