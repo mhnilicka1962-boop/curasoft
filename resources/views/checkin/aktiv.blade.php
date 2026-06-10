@@ -49,17 +49,15 @@
     </a>
 
     {{-- Manueller Check-out --}}
-    <details style="text-align: left;">
-        <summary class="text-klein text-hell" style="cursor: pointer; padding: 0.5rem 0; text-align: center;">✏️ Manuell eintragen</summary>
-        <form method="POST" action="{{ route('checkout.manuell', $einsatz) }}" style="display: flex; gap: 0.5rem; align-items: flex-end; margin-top: 0.5rem;">
-            @csrf
-            <div style="flex: 1;">
-                <label class="feld-label" style="font-size: 0.75rem;">Check-out Zeit</label>
-                <input type="time" name="checkout_zeit" class="feld" value="{{ date('H:i') }}" required>
-            </div>
-            <button type="submit" class="btn btn-sekundaer">Eintragen</button>
-        </form>
-    </details>
+    <form method="POST" action="{{ route('checkout.manuell', $einsatz) }}"
+          style="display: flex; gap: 0.5rem; align-items: flex-end; margin-top: 0.25rem;">
+        @csrf
+        <div style="flex: 1;">
+            <label class="feld-label" style="font-size: 0.75rem;">Check-out Zeit (manuell)</label>
+            <input type="time" name="checkout_zeit" class="feld" value="{{ date('H:i') }}" required>
+        </div>
+        <button type="submit" class="btn btn-sekundaer">Eintragen</button>
+    </form>
 
 </div>
 
