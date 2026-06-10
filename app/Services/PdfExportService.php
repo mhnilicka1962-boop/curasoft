@@ -140,15 +140,19 @@ class PdfExportService
             $finalBytes = $portraitBytes;
         }
 
-        // Leistungsnachweis immer anhängen wenn Einzelleistungen vorhanden
-        $rechnung->load('positionen.einsatz.benutzer', 'positionen.einsatzLeistungsart.leistungsart');
-        $hatEinzelleistungen = $rechnung->positionen->filter(fn($p) => $p->menge > 0 && !in_array($p->einheit, ['tage', 'pauschal']))->isNotEmpty();
-        if ($hatEinzelleistungen) {
+        // Tagesrapport: Einsätze direkt aus Positionen laden (dedupliziert)
+        $einsatzIds = $rechnung->positionen->pluck('einsatz_id')->filter()->unique()->values();
+        if ($einsatzIds->isNotEmpty()) {
+            $einsaetze = \App\Models\Einsatz::whereIn('id', $einsatzIds)
+                ->with(['benutzer', 'einsatzLeistungsarten.leistungsart'])
+                ->orderBy('datum')
+                ->orderBy('zeit_von')
+                ->get();
             $lnHtml = view('pdfs.leistungsnachweis', [
                 'rechnung'   => $rechnung,
                 'org'        => $this->org,
                 'klientName' => $klientName,
-                'positionen' => $rechnung->positionen,
+                'einsaetze'  => $einsaetze,
             ])->render();
             $lnBytes    = Pdf::loadHTML($lnHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'portrait')->output();
             $finalBytes = $this->mergePdfs($finalBytes, $lnBytes);
