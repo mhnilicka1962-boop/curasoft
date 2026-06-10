@@ -33,6 +33,7 @@
             <input type="hidden" name="anstellungsart" value="angehoerig">
             <input type="hidden" name="rolle" value="pflege">
             <input type="hidden" name="_redirect" value="angehoerige">
+            <input type="hidden" name="beziehungstyp" value="angehoerig_pflegend">
             <div class="form-grid" style="margin-bottom:0.75rem;">
                 <div>
                     <label class="feld-label">Anrede</label>
@@ -66,8 +67,8 @@
                     <input type="number" name="pensum" class="feld" min="0" max="100" value="{{ old('pensum', 100) }}">
                 </div>
                 <div>
-                    <label class="feld-label">Eintrittsdatum</label>
-                    <input type="date" name="eintrittsdatum" class="feld" value="{{ old('eintrittsdatum') }}">
+                    <label class="feld-label">Eintrittsdatum *</label>
+                    <input type="date" name="eintrittsdatum" class="feld" required value="{{ old('eintrittsdatum', now()->startOfMonth()->format('Y-m-d')) }}">
                 </div>
                 <div>
                     <label class="feld-label">Betreuter Klient</label>

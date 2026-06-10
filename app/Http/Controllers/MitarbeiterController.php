@@ -82,7 +82,7 @@ class MitarbeiterController extends Controller
             'rolle'           => ['required', 'in:admin,pflege,buchhaltung'],
             'anstellungsart'  => ['nullable', 'in:fachperson,angehoerig,freiwillig,praktikum'],
             'pensum'          => ['nullable', 'integer', 'min:0', 'max:100'],
-            'eintrittsdatum'  => ['nullable', 'date'],
+            'eintrittsdatum'  => [$request->input('anstellungsart') === 'angehoerig' ? 'required' : 'nullable', 'date'],
             'nationalitaet'   => ['nullable', 'string', 'max:60'],
             'zivilstand'      => ['nullable', 'string', 'max:40'],
             'telefax'         => ['nullable', 'string', 'max:30'],
