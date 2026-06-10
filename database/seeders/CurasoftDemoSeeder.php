@@ -73,6 +73,7 @@ class CurasoftDemoSeeder extends Seeder
             $this->rapporte();
             $this->rechnungslaeufe();
             $this->abwesenheiten();
+            $this->nichtErledigteEinsaetze();
         });
 
         $klienten  = DB::table('klienten')->where('organisation_id', $this->orgId)->count();
@@ -1773,6 +1774,48 @@ class CurasoftDemoSeeder extends Seeder
                 'created_at'      => now(),
                 'updated_at'      => now(),
             ]);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // NICHT ERLEDIGTE EINSÄTZE (Testdaten für Rechnungslauf-Warnung)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function nichtErledigteEinsaetze(): void
+    {
+        $leistungsartId = DB::table('leistungsarten')->value('id');
+
+        $daten = [
+            ['klient' => 'brunner', 'ma' => 'sandra', 'datum' => '2026-04-03'],
+            ['klient' => 'brunner', 'ma' => 'sandra', 'datum' => '2026-04-10'],
+            ['klient' => 'weber',   'ma' => 'peter',  'datum' => '2026-04-07'],
+            ['klient' => 'weber',   'ma' => 'peter',  'datum' => '2026-04-14'],
+            ['klient' => 'keller',  'ma' => 'anna',   'datum' => '2026-04-22'],
+        ];
+
+        foreach ($daten as $d) {
+            $einsatzId = DB::table('einsaetze')->insertGetId([
+                'organisation_id'      => $this->orgId,
+                'klient_id'            => $this->kl[$d['klient']],
+                'benutzer_id'          => $this->ma[$d['ma']],
+                'datum'                => $d['datum'],
+                'datum_bis'            => $d['datum'],
+                'status'               => 'geplant',
+                'leistungserbringer_typ' => 'fachperson',
+                'verrechnet'           => false,
+                'created_at'           => now(),
+                'updated_at'           => now(),
+            ]);
+
+            if ($leistungsartId) {
+                DB::table('einsatz_leistungsarten')->insert([
+                    'einsatz_id'      => $einsatzId,
+                    'leistungsart_id' => $leistungsartId,
+                    'minuten'         => 60,
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ]);
+            }
         }
     }
 }

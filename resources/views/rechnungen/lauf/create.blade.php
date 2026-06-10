@@ -49,6 +49,18 @@
         Periode bis liegt in der Zukunft — Rechnungsläufe dürfen nur bis heute ({{ today()->format('d.m.Y') }}) erstellt werden.
     </div>
     @endif
+    @if(($nichtErledigt ?? 0) > 0)
+    <div style="background:#fefce8; border:1px solid #fde047; border-radius:var(--cs-radius); padding:0.5rem 0.75rem; margin-top:0.625rem; font-size:0.875rem; color:#854d0e;">
+        ⚠ <strong>{{ $nichtErledigt }} Einsatz{{ $nichtErledigt !== 1 ? 'ätze' : '' }} nicht abgeschlossen</strong> in diesem Zeitraum —
+        diese fehlen in der Abrechnung.
+        <a href="{{ route('einsaetze.index', [
+            'ansicht'   => 'vergangen',
+            'status'    => 'geplant',
+            'datum_von' => request('periode_von'),
+            'datum_bis' => request('periode_bis'),
+        ]) }}" class="link-primaer" style="font-weight:600;">Einsätze anzeigen →</a>
+    </div>
+    @endif
 </div>
 
 {{-- Vorschau --}}

@@ -234,7 +234,16 @@ class RechnungslaufController extends Controller
 
         $tiersPayant = ($org->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant';
 
-        return view('rechnungen.lauf.create', compact('vorschau', 'org', 'tiersPayant'));
+        $nichtErledigt = 0;
+        if ($request->filled('periode_von') && $request->filled('periode_bis')) {
+            $nichtErledigt = \App\Models\Einsatz::where('organisation_id', $this->orgId())
+                ->whereBetween('datum', [$request->periode_von, $request->periode_bis])
+                ->where('datum', '<=', today())
+                ->where('status', 'geplant')
+                ->count();
+        }
+
+        return view('rechnungen.lauf.create', compact('vorschau', 'org', 'tiersPayant', 'nichtErledigt'));
     }
 
     public function store(Request $request)
