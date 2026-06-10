@@ -60,11 +60,12 @@ tfoot td.r { text-align: right; }
     <h1>Berechnung Ihres Anteils — Rechnung {{ $rechnung->rechnungsnummer }}</h1>
 
     @php
-        $patKvg = (float) ($rapportblattDaten['summen']['pat'] ?? 0);
+        $patKvg     = (float) ($rapportblattDaten['summen']['pat'] ?? 0);
         $patNichtKvg = 0.0;
         foreach ($nichtKvgGruppen ?? [] as $g) { $patNichtKvg += (float) $g['betrag']; }
-        $patTotal = $patKvg + $patNichtKvg;
-        $hatBeides = $patKvg > 0 && $patNichtKvg > 0;
+        $hatBeides  = $patKvg > 0 && $patNichtKvg > 0;
+        // Ihr Anteil = genau der Betrag auf dem Einzahlungsschein
+        $patTotal   = (float) $rechnung->betrag_patient;
     @endphp
     <table class="kopf-info">
         <tr>
@@ -92,6 +93,39 @@ tfoot td.r { text-align: right; }
             Hinweis: Nicht-KVG-Leistungen (z.B. Hauswirtschaft) werden voll vom Patient getragen und sind separat unten ausgewiesen.
         </div>
     </div>
+
+    @if(!empty($nichtKvgGruppen) && count($nichtKvgGruppen) > 0)
+    <div class="zusatz">
+        <div class="label">Nicht-KVG-Leistungen (voll vom Patient getragen)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Leistung</th>
+                    <th class="r">Minuten</th>
+                    <th class="r">Vollkosten CHF</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $nkvSumme = 0; @endphp
+                @foreach($nichtKvgGruppen as $g)
+                @php $nkvSumme += $g['betrag']; @endphp
+                <tr>
+                    <td>{{ $g['bezeichnung'] }}</td>
+                    <td class="r">{{ (int)$g['menge'] }}</td>
+                    <td class="r">{{ number_format($g['betrag'], 2, '.', "'") }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>Total Nicht-KVG</td>
+                    <td></td>
+                    <td class="r">{{ number_format($nkvSumme, 2, '.', "'") }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    @endif
 
     <table>
         <thead>
@@ -145,38 +179,6 @@ tfoot td.r { text-align: right; }
         </tfoot>
     </table>
 
-    @if(!empty($nichtKvgGruppen) && count($nichtKvgGruppen) > 0)
-    <div class="zusatz">
-        <div class="label">Nicht-KVG-Leistungen (voll vom Patient getragen)</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Leistung</th>
-                    <th class="r">Minuten</th>
-                    <th class="r">Vollkosten CHF</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php $nkvSumme = 0; @endphp
-                @foreach($nichtKvgGruppen as $g)
-                @php $nkvSumme += $g['betrag']; @endphp
-                <tr>
-                    <td>{{ $g['bezeichnung'] }}</td>
-                    <td class="r">{{ (int)$g['menge'] }}</td>
-                    <td class="r">{{ number_format($g['betrag'], 2, '.', "'") }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td>Total Nicht-KVG</td>
-                    <td></td>
-                    <td class="r">{{ number_format($nkvSumme, 2, '.', "'") }}</td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-    @endif
 
 </div>
 </body>
