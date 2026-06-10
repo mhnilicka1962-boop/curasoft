@@ -24,7 +24,7 @@ class EinsaetzeController extends Controller
             ->where('aktiv', true)->orderBy('nachname')->get();
         $leistungsarten = Leistungsart::where('aktiv', true)->where('einheit', '!=', 'tage')->orderBy('bezeichnung')->get();
         $mitarbeiter = (auth()->user()->rolle === 'admin')
-            ? Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->where('anstellungsart', '!=', 'angehoerig')->orderBy('nachname')->get()
+            ? Benutzer::where('organisation_id', $this->orgId())->where('aktiv', true)->orderBy('nachname')->get()
             : collect();
         $kbEintraege    = \App\Models\KlientBenutzer::where('beziehungstyp', 'angehoerig_pflegend')->where('aktiv', true)->get();
         $benutzerLookup = Benutzer::whereIn('id', $kbEintraege->pluck('benutzer_id')->unique())->get()->keyBy('id');
@@ -161,7 +161,6 @@ class EinsaetzeController extends Controller
         $mitarbeiter = (auth()->user()->rolle === 'admin')
             ? Benutzer::where('organisation_id', $this->orgId())
                 ->where('aktiv', true)
-                ->where('anstellungsart', '!=', 'angehoerig')
                 ->orderBy('nachname')
                 ->get()
             : collect();
