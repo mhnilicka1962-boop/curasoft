@@ -74,6 +74,7 @@ class CurasoftDemoSeeder extends Seeder
             $this->rechnungslaeufe();
             $this->abwesenheiten();
             $this->nichtErledigteEinsaetze();
+            $this->angehoerigeApril();
         });
 
         $klienten  = DB::table('klienten')->where('organisation_id', $this->orgId)->count();
@@ -245,6 +246,7 @@ class CurasoftDemoSeeder extends Seeder
             'thomas' => ['email' => 'thomas@curasoft-demo.ch', 'vorname' => 'Thomas', 'nachname' => 'Müller',  'rolle' => 'pflege',       'anstellungsart' => 'fachperson'],
             'buch'   => ['email' => 'buch@curasoft-demo.ch',   'vorname' => 'Monika', 'nachname' => 'Schwarz', 'rolle' => 'buchhaltung',  'anstellungsart' => 'fachperson'],
             'ruth'   => ['email' => 'ruth@curasoft-demo.ch',   'vorname' => 'Ruth',   'nachname' => 'Gerber',  'rolle' => 'pflege',       'anstellungsart' => 'angehoerig'],
+            'hans'   => ['email' => 'hans@curasoft-demo.ch',  'vorname' => 'Hans',   'nachname' => 'Brunner', 'rolle' => 'pflege',       'anstellungsart' => 'angehoerig'],
         ];
 
         foreach ($liste as $key => $data) {
@@ -1774,6 +1776,75 @@ class CurasoftDemoSeeder extends Seeder
                 'created_at'      => now(),
                 'updated_at'      => now(),
             ]);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ANGEHÖRIGE — Abgeschlossene Einsätze April 2026 (für Rechnungslauf-Test)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function angehoerigeApril(): void
+    {
+        $laHwl = $this->laId('hwl');
+
+        // KlientBenutzer-Verknüpfungen sicherstellen
+        foreach ([
+            ['klient' => 'gerber',  'ma' => 'ruth'],
+            ['klient' => 'brunner', 'ma' => 'hans'],
+        ] as $link) {
+            DB::table('klient_benutzer')->updateOrInsert(
+                ['klient_id' => $this->kl[$link['klient']], 'benutzer_id' => $this->ma[$link['ma']]],
+                ['rolle' => 'hauptbetreuer', 'beziehungstyp' => 'angehoerig_pflegend', 'aktiv' => true,
+                 'created_at' => now(), 'updated_at' => now()]
+            );
+        }
+
+        // Ruth Gerber → Josef Gerber (Hauswirtschaft, 2x/Woche)
+        $tageRuth = ['2026-04-01','2026-04-03','2026-04-07','2026-04-09','2026-04-11',
+                     '2026-04-14','2026-04-17','2026-04-22','2026-04-25','2026-04-28'];
+
+        // Hans Brunner → Elisabeth Brunner (Hauswirtschaft, 2x/Woche)
+        $tageHans = ['2026-04-02','2026-04-06','2026-04-08','2026-04-11','2026-04-15',
+                     '2026-04-17','2026-04-23','2026-04-25','2026-04-29'];
+
+        foreach ([
+            ['tage' => $tageRuth, 'ma' => 'ruth',  'klient' => 'gerber',  'min' => 90, 'von' => '09:00', 'bis' => '10:30'],
+            ['tage' => $tageHans, 'ma' => 'hans',  'klient' => 'brunner', 'min' => 60, 'von' => '10:00', 'bis' => '11:00'],
+        ] as $serie) {
+            foreach ($serie['tage'] as $datum) {
+                $checkin  = $datum . ' ' . $serie['von'] . ':00';
+                $checkout = $datum . ' ' . $serie['bis'] . ':00';
+
+                $id = DB::table('einsaetze')->insertGetId([
+                    'organisation_id'        => $this->orgId,
+                    'klient_id'              => $this->kl[$serie['klient']],
+                    'benutzer_id'            => $this->ma[$serie['ma']],
+                    'datum'                  => $datum,
+                    'datum_bis'              => $datum,
+                    'status'                 => 'abgeschlossen',
+                    'leistungserbringer_typ' => 'angehoerig',
+                    'zeit_von'               => $serie['von'] . ':00',
+                    'zeit_bis'               => $serie['bis'] . ':00',
+                    'minuten'                => $serie['min'],
+                    'checkin_zeit'           => $checkin,
+                    'checkin_methode'        => 'manuell',
+                    'checkout_zeit'          => $checkout,
+                    'checkout_methode'       => 'manuell',
+                    'verrechnet'             => false,
+                    'created_at'             => now(),
+                    'updated_at'             => now(),
+                ]);
+
+                if ($laHwl) {
+                    DB::table('einsatz_leistungsarten')->insert([
+                        'einsatz_id'      => $id,
+                        'leistungsart_id' => $laHwl,
+                        'minuten'         => $serie['min'],
+                        'created_at'      => now(),
+                        'updated_at'      => now(),
+                    ]);
+                }
+            }
         }
     }
 
