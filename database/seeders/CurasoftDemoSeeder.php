@@ -75,6 +75,7 @@ class CurasoftDemoSeeder extends Seeder
             $this->abwesenheiten();
             $this->nichtErledigteEinsaetze();
             $this->angehoerigeApril();
+            $this->maiRechnungslaufTestdaten();
         });
 
         $klienten  = DB::table('klienten')->where('organisation_id', $this->orgId)->count();
@@ -1838,6 +1839,101 @@ class CurasoftDemoSeeder extends Seeder
                         'updated_at'      => now(),
                     ]);
                 }
+            }
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MAI 2026 — Umfassende Testdaten für Rechnungslauf (alle Leistungsarten)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function maiRechnungslaufTestdaten(): void
+    {
+        $laGp  = $this->laId('gp');
+        $laUb  = $this->laId('ub');
+        $laHwl = $this->laId('hwl');
+        $laAb  = $this->laId('ab');
+
+        // Mai 2026: Wochentage nach Muster filtern
+        $mai = [];
+        for ($d = 1; $d <= 31; $d++) {
+            $datum = sprintf('2026-05-%02d', $d);
+            $dow   = (int) date('N', strtotime($datum)); // 1=Mo ... 7=So
+            $mai[$d] = ['datum' => $datum, 'dow' => $dow];
+        }
+        $tage = fn(array $dows) => array_values(array_map(
+            fn($x) => $x['datum'],
+            array_filter($mai, fn($x) => in_array($x['dow'], $dows))
+        ));
+
+        $moFr  = $tage([1,2,3,4,5]); // alle Wochentage (22)
+        $moMiF = $tage([1,3,5]);      // Mo+Mi+Fr (13)
+        $diDo  = $tage([2,4]);        // Di+Do (9)
+        $moFrT = $tage([1,4]);        // Mo+Do (8)
+        $miF   = $tage([3,5]);        // Mi+Fr (9)
+        $mo    = $tage([1]);          // nur Mo (4-5)
+        $mi    = $tage([3]);          // nur Mi (4-5)
+
+        // 5 Klienten × verschiedene Kombinationen
+        $serien = [
+            // ── BRUNNER Elisabeth: GP tägl. + HWL 2x + AB 1x ─────────────
+            ['klient'=>'brunner','ma'=>'sandra','la'=>$laGp,  'tage'=>$moFr,  'von'=>'08:00','bis'=>'08:45','min'=>45, 'typ'=>'fachperson'],
+            ['klient'=>'brunner','ma'=>'lisa',  'la'=>$laHwl, 'tage'=>$diDo,  'von'=>'10:00','bis'=>'11:00','min'=>60, 'typ'=>'fachperson'],
+            ['klient'=>'brunner','ma'=>'sandra','la'=>$laAb,  'tage'=>[$mo[0]],'von'=>'09:00','bis'=>'09:30','min'=>30, 'typ'=>'fachperson'],
+
+            // ── WEBER Hans: UB 3x/Wo + GP 2x/Wo ─────────────────────────
+            ['klient'=>'weber',  'ma'=>'peter', 'la'=>$laUb,  'tage'=>$moMiF, 'von'=>'09:00','bis'=>'09:35','min'=>35, 'typ'=>'fachperson'],
+            ['klient'=>'weber',  'ma'=>'peter', 'la'=>$laGp,  'tage'=>$diDo,  'von'=>'08:00','bis'=>'08:50','min'=>50, 'typ'=>'fachperson'],
+
+            // ── SCHNEIDER Margrit: alle 4 Leistungsarten ─────────────────
+            ['klient'=>'schneider','ma'=>'anna', 'la'=>$laGp,  'tage'=>$moFr,  'von'=>'07:30','bis'=>'08:15','min'=>45, 'typ'=>'fachperson'],
+            ['klient'=>'schneider','ma'=>'thomas','la'=>$laHwl,'tage'=>$diDo,  'von'=>'13:00','bis'=>'14:00','min'=>60, 'typ'=>'fachperson'],
+            ['klient'=>'schneider','ma'=>'anna', 'la'=>$laUb,  'tage'=>$mi,    'von'=>'09:00','bis'=>'09:20','min'=>20, 'typ'=>'fachperson'],
+            ['klient'=>'schneider','ma'=>'sandra','la'=>$laAb, 'tage'=>[$mo[0],$mo[1] ?? $mo[0]],'von'=>'10:00','bis'=>'10:45','min'=>45,'typ'=>'fachperson'],
+
+            // ── KELLER Werner: GP tägl. + HWL 3x/Wo ─────────────────────
+            ['klient'=>'keller', 'ma'=>'thomas','la'=>$laGp,  'tage'=>$moFr,  'von'=>'08:30','bis'=>'09:15','min'=>45, 'typ'=>'fachperson'],
+            ['klient'=>'keller', 'ma'=>'lisa',  'la'=>$laHwl, 'tage'=>$moMiF, 'von'=>'14:00','bis'=>'15:30','min'=>90, 'typ'=>'fachperson'],
+
+            // ── GERBER Josef: Angehöriger Ruth + GP Sandra + UB Peter ─────
+            ['klient'=>'gerber', 'ma'=>'ruth',  'la'=>$laHwl, 'tage'=>$diDo,  'von'=>'09:00','bis'=>'10:30','min'=>90, 'typ'=>'angehoerig'],
+            ['klient'=>'gerber', 'ma'=>'sandra','la'=>$laGp,  'tage'=>$moFrT, 'von'=>'08:00','bis'=>'08:45','min'=>45, 'typ'=>'fachperson'],
+            ['klient'=>'gerber', 'ma'=>'peter', 'la'=>$laUb,  'tage'=>$mi,    'von'=>'10:00','bis'=>'10:20','min'=>20, 'typ'=>'fachperson'],
+        ];
+
+        foreach ($serien as $serie) {
+            if (!$serie['la']) continue;
+            foreach ($serie['tage'] as $datum) {
+                $checkin  = $datum . ' ' . $serie['von'] . ':00';
+                $checkout = $datum . ' ' . $serie['bis'] . ':00';
+
+                $id = DB::table('einsaetze')->insertGetId([
+                    'organisation_id'        => $this->orgId,
+                    'klient_id'              => $this->kl[$serie['klient']],
+                    'benutzer_id'            => $this->ma[$serie['ma']],
+                    'datum'                  => $datum,
+                    'datum_bis'              => $datum,
+                    'status'                 => 'abgeschlossen',
+                    'leistungserbringer_typ' => $serie['typ'],
+                    'zeit_von'               => $serie['von'] . ':00',
+                    'zeit_bis'               => $serie['bis'] . ':00',
+                    'minuten'                => $serie['min'],
+                    'checkin_zeit'           => $checkin,
+                    'checkin_methode'        => 'manuell',
+                    'checkout_zeit'          => $checkout,
+                    'checkout_methode'       => 'manuell',
+                    'verrechnet'             => false,
+                    'created_at'             => now(),
+                    'updated_at'             => now(),
+                ]);
+
+                DB::table('einsatz_leistungsarten')->insert([
+                    'einsatz_id'      => $id,
+                    'leistungsart_id' => $serie['la'],
+                    'minuten'         => $serie['min'],
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ]);
             }
         }
     }
