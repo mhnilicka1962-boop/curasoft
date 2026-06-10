@@ -123,7 +123,6 @@ class PdfExportService
                 'klientName'        => $klientName,
                 'rapportblattDaten' => $rapportblattDaten,
             ])->render();
-
             $landscapeBytes = Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output();
             $finalBytes     = $this->mergePdfs($portraitBytes, $landscapeBytes);
         } elseif ($zeigeBerechnung) {
@@ -197,9 +196,12 @@ class PdfExportService
 
         $portraitBytes = Pdf::loadHTML($html)->setPaper('A4', 'portrait')->output();
 
+        $klientName        = trim(($rechnung->klient->anrede ? $rechnung->klient->anrede . ' ' : '') . $rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
         $rapportblattDaten = $this->rapportblattDaten($rechnung);
-        if ($rapportblattDaten !== null) {
-            $klientName = trim($rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
+        $isTiersPayant     = ($this->org->abrechnungslogik ?? 'tiers_garant') === 'tiers_payant';
+        $finalBytes        = $portraitBytes;
+
+        if ($rapportblattDaten !== null && !$isTiersPayant) {
             $rbHtml = view('pdfs.rapportblatt', [
                 'rechnung'          => $rechnung,
                 'org'               => $this->org,
@@ -207,11 +209,33 @@ class PdfExportService
                 'klientName'        => $klientName,
                 'rapportblattDaten' => $rapportblattDaten,
             ])->render();
-            $landscapeBytes = Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output();
-            return $this->mergePdfs($portraitBytes, $landscapeBytes);
+            $finalBytes = $this->mergePdfs($finalBytes, Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output());
+        } elseif ($rapportblattDaten !== null && $isTiersPayant) {
+            $beHtml = view('pdfs.berechnung_anteil', [
+                'rechnung'          => $rechnung,
+                'klientName'        => $klientName,
+                'rapportblattDaten' => $rapportblattDaten,
+                'nichtKvgGruppen'   => $this->nichtKvgGruppen($rechnung, $rapportblattDaten),
+            ])->render();
+            $finalBytes = $this->mergePdfs($finalBytes, Pdf::loadHTML($beHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'portrait')->output());
         }
 
-        return $portraitBytes;
+        // Tagesrapport
+        $einsatzIds = $rechnung->positionen->pluck('einsatz_id')->filter()->unique()->values();
+        if ($einsatzIds->isNotEmpty()) {
+            $einsaetze = \App\Models\Einsatz::whereIn('id', $einsatzIds)
+                ->with(['benutzer', 'einsatzLeistungsarten.leistungsart'])
+                ->orderBy('datum')->orderBy('zeit_von')->get();
+            $lnHtml = view('pdfs.leistungsnachweis', [
+                'rechnung'   => $rechnung,
+                'org'        => $this->org,
+                'klientName' => $klientName,
+                'einsaetze'  => $einsaetze,
+            ])->render();
+            $finalBytes = $this->mergePdfs($finalBytes, Pdf::loadHTML($lnHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'portrait')->output());
+        }
+
+        return $finalBytes;
     }
 
     /**
@@ -528,30 +552,27 @@ class PdfExportService
 
         $portraitBytes = Pdf::loadHTML($html)->setPaper('A4', 'portrait')->output();
 
-        if ($zeigeRapportblatt) {
-            $klientName = trim(($rechnung->klient->anrede ? $rechnung->klient->anrede . ' ' : '')
-                . $rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
+        $klientName  = trim(($rechnung->klient->anrede ? $rechnung->klient->anrede . ' ' : '')
+            . $rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
+        $finalBytes  = $portraitBytes;
 
-            $regionDaten = $rechnung->klient->region_id
+        if ($zeigeRapportblatt) {
+            $rbRegionDaten = $rechnung->klient->region_id
                 ? $this->org->datenFuerRegion($rechnung->klient->region_id)
                 : ['zsr_nr' => ''];
 
             $rbHtml = view('pdfs.rapportblatt', [
                 'rechnung'          => $rechnung,
                 'org'               => $this->org,
-                'regionDaten'       => $regionDaten,
+                'regionDaten'       => $rbRegionDaten,
                 'klientName'        => $klientName,
                 'rapportblattDaten' => $rapportblattDaten,
             ])->render();
 
-            $landscapeBytes = Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output();
-            return $this->mergePdfs($portraitBytes, $landscapeBytes);
-        }
-
-        if ($zeigeBerechnung) {
-            $klientName = trim(($rechnung->klient->anrede ? $rechnung->klient->anrede . ' ' : '')
-                . $rechnung->klient->vorname . ' ' . $rechnung->klient->nachname);
-
+            $finalBytes = $this->mergePdfs($finalBytes,
+                Pdf::loadHTML($rbHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'landscape')->output()
+            );
+        } elseif ($zeigeBerechnung) {
             $beHtml = view('pdfs.berechnung_anteil', [
                 'rechnung'          => $rechnung,
                 'klientName'        => $klientName,
@@ -559,10 +580,28 @@ class PdfExportService
                 'nichtKvgGruppen'   => $this->nichtKvgGruppen($rechnung, $rapportblattDaten),
             ])->render();
 
-            $beilageBytes = Pdf::loadHTML($beHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'portrait')->output();
-            return $this->mergePdfs($portraitBytes, $beilageBytes);
+            $finalBytes = $this->mergePdfs($finalBytes,
+                Pdf::loadHTML($beHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'portrait')->output()
+            );
         }
 
-        return $portraitBytes;
+        // Tagesrapport (Seite 3)
+        $einsatzIds = $rechnung->positionen->pluck('einsatz_id')->filter()->unique()->values();
+        if ($einsatzIds->isNotEmpty()) {
+            $einsaetze = \App\Models\Einsatz::whereIn('id', $einsatzIds)
+                ->with(['benutzer', 'einsatzLeistungsarten.leistungsart'])
+                ->orderBy('datum')->orderBy('zeit_von')->get();
+            $lnHtml = view('pdfs.leistungsnachweis', [
+                'rechnung'   => $rechnung,
+                'org'        => $this->org,
+                'klientName' => $klientName,
+                'einsaetze'  => $einsaetze,
+            ])->render();
+            $finalBytes = $this->mergePdfs($finalBytes,
+                Pdf::loadHTML($lnHtml)->setOptions(['defaultFont' => 'DejaVu Sans'])->setPaper('A4', 'portrait')->output()
+            );
+        }
+
+        return $finalBytes;
     }
 }

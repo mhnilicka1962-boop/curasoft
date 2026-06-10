@@ -60,12 +60,10 @@ tfoot td.r { text-align: right; }
     <h1>Berechnung Ihres Anteils — Rechnung {{ $rechnung->rechnungsnummer }}</h1>
 
     @php
-        $patKvg     = (float) ($rapportblattDaten['summen']['pat'] ?? 0);
-        $patNichtKvg = 0.0;
-        foreach ($nichtKvgGruppen ?? [] as $g) { $patNichtKvg += (float) $g['betrag']; }
-        $hatBeides  = $patKvg > 0 && $patNichtKvg > 0;
-        // Ihr Anteil = genau der Betrag auf dem Einzahlungsschein
-        $patTotal   = (float) $rechnung->betrag_patient;
+        $patTotal    = (float) $rechnung->betrag_patient;
+        $patKvg      = (float) ($rapportblattDaten['summen']['pat'] ?? 0);
+        $patNichtKvg = round($patTotal - $patKvg, 2);
+        $hatBeides   = $patKvg > 0 && $patNichtKvg > 0.01;
     @endphp
     <table class="kopf-info">
         <tr>
@@ -127,6 +125,7 @@ tfoot td.r { text-align: right; }
     </div>
     @endif
 
+    <div style="page-break-before: always;"></div>
     <table>
         <thead>
             <tr>
