@@ -134,6 +134,11 @@
        class="vo-checkin-btn ein" style="display: block; text-decoration: none; text-align: center; padding: 0.75rem; background: var(--cs-primaer);">
         + Rapport schreiben
     </a>
+    @else
+    <div class="vo-checkin-btn" style="display: block; text-align: center; padding: 0.75rem; opacity: 0.45; cursor: default;"
+         title="Erst am {{ $einsatz->datum->format('d.m.Y') }} verfügbar">
+        + Rapport schreiben · Ab {{ $einsatz->datum->format('d.m.') }}
+    </div>
     @endif
 </div>
 
@@ -244,6 +249,8 @@
     <a href="{{ route('rapporte.edit', $ersterRapport) }}" style="background: var(--cs-primaer); color: #fff; border-color: var(--cs-primaer); font-size: 0.9375rem;">✏ Rapport bearbeiten</a>
     @elseif(!$einsatz->datum->isFuture())
     <a href="{{ route('rapporte.create', ['klient_id' => $einsatz->klient_id, 'einsatz_id' => $einsatz->id]) }}" style="background: var(--cs-primaer); color: #fff; border-color: var(--cs-primaer); font-size: 0.9375rem;">+ Rapport schreiben</a>
+    @else
+    <span style="opacity: 0.45; cursor: default; font-size: 0.9375rem;" title="Erst am {{ $einsatz->datum->format('d.m.Y') }} verfügbar">+ Rapport schreiben · Ab {{ $einsatz->datum->format('d.m.') }}</span>
     @endif
 </div>
 
