@@ -10,7 +10,7 @@ class Leistungsregion extends Model
 
     protected $fillable = [
         'leistungsart_id', 'region_id',
-        'ansatz', 'kkasse', 'ansatz_akut', 'kkasse_akut',
+        'ansatz', 'kkasse', 'ansatz_akut', 'kkasse_akut', 'kkasse_angehoerig',
         'kassenpflichtig', 'gueltig_ab', 'gueltig_bis',
         'verrechnung', 'einsatz_minuten', 'einsatz_stunden', 'einsatz_tage', 'mwst',
     ];
@@ -19,7 +19,8 @@ class Leistungsregion extends Model
         'ansatz'           => 'decimal:2',
         'kkasse'           => 'decimal:2',
         'ansatz_akut'      => 'decimal:2',
-        'kkasse_akut'      => 'decimal:2',
+        'kkasse_akut'          => 'decimal:2',
+        'kkasse_angehoerig'    => 'decimal:2',
         'kassenpflichtig'  => 'boolean',
         'gueltig_ab'       => 'date',
         'gueltig_bis'      => 'date',
