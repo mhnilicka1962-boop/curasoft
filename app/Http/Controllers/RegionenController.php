@@ -68,17 +68,18 @@ class RegionenController extends Controller
             Leistungsregion::firstOrCreate(
                 ['leistungsart_id' => $la->id, 'region_id' => $region->id],
                 [
-                    'ansatz'          => $la->ansatz_default,
-                    'kkasse'          => $la->kvg_default,
-                    'ansatz_akut'     => $la->ansatz_akut_default,
-                    'kkasse_akut'     => $la->kvg_akut_default,
-                    'kassenpflichtig' => $la->kassenpflichtig,
-                    'gueltig_ab'      => today(),
-                    'verrechnung'     => true,
-                    'einsatz_minuten' => false,
-                    'einsatz_stunden' => true,
-                    'einsatz_tage'    => false,
-                    'mwst'            => false,
+                    'ansatz'              => $la->ansatz_default,
+                    'kkasse'              => $la->kvg_default,
+                    'ansatz_akut'         => $la->ansatz_akut_default,
+                    'kkasse_akut'         => $la->kvg_akut_default,
+                    'kkasse_angehoerig'   => $la->kvg_angehoerig_default ?? 0,
+                    'kassenpflichtig'     => $la->kassenpflichtig,
+                    'gueltig_ab'          => today(),
+                    'verrechnung'         => true,
+                    'einsatz_minuten'     => false,
+                    'einsatz_stunden'     => true,
+                    'einsatz_tage'        => false,
+                    'mwst'                => false,
                 ]
             );
         }

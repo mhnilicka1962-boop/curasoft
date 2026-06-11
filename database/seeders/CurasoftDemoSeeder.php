@@ -159,6 +159,10 @@ class CurasoftDemoSeeder extends Seeder
         foreach (DB::table('leistungsarten')->where('aktiv', true)->get() as $la) {
             $this->la[mb_strtolower($la->bezeichnung)] = $la->id;
         }
+
+        // kvg_angehoerig_default setzen (27.60 für Grundpflege, 0 für alle anderen)
+        DB::table('leistungsarten')->where('bezeichnung', 'Grundpflege')
+            ->update(['kvg_angehoerig_default' => 27.60]);
     }
 
     /** Leistungsart-ID über Kurzname ('gp','ub','hwl','ab') oder vollständigen Schlüssel */
