@@ -184,42 +184,42 @@ class CurasoftDemoSeeder extends Seeder
     private function regionen(): void
     {
         // Tarife CHF/h pro Kanton 2026 (tiers_payant — alle Leistungsarten verrechnet)
-        // [bezeichnung => [ansatz, kkasse, kassenpflichtig, verrechnung]]
+        // [bezeichnung => [ansatz, kkasse, kassenpflichtig, verrechnung, kkasse_angehoerig (CHF/Tag)]]
         $tarife = [
             'ZH' => [
-                'Grundpflege'            => [96.00, 60.00, true,  true],
-                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true],
-                'Abklärung/Beratung'     => [96.00, 79.80, true,  true],
-                'Hauswirtschaft'         => [50.00,  0.00, false, true],
-                'Pauschale'              => [ 0.00,  0.00, false, false],
+                'Grundpflege'            => [96.00, 60.00, true,  true,  27.60],
+                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true,   0.00],
+                'Abklärung/Beratung'     => [96.00, 79.80, true,  true,   0.00],
+                'Hauswirtschaft'         => [50.00,  0.00, false, true,   0.00],
+                'Pauschale'              => [ 0.00,  0.00, false, false,  0.00],
             ],
             'ZG' => [
-                'Grundpflege'            => [88.00, 54.60, true,  true],
-                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true],
-                'Abklärung/Beratung'     => [96.00, 79.80, true,  true],
-                'Hauswirtschaft'         => [44.00,  0.00, false, true],
-                'Pauschale'              => [ 0.00,  0.00, false, false],
+                'Grundpflege'            => [88.00, 54.60, true,  true,  27.60],
+                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true,   0.00],
+                'Abklärung/Beratung'     => [96.00, 79.80, true,  true,   0.00],
+                'Hauswirtschaft'         => [44.00,  0.00, false, true,   0.00],
+                'Pauschale'              => [ 0.00,  0.00, false, false,  0.00],
             ],
             'BE' => [
-                'Grundpflege'            => [68.00, 60.00, true,  true],
-                'Untersuchung Behandlung'=> [79.80, 71.80, true,  true],
-                'Abklärung/Beratung'     => [68.00, 60.00, true,  true],
-                'Hauswirtschaft'         => [57.00,  0.00, false, true],
-                'Pauschale'              => [ 0.00,  0.00, false, false],
+                'Grundpflege'            => [68.00, 60.00, true,  true,  27.60],
+                'Untersuchung Behandlung'=> [79.80, 71.80, true,  true,   0.00],
+                'Abklärung/Beratung'     => [68.00, 60.00, true,  true,   0.00],
+                'Hauswirtschaft'         => [57.00,  0.00, false, true,   0.00],
+                'Pauschale'              => [ 0.00,  0.00, false, false,  0.00],
             ],
             'AG' => [
-                'Grundpflege'            => [98.00, 54.60, true,  true],
-                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true],
-                'Abklärung/Beratung'     => [96.50, 79.80, true,  true],
-                'Hauswirtschaft'         => [44.00,  0.00, false, true],
-                'Pauschale'              => [130.00, 0.00, false, false],
+                'Grundpflege'            => [98.00, 54.60, true,  true,  27.60],
+                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true,   0.00],
+                'Abklärung/Beratung'     => [96.50, 79.80, true,  true,   0.00],
+                'Hauswirtschaft'         => [44.00,  0.00, false, true,   0.00],
+                'Pauschale'              => [130.00, 0.00, false, false,  0.00],
             ],
             'SG' => [
-                'Grundpflege'            => [88.00, 54.60, true,  true],
-                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true],
-                'Abklärung/Beratung'     => [96.00, 79.80, true,  true],
-                'Hauswirtschaft'         => [44.00,  0.00, false, true],
-                'Pauschale'              => [ 0.00,  0.00, false, false],
+                'Grundpflege'            => [88.00, 54.60, true,  true,  27.60],
+                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true,   0.00],
+                'Abklärung/Beratung'     => [96.00, 79.80, true,  true,   0.00],
+                'Hauswirtschaft'         => [44.00,  0.00, false, true,   0.00],
+                'Pauschale'              => [ 0.00,  0.00, false, false,  0.00],
             ],
         ];
 
@@ -242,24 +242,25 @@ class CurasoftDemoSeeder extends Seeder
             foreach (DB::table('leistungsarten')->where('aktiv', true)->get() as $la) {
                 $t = $leistungen[$la->bezeichnung] ?? null;
                 if (!$t) continue;
-                [$ansatz, $kkasse, $kassenpflichtig, $verrechnung] = $t;
+                [$ansatz, $kkasse, $kassenpflichtig, $verrechnung, $kkasseAngehoerig] = $t;
 
                 DB::table('leistungsregionen')->updateOrInsert(
                     ['leistungsart_id' => $la->id, 'region_id' => $id],
                     [
-                        'gueltig_ab'      => '2026-01-01',
-                        'gueltig_bis'     => null,
-                        'ansatz'          => $ansatz,
-                        'kkasse'          => $kkasse,
-                        'ansatz_akut'     => 0,
-                        'kkasse_akut'     => 0,
-                        'kassenpflichtig' => $kassenpflichtig,
-                        'verrechnung'     => $verrechnung,
-                        'einsatz_minuten' => false,
-                        'einsatz_stunden' => true,
-                        'einsatz_tage'    => false,
-                        'mwst'            => false,
-                        'updated_at'      => now(),
+                        'gueltig_ab'         => '2026-01-01',
+                        'gueltig_bis'        => null,
+                        'ansatz'             => $ansatz,
+                        'kkasse'             => $kkasse,
+                        'ansatz_akut'        => 0,
+                        'kkasse_akut'        => 0,
+                        'kkasse_angehoerig'  => $kkasseAngehoerig,
+                        'kassenpflichtig'    => $kassenpflichtig,
+                        'verrechnung'        => $verrechnung,
+                        'einsatz_minuten'    => false,
+                        'einsatz_stunden'    => true,
+                        'einsatz_tage'       => false,
+                        'mwst'               => false,
+                        'updated_at'         => now(),
                     ]
                 );
             }
@@ -1814,7 +1815,7 @@ class CurasoftDemoSeeder extends Seeder
 
     private function angehoerigeApril(): void
     {
-        $laHwl = $this->laId('hwl');
+        $laGp = $this->laId('gp');
 
         // KlientBenutzer-Verknüpfungen sicherstellen
         foreach ([
@@ -1828,51 +1829,40 @@ class CurasoftDemoSeeder extends Seeder
             );
         }
 
-        // Ruth Gerber → Josef Gerber (Hauswirtschaft, 2x/Woche)
-        $tageRuth = ['2026-05-02','2026-05-05','2026-05-07','2026-05-09','2026-05-12',
-                     '2026-05-14','2026-05-16','2026-05-19','2026-05-21','2026-05-26'];
-
-        // Hans Brunner → Elisabeth Brunner (Hauswirtschaft, 2x/Woche)
+        // Hans Brunner → Elisabeth Brunner (Grundpflege, 2x/Woche)
+        // Ruth Gerber → Josef Gerber: wird in maiRechnungslaufTestdaten erfasst
         $tageHans = ['2026-05-04','2026-05-06','2026-05-08','2026-05-12','2026-05-15',
                      '2026-05-18','2026-05-20','2026-05-25','2026-05-27'];
 
-        foreach ([
-            ['tage' => $tageRuth, 'ma' => 'ruth',  'klient' => 'gerber',  'min' => 90, 'von' => '09:00', 'bis' => '10:30'],
-            ['tage' => $tageHans, 'ma' => 'hans',  'klient' => 'brunner', 'min' => 60, 'von' => '10:00', 'bis' => '11:00'],
-        ] as $serie) {
-            foreach ($serie['tage'] as $datum) {
-                $checkin  = $datum . ' ' . $serie['von'] . ':00';
-                $checkout = $datum . ' ' . $serie['bis'] . ':00';
-
-                $id = DB::table('einsaetze')->insertGetId([
-                    'organisation_id'        => $this->orgId,
-                    'klient_id'              => $this->kl[$serie['klient']],
-                    'benutzer_id'            => $this->ma[$serie['ma']],
-                    'datum'                  => $datum,
-                    'datum_bis'              => $datum,
-                    'status'                 => 'abgeschlossen',
-                    'leistungserbringer_typ' => 'angehoerig',
-                    'zeit_von'               => $serie['von'] . ':00',
-                    'zeit_bis'               => $serie['bis'] . ':00',
-                    'minuten'                => $serie['min'],
-                    'checkin_zeit'           => $checkin,
-                    'checkin_methode'        => 'manuell',
-                    'checkout_zeit'          => $checkout,
-                    'checkout_methode'       => 'manuell',
-                    'verrechnet'             => false,
-                    'created_at'             => now(),
-                    'updated_at'             => now(),
+        foreach ($tageHans as $datum) {
+            $von = '10:00'; $bis = '10:35';
+            $id = DB::table('einsaetze')->insertGetId([
+                'organisation_id'        => $this->orgId,
+                'klient_id'              => $this->kl['brunner'],
+                'benutzer_id'            => $this->ma['hans'],
+                'datum'                  => $datum,
+                'datum_bis'              => $datum,
+                'status'                 => 'abgeschlossen',
+                'leistungserbringer_typ' => 'angehoerig',
+                'zeit_von'               => $von . ':00',
+                'zeit_bis'               => $bis . ':00',
+                'minuten'                => 35,
+                'checkin_zeit'           => $datum . ' ' . $von . ':00',
+                'checkin_methode'        => 'manuell',
+                'checkout_zeit'          => $datum . ' ' . $bis . ':00',
+                'checkout_methode'       => 'manuell',
+                'verrechnet'             => false,
+                'created_at'             => now(),
+                'updated_at'             => now(),
+            ]);
+            if ($laGp) {
+                DB::table('einsatz_leistungsarten')->insert([
+                    'einsatz_id'      => $id,
+                    'leistungsart_id' => $laGp,
+                    'minuten'         => 35,
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
                 ]);
-
-                if ($laHwl) {
-                    DB::table('einsatz_leistungsarten')->insert([
-                        'einsatz_id'      => $id,
-                        'leistungsart_id' => $laHwl,
-                        'minuten'         => $serie['min'],
-                        'created_at'      => now(),
-                        'updated_at'      => now(),
-                    ]);
-                }
             }
         }
     }
@@ -1929,9 +1919,9 @@ class CurasoftDemoSeeder extends Seeder
             ['klient'=>'keller', 'ma'=>'thomas','la'=>$laGp,  'tage'=>$moFr,  'von'=>'08:30','bis'=>'09:15','min'=>45, 'typ'=>'fachperson'],
             ['klient'=>'keller', 'ma'=>'lisa',  'la'=>$laHwl, 'tage'=>$moMiF, 'von'=>'14:00','bis'=>'15:30','min'=>90, 'typ'=>'fachperson'],
 
-            // ── GERBER Josef: Angehöriger Ruth + GP Sandra + UB Peter ─────
-            ['klient'=>'gerber', 'ma'=>'ruth',  'la'=>$laHwl, 'tage'=>$diDo,  'von'=>'09:00','bis'=>'10:30','min'=>90, 'typ'=>'angehoerig'],
-            ['klient'=>'gerber', 'ma'=>'sandra','la'=>$laGp,  'tage'=>$moFrT, 'von'=>'08:00','bis'=>'08:45','min'=>45, 'typ'=>'fachperson'],
+            // ── GERBER Josef: Angehörige Ruth (GP) + Fachperson Sandra (GP) + Peter (UB) ──
+            ['klient'=>'gerber', 'ma'=>'ruth',  'la'=>$laGp,  'tage'=>$diDo,  'von'=>'08:00','bis'=>'08:35','min'=>35, 'typ'=>'angehoerig'],
+            ['klient'=>'gerber', 'ma'=>'sandra','la'=>$laGp,  'tage'=>$moFrT, 'von'=>'09:00','bis'=>'09:45','min'=>45, 'typ'=>'fachperson'],
             ['klient'=>'gerber', 'ma'=>'peter', 'la'=>$laUb,  'tage'=>$mi,    'von'=>'10:00','bis'=>'10:20','min'=>20, 'typ'=>'fachperson'],
         ];
 

@@ -104,9 +104,11 @@ class RechnungslaufController extends Controller
         $rechnung->id = 0;
         $rechnung->setRelation('klient', $klient->load(['region', 'krankenkassen.krankenkasse', 'adressen']));
 
-        $ltMap      = \App\Models\Leistungstyp::pluck('leistungsart_id', 'bezeichnung')->toArray();
-        $tarifCache = [];
-        $positionen = collect();
+        $ltMap           = \App\Models\Leistungstyp::pluck('leistungsart_id', 'bezeichnung')->toArray();
+        $tarifCache      = [];
+        $lrAngCache      = [];   // kkasse_angehoerig pro leistungsart_id+region_id
+        $angehoerigTageKk = [];  // Datum-Keys die bereits mit Tages-Pauschale verrechnet wurden
+        $positionen      = collect();
 
         if ($nurPauschale) {
             $tp      = $einsaetze->first()->tagespauschale;
@@ -152,8 +154,50 @@ class RechnungslaufController extends Controller
                     $pos->setRelation('einsatz', $einsatz);
                     $positionen->push($pos);
                 } else {
-                    $regionId = $einsatz->region_id ?? $klient->region_id;
+                    $regionId    = $einsatz->region_id ?? $klient->region_id;
+                    $istAngehoerig = ($einsatz->leistungserbringer_typ ?? 'fachperson') === 'angehoerig';
                     foreach ($einsatz->einsatzLeistungsarten as $el) {
+                        $kassenpflichtig = (bool) ($el->leistungsart?->kassenpflichtig ?? false);
+
+                        // Angehörigen-KVG: Tages-Pauschale statt Minuten×Tarif
+                        if ($istAngehoerig && $kassenpflichtig) {
+                            $lrAngKey = "{$el->leistungsart_id}-{$regionId}";
+                            if (!isset($lrAngCache[$lrAngKey])) {
+                                $lrAngCache[$lrAngKey] = (float) (\DB::table('leistungsregionen')
+                                    ->where('leistungsart_id', $el->leistungsart_id)
+                                    ->where('region_id', $regionId)
+                                    ->where(fn($q) => $q->whereNull('gueltig_ab')->orWhere('gueltig_ab', '<=', $einsatz->datum))
+                                    ->orderByDesc('gueltig_ab')
+                                    ->value('kkasse_angehoerig') ?? 0);
+                            }
+                            $kkasseAng = $lrAngCache[$lrAngKey];
+                            $datumKey  = \Carbon\Carbon::parse($einsatz->datum)->format('Y-m-d');
+
+                            if ($kkasseAng > 0 && !isset($angehoerigTageKk[$datumKey])) {
+                                // Erste kassenpflichtige Angehörigen-LA an diesem Tag → Tages-Pauschale
+                                $angehoerigTageKk[$datumKey] = true;
+                                $pos = new RechnungsPosition([
+                                    'rechnung_id'             => 0,
+                                    'einsatz_id'              => $einsatz->id,
+                                    'einsatz_leistungsart_id' => $el->id,
+                                    'datum'                   => $einsatz->datum,
+                                    'menge'                   => 1,
+                                    'einheit'                 => 'tag',
+                                    'beschreibung'            => null,
+                                    'tarif_patient'           => 0,
+                                    'tarif_kk'                => $kkasseAng,
+                                    'betrag_patient'          => 0,
+                                    'betrag_kk'               => $kkasseAng,
+                                ]);
+                                $pos->setRelation('einsatz', $einsatz);
+                                $pos->setRelation('einsatzLeistungsart', $el);
+                                $positionen->push($pos);
+                            }
+                            // Weitere kassenpflichtige LA oder Folgetag ohne Wert → keine Position
+                            continue;
+                        }
+
+                        // Normale Abrechnung (Fachperson oder nicht-kassenpflichtige Angehörigen-LA)
                         $istTage = $el->leistungsart?->einheit === 'tage';
                         [$tarifPat, $tarifKk] = $this->tarifeFuerLeistungsart($el->leistungsart_id, $regionId, $einsatz->datum, $rechnungstyp, $tarifCache);
                         if ($istTage) {
@@ -808,8 +852,9 @@ class RechnungslaufController extends Controller
         $anzahlMit    = 0;
         $anzahlOhne   = 0;
         $ohneLeistungsart = 0;
-        $ltMap        = \App\Models\Leistungstyp::pluck('leistungsart_id', 'bezeichnung')->toArray();
-        $tarifCache   = [];
+        $ltMap      = \App\Models\Leistungstyp::pluck('leistungsart_id', 'bezeichnung')->toArray();
+        $tarifCache = [];
+        $lrAngCache = [];
 
         foreach ($klienten as $klient) {
             $einsaetze = Einsatz::where('klient_id', $klient->id)
@@ -851,10 +896,42 @@ class RechnungslaufController extends Controller
             if ($normale->isNotEmpty()) {
                 $betragPat = 0; $betragKk = 0; $minuten = 0; $ohneTypCount = 0;
                 $vorschauPositionen = collect();
+                $angehoerigTageKkVorschau = [];
                 foreach ($normale as $einsatz) {
                     if ($einsatz->einsatzLeistungsarten->isEmpty()) { $ohneTypCount++; continue; }
-                    $regionId = $einsatz->region_id ?? $klient->region_id;
+                    $regionId      = $einsatz->region_id ?? $klient->region_id;
+                    $istAngehoerig = ($einsatz->leistungserbringer_typ ?? 'fachperson') === 'angehoerig';
                     foreach ($einsatz->einsatzLeistungsarten as $el) {
+                        $kassenpflichtig = (bool) ($el->leistungsart?->kassenpflichtig ?? false);
+
+                        if ($istAngehoerig && $kassenpflichtig) {
+                            $lrAngKey = "{$el->leistungsart_id}-{$regionId}";
+                            if (!isset($lrAngCache[$lrAngKey])) {
+                                $lrAngCache[$lrAngKey] = (float) (\DB::table('leistungsregionen')
+                                    ->where('leistungsart_id', $el->leistungsart_id)
+                                    ->where('region_id', $regionId)
+                                    ->where(fn($q) => $q->whereNull('gueltig_ab')->orWhere('gueltig_ab', '<=', $einsatz->datum))
+                                    ->orderByDesc('gueltig_ab')
+                                    ->value('kkasse_angehoerig') ?? 0);
+                            }
+                            $kkasseAng = $lrAngCache[$lrAngKey];
+                            $datumKey  = \Carbon\Carbon::parse($einsatz->datum)->format('Y-m-d');
+                            if ($kkasseAng > 0 && !isset($angehoerigTageKkVorschau[$datumKey])) {
+                                $angehoerigTageKkVorschau[$datumKey] = true;
+                                $betragKk += $kkasseAng;
+                                $vorschauPositionen->push((object)[
+                                    'einsatzLeistungsart' => $el,
+                                    'leistungsart_id'     => $el->leistungsart_id,
+                                    'einheit'             => 'tag',
+                                    'menge'               => 1,
+                                    'datum'               => $einsatz->datum,
+                                    'betrag_patient'      => 0,
+                                    'betrag_kk'           => $kkasseAng,
+                                ]);
+                            }
+                            continue;
+                        }
+
                         $istTage = $el->leistungsart?->einheit === 'tage';
                         [$tp, $tk] = $this->tarifeFuerLeistungsart($el->leistungsart_id, $regionId, $einsatz->datum, $rechnungstyp, $tarifCache);
                         if ($istTage) {
@@ -1233,6 +1310,7 @@ class RechnungslaufController extends Controller
         $uebersprungen = 0;
         $ltMap         = \App\Models\Leistungstyp::pluck('leistungsart_id', 'bezeichnung')->toArray();
         $tarifCache    = [];
+        $lrAngCache    = [];
 
         // Schritt 1: Alle Einsätze sammeln — Lauf wird erst danach angelegt
         $klientenDaten = [];
@@ -1298,9 +1376,9 @@ class RechnungslaufController extends Controller
                     'rechnungslauf_id'=> $lauf->id,
                 ]);
 
+                $angehoerigTageKk = [];
                 foreach ($daten['normale'] as $einsatz) {
                     if ($einsatz->betrag_fix !== null) {
-                        // Einzelleistung mit Fixbetrag — kein Tarif-Lookup
                         $betragFix = $this->r5((float) $einsatz->betrag_fix);
                         RechnungsPosition::create([
                             'rechnung_id'    => $rechnung->id,
@@ -1315,9 +1393,42 @@ class RechnungslaufController extends Controller
                             'betrag_kk'      => 0.0,
                         ]);
                     } else {
-                        // Eine Position pro Leistungsart
-                        $regionId = $einsatz->region_id ?? $klient->region_id;
+                        $regionId      = $einsatz->region_id ?? $klient->region_id;
+                        $istAngehoerig = ($einsatz->leistungserbringer_typ ?? 'fachperson') === 'angehoerig';
                         foreach ($einsatz->einsatzLeistungsarten as $el) {
+                            $kassenpflichtig = (bool) ($el->leistungsart?->kassenpflichtig ?? false);
+
+                            if ($istAngehoerig && $kassenpflichtig) {
+                                $lrAngKey = "{$el->leistungsart_id}-{$regionId}";
+                                if (!isset($lrAngCache[$lrAngKey])) {
+                                    $lrAngCache[$lrAngKey] = (float) (\DB::table('leistungsregionen')
+                                        ->where('leistungsart_id', $el->leistungsart_id)
+                                        ->where('region_id', $regionId)
+                                        ->where(fn($q) => $q->whereNull('gueltig_ab')->orWhere('gueltig_ab', '<=', $einsatz->datum))
+                                        ->orderByDesc('gueltig_ab')
+                                        ->value('kkasse_angehoerig') ?? 0);
+                                }
+                                $kkasseAng = $lrAngCache[$lrAngKey];
+                                $datumKey  = \Carbon\Carbon::parse($einsatz->datum)->format('Y-m-d');
+                                if ($kkasseAng > 0 && !isset($angehoerigTageKk[$datumKey])) {
+                                    $angehoerigTageKk[$datumKey] = true;
+                                    RechnungsPosition::create([
+                                        'rechnung_id'             => $rechnung->id,
+                                        'einsatz_id'              => $einsatz->id,
+                                        'einsatz_leistungsart_id' => $el->id,
+                                        'datum'                   => $einsatz->datum,
+                                        'menge'                   => 1,
+                                        'einheit'                 => 'tag',
+                                        'beschreibung'            => null,
+                                        'tarif_patient'           => 0,
+                                        'tarif_kk'                => $kkasseAng,
+                                        'betrag_patient'          => 0,
+                                        'betrag_kk'               => $kkasseAng,
+                                    ]);
+                                }
+                                continue;
+                            }
+
                             $istTage = $el->leistungsart?->einheit === 'tage';
                             [$tarifPat, $tarifKk] = $this->tarifeFuerLeistungsart($el->leistungsart_id, $regionId, $einsatz->datum, $rechnungstyp, $tarifCache);
                             if ($istTage) {

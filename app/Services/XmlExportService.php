@@ -214,22 +214,31 @@ class XmlExportService
             $einsatz = $pos->einsatz;
             $la      = $pos->einsatzLeistungsart?->leistungsart ?? $einsatz?->einsatzLeistungsarten->first()?->leistungsart;
 
-            $minuten   = $einsatz?->minuten ?? $pos->menge ?? 0;
+            $istTag     = ($pos->einheit ?? '') === 'tag';
             $vollkosten = (float) ($pos->betrag_kk ?? 0) + (float) ($pos->betrag_patient ?? 0);
 
-            // Vollkostentarif CHF/h → CHF/min
-            $tarifVoll = (float) ($pos->tarif_kk ?? 0) + (float) ($pos->tarif_patient ?? 0);
-            $unitPrice = $tarifVoll > 0 && $minuten > 0 ? round($tarifVoll / 60, 4) : 0;
+            if ($istTag) {
+                // Tages-Pauschale (z.B. Angehörigen-KVG CHF 27.60/Tag)
+                $quantity  = (string) ($pos->menge ?? 1);
+                $unit      = 'Einheit';
+                $unitPrice = number_format($vollkosten, 4, '.', '');
+            } else {
+                $minuten   = $einsatz?->minuten ?? $pos->menge ?? 0;
+                $tarifVoll = (float) ($pos->tarif_kk ?? 0) + (float) ($pos->tarif_patient ?? 0);
+                $quantity  = (string) $minuten;
+                $unit      = 'min';
+                $unitPrice = number_format($tarifVoll > 0 && $minuten > 0 ? round($tarifVoll / 60, 4) : 0, 4, '.', '');
+            }
 
             $service = $dom->createElement('service');
             $service->setAttribute('tariff_type',    '311');
             $service->setAttribute('code',           $la?->tarmed_code ?? '00.0010');
             $service->setAttribute('session',        (string) $session++);
             $service->setAttribute('date_begin',     $pos->datum?->format('Y-m-d') ?? ($rechnung->periode_von?->format('Y-m-d') ?? ''));
-            $service->setAttribute('quantity',       (string) $minuten);
-            $service->setAttribute('unit',           'min');
+            $service->setAttribute('quantity',       $quantity);
+            $service->setAttribute('unit',           $unit);
             $service->setAttribute('unit_factor',    '1.00');
-            $service->setAttribute('unit_price',     number_format($unitPrice, 4, '.', ''));
+            $service->setAttribute('unit_price',     $unitPrice);
             $service->setAttribute('amount',         number_format($vollkosten, 2, '.', ''));
             $pflegeGln = $einsatz?->benutzer?->gln ?? $org->gln ?? '';
             $service->setAttribute('ean_responsible', $pflegeGln);

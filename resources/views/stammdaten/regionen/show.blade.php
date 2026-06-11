@@ -65,6 +65,7 @@
                 <th class="text-rechts">KVG</th>
                 <th class="text-rechts">Ansatz akut</th>
                 <th class="text-rechts">KVG akut</th>
+                <th class="text-rechts">KVG Angeh./Tag</th>
                 <th class="text-mitte">Verr.</th>
                 <th class="text-mitte">Min</th>
                 <th class="text-mitte">Std</th>
@@ -93,6 +94,7 @@
                 <td class="text-rechts text-hell" style="font-size: 0.8125rem;">{{ number_format($t->kkasse, 2) }}</td>
                 <td class="text-rechts" style="font-size: 0.8125rem;">{{ number_format($t->ansatz_akut, 2) }}</td>
                 <td class="text-rechts text-hell" style="font-size: 0.8125rem;">{{ number_format($t->kkasse_akut, 2) }}</td>
+                <td class="text-rechts text-hell" style="font-size: 0.8125rem;">{{ number_format($t->kkasse_angehoerig, 2) }}</td>
                 <td class="text-mitte">{{ $t->verrechnung ? '✓' : '' }}</td>
                 <td class="text-mitte">{{ $t->einsatz_minuten ? '✓' : '' }}</td>
                 <td class="text-mitte">{{ $t->einsatz_stunden ? '✓' : '' }}</td>
@@ -146,6 +148,11 @@
                     <label class="feld-label">KVG akut</label>
                     <input type="number" step="0.05" min="0" name="kkasse_akut" class="feld" required
                         value="{{ $aktuell?->kkasse_akut ?? $la->kvg_akut_default }}">
+                </div>
+                <div style="min-width: 110px;">
+                    <label class="feld-label">KVG Angeh./Tag</label>
+                    <input type="number" step="0.05" min="0" name="kkasse_angehoerig" class="feld"
+                        value="{{ $aktuell?->kkasse_angehoerig ?? 0 }}">
                 </div>
             </div>
 
