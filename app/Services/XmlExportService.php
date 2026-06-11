@@ -29,12 +29,13 @@ class XmlExportService
     public function rechnungExportieren(Rechnung $rechnung): string
     {
         $rechnung->loadMissing([
+            'lauf',
             'klient.region',
             'klient.diagnosen',
             'klient.krankenkassen.krankenkasse',
             'positionen.einsatz.verordnung',
             'positionen.einsatz.einsatzLeistungsarten.leistungsart',
-            'positionen.einsatz.benutzer',  // GLN der Pflegefachperson pro Position
+            'positionen.einsatz.benutzer',
         ]);
 
         if (!$rechnung->klient) {
@@ -68,9 +69,11 @@ class XmlExportService
             ->where('versicherungs_typ', 'kvg')
             ->where('aktiv', true)
             ->first();
-        $kkEan           = $kkZuweisung?->krankenkasse?->ean_nr ?? '';
-        $versichertenNr  = $kkZuweisung?->versichertennummer ?? '';
-        $tiersPayant     = $kkZuweisung?->tiers_payant ?? true;
+        $kkEan          = $kkZuweisung?->krankenkasse?->ean_nr ?? '';
+        $versichertenNr = $kkZuweisung?->versichertennummer ?? '';
+
+        // tiers_payant vom Rechnungslauf-Snapshot (Org-Einstellung), nicht per Klient
+        $tiersPayant = ($rechnung->lauf?->abrechnungslogik ?? $org->abrechnungslogik) === 'tiers_payant';
 
         // ZSR kantonal oder global
         $zsrNr = $klient->region_id
@@ -79,10 +82,13 @@ class XmlExportService
 
         $kanton = $klient->region?->kuerzel ?? 'CH';
 
-        // Totale
-        $totalKk      = $positionen->sum('betrag_kk');
-        $totalPatient = $positionen->sum('betrag_patient');
-        $totalGesamt  = $positionen->sum(fn($p) => ($p->betrag_kk ?? 0) + ($p->betrag_patient ?? 0));
+        // Nur kassenpflichtige Positionen im KVG-Block (betrag_kk > 0)
+        $kvgPositionen = $positionen->filter(fn($p) => ($p->betrag_kk ?? 0) > 0);
+
+        // Totale nur über KVG-Positionen
+        $totalKk      = $kvgPositionen->sum('betrag_kk');
+        $totalPatient = $kvgPositionen->sum('betrag_patient');
+        $totalGesamt  = $kvgPositionen->sum(fn($p) => ($p->betrag_kk ?? 0) + ($p->betrag_patient ?? 0));
 
         $fälligAm = $rechnung->rechnungsdatum?->addDays(30)->format('Y-m-d') ?? '';
 
@@ -128,11 +134,12 @@ class XmlExportService
         $this->adresseAnhaengen($dom, $biller, $org->name, $org->adresse, $org->plz, $org->ort);
 
         // ── Provider (Leistungserbringer = gleiche Org) ───────────────────────
-        // specialty: 37 = Spitex (Fachperson), 39 = Angehörigenpflege (informelle Pflege)
-        $hatAngehoerigEinsatz = $positionen->contains(
+        // specialty: 37 = Spitex (Fachperson), 39 = Angehörigenpflege
+        // 39 nur wenn ALLE KVG-Positionen von Angehörigen stammen
+        $alleAngehoerig = $kvgPositionen->isNotEmpty() && $kvgPositionen->every(
             fn($p) => ($p->einsatz?->leistungserbringer_typ ?? 'fachperson') === 'angehoerig'
         );
-        $specialty = $hatAngehoerigEinsatz ? '39' : '37';
+        $specialty = $alleAngehoerig ? '39' : '37';
 
         $provider = $dom->createElement('provider');
         $provider->setAttribute('zsr', $zsrNr ?? '');
@@ -203,17 +210,16 @@ class XmlExportService
         $kvg->appendChild($services);
 
         $session = 1;
-        foreach ($positionen as $pos) {
+        foreach ($kvgPositionen as $pos) {
             $einsatz = $pos->einsatz;
             $la      = $pos->einsatzLeistungsart?->leistungsart ?? $einsatz?->einsatzLeistungsarten->first()?->leistungsart;
 
-            // Minuten ermitteln: aus Einsatz oder Menge
-            $minuten = $einsatz?->minuten ?? $pos->menge ?? 0;
+            $minuten   = $einsatz?->minuten ?? $pos->menge ?? 0;
+            $vollkosten = (float) ($pos->betrag_kk ?? 0) + (float) ($pos->betrag_patient ?? 0);
 
-            // Tarif pro Minute berechnen (KK-Anteil)
-            $tarif_kk_std = (float) ($pos->tarif_kk ?? 0);
-            // tarif_kk ist CHF/h → pro Minute = /60
-            $unitPrice = $tarif_kk_std > 0 ? round($tarif_kk_std / 60, 4) : 0;
+            // Vollkostentarif CHF/h → CHF/min
+            $tarifVoll = (float) ($pos->tarif_kk ?? 0) + (float) ($pos->tarif_patient ?? 0);
+            $unitPrice = $tarifVoll > 0 && $minuten > 0 ? round($tarifVoll / 60, 4) : 0;
 
             $service = $dom->createElement('service');
             $service->setAttribute('tariff_type',    '311');
@@ -224,15 +230,13 @@ class XmlExportService
             $service->setAttribute('unit',           'min');
             $service->setAttribute('unit_factor',    '1.00');
             $service->setAttribute('unit_price',     number_format($unitPrice, 4, '.', ''));
-            $service->setAttribute('amount',         number_format((float) ($pos->betrag_kk ?? 0), 2, '.', ''));
-            // ean_responsible = GLN der Pflegefachperson (NAREG) — Fallback auf Org-GLN
+            $service->setAttribute('amount',         number_format($vollkosten, 2, '.', ''));
             $pflegeGln = $einsatz?->benutzer?->gln ?? $org->gln ?? '';
             $service->setAttribute('ean_responsible', $pflegeGln);
             $service->setAttribute('ean_provider',    $org->gln ?? '');
             if ($la) {
                 $service->setAttribute('name', $this->s($la->bezeichnung));
             }
-            // Verordnung referenzieren falls vorhanden
             if ($einsatz?->verordnung_id) {
                 $service->setAttribute('obligation', $einsatz->verordnung?->verordnungs_nr ?? '');
             }

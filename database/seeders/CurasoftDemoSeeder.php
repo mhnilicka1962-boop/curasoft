@@ -183,11 +183,53 @@ class CurasoftDemoSeeder extends Seeder
 
     private function regionen(): void
     {
-        foreach (['ZH' => 'Zürich', 'ZG' => 'Zug'] as $kuerzel => $name) {
+        // Tarife CHF/h pro Kanton 2026 (tiers_payant — alle Leistungsarten verrechnet)
+        // [bezeichnung => [ansatz, kkasse, kassenpflichtig, verrechnung]]
+        $tarife = [
+            'ZH' => [
+                'Grundpflege'            => [96.00, 60.00, true,  true],
+                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true],
+                'Abklärung/Beratung'     => [96.00, 79.80, true,  true],
+                'Hauswirtschaft'         => [50.00,  0.00, false, true],
+                'Pauschale'              => [ 0.00,  0.00, false, false],
+            ],
+            'ZG' => [
+                'Grundpflege'            => [88.00, 54.60, true,  true],
+                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true],
+                'Abklärung/Beratung'     => [96.00, 79.80, true,  true],
+                'Hauswirtschaft'         => [44.00,  0.00, false, true],
+                'Pauschale'              => [ 0.00,  0.00, false, false],
+            ],
+            'BE' => [
+                'Grundpflege'            => [68.00, 60.00, true,  true],
+                'Untersuchung Behandlung'=> [79.80, 71.80, true,  true],
+                'Abklärung/Beratung'     => [68.00, 60.00, true,  true],
+                'Hauswirtschaft'         => [57.00,  0.00, false, true],
+                'Pauschale'              => [ 0.00,  0.00, false, false],
+            ],
+            'AG' => [
+                'Grundpflege'            => [98.00, 54.60, true,  true],
+                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true],
+                'Abklärung/Beratung'     => [96.50, 79.80, true,  true],
+                'Hauswirtschaft'         => [44.00,  0.00, false, true],
+                'Pauschale'              => [130.00, 0.00, false, false],
+            ],
+            'SG' => [
+                'Grundpflege'            => [88.00, 54.60, true,  true],
+                'Untersuchung Behandlung'=> [92.00, 65.40, true,  true],
+                'Abklärung/Beratung'     => [96.00, 79.80, true,  true],
+                'Hauswirtschaft'         => [44.00,  0.00, false, true],
+                'Pauschale'              => [ 0.00,  0.00, false, false],
+            ],
+        ];
+
+        $regionNamen = ['ZH' => 'Zürich', 'ZG' => 'Zug', 'BE' => 'Bern', 'AG' => 'Aargau', 'SG' => 'St. Gallen'];
+
+        foreach ($tarife as $kuerzel => $leistungen) {
             $region = DB::table('regionen')->where('kuerzel', $kuerzel)->first();
             if (!$region) {
                 $id = DB::table('regionen')->insertGetId([
-                    'bezeichnung' => $name,
+                    'bezeichnung' => $regionNamen[$kuerzel],
                     'kuerzel'     => $kuerzel,
                     'created_at'  => now(),
                     'updated_at'  => now(),
@@ -197,38 +239,30 @@ class CurasoftDemoSeeder extends Seeder
             }
             $this->regionen[$kuerzel] = $id;
 
-            if (!DB::table('leistungsregionen')->where('region_id', $id)->exists()) {
-                foreach (DB::table('leistungsarten')->where('aktiv', true)->get() as $la) {
-                    $isGp = stripos($la->bezeichnung, 'Grundpflege') !== false;
-                    DB::table('leistungsregionen')->insert([
-                        'leistungsart_id' => $la->id,
-                        'region_id'       => $id,
+            foreach (DB::table('leistungsarten')->where('aktiv', true)->get() as $la) {
+                $t = $leistungen[$la->bezeichnung] ?? null;
+                if (!$t) continue;
+                [$ansatz, $kkasse, $kassenpflichtig, $verrechnung] = $t;
+
+                DB::table('leistungsregionen')->updateOrInsert(
+                    ['leistungsart_id' => $la->id, 'region_id' => $id],
+                    [
                         'gueltig_ab'      => '2026-01-01',
                         'gueltig_bis'     => null,
-                        'ansatz'          => $la->ansatz_default ?? 1.05,
-                        'kkasse'          => $la->kvg_default ?? 0.84,
-                        'ansatz_akut'     => $la->ansatz_akut_default ?? 0,
-                        'kkasse_akut'     => $la->kvg_akut_default ?? 0,
-                        'kassenpflichtig' => true,
-                        'verrechnung'     => !$isGp,
+                        'ansatz'          => $ansatz,
+                        'kkasse'          => $kkasse,
+                        'ansatz_akut'     => 0,
+                        'kkasse_akut'     => 0,
+                        'kassenpflichtig' => $kassenpflichtig,
+                        'verrechnung'     => $verrechnung,
                         'einsatz_minuten' => false,
                         'einsatz_stunden' => true,
                         'einsatz_tage'    => false,
                         'mwst'            => false,
-                        'created_at'      => now(),
                         'updated_at'      => now(),
-                    ]);
-                }
+                    ]
+                );
             }
-
-        }
-
-        // Grundpflege in ALLEN Regionen auf nicht verrechenbar setzen
-        $gpId = DB::table('leistungsarten')->where('bezeichnung', 'Grundpflege')->value('id');
-        if ($gpId) {
-            DB::table('leistungsregionen')
-                ->where('leistungsart_id', $gpId)
-                ->update(['verrechnung' => false, 'updated_at' => now()]);
         }
     }
 

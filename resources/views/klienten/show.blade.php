@@ -1045,7 +1045,6 @@
                         @if($kk->deckungstyp && $kk->deckungstyp !== 'allgemein')
                             <span class="badge badge-warnung" style="font-size: 0.7rem; margin-right: 0.375rem;">{{ $kk->deckungLabel() }}</span>
                         @endif
-                        <span class="badge {{ $kk->tiers_payant ? 'badge-erfolg' : 'badge-grau' }}" style="font-size: 0.7rem; margin-right: 0.375rem;">{{ $kk->tiers_payant ? 'Tiers payant' : 'Tiers garant' }}</span>
                         <span class="text-fett">{{ $kk->krankenkasse->name }}</span>
                         @if($kk->versichertennummer)
                             <span class="text-hell" style="font-size: 0.8rem; margin-left: 0.5rem;">Nr. {{ $kk->versichertennummer }}</span>
@@ -1083,13 +1082,6 @@
                                     @foreach(\App\Models\KlientKrankenkasse::$versicherungsTypen as $wert => $lbl)
                                         <option value="{{ $wert }}">{{ $lbl }}</option>
                                     @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="feld-label" style="font-size: 0.75rem;">Abrechnungsmodell</label>
-                                <select name="tiers_payant" class="feld" style="font-size: 0.875rem;">
-                                    <option value="1" selected>Tiers payant (Standard)</option>
-                                    <option value="0">Tiers garant</option>
                                 </select>
                             </div>
                         </div>

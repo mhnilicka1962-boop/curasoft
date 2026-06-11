@@ -475,7 +475,6 @@ class KlientenController extends Controller
         $daten = $request->validate([
             'krankenkasse_id'    => ['required', 'exists:krankenkassen,id'],
             'versicherungs_typ'  => ['required', 'in:kvg,vvg'],
-            'tiers_payant'       => ['nullable', 'boolean'],
             'deckungstyp'        => ['nullable', 'in:allgemein,halbprivat,privat'],
             'versichertennummer' => ['nullable', 'string', 'max:50'],
             'kartennummer'       => ['nullable', 'string', 'max:50'],
@@ -485,7 +484,6 @@ class KlientenController extends Controller
         ]);
         $klient->krankenkassen()->create(array_merge($daten, [
             'aktiv'        => true,
-            'tiers_payant' => (bool) ($daten['tiers_payant'] ?? true),
             'deckungstyp'  => $daten['deckungstyp'] ?? 'allgemein',
         ]));
         return back()->with('erfolg', 'Krankenkasse wurde hinzugefügt.');
