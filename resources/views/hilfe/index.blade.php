@@ -126,6 +126,7 @@
                         <label><input type="checkbox" data-script="s2" data-step="1">
                             Serien inaktivieren — Klient-Detail → Sektion «Serien» → Serie öffnen → <strong>«Serie beenden»</strong>
                         </label>
+                        <div class="text-klein text-hell" style="margin: 0.2rem 0 0 1.5rem;">Serien können nicht gelöscht werden, nur inaktiviert — zukünftige Einsätze werden damit gestoppt</div>
                     </li>
                     <li data-step="2">
                         <label><input type="checkbox" data-script="s2" data-step="2">
