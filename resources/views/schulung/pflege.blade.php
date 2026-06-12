@@ -83,6 +83,15 @@
     <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; font-size: 0.875rem; margin-bottom: 0.75rem;">
         <strong>Tipp:</strong> KI versteht jede Sprache — einfach in der Muttersprache diktieren, der Bericht wird automatisch auf Deutsch geschrieben.
     </div>
+    <div class="tabelle-wrapper" style="margin-bottom: 0.75rem;">
+        <table class="tabelle">
+            <thead><tr><th>Anzeige</th><th>Bedeutung</th></tr></thead>
+            <tbody>
+                <tr><td>Rapport-Button grau «Ab XX.XX.»</td><td>Einsatz liegt in der Zukunft — Rapport erst ab diesem Datum möglich</td></tr>
+                <tr><td>Check-out immer sichtbar</td><td>Check-out Zeit kann jederzeit manuell nacherfasst werden — nicht mehr versteckt</td></tr>
+            </tbody>
+        </table>
+    </div>
     <a href="{{ route('einsaetze.index') }}" class="btn btn-sekundaer" style="font-size: 0.775rem; padding: 0.2rem 0.6rem;">Einsätze →</a>
 </div>
 

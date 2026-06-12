@@ -97,6 +97,15 @@
             <li><strong>Rapport schreiben</strong> — Stichworte diktieren → «✨ KI Bericht» → oder direkt eintippen/diktieren</li>
             <li><strong>Check-out</strong> antippen — Einsatz abgeschlossen, Zeit gespeichert</li>
         </ol>
+        <div class="tabelle-wrapper" style="margin-top: 0.75rem;">
+            <table class="tabelle">
+                <thead><tr><th>Anzeige</th><th>Bedeutung</th></tr></thead>
+                <tbody>
+                    <tr><td>Rapport-Button grau «Ab XX.XX.»</td><td>Einsatz liegt in der Zukunft — Rapport erst ab diesem Datum möglich</td></tr>
+                    <tr><td>Check-out immer sichtbar</td><td>Check-out Zeit kann jederzeit manuell nacherfasst werden</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     {{-- Kapitel 3: Rapport --}}

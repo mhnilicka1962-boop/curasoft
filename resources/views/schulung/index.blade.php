@@ -74,6 +74,7 @@
                             <tbody>
                                 <tr><td><strong>Ansatz (CHF/h)</strong></td><td>Voller Stundentarif — was der Klient zahlt (inkl. KK-Anteil)</td></tr>
                                 <tr><td><strong>KVG (CHF/h)</strong></td><td>Davon der KK-Anteil</td></tr>
+                                <tr><td><strong>KVG Angehöriger (CHF/Tag)</strong></td><td>KK-Tagespauschale für pflegende Angehörige — wird bei Angehörigen-Einsätzen statt Stundentarif verwendet. Wird automatisch aus der Leistungsart übernommen wenn nicht manuell gesetzt.</td></tr>
                                 <tr><td><strong>Ansatz akut</strong></td><td>Erhöhter Tarif bei akuter Pflege</td></tr>
                                 <tr><td><strong>Verrechnung aktiv</strong></td><td>✓ = Einsätze dieser Leistungsart fliessen in die Rechnung ein. Ohne Häkchen → nicht verrechnet.</td></tr>
                                 <tr><td><strong>Ansatz Minuten / Stunden / Tage</strong></td><td>Abrechnungseinheit</td></tr>
@@ -121,6 +122,9 @@
 
                 <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; margin-bottom: 0.75rem; font-size: 0.875rem;">
                     «<strong>Speichern & Einladen</strong>» → Einladungsmail wird automatisch versendet. Mitarbeiter klickt Link, setzt Passwort — fertig. Im Mitarbeiter-Detail danach: <strong>erlaubte Leistungsarten</strong> freischalten.
+                </div>
+                <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; margin-bottom: 0.75rem; font-size: 0.875rem;">
+                    In der Mitarbeitenden-Liste: <strong>Filter nach Anstellungsart</strong> (Fachperson / Pflegender Angehöriger / Freiwillig / Praktikum) — hilfreich um nur Angehörige oder nur Fachpersonen anzuzeigen.
                 </div>
 
                 <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
@@ -249,10 +253,24 @@
                 <ol style="margin: 0 0 0.75rem 1.25rem; font-size: 0.875rem; line-height: 1.8;">
                     <li>Rechnungsläufe → <strong>«+ Neuer Lauf»</strong></li>
                     <li>Periode Von–Bis wählen → <strong>«Vorschau laden»</strong></li>
-                    <li>Vorschau prüfen: grün = wird abgerechnet, rot = keine Einsätze in Periode</li>
+                    <li>Vorschau prüfen: grün = wird abgerechnet, grau = keine Einsätze in Periode</li>
                     <li>Klienten abwählen die nicht abgerechnet werden sollen (optional)</li>
                     <li><strong>«Rechnungslauf starten»</strong> — alle Rechnungen werden erstellt</li>
                 </ol>
+                <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; margin-bottom: 0.75rem; font-size: 0.875rem;">
+                    ⚠ Falls noch nicht abgeschlossene Einsätze in der Periode vorhanden sind, erscheint eine Warnung — direkt per Link zu den offenen Einsätzen springen und Checkouts nacherfassen, dann neu laden.
+                </div>
+                <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.4rem;">Inhalt der Rechnungs-PDFs</div>
+                <div class="tabelle-wrapper" style="margin-bottom: 0.75rem;">
+                    <table class="tabelle">
+                        <thead><tr><th>Seite</th><th>Inhalt</th><th>Wann</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>1</strong></td><td>Rechnung (Betrag, Klient, Periode, QR-Zahlschein)</td><td>Immer</td></tr>
+                            <tr><td><strong>2</strong></td><td>Berechnungs-Beilage (Tarife, KK-Anteil, Eigenanteil)</td><td>Tiers payant</td></tr>
+                            <tr><td><strong>3</strong></td><td>Leistungsnachweis — alle Einsätze mit Datum, Zeit, Min, Leistungsart, Mitarbeiter + Monatssummary</td><td>Immer</td></tr>
+                        </tbody>
+                    </table>
+                </div>
 
                 <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.4rem;">Buttons im Lauf-Detail</div>
                 <div class="tabelle-wrapper" style="margin-bottom: 0.75rem;">
@@ -360,6 +378,10 @@
         <li>Vertretung bestätigen → alle OK-Einsätze werden auf einmal umgebucht</li>
         <li>Kalender prüfen — Doppelbelegungen auflösen, Touren aktualisieren</li>
     </ol>
+    <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; margin-bottom: 0.75rem; font-size: 0.875rem;">
+        <strong>Abwesenheits-Persistenz:</strong> Eingetragene Abwesenheiten werden automatisch gespeichert — Badges in den Listen zeigen aktive Vertretungen auf einen Blick.<br>
+        <strong>Archiv:</strong> Alle vergangenen Vertretungen mit Suche nach Mitarbeiter und Zeitraum einsehbar.
+    </div>
     <a href="{{ route('vertretung.index') }}" class="btn btn-sekundaer" style="font-size: 0.775rem; padding: 0.2rem 0.6rem;">Ferienvertretung →</a>
 </div>
 
@@ -369,6 +391,9 @@
     <div class="text-klein text-hell" style="margin-bottom: 0.75rem;">
         Familienmitglied wird als Mitarbeitende/r bei der Spitex angestellt und pflegt den eigenen Angehörigen gegen Lohn (CHF ~37.90/h inkl. Sozialversicherungen).
         Die Spitex übernimmt Aufsicht, Erstbeurteilung und Lohnabrechnung. Nur Grundpflege &amp; Hauswirtschaft (KLV). Reassessment alle 6 Monate.
+    </div>
+    <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; margin-bottom: 0.75rem; font-size: 0.875rem;">
+        <strong>KVG Tagespauschale:</strong> Pro Kanton kann ein KVG-Tagessatz für Angehörigen-Einsätze hinterlegt werden (Stammdaten → Regionen → Kanton → «KVG Angehöriger CHF/Tag»). Wird bei der Abrechnung statt des Stundentarifs für Angehörige verwendet. Der Wert wird automatisch aus der Leistungsart vorausgefüllt.
     </div>
     <ol style="margin: 0 0 0.75rem 1.25rem; font-size: 0.875rem; line-height: 1.9;">
         <li>Angehörigenpflege → <strong>«+ Neuer Angehöriger»</strong> — Name, E-Mail eingeben → Einladungsmail automatisch</li>

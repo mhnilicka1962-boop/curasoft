@@ -293,6 +293,7 @@
                             Rechnungslauf erstellen — Periode wählen, Vorschau prüfen, Lauf starten
                         </label>
                         <a href="{{ route('rechnungslauf.create') }}" class="script-link" target="_blank">+ Rechnungslauf →</a>
+                        <div class="text-klein text-hell" style="margin: 0.2rem 0 0 1.5rem;">⚠ Falls noch nicht abgeschlossene Einsätze in der Periode vorhanden sind, erscheint eine Warnung — direkt per Link zu den offenen Einsätzen springen und Checkouts nacherfassen</div>
                     </li>
                     <li data-step="4">
                         <label><input type="checkbox" data-script="s5" data-step="4">
@@ -884,6 +885,17 @@
         </table>
         </div>
         <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; font-size: 0.875rem;">Solange keine Rechnung im Status «Gesendet» oder «Bezahlt» ist, kann der ganze Lauf storniert werden.</div>
+        <div style="margin-top: 1rem; font-weight: 600; margin-bottom: 0.4rem;">Inhalt der Rechnungs-PDFs</div>
+        <div class="tabelle-wrapper">
+        <table class="tabelle">
+            <thead><tr><th>Seite</th><th>Inhalt</th><th>Wann</th></tr></thead>
+            <tbody>
+                <tr><td><strong>1</strong></td><td>Rechnung (Betrag, Klient, Periode, QR-Zahlschein)</td><td>Immer</td></tr>
+                <tr><td><strong>2</strong></td><td>Berechnungs-Beilage (Tarife, KK-Anteil, Eigenanteil)</td><td>Tiers payant</td></tr>
+                <tr><td><strong>3</strong></td><td>Leistungsnachweis / Tagesrapport — alle Einsätze mit Datum, Zeit, Min, Leistungsart, Mitarbeiter + Monatssummary</td><td>Immer</td></tr>
+            </tbody>
+        </table>
+        </div>
     </div>
 
     {{-- Kapitel Rapportierung --}}
@@ -934,7 +946,7 @@
             <div class="abschnitt-trenn"></div>
             <div><strong>KI schreibt Bericht auf Französisch / Serbisch / Englisch?</strong><br>Die KI schreibt den Bericht immer auf <strong>Deutsch</strong> — egal in welcher Sprache diktiert wurde. Einfach lossprechen.</div>
             <div class="abschnitt-trenn"></div>
-            <div><strong>Wer hat was geändert?</strong><br><a href="{{ route('audit.index') }}" class="link-primaer">Audit-Log</a> → vollständige Protokollierung aller Aktionen mit Benutzer, Datum und Änderungsdetails</div>
+            <div><strong>Wer hat was geändert?</strong><br><a href="{{ route('audit.index') }}" class="link-primaer">Audit-Log</a> → vollständige Protokollierung aller Aktionen mit Benutzer, Datum und Änderungsdetails. Filter nach <strong>IP-Adresse</strong> möglich — hilfreich bei Fragen zu nicht-autorisierten Zugriffen</div>
         </div>
     </div>
 
@@ -986,7 +998,7 @@ function resetScript(id) {
 }
 
 // Event-Listener für alle Checkboxen
-['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10'].forEach(id => {
+['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11'].forEach(id => {
     ladeScript(id);
     document.querySelectorAll('[data-script="' + id + '"]').forEach(cb => {
         cb.addEventListener('change', () => speichereSchritt(id, cb.dataset.step, cb.checked));
