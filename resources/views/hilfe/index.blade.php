@@ -124,7 +124,7 @@
                     </li>
                     <li data-step="1">
                         <label><input type="checkbox" data-script="s2" data-step="1">
-                            Serien löschen (Einsatz-Detail → × Serie löschen)
+                            Serien inaktivieren — Klient-Detail → Sektion «Serien» → Serie öffnen → <strong>«Serie beenden»</strong>
                         </label>
                     </li>
                     <li data-step="2">
