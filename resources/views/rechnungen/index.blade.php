@@ -1,4 +1,4 @@
-<x-layouts.app :titel="'Rechnungen'">
+<x-layouts.app :titel="'Rechnungen / Auswertung'">
 
 {{-- Übersicht-Kacheln --}}
 <div class="form-grid" style="margin-bottom: 1.5rem;">

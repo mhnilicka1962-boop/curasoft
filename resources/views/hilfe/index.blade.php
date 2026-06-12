@@ -834,7 +834,17 @@
 
     {{-- Kapitel 6: Rechnung --}}
     <div class="karte" id="kap6" style="margin-bottom: 1.25rem;">
-        <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 6 — Rechnung erstellen</div>
+        <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 6 — Rechnungen / Auswertung</div>
+        <div class="tabelle-wrapper" style="margin-bottom: 1rem;">
+        <table class="tabelle">
+            <thead><tr><th>Auswertung oben</th><th>Was es zeigt</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Entwürfe / Gesendet / Bezahlt / Storniert</strong></td><td>Anzahl und Gesamtbetrag pro Status — Klick filtert die Liste direkt</td></tr>
+                <tr><td><strong>↓ Auswertung CSV</strong></td><td>Aktuelle gefilterte Liste als CSV — für Excel / Buchhaltungssystem</td></tr>
+                <tr><td><strong>↓ Auswertung PDF</strong></td><td>Aktuelle gefilterte Liste als PDF — für Ablage oder Übergabe</td></tr>
+            </tbody>
+        </table>
+        </div>
         <ol style="margin: 0 0 1rem 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
             <li>Rechnungen → <strong>„+ Neue Rechnung"</strong></li>
             <li>Klient wählen → Leistungsperiode (Von–Bis)</li>
