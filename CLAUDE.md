@@ -85,22 +85,6 @@ Klassen: `.karte`, `.btn`, `.btn-primaer`, `.btn-sekundaer`, `.btn-gefahr`, `.ba
 
 ---
 
-## Aktuelle DB (lokal + Demo identisch, Stand 2026-03-28)
-
-| Tabelle | Anzahl |
-|---|---|
-| klienten | 5 |
-| einsaetze | 965 |
-| einsatz_leistungsarten | 965 |
-| touren | 338 |
-| rechnungslaeufe | 4 |
-| rechnungen | 16 |
-| benutzer | 6 |
-
-Seeder: `php artisan db:seed --class=CurasoftDemoSeeder` — einziger Demo/Test-Seeder.
-
----
-
 ## Module / URLs
 
 | Modul | URL | Rollen |
@@ -128,17 +112,6 @@ Seeder: `php artisan db:seed --class=CurasoftDemoSeeder` — einziger Demo/Test-
 # cPanel: Subdomain + DB anlegen, dann:
 rm -rf ~/X.curasoft.ch && ln -s ~/public_html/spitex/public ~/X.curasoft.ch
 php artisan tenant:create X "Name GmbH" admin@x.ch --skip-create-db --db=devitjob_X
-```
-
----
-
-## Session-Start — Apache/PostgreSQL prüfen
-
-```bash
-tasklist | grep -i httpd
-tasklist | grep -i postgres
-# Falls Apache fehlt:
-start "" "C:/laragon/bin/apache/httpd-2.4.66-260107-Win64-Win64-VS18/bin/httpd.exe"
 ```
 
 ---
