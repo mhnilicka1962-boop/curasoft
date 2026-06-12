@@ -16,7 +16,7 @@
             <a href="#kap3"     class="badge badge-grau"      style="text-decoration: none;">3 — Neuer Patient</a>
             <a href="#kap4"     class="badge badge-grau"      style="text-decoration: none;">4 — Neuer Mitarbeiter</a>
             <a href="#kap5"     class="badge badge-grau"      style="text-decoration: none;">5 — Rapport</a>
-            <a href="#kap6"     class="badge badge-grau"      style="text-decoration: none;">6 — Rechnung</a>
+            <a href="#kap6"     class="badge badge-grau"      style="text-decoration: none;">6 — Rechnungen / Auswertung</a>
             <a href="#kap6b"    class="badge badge-grau"      style="text-decoration: none;">6b — Rechnungslauf</a>
             <a href="#kap7"     class="badge badge-grau"      style="text-decoration: none;">7 — FAQ</a>
             <a href="#script-angehoerig" class="badge badge-info" style="text-decoration: none;">▶ Angehörigenpflege</a>

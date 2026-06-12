@@ -249,6 +249,18 @@
                 </div>
                 <div class="text-klein text-hell" style="margin-bottom: 0.75rem;">Rechnungslauf einmal pro Monat — alle Klienten mit einem Klick abrechnen.</div>
 
+                <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.4rem;">Rechnungen / Auswertung</div>
+                <div class="text-klein text-hell" style="margin-bottom: 0.5rem;">Die Rechnungsübersicht ist gleichzeitig die Auswertung — oben vier Kacheln mit Anzahl und Gesamtbetrag pro Status. Klick auf eine Kachel filtert die Liste sofort.</div>
+                <div class="tabelle-wrapper" style="margin-bottom: 0.75rem;">
+                    <table class="tabelle">
+                        <thead><tr><th>Element</th><th>Was es zeigt / tut</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Entwürfe / Gesendet / Bezahlt / Storniert</strong></td><td>Anzahl Rechnungen + Gesamtbetrag CHF pro Status — Klick filtert Liste</td></tr>
+                            <tr><td><strong>↓ Auswertung CSV</strong></td><td>Gefilterte Liste als CSV — für Excel oder Buchhaltungssystem</td></tr>
+                            <tr><td><strong>↓ Auswertung PDF</strong></td><td>Gefilterte Liste als PDF — für Ablage oder Übergabe an Treuhänder</td></tr>
+                        </tbody>
+                    </table>
+                </div>
                 <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.4rem;">Rechnungslauf erstellen</div>
                 <ol style="margin: 0 0 0.75rem 1.25rem; font-size: 0.875rem; line-height: 1.8;">
                     <li>Rechnungsläufe → <strong>«+ Neuer Lauf»</strong></li>
@@ -455,7 +467,7 @@
                     ['Rapporte schreiben', true, true, false],
                     ['Touren / Kalender', true, 'nur eigene', false],
                     ['Meine Arbeitszeit (Zeitnachweis)', true, true, false],
-                    ['Rechnungen, Rechnungsläufe', true, false, true],
+                    ['Rechnungen / Auswertung, Rechnungsläufe', true, false, true],
                     ['Personalabrechnung (alle MA)', true, false, true],
                     ['Mitarbeitende verwalten', true, false, false],
                     ['Stammdaten, Einstellungen', true, false, false],
