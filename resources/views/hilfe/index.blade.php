@@ -744,11 +744,14 @@
     {{-- Kapitel 2: Tagesablauf --}}
     <div class="karte" id="kap2" style="margin-bottom: 1.25rem;">
         <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 2 — Tagesablauf Admin</div>
-        <div style="font-weight: 600; margin-bottom: 0.5rem;">Morgens: Planen</div>
+        <div style="font-weight: 600; margin-bottom: 0.5rem;">Morgens: Prüfen</div>
+        <div class="info-box" style="margin-bottom: 0.75rem; font-size: 0.875rem;">
+            <strong>Einsätze werden automatisch durch Serien generiert</strong> — kein manuelles Anlegen nötig. Einfach prüfen was bereits da ist.
+        </div>
         <ol style="margin: 0 0 1rem 1.25rem; line-height: 1.8; font-size: 0.9375rem;">
-            <li>Einsatzplanung (Kalender) → Doppelklick auf leere Zelle → Einsatz direkt erfassen</li>
-            <li>Oder: Klienten → Patient → <strong>„+ Einsatz planen"</strong> klicken</li>
-            <li>Touren → <strong>„+ Tour erstellen"</strong> → Einsätze zuweisen → Route optimieren</li>
+            <li>Dashboard → Einsätze heute prüfen — alle von Serien automatisch generiert</li>
+            <li>Touren → prüfen, bei Bedarf Route optimieren oder Einsätze umordnen</li>
+            <li>Ausnahmen (Einzel-Termin): Kalender → Doppelklick auf leere Zelle — nur für echte Einzel-Termine ausserhalb der Serie</li>
         </ol>
         <div class="abschnitt-trenn"></div>
         <div style="font-weight: 600; margin: 1rem 0 0.5rem;">Abends: Nachkontrolle</div>
