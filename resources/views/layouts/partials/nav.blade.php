@@ -72,7 +72,7 @@
 @if(auth()->user()?->rolle !== 'pflege')
 <div class="nav-abschnitt">Abrechnung</div>
 <a href="{{ route('rechnungen.index') }}" class="nav-link {{ request()->routeIs('rechnungen.*') ? 'aktiv' : '' }}">
-    Rechnungen
+    Rechnungen / Auswertung
 </a>
 <a href="{{ route('rechnungslauf.index') }}" class="nav-link {{ request()->routeIs('rechnungslauf.*') ? 'aktiv' : '' }}">
     Rechnungsläufe
