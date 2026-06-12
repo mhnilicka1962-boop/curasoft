@@ -946,7 +946,7 @@
             <div class="abschnitt-trenn"></div>
             <div><strong>Rechnungslauf zeigt Klient nicht in der Vorschau?</strong><br>Mögliche Gründe: keine abgeschlossenen Einsätze (kein Check-out), alle Einsätze bereits verrechnet, oder der Klient ist inaktiv</div>
             <div class="abschnitt-trenn"></div>
-            <div><strong>Serie beenden oder pausieren?</strong><br>Klient → Serien → Serie öffnen → <strong>«Serie beenden»</strong> — löscht alle zukünftigen Einsätze. Zum Neustart: <strong>«Serie neu starten»</strong></div>
+            <div><strong>Serie beenden oder pausieren?</strong><br>Klient → Serien → Serie öffnen → <strong>«Serie beenden»</strong> — stoppt die Serie, zukünftige Einsätze werden gelöscht. Zum Neustart: <strong>«Serie neu starten»</strong>.<br><span class="text-hell">Serien können nicht gelöscht werden, nur inaktiviert — die Serie bleibt als Historie erhalten.</span></div>
             <div class="abschnitt-trenn"></div>
             <div><strong>KI schreibt Bericht auf Französisch / Serbisch / Englisch?</strong><br>Die KI schreibt den Bericht immer auf <strong>Deutsch</strong> — egal in welcher Sprache diktiert wurde. Einfach lossprechen.</div>
             <div class="abschnitt-trenn"></div>
