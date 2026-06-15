@@ -1,5 +1,5 @@
 <x-layouts.app titel="Hilfe & Betriebsanweisung">
-<div style="max-width: 860px;">
+<div id="hilfe-inhalt" style="max-width: 860px;">
 
     <div class="seiten-kopf" style="margin-bottom: 1.5rem;">
         <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Hilfe & Betriebsanweisung</h1>
@@ -27,6 +27,12 @@
             <a href="#script-serie" class="badge badge-info" style="text-decoration: none;">▶ Einsatzserie</a>
             <a href="#kap5-pdf" class="badge badge-info" style="text-decoration: none;">▶ Rapport-PDF</a>
         </div>
+    </div>
+
+    {{-- Suche --}}
+    <div style="margin-bottom: 1.25rem;">
+        <input type="text" id="hilfe-suche" class="feld" style="width: 100%;" placeholder="Suchen… z.B. Rechnung, Check-in, Passwort" autocomplete="off">
+        <div id="hilfe-keine-treffer" style="display: none; color: var(--cs-text-hell); font-size: 0.875rem; margin-top: 0.5rem; text-align: center;">Keine Treffer.</div>
     </div>
 
     {{-- ═══════════════════════════════════════════════════════════════ --}}
@@ -1024,6 +1030,20 @@
 
 @push('scripts')
 <script>
+// Volltextsuche — nur Kapitel + Scripts-Block, nie die Sprungnavigation
+document.getElementById('hilfe-suche').addEventListener('input', function () {
+    const q = this.value.toLowerCase().trim();
+    const sektionen = document.querySelectorAll('#hilfe-inhalt .karte[id], #hilfe-inhalt #scripts');
+    let treffer = 0;
+    sektionen.forEach(s => {
+        const text = s.innerText.toLowerCase();
+        const zeigen = !q || text.includes(q);
+        s.style.display = zeigen ? '' : 'none';
+        if (zeigen) treffer++;
+    });
+    document.getElementById('hilfe-keine-treffer').style.display = (q && treffer === 0) ? 'block' : 'none';
+});
+
 // Script-Toggle
 function toggleScript(id) {
     const body  = document.getElementById('body-' + id);

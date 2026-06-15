@@ -606,4 +606,6 @@
 </style>
 @endpush
 
+
+
 </x-layouts.app>
