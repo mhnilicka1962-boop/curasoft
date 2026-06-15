@@ -32,10 +32,10 @@ class MitarbeiterController extends Controller
         }
         if ($request->aktiv === '0') {
             $query->where('aktiv', false);
-        } elseif ($request->aktiv !== '') {
+        } elseif (!$request->has('aktiv') || $request->aktiv === '1') {
             $query->where('aktiv', true);
         }
-        // aktiv='' → kein Filter → alle anzeigen
+        // aktiv='' (→ null nach Middleware) und has('aktiv')=true → alle anzeigen
         if ($request->filled('suche')) {
             $query->where(function ($q) use ($request) {
                 $q->where('vorname', 'ilike', '%' . $request->suche . '%')

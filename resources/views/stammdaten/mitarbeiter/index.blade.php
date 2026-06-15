@@ -41,9 +41,9 @@
         <div>
             <label class="feld-label">Status</label>
             <select name="aktiv" class="feld">
-                <option value="1" {{ !request()->exists('aktiv') || request('aktiv') === '1' ? 'selected' : '' }}>Aktiv</option>
+                <option value="1" {{ !request()->has('aktiv') || request('aktiv') === '1' ? 'selected' : '' }}>Aktiv</option>
                 <option value="0" {{ request('aktiv') === '0' ? 'selected' : '' }}>Inaktiv</option>
-                <option value=""  {{ request()->exists('aktiv') && request('aktiv') === '' ? 'selected' : '' }}>Alle</option>
+                <option value=""  {{ request()->has('aktiv') && request('aktiv') === null ? 'selected' : '' }}>Alle</option>
             </select>
         </div>
         <button type="submit" class="btn btn-sekundaer">Filtern</button>
