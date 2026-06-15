@@ -528,6 +528,42 @@
 </div>
 
 {{-- FAQ --}}
+<div class="karte" style="margin-bottom: 1.25rem;">
+    <div class="abschnitt-label" style="margin-bottom: 0.75rem;">Audit-Log & Datenschutz</div>
+    <div style="font-size: 0.9rem; line-height: 1.7; display: flex; flex-direction: column; gap: 0.75rem;">
+
+        <div><strong>Was ist der Audit-Log?</strong><br>
+            CuraSoft protokolliert automatisch alle sicherheitsrelevanten Aktionen — wer hat wann was geändert, mit Zeitstempel und IP-Adresse. Nur Admins können das Log einsehen unter <strong>Menü → Audit-Log</strong>.
+        </div>
+        <div class="abschnitt-trenn"></div>
+
+        <div><strong>Gesetzliche Pflicht</strong><br>
+            Spitex-Organisationen unterliegen dem <strong>nDSG</strong> (Datenschutzgesetz) und dem <strong>KVG</strong>. Beide verlangen die Protokollierung von Zugriffen auf Gesundheitsdaten sowie eine Aufbewahrung von <strong>10 Jahren</strong>. CuraSoft erfüllt diese Anforderungen automatisch — kein manueller Aufwand.
+        </div>
+        <div class="abschnitt-trenn"></div>
+
+        <div><strong>Was wird geloggt?</strong><br>
+            <ul style="margin: 0.3rem 0 0 1.2rem;">
+                <li>Login / Logout aller Benutzer</li>
+                <li>Check-in / Check-out beim Klienten</li>
+                <li>Änderungen an Klienten, Rechnungen, Mitarbeitenden</li>
+                <li>Änderungen an Stammdaten (Leistungsarten, Krankenkassen, Tarife)</li>
+            </ul>
+        </div>
+        <div class="abschnitt-trenn"></div>
+
+        <div><strong>Bei Verdacht auf Datenmissbrauch</strong><br>
+            <ol style="margin: 0.3rem 0 0 1.2rem;">
+                <li>Audit-Log nach verdächtiger IP oder Benutzer filtern</li>
+                <li>Betroffenen Account sofort sperren / Passwort zurücksetzen</li>
+                <li>Vorfall dokumentieren</li>
+                <li>Meldung an <strong>EDÖB</strong> innert <strong>72 Stunden</strong> (Pflicht gemäss nDSG Art. 24)</li>
+            </ol>
+        </div>
+
+    </div>
+</div>
+
 <div class="karte">
     <div class="abschnitt-label" style="margin-bottom: 0.75rem;">Häufige Fragen — Kurzantworten</div>
 

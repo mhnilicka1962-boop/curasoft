@@ -19,6 +19,7 @@
             <a href="#kap6"     class="badge badge-grau"      style="text-decoration: none;">6 — Rechnungen / Auswertung</a>
             <a href="#kap6b"    class="badge badge-grau"      style="text-decoration: none;">6b — Rechnungslauf</a>
             <a href="#kap7"     class="badge badge-grau"      style="text-decoration: none;">7 — FAQ</a>
+            <a href="#kap8"     class="badge badge-grau"      style="text-decoration: none;">8 — Audit-Log</a>
             <a href="#script-angehoerig" class="badge badge-info" style="text-decoration: none;">▶ Angehörigenpflege</a>
             <a href="#script-lohnabrechnung" class="badge badge-info" style="text-decoration: none;">▶ Lohnabrechnung</a>
             <a href="#script-einsatz" class="badge badge-info" style="text-decoration: none;">▶ Einsatz erfassen</a>
@@ -961,6 +962,61 @@
             <div><strong>KI schreibt Bericht auf Französisch / Serbisch / Englisch?</strong><br>Die KI schreibt den Bericht immer auf <strong>Deutsch</strong> — egal in welcher Sprache diktiert wurde. Einfach lossprechen.</div>
             <div class="abschnitt-trenn"></div>
             <div><strong>Wer hat was geändert?</strong><br><a href="{{ route('audit.index') }}" class="link-primaer">Audit-Log</a> → vollständige Protokollierung aller Aktionen mit Benutzer, Datum und Änderungsdetails. Filter nach <strong>IP-Adresse</strong> möglich — hilfreich bei Fragen zu nicht-autorisierten Zugriffen</div>
+        </div>
+    </div>
+
+    {{-- Kapitel 8: Audit-Log & Datenschutz --}}
+    <div class="karte" id="kap8" style="margin-bottom: 1.25rem;">
+        <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 8 — Audit-Log & Datenschutz</div>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9375rem;">
+
+            <div><strong>Was ist der Audit-Log?</strong><br>
+                Das <a href="{{ route('audit.index') }}" class="link-primaer">Audit-Log</a> protokolliert automatisch alle sicherheitsrelevanten Aktionen: wer hat wann was geändert — mit IP-Adresse, Zeitstempel und den genauen Vorher/Nachher-Werten. Nur Admins haben Zugriff.
+            </div>
+            <div class="abschnitt-trenn"></div>
+
+            <div><strong>Was wird protokolliert?</strong><br>
+                <ul style="margin: 0.4rem 0 0 1.2rem; line-height: 1.8;">
+                    <li><strong>Login / Logout</strong> — jede Anmeldung und Abmeldung mit IP-Adresse</li>
+                    <li><strong>Check-in / Check-out</strong> — Anwesenheit der Pflegeperson beim Klienten</li>
+                    <li><strong>Klienten</strong> — erstellt, geändert, gelöscht</li>
+                    <li><strong>Rechnungen & Rechnungsläufe</strong> — alle Statusänderungen, Stornierungen</li>
+                    <li><strong>Mitarbeitende</strong> — erstellt, geändert, gelöscht</li>
+                    <li><strong>Stammdaten</strong> — Leistungsarten, Krankenkassen, Regionen, Tagespauschalen</li>
+                </ul>
+            </div>
+            <div class="abschnitt-trenn"></div>
+
+            <div><strong>Gesetzliche Grundlage</strong><br>
+                Spitex-Organisationen sind verpflichtet, Zugriffe auf medizinische Daten zu protokollieren:<br>
+                <ul style="margin: 0.4rem 0 0 1.2rem; line-height: 1.8;">
+                    <li><strong>nDSG</strong> (Schweizer Datenschutzgesetz) — Protokollierungspflicht bei besonders schützenswerten Personendaten (= Gesundheitsdaten)</li>
+                    <li><strong>KVG / KVV</strong> — Abrechnungsunterlagen müssen <strong>10 Jahre</strong> aufbewahrt werden</li>
+                </ul>
+                Das Audit-Log wird daher <strong>10 Jahre</strong> aufbewahrt und nicht automatisch gelöscht.
+            </div>
+            <div class="abschnitt-trenn"></div>
+
+            <div><strong>Filter sinnvoll nutzen</strong><br>
+                <ul style="margin: 0.4rem 0 0 1.2rem; line-height: 1.8;">
+                    <li><strong>Benutzer</strong> — alle Aktionen einer bestimmten Person nachverfolgen</li>
+                    <li><strong>Aktion</strong> — z.B. nur «geloescht» filtern um zu sehen was entfernt wurde</li>
+                    <li><strong>IP-Adresse</strong> — verdächtige Zugriffe einer bestimmten IP prüfen</li>
+                    <li><strong>Von / Bis</strong> — Zeitraum eingrenzen, z.B. für eine Kontrolle nach einem Vorfall</li>
+                </ul>
+                Auf den <strong>⋯-Button</strong> klicken um die genauen Vorher/Nachher-Werte einer Änderung zu sehen.
+            </div>
+            <div class="abschnitt-trenn"></div>
+
+            <div><strong>Verdacht auf unautorisierten Zugriff — was tun?</strong><br>
+                <ol style="margin: 0.4rem 0 0 1.2rem; line-height: 1.8;">
+                    <li>Audit-Log → nach verdächtiger IP oder unbekanntem Benutzer filtern</li>
+                    <li>Betroffenen Mitarbeiter-Account sofort unter <strong>Mitarbeitende → Bearbeiten → Passwort zurücksetzen</strong></li>
+                    <li>Vorfall dokumentieren (Datum, betroffene Daten, Anzahl Personen)</li>
+                    <li>Bei Verletzung von Personendaten: Meldung an den <strong>EDÖB</strong> (Eidg. Datenschutzbeauftragter) innert <strong>72 Stunden</strong> — Pflicht gemäss nDSG Art. 24</li>
+                </ol>
+            </div>
+
         </div>
     </div>
 
