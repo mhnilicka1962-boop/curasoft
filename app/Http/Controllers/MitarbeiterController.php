@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Mail\EinladungMail;
-use App\Models\AuditLog;
 use App\Models\Benutzer;
 use App\Models\Klient;
 use App\Models\KlientBenutzer;
@@ -281,9 +280,6 @@ class MitarbeiterController extends Controller
         if ($hatEinsaetze) {
             return back()->with('fehler', 'Mitarbeiter kann nicht gelöscht werden — es existieren Einsätze.');
         }
-
-        AuditLog::schreiben('geloescht', 'Benutzer', $mitarbeiter->id,
-            'Mitarbeiter "' . $mitarbeiter->vorname . ' ' . $mitarbeiter->nachname . '" gelöscht');
 
         $mitarbeiter->delete();
         return redirect()->route('mitarbeiter.index')->with('erfolg', 'Mitarbeiter wurde gelöscht.');
