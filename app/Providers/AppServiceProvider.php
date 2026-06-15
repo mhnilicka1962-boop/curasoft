@@ -9,6 +9,7 @@ use App\Models\Krankenkasse;
 use App\Models\Leistungsart;
 use App\Models\NachrichtEmpfaenger;
 use App\Models\Region;
+use App\Models\Tagespauschale;
 use Illuminate\Support\Facades\DB;
 use App\Models\Rechnung;
 use App\Observers\AuditObserver;
@@ -59,5 +60,6 @@ class AppServiceProvider extends ServiceProvider
         Leistungsart::observe(AuditObserver::class);
         Krankenkasse::observe(AuditObserver::class);
         Region::observe(AuditObserver::class);
+        Tagespauschale::observe(AuditObserver::class);
     }
 }
