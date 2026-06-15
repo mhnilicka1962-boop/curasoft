@@ -54,7 +54,6 @@ class AppServiceProvider extends ServiceProvider
 
         // Sensitive Modelle automatisch auditieren
         Klient::observe(AuditObserver::class);
-        Einsatz::observe(AuditObserver::class);
         Rechnung::observe(AuditObserver::class);
         Benutzer::observe(AuditObserver::class);
         Leistungsart::observe(AuditObserver::class);
