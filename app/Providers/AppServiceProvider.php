@@ -5,7 +5,10 @@ namespace App\Providers;
 use App\Models\Benutzer;
 use App\Models\Einsatz;
 use App\Models\Klient;
+use App\Models\Krankenkasse;
+use App\Models\Leistungsart;
 use App\Models\NachrichtEmpfaenger;
+use App\Models\Region;
 use Illuminate\Support\Facades\DB;
 use App\Models\Rechnung;
 use App\Observers\AuditObserver;
@@ -53,5 +56,8 @@ class AppServiceProvider extends ServiceProvider
         Einsatz::observe(AuditObserver::class);
         Rechnung::observe(AuditObserver::class);
         Benutzer::observe(AuditObserver::class);
+        Leistungsart::observe(AuditObserver::class);
+        Krankenkasse::observe(AuditObserver::class);
+        Region::observe(AuditObserver::class);
     }
 }
