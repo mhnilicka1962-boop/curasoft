@@ -76,7 +76,7 @@
                     @endif
                 </td>
                 <td class="text-rechts" style="white-space: nowrap;">
-                    <a href="{{ route('klienten.edit', $klient) }}" class="btn btn-sekundaer"
+                    <a href="{{ route('klienten.show', $klient) }}" class="btn btn-sekundaer"
                         style="padding: 0.25rem 0.625rem; font-size: 0.8125rem;">Bearbeiten</a>
                 </td>
             </tr>
