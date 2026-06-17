@@ -241,7 +241,45 @@
             </div>
         </div>
 
-
+        {{-- Einsatzadresse & Kontakt --}}
+        <div class="karte" style="margin-bottom: 0.75rem;">
+            <div class="abschnitt-label" style="margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
+                Einsatzadresse & Kontakt
+                @if($klient->klient_lat && $klient->klient_lng)
+                    <span style="color:var(--cs-erfolg,#16a34a); font-size:0.8rem;" title="Koordinaten vorhanden">✓ geocodet</span>
+                @elseif($klient->adresse)
+                    <span style="color:var(--cs-warnung,#d97706); font-size:0.8rem;" title="Keine Koordinaten">⚠ nicht geocodet</span>
+                @endif
+            </div>
+            <div style="margin-bottom: 0.5rem;">
+                <label class="feld-label">Strasse & Nr.</label>
+                <input type="text" name="adresse" class="feld" value="{{ old('adresse', $klient->adresse) }}" placeholder="Musterstrasse 12">
+            </div>
+            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <div>
+                    <label class="feld-label">PLZ</label>
+                    <input type="text" name="plz" class="feld" value="{{ old('plz', $klient->plz) }}" placeholder="6340">
+                </div>
+                <div>
+                    <label class="feld-label">Ort</label>
+                    <input type="text" name="ort" class="feld" value="{{ old('ort', $klient->ort) }}" placeholder="Baar">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                <div>
+                    <label class="feld-label">Telefon</label>
+                    <input type="text" name="telefon" class="feld" value="{{ old('telefon', $klient->telefon) }}" placeholder="041 000 00 00">
+                </div>
+                <div>
+                    <label class="feld-label">Notfallnummer</label>
+                    <input type="text" name="notfallnummer" class="feld" value="{{ old('notfallnummer', $klient->notfallnummer) }}" placeholder="079 000 00 00">
+                </div>
+                <div>
+                    <label class="feld-label">E-Mail</label>
+                    <input type="email" name="email" class="feld" value="{{ old('email', $klient->email) }}" placeholder="name@beispiel.ch">
+                </div>
+            </div>
+        </div>
 
     </form>
     </div>
@@ -255,68 +293,14 @@
     @endphp
     <details style="background: #fff; border: 1px solid var(--cs-border); border-radius: var(--cs-radius); margin-bottom: 0.5rem; overflow: hidden;">
         <summary style="padding: 0.625rem 1rem; font-size: 0.875rem; font-weight: 600; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
-            <span>Adressen</span>
+            <span>Rechnungs- & Notfalladresse</span>
             <span class="text-hell" style="font-size: 0.75rem;">
-                Einsatz: {{ trim(($klient->plz ?? '') . ' ' . ($klient->ort ?? '')) ?: '—' }}
-                @if($adrRechnung) · Rechnung: {{ $adrRechnung->plz }} {{ $adrRechnung->ort }} @endif
+                @if($adrRechnung) Rechnung: {{ $adrRechnung->plz }} {{ $adrRechnung->ort }} @endif
                 @if($adrNotfall) · Notfall: {{ $adrNotfall->plz }} {{ $adrNotfall->ort }} @endif
+                @if(!$adrRechnung && !$adrNotfall) Noch keine erfasst @endif
             </span>
         </summary>
         <div style="padding: 1rem; border-top: 1px solid var(--cs-border);">
-
-            {{-- Einsatzadresse (Klient-Modell, mit Kanton) --}}
-            <div class="abschnitt-label" style="margin-bottom: 0.625rem; display: flex; align-items: center; gap: 0.5rem;">
-                Einsatzadresse
-                @if($klient->klient_lat && $klient->klient_lng)
-                    <span title="Geocoding aktiv — Koordinaten vorhanden" style="color: var(--cs-erfolg, #16a34a); font-size: 0.8rem;">✓ geocodet</span>
-                @else
-                    <span title="Keine Koordinaten — Route-Optimierung nicht möglich" style="color: var(--cs-warnung, #d97706); font-size: 0.8rem;">⚠ nicht geocodet</span>
-                @endif
-            </div>
-            <form method="POST" action="{{ route('klienten.update', $klient) }}" style="margin-bottom: 1.25rem;">
-                @csrf @method('PUT')
-                <input type="hidden" name="vorname"  value="{{ $klient->vorname }}">
-                <input type="hidden" name="nachname" value="{{ $klient->nachname }}">
-                <input type="hidden" name="aktiv"    value="{{ $klient->aktiv ? 1 : 0 }}">
-                <div style="margin-bottom: 0.5rem;">
-                    <label class="feld-label" style="font-size: 0.75rem;">Strasse &amp; Nr.</label>
-                    <input type="text" name="adresse" class="feld" style="font-size: 0.875rem;" value="{{ old('adresse', $klient->adresse) }}">
-                </div>
-                <div style="display: grid; grid-template-columns: 80px 1fr 120px; gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">PLZ</label>
-                        <input type="text" name="plz" class="feld" style="font-size: 0.875rem;" value="{{ old('plz', $klient->plz) }}">
-                    </div>
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">Ort</label>
-                        <input type="text" name="ort" class="feld" style="font-size: 0.875rem;" value="{{ old('ort', $klient->ort) }}">
-                    </div>
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">Kanton</label>
-                        <select name="region_id" class="feld" style="font-size: 0.875rem;">
-                            <option value="">—</option>
-                            @foreach(\App\Models\Region::orderBy('kuerzel')->get() as $r)
-                                <option value="{{ $r->id }}" {{ $klient->region_id == $r->id ? 'selected' : '' }}>{{ $r->kuerzel }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.625rem;">
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">Telefon</label>
-                        <input type="text" name="telefon" class="feld" style="font-size: 0.875rem;" value="{{ old('telefon', $klient->telefon) }}">
-                    </div>
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">Notfallnummer</label>
-                        <input type="text" name="notfallnummer" class="feld" style="font-size: 0.875rem;" value="{{ old('notfallnummer', $klient->notfallnummer) }}">
-                    </div>
-                    <div>
-                        <label class="feld-label" style="font-size: 0.75rem;">E-Mail</label>
-                        <input type="email" name="email" class="feld" style="font-size: 0.875rem;" value="{{ old('email', $klient->email) }}">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primaer" style="font-size: 0.8125rem; padding: 0.3rem 0.75rem;">Speichern</button>
-            </form>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
 
