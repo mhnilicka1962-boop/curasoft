@@ -1005,13 +1005,15 @@
             </div>
             <div class="abschnitt-trenn"></div>
 
-            <div><strong>Gesetzliche Grundlage</strong><br>
-                Spitex-Organisationen sind verpflichtet, Zugriffe auf medizinische Daten zu protokollieren:<br>
+            <div><strong>Gesetzliche Grundlage & Spitex-Auflagen</strong><br>
                 <ul style="margin: 0.4rem 0 0 1.2rem; line-height: 1.8;">
                     <li><strong>nDSG</strong> (Schweizer Datenschutzgesetz) — Protokollierungspflicht bei besonders schützenswerten Personendaten (= Gesundheitsdaten)</li>
                     <li><strong>KVG / KVV</strong> — Abrechnungsunterlagen müssen <strong>10 Jahre</strong> aufbewahrt werden</li>
+                    <li><strong>KLV Art. 7</strong> — jede erbrachte Leistung muss dokumentiert sein: was wurde getan, von wem, wann, wie lange. Grundlage für die Krankenkassen-Abrechnung und Prüfungen durch santésuisse</li>
+                    <li><strong>Santésuisse-Vertrag</strong> — bei Tiers payant: lückenlose Dokumentation als Voraussetzung für die Direktabrechnung mit der KK</li>
+                    <li><strong>Kantonale Pflegegesetze</strong> — je nach Kanton zusätzliche Anforderungen an Pflegedokumentation und Qualitätsnachweise</li>
                 </ul>
-                Das Audit-Log wird daher <strong>10 Jahre</strong> aufbewahrt und nicht automatisch gelöscht.
+                Das Audit-Log und alle Abrechnungsunterlagen werden <strong>10 Jahre</strong> aufbewahrt und nicht automatisch gelöscht.
             </div>
             <div class="abschnitt-trenn"></div>
 
