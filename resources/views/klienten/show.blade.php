@@ -122,12 +122,14 @@
         </div>
     </div>
 
-    {{-- Inline-Bearbeitungsformular (versteckt, ausser bei Validation-Fehler) --}}
+    {{-- Bearbeitungsformular --}}
     <div id="klient-edit-form" style="display:block; margin-bottom: 1rem;">
     <form id="klient-form" method="POST" action="{{ route('klienten.update', $klient) }}">
         @csrf @method('PUT')
         <div class="karte" style="margin-bottom: 0.75rem;">
-            <div class="abschnitt-label" style="margin-bottom:0.75rem;">Persönliche Daten</div>
+
+            {{-- 1. Personalien --}}
+            <div class="abschnitt-label" style="margin-bottom:0.75rem;">Personalien</div>
             <div style="display: grid; grid-template-columns: 110px 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
                 <div>
                     <label class="feld-label">Anrede</label>
@@ -147,7 +149,7 @@
                     <input type="text" name="nachname" class="feld" required value="{{ old('nachname', $klient->nachname) }}">
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 70px; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 70px; gap: 0.5rem;">
                 <div>
                     <label class="feld-label">Geburtsdatum</label>
                     <input type="date" name="geburtsdatum" class="feld" value="{{ old('geburtsdatum', $klient->geburtsdatum?->format('Y-m-d')) }}">
@@ -177,43 +179,88 @@
                     <input type="number" name="anzahl_kinder" class="feld" min="0" value="{{ old('anzahl_kinder', $klient->anzahl_kinder) }}">
                 </div>
             </div>
-            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--cs-border); display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                <div>
-                    <label class="feld-label">Zuständig</label>
-                    <select name="zustaendig_id" class="feld">
-                        <option value="">— keine —</option>
-                        @foreach($mitarbeiter as $m)
-                            <option value="{{ $m->id }}" {{ $klient->zustaendig_id == $m->id ? 'selected' : '' }}>{{ $m->nachname }} {{ $m->vorname }}</option>
-                        @endforeach
-                    </select>
+
+            {{-- 2. Einsatzadresse & Kontakt --}}
+            <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--cs-border);">
+                <div class="abschnitt-label" style="margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
+                    Einsatzadresse & Kontakt
+                    @if($klient->klient_lat && $klient->klient_lng)
+                        <span style="color:var(--cs-erfolg,#16a34a); font-size:0.8rem;" title="Koordinaten vorhanden">✓ geocodet</span>
+                    @elseif($klient->adresse)
+                        <span style="color:var(--cs-warnung,#d97706); font-size:0.8rem;" title="Keine Koordinaten">⚠ nicht geocodet</span>
+                    @endif
                 </div>
-                <div>
-                    <label class="feld-label">AHV-Nummer</label>
-                    <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr', $klient->ahv_nr) }}" placeholder="756.XXXX.XXXX.XX">
+                <div style="margin-bottom: 0.5rem;">
+                    <label class="feld-label">Strasse & Nr.</label>
+                    <input type="text" name="adresse" class="feld" value="{{ old('adresse', $klient->adresse) }}" placeholder="Musterstrasse 12">
                 </div>
-            </div>
-            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--cs-border); display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem;">
-                <div>
-                    <label class="feld-label">Zahlbar (Tage)</label>
-                    <input type="number" name="zahlbar_tage" class="feld" min="1" value="{{ old('zahlbar_tage', $klient->zahlbar_tage ?? 30) }}">
+                <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div>
+                        <label class="feld-label">PLZ</label>
+                        <input type="text" name="plz" class="feld" value="{{ old('plz', $klient->plz) }}" placeholder="6340">
+                    </div>
+                    <div>
+                        <label class="feld-label">Ort</label>
+                        <input type="text" name="ort" class="feld" value="{{ old('ort', $klient->ort) }}" placeholder="Baar">
+                    </div>
                 </div>
-                <div>
-                    <label class="feld-label">Datum Erstkontakt</label>
-                    <input type="date" name="datum_erstkontakt" class="feld" value="{{ old('datum_erstkontakt', $klient->datum_erstkontakt?->format('Y-m-d')) }}">
-                </div>
-                <div>
-                    <label class="feld-label">Einsatz geplant ab</label>
-                    <input type="date" name="einsatz_geplant_von" class="feld" value="{{ old('einsatz_geplant_von', $klient->einsatz_geplant_von?->format('Y-m-d')) }}">
-                </div>
-                <div>
-                    <label class="feld-label">Einsatz geplant bis</label>
-                    <input type="date" name="einsatz_geplant_bis" class="feld" value="{{ old('einsatz_geplant_bis', $klient->einsatz_geplant_bis?->format('Y-m-d')) }}">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                    <div>
+                        <label class="feld-label">Telefon</label>
+                        <input type="text" name="telefon" class="feld" value="{{ old('telefon', $klient->telefon) }}" placeholder="041 000 00 00">
+                    </div>
+                    <div>
+                        <label class="feld-label">Notfallnummer</label>
+                        <input type="text" name="notfallnummer" class="feld" value="{{ old('notfallnummer', $klient->notfallnummer) }}" placeholder="079 000 00 00">
+                    </div>
+                    <div>
+                        <label class="feld-label">E-Mail</label>
+                        <input type="email" name="email" class="feld" value="{{ old('email', $klient->email) }}" placeholder="name@beispiel.ch">
+                    </div>
                 </div>
             </div>
 
-            {{-- Wohngemeinde (Tiers payant) --}}
-            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--cs-border);">
-                <div class="abschnitt-label" style="margin-bottom: 0.5rem;">Wohngemeinde (Tiers payant)</div>
+            {{-- 3. Zuständig & Verwaltung --}}
+            <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--cs-border);">
+                <div class="abschnitt-label" style="margin-bottom:0.75rem;">Zuständig & Verwaltung</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <div>
+                        <label class="feld-label">Zuständig</label>
+                        <select name="zustaendig_id" class="feld">
+                            <option value="">— keine —</option>
+                            @foreach($mitarbeiter as $m)
+                                <option value="{{ $m->id }}" {{ $klient->zustaendig_id == $m->id ? 'selected' : '' }}>{{ $m->nachname }} {{ $m->vorname }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="feld-label">AHV-Nummer</label>
+                        <input type="text" name="ahv_nr" class="feld" value="{{ old('ahv_nr', $klient->ahv_nr) }}" placeholder="756.XXXX.XXXX.XX">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem;">
+                    <div>
+                        <label class="feld-label">Zahlbar (Tage)</label>
+                        <input type="number" name="zahlbar_tage" class="feld" min="1" value="{{ old('zahlbar_tage', $klient->zahlbar_tage ?? 30) }}">
+                    </div>
+                    <div>
+                        <label class="feld-label">Datum Erstkontakt</label>
+                        <input type="date" name="datum_erstkontakt" class="feld" value="{{ old('datum_erstkontakt', $klient->datum_erstkontakt?->format('Y-m-d')) }}">
+                    </div>
+                    <div>
+                        <label class="feld-label">Einsatz geplant ab</label>
+                        <input type="date" name="einsatz_geplant_von" class="feld" value="{{ old('einsatz_geplant_von', $klient->einsatz_geplant_von?->format('Y-m-d')) }}">
+                    </div>
+                    <div>
+                        <label class="feld-label">Einsatz geplant bis</label>
+                        <input type="date" name="einsatz_geplant_bis" class="feld" value="{{ old('einsatz_geplant_bis', $klient->einsatz_geplant_bis?->format('Y-m-d')) }}">
+                    </div>
+                </div>
+            </div>
+
+            {{-- 4. Wohngemeinde (Tiers payant) --}}
+            <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--cs-border);">
+                <div class="abschnitt-label" style="margin-bottom:0.75rem;">Wohngemeinde (Tiers payant)</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
                     <div>
                         <label class="feld-label">Gemeinde Name</label>
@@ -239,48 +286,13 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        {{-- Einsatzadresse & Kontakt --}}
-        <div class="karte" style="margin-bottom: 0.75rem;">
-            <div class="abschnitt-label" style="margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
-                Einsatzadresse & Kontakt
-                @if($klient->klient_lat && $klient->klient_lng)
-                    <span style="color:var(--cs-erfolg,#16a34a); font-size:0.8rem;" title="Koordinaten vorhanden">✓ geocodet</span>
-                @elseif($klient->adresse)
-                    <span style="color:var(--cs-warnung,#d97706); font-size:0.8rem;" title="Keine Koordinaten">⚠ nicht geocodet</span>
-                @endif
+            {{-- Speichern unten --}}
+            <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--cs-border); display:flex; justify-content:flex-end;">
+                <button type="submit" class="btn btn-primaer">Speichern</button>
             </div>
-            <div style="margin-bottom: 0.5rem;">
-                <label class="feld-label">Strasse & Nr.</label>
-                <input type="text" name="adresse" class="feld" value="{{ old('adresse', $klient->adresse) }}" placeholder="Musterstrasse 12">
-            </div>
-            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                <div>
-                    <label class="feld-label">PLZ</label>
-                    <input type="text" name="plz" class="feld" value="{{ old('plz', $klient->plz) }}" placeholder="6340">
-                </div>
-                <div>
-                    <label class="feld-label">Ort</label>
-                    <input type="text" name="ort" class="feld" value="{{ old('ort', $klient->ort) }}" placeholder="Baar">
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
-                <div>
-                    <label class="feld-label">Telefon</label>
-                    <input type="text" name="telefon" class="feld" value="{{ old('telefon', $klient->telefon) }}" placeholder="041 000 00 00">
-                </div>
-                <div>
-                    <label class="feld-label">Notfallnummer</label>
-                    <input type="text" name="notfallnummer" class="feld" value="{{ old('notfallnummer', $klient->notfallnummer) }}" placeholder="079 000 00 00">
-                </div>
-                <div>
-                    <label class="feld-label">E-Mail</label>
-                    <input type="email" name="email" class="feld" value="{{ old('email', $klient->email) }}" placeholder="name@beispiel.ch">
-                </div>
-            </div>
-        </div>
 
+        </div>
     </form>
     </div>
 
