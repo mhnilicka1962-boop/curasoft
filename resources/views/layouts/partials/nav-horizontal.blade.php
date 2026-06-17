@@ -22,6 +22,7 @@
         <a href="{{ route('krankenkassen.index') }}">Krankenkassen</a>
         <div class="topnav-dropdown-trenn"></div>
         <a href="{{ route('audit.index') }}">Audit-Log</a>
+        <a href="/intern/funktionsumfang.html" target="_blank">Funktionsumfang</a>
     </div>
 </div>
 @endif

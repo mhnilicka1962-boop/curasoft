@@ -119,6 +119,9 @@ $einstellungenAktiv = request()->routeIs('firma.*') || request()->routeIs('leist
     <a href="{{ route('audit.index') }}" class="nav-link {{ request()->is('audit-log*') ? 'aktiv' : '' }}">
         Audit-Log
     </a>
+    <a href="/intern/funktionsumfang.html" class="nav-link" target="_blank">
+        Funktionsumfang
+    </a>
 </details>
 @endif
 

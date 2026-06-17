@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CuraSoft — Funktionsumfang</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: #2d3748; display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  #sidebar {
+    width: 260px; min-width: 260px; background: #1e293b; color: #cbd5e1;
+    padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    flex-shrink: 0;
+  }
+  #sidebar h2 { color: #fff; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 0 20px 12px; border-bottom: 1px solid #334155; margin-bottom: 12px; }
+  #sidebar a { display: block; padding: 5px 20px; font-size: 13px; color: #94a3b8; text-decoration: none; border-left: 3px solid transparent; line-height: 1.4; }
+  #sidebar a:hover, #sidebar a.aktiv { color: #fff; border-left-color: #3b82f6; background: #0f172a; }
+
+  /* Main */
+  #main { flex: 1; padding: 32px 40px; max-width: 1000px; }
+  #main h1 { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+  #main .meta { font-size: 13px; color: #64748b; margin-bottom: 24px; }
+
+  /* Steuerelemente */
+  #steuerung { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 28px; }
+  #suche {
+    flex: 1; min-width: 200px; padding: 9px 14px; border: 1px solid #cbd5e1;
+    border-radius: 8px; font-size: 14px; outline: none; background: #fff;
+  }
+  #suche:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #bfdbfe44; }
+  .filter-btn {
+    padding: 7px 14px; border-radius: 8px; border: 1px solid #cbd5e1;
+    background: #fff; font-size: 13px; cursor: pointer; transition: all .15s;
+  }
+  .filter-btn:hover { background: #f1f5f9; }
+  .filter-btn.aktiv { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .filter-btn[data-filter="fertig"].aktiv { background: #15803d; border-color: #15803d; }
+  .filter-btn[data-filter="arbeit"].aktiv { background: #b45309; border-color: #b45309; }
+  .filter-btn[data-filter="geplant"].aktiv { background: #1d4ed8; border-color: #1d4ed8; }
+
+  /* Kapitel */
+  .kapitel { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+  .kapitel h2 { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0; }
+  .kapitel .hinweis { font-size: 13px; color: #64748b; margin-bottom: 12px; }
+  .kapitel .hinweis a { color: #3b82f6; }
+
+  /* Tabellen */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { background: #f8fafc; text-align: left; padding: 8px 12px; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; line-height: 1.5; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+  tr.versteckt { display: none; }
+
+  /* Status-Badges */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-fertig { background: #dcfce7; color: #15803d; }
+  .badge-arbeit { background: #fef3c7; color: #b45309; }
+  .badge-geplant { background: #dbeafe; color: #1d4ed8; }
+
+  /* Stand */
+  .stand { font-size: 12px; color: #94a3b8; white-space: nowrap; }
+
+  /* Situation-Notizen */
+  .situation { font-size: 12px; color: #64748b; margin-top: 4px; font-style: italic; }
+  .situation strong { color: #b45309; font-style: normal; }
+
+  /* Strategische Lücken */
+  .luecke { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; }
+  .luecke .titel { font-weight: 600; font-size: 13.5px; color: #9a3412; margin-bottom: 4px; }
+  .luecke .text { font-size: 13px; color: #78350f; line-height: 1.5; }
+
+  /* Keine Treffer */
+  #keine-treffer { display: none; text-align: center; color: #94a3b8; padding: 40px; font-size: 14px; }
+
+  /* Kapitel versteckt */
+  .kapitel.leer { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav id="sidebar">
+  <h2>Kapitel</h2>
+  <a href="#auth">1. Authentifizierung</a>
+  <a href="#dashboard">2. Dashboard</a>
+  <a href="#klienten">3. Klienten</a>
+  <a href="#einsatz">4. Einsatzplanung</a>
+  <a href="#touren">5. Touren</a>
+  <a href="#checkin">6. Vor-Ort / Check-in</a>
+  <a href="#rapporte">7. Rapporte</a>
+  <a href="#rapportierung">8. Rapportierung</a>
+  <a href="#abrechnung">9. Abrechnung</a>
+  <a href="#personal">10. Personalabrechnung</a>
+  <a href="#angehoerige">11. Angehörigenpflege</a>
+  <a href="#stammdaten">12. Stammdaten</a>
+  <a href="#mitarbeiter">13. Mitarbeiter</a>
+  <a href="#chat">14. Chat & Nachrichten</a>
+  <a href="#dokumente">15. Dokumente</a>
+  <a href="#audit">16. Sicherheit & Audit</a>
+  <a href="#integrationen">17. Integrationen</a>
+  <a href="#onboarding">18. Setup & Onboarding</a>
+  <a href="#luecken">Strategische Lücken</a>
+</nav>
+
+<!-- Hauptinhalt -->
+<div id="main">
+  <h1>CuraSoft — Funktionsumfang</h1>
+  <p class="meta">Stand: 17. Juni 2026</p>
+
+  <!-- Steuerung -->
+  <div id="steuerung">
+    <input id="suche" type="text" placeholder="Stichwort suchen…">
+    <button class="filter-btn aktiv" data-filter="alle">Alle</button>
+    <button class="filter-btn" data-filter="fertig">✅ Fertig</button>
+    <button class="filter-btn" data-filter="arbeit">🚧 In Arbeit</button>
+    <button class="filter-btn" data-filter="geplant">📋 Geplant</button>
+  </div>
+
+  <div id="keine-treffer">Keine Treffer für diesen Filter / Suchbegriff.</div>
+
+  <!-- 1. Auth -->
+  <div class="kapitel" id="auth">
+    <h2>1. Authentifizierung &amp; Zugang</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Magic Link Login (E-Mail)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>15 Min. gültig, kein Passwort nötig</td></tr>
+        <tr data-status="fertig"><td>Passwort-Login</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Fallback</td></tr>
+        <tr data-status="fertig"><td>Passkeys / Face ID / Fingerabdruck</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>WebAuthn, einmalig einrichten</td></tr>
+        <tr data-status="fertig"><td>Benutzer-Einladung per E-Mail</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Token 48 h gültig</td></tr>
+        <tr data-status="fertig"><td>Demo-Auto-Login</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>/demo/admin, /demo/pflege</td></tr>
+        <tr data-status="fertig"><td>Rollen: admin / pflege / buchhaltung</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Routen-Middleware pro Rolle</td></tr>
+        <tr data-status="fertig"><td>Multi-Tenant (Subdomain → DB)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>TenantMiddleware → tenants-Tabelle in Master-DB</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2. Dashboard -->
+  <div class="kapitel" id="dashboard">
+    <h2>2. Dashboard</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Rollenbasierte Tagesübersicht</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Pflege: Heute-Einsätze; Admin: Gesamtüberblick</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. Klienten -->
+  <div class="kapitel" id="klienten">
+    <h2>3. Klienten (Patienten)</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Stammdaten (Name, Adresse, Geburtsdatum)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Krankenkasse(n) + Policenummer</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>KVG + optional VVG</td></tr>
+        <tr data-status="fertig"><td>Behandelnde Ärzte</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Mehrere möglich</td></tr>
+        <tr data-status="fertig"><td>Notfallkontakte</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Pflegestufen (BESA / RAI-HC)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Jun 2026</td><td>Historisiert mit Datum</td></tr>
+        <tr data-status="fertig"><td>Diagnosen (ICD-10)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Jun 2026</td><td>Optional</td></tr>
+        <tr data-status="fertig"><td>Verordnungen</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Jun 2026</td><td>Arzt + Gültigkeitszeitraum</td></tr>
+        <tr data-status="fertig"><td>Eigenanteil-Deckel</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Apr 2026</td><td>% + CHF/Tag-Limit; max. 20% Bundeshöchsttarif</td></tr>
+        <tr data-status="fertig"><td>Gemeinde / Zuständigkeit</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>14-Tage-Pflegeplan-Vorschau</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Schnellerfassung</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. Einsatzplanung -->
+  <div class="kapitel" id="einsatz">
+    <h2>4. Einsatzplanung</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Einzeleinsatz erstellen</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Klient + Mitarbeiter + Zeit + Leistungsarten (1:n)</td></tr>
+        <tr data-status="fertig"><td>Einsatzserie (wiederkehrend)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Wöchentlich / Werktags / Enddatum; Cronjob 02:00</td></tr>
+        <tr data-status="fertig"><td>Serie automatisch verlängern</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Rolling Window (auto_verlaengern)</td></tr>
+        <tr data-status="fertig"><td>Kalenderansicht (Admin)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Visuelle Wochenplanung</td></tr>
+        <tr data-status="fertig"><td>Einsatz bearbeiten / verschieben</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Vertretung / Abwesenheiten</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Jun 2026</td><td>Abwesenheit erfassen → Vertretung zuweisen</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 5. Touren -->
+  <div class="kapitel" id="touren">
+    <h2>5. Touren</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Tour erstellen</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Mitarbeiter + Datum → prüft Einsätze automatisch</td></tr>
+        <tr data-status="fertig"><td>Reihenfolge optimieren</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Nearest-Neighbor + Nominatim-Geocoding</td></tr>
+        <tr data-status="fertig"><td>Reihenfolge manuell anpassen</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Drag &amp; Drop</td></tr>
+        <tr data-status="fertig"><td>Tour-Status (Geplant / Gestartet / Abgeschlossen)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Verspätungs-Indikator</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Orange = verspätet / kein Check-in</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 6. Check-in -->
+  <div class="kapitel" id="checkin">
+    <h2>6. Vor-Ort / Check-in</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>QR-Code Check-in</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Token pro Klient, /checkin/{token}</td></tr>
+        <tr data-status="fertig"><td>GPS Check-in</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Koordinaten werden geprüft</td></tr>
+        <tr data-status="fertig"><td>Manueller Check-in (Admin)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Aktivitäten vor Ort erfassen</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Pro Einsatz nach Check-in</td></tr>
+        <tr data-status="fertig"><td>Check-out mit Zeiterfassung</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. Rapporte -->
+  <div class="kapitel" id="rapporte">
+    <h2>7. Rapporte</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Pflegebericht erstellen</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Typen: Verlauf / Vorfall / Übergabe</td></tr>
+        <tr data-status="fertig"><td>Vorfall-Badge (rot)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Sichtbar in Touren- und Listenansicht</td></tr>
+        <tr data-status="fertig"><td>KI-Rapport-Vorschlag</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Freitext-Assistent</td></tr>
+        <tr data-status="fertig"><td>PDF-Export Einzel + Sammel</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>DomPDF</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 8. Rapportierung -->
+  <div class="kapitel" id="rapportierung">
+    <h2>8. Rapportierung (Monatsraster)</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Monatsraster pro Klient</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Tagesauflösung, alle Einsätze + Leistungen</td></tr>
+        <tr data-status="fertig"><td>PDF-Rapportblatt (Tiers garant)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Apr 2026</td><td>3 Seiten: Quittung + QR + Tagesübersicht</td></tr>
+        <tr data-status="fertig"><td>Korrekturfunktion</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 9. Abrechnung -->
+  <div class="kapitel" id="abrechnung">
+    <h2>9. Abrechnung</h2>
+    <p class="hinweis">→ Detaillogik: <a href="ABRECHNUNG_LOGIK.md">ABRECHNUNG_LOGIK.md</a></p>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Modell Tiers garant</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Patient zahlt alles, reicht selbst bei KK ein</td></tr>
+        <tr data-status="fertig"><td>Modell Tiers payant</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mai 2026</td><td>3 Zahlungsströme: KK / Patient / Gemeinde</td></tr>
+        <tr data-status="fertig"><td>Rechnungslauf (Batch)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Periode → Vorschau → Start → alle Rechnungen</td></tr>
+        <tr data-status="fertig"><td>Einzelrechnung manuell</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Klient + Periode wählen</td></tr>
+        <tr data-status="fertig"><td>PDF-Rechnung Patient</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mai 2026</td><td>Tiers payant: inkl. Beilage Eigenanteil-Berechnung</td></tr>
+        <tr data-status="fertig"><td>XML 450.100 → MediData (KK)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Apr 2026</td><td>Auto-Upload, Badge OK/Fehler, Retry pro Zeile</td></tr>
+        <tr data-status="fertig"><td>Gemeinde-PDF + E-Mail</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mai 2026</td><td>Einzel + Sammel, Batch-Druck</td></tr>
+        <tr data-status="fertig"><td>Tarif-Historisierung</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>gueltig_ab — immer create(), kein updateOrCreate()</td></tr>
+        <tr data-status="fertig"><td>Eigenanteil-Deckel</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Apr 2026</td><td>klient_beitraege → betrag_patient gedeckelt in DB</td></tr>
+        <tr data-status="fertig"><td>Bexio-Sync</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Push/Pull Rechnungen, Status-IDs</td></tr>
+        <tr data-status="fertig"><td>Tagespauschalen</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Separate Verwaltung + eigene Abrechnung</td></tr>
+        <tr data-status="arbeit"><td>Hauswirtschaft-Subvention Gemeinde</td><td><span class="badge badge-arbeit">🚧 In Arbeit</span></td><td class="stand">—</td><td><div class="situation"><strong>Situation:</strong> Konzept fehlt. Unklar ob/wie Kanton den Hauswirtschaftsanteil mitfinanziert — ist kantonal unterschiedlich. Vor Umsetzung klären welche Kantone das verlangen.</div></td></tr>
+        <tr data-status="geplant"><td>Angehörige Abrechnung</td><td><span class="badge badge-geplant">📋 Geplant</span></td><td class="stand">—</td><td><div class="situation"><strong>Situation:</strong> Erfassung und Tarife fertig. Offen: soll ein normaler Rechnungslauf greifen oder separater Lauf? Modell noch zu definieren.</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 10. Personalabrechnung -->
+  <div class="kapitel" id="personal">
+    <h2>10. Personalabrechnung</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Zeitnachweis pro Mitarbeiter</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>CSV-Export</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>PDF + Sammel-PDF</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Batch-Mail an Mitarbeiter</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 11. Angehörige -->
+  <div class="kapitel" id="angehoerige">
+    <h2>11. Angehörigenpflege</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Angehörige als Klient-Typ</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mai 2026</td><td>anstellungsart = 'angehoerig'</td></tr>
+        <tr data-status="fertig"><td>KVG-Angehörig-Tarife (separat)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Jun 2026</td><td>Eigene Konfiguration</td></tr>
+        <tr data-status="fertig"><td>Vollständig getestet</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Jun 2026</td><td>Stand 2026-06-10</td></tr>
+        <tr data-status="geplant"><td>Abrechnung Angehörige</td><td><span class="badge badge-geplant">📋 Geplant</span></td><td class="stand">—</td><td><div class="situation"><strong>Situation:</strong> Abrechnungslogik noch zu definieren — siehe Kapitel 9.</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 12. Stammdaten -->
+  <div class="kapitel" id="stammdaten">
+    <h2>12. Stammdaten</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Firma / Organisation</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Logo, Bexio-API-Key, Einsatz-Vorlauf</td></tr>
+        <tr data-status="fertig"><td>Leistungsarten (5 KLV-Typen)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Grundpflege / Untersuchung / Abklärung / Hauswirtschaft / Pauschale</td></tr>
+        <tr data-status="fertig"><td>Regionen + Kantonaltarife</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>leistungsregionen mit gueltig_ab; Historisierung</td></tr>
+        <tr data-status="fertig"><td>Ärzte-Stamm</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Krankenkassen</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Einsatzarten</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 13. Mitarbeiter -->
+  <div class="kapitel" id="mitarbeiter">
+    <h2>13. Mitarbeiter</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Mitarbeiter-Stammdaten</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Qualifikationen</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Leistungsarten-Zuweisung</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Wer darf was</td></tr>
+        <tr data-status="fertig"><td>Klienten-Zuweisung</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Einladung per E-Mail</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Token 48 h gültig</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 14. Chat -->
+  <div class="kapitel" id="chat">
+    <h2>14. Chat &amp; Nachrichten</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Team-Chat</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Threads + Teilnehmer</td></tr>
+        <tr data-status="fertig"><td>Nachrichten-Threads</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>System-Benachrichtigungen (Badges)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 15. Dokumente -->
+  <div class="kapitel" id="dokumente">
+    <h2>15. Dokumente</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Dokument-Upload pro Klient</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+        <tr data-status="fertig"><td>Anzeige + Download</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 16. Audit -->
+  <div class="kapitel" id="audit">
+    <h2>16. Sicherheit &amp; Audit</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Audit-Log (Observer-basiert)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>Erstellt / Geändert / Gelöscht; 10 Jahre Retention</td></tr>
+        <tr data-status="fertig"><td>Audit-Log-Viewer (Admin)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>/audit-log</td></tr>
+        <tr data-status="fertig"><td>Datentrennung pro Tenant</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>nDSG-konform</td></tr>
+        <tr data-status="fertig"><td>Performance-Indexe Audit</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Jun 2026</td><td>Nachträglich optimiert</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 17. Integrationen -->
+  <div class="kapitel" id="integrationen">
+    <h2>17. Integrationen</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>MediData XML-Upload (KK-Abrechnung)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Apr 2026</td><td>Format 450.100</td></tr>
+        <tr data-status="fertig"><td>Bexio (Buchhaltung)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Push/Pull Rechnungen</td></tr>
+        <tr data-status="fertig"><td>Nominatim (Geocoding + Routenoptimierung)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>Nearest-Neighbor</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 18. Onboarding -->
+  <div class="kapitel" id="onboarding">
+    <h2>18. Setup &amp; Onboarding</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Stand</th><th>Logik-Notiz</th></tr></thead>
+      <tbody>
+        <tr data-status="fertig"><td>Setup-Wizard (Neukunde)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>/setup — Erste-Schritte-Assistent</td></tr>
+        <tr data-status="fertig"><td>Demo-Modus</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Mrz 2026</td><td>is_demo-Flag, CurasoftDemoSeeder</td></tr>
+        <tr data-status="fertig"><td>PWA (Add to Home Screen)</td><td><span class="badge badge-fertig">✅ Fertig</span></td><td class="stand">Feb 2026</td><td>iPhone Safari + Android Chrome</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Strategische Lücken -->
+  <div class="kapitel" id="luecken">
+    <h2>Strategische Lücken</h2>
+    <div class="luecke">
+      <div class="titel">📋 Pflegeplanung / interRAI</div>
+      <div class="text">Markt verlangt es; Konkurrenz (SHC, NEXUS, myneva) hat es; wiederkehrendes Thema bei Interessenten (Lakic, Daniel). Grosses Thema — vor Umsetzung Scope definieren.</div>
+    </div>
+    <div class="luecke">
+      <div class="titel">📋 Angehörige Abrechnung</div>
+      <div class="text">Erfassung fertig; Rechnungslauf-Integration noch nicht definiert.</div>
+    </div>
+    <div class="luecke">
+      <div class="titel">🚧 Hauswirtschaft-Subvention Gemeinde</div>
+      <div class="text">Kantonal unterschiedlich — Konzept muss vor Umsetzung pro Kanton geklärt werden.</div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+  const suchfeld = document.getElementById('suche');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const keineTreffer = document.getElementById('keine-treffer');
+  let aktiverFilter = 'alle';
+
+  function filtern() {
+    const suchtext = suchfeld.value.toLowerCase().trim();
+    let irgendwasGefunden = false;
+
+    document.querySelectorAll('.kapitel').forEach(kap => {
+      let kapitelHatTreffer = false;
+
+      kap.querySelectorAll('tbody tr').forEach(zeile => {
+        const status = zeile.dataset.status || '';
+        const text = zeile.textContent.toLowerCase();
+
+        const statusOk = aktiverFilter === 'alle' || status === aktiverFilter;
+        const suchOk = suchtext === '' || text.includes(suchtext);
+
+        if (statusOk && suchOk) {
+          zeile.classList.remove('versteckt');
+          kapitelHatTreffer = true;
+        } else {
+          zeile.classList.add('versteckt');
+        }
+      });
+
+      // Strategische Lücken separat
+      const luecken = kap.querySelectorAll('.luecke');
+      if (luecken.length > 0) {
+        let lueckeTreffer = false;
+        luecken.forEach(l => {
+          const text = l.textContent.toLowerCase();
+          const suchOk = suchtext === '' || text.includes(suchtext);
+          l.style.display = suchOk ? '' : 'none';
+          if (suchOk) lueckeTreffer = true;
+        });
+        if (lueckeTreffer) kapitelHatTreffer = true;
+      }
+
+      kap.classList.toggle('leer', !kapitelHatTreffer);
+      if (kapitelHatTreffer) irgendwasGefunden = true;
+    });
+
+    keineTreffer.style.display = irgendwasGefunden ? 'none' : 'block';
+  }
+
+  suchfeld.addEventListener('input', filtern);
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('aktiv'));
+      btn.classList.add('aktiv');
+      aktiverFilter = btn.dataset.filter;
+      filtern();
+    });
+  });
+
+  // Sidebar aktiv-Markierung beim Scrollen
+  const kapitel = document.querySelectorAll('.kapitel[id]');
+  const sidebarLinks = document.querySelectorAll('#sidebar a');
+  window.addEventListener('scroll', () => {
+    let aktuell = '';
+    kapitel.forEach(k => {
+      if (k.offsetTop <= window.scrollY + 120) aktuell = k.id;
+    });
+    sidebarLinks.forEach(a => {
+      a.classList.toggle('aktiv', a.getAttribute('href') === '#' + aktuell);
+    });
+  });
+</script>
+</body>
+</html>
