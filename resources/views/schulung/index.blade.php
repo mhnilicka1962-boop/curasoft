@@ -74,7 +74,7 @@
                             <tbody>
                                 <tr><td><strong>Ansatz (CHF/h)</strong></td><td>Voller Stundentarif — was der Klient zahlt (inkl. KK-Anteil)</td></tr>
                                 <tr><td><strong>KVG (CHF/h)</strong></td><td>Davon der KK-Anteil</td></tr>
-                                <tr><td><strong>KVG Angehöriger (CHF/Tag)</strong></td><td>KK-Tagespauschale für pflegende Angehörige — wird bei Angehörigen-Einsätzen statt Stundentarif verwendet. Wird automatisch aus der Leistungsart übernommen wenn nicht manuell gesetzt.</td></tr>
+                                <tr><td><strong>KVG Angehöriger (CHF/h)</strong></td><td>KK-Stundentarif für pflegende Angehörige — Abrechnung Minuten × CHF/h (wie Fachperson, aber mit tieferem KK-Ansatz gemäss KLV Art. 7). Nur für Grundpflege relevant.</td></tr>
                                 <tr><td><strong>Ansatz akut</strong></td><td>Erhöhter Tarif bei akuter Pflege</td></tr>
                                 <tr><td><strong>Verrechnung aktiv</strong></td><td>✓ = Einsätze dieser Leistungsart fliessen in die Rechnung ein. Ohne Häkchen → nicht verrechnet.</td></tr>
                                 <tr><td><strong>Ansatz Minuten / Stunden / Tage</strong></td><td>Abrechnungseinheit</td></tr>
@@ -405,7 +405,7 @@
         Die Spitex übernimmt Aufsicht, Erstbeurteilung und Lohnabrechnung. Nur Grundpflege &amp; Hauswirtschaft (KLV). Reassessment alle 6 Monate.
     </div>
     <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; margin-bottom: 0.75rem; font-size: 0.875rem;">
-        <strong>KVG Tagespauschale:</strong> Pro Kanton kann ein KVG-Tagessatz für Angehörigen-Einsätze hinterlegt werden (Stammdaten → Regionen → Kanton → «KVG Angehöriger CHF/Tag»). Wird bei der Abrechnung statt des Stundentarifs für Angehörige verwendet. Der Wert wird automatisch aus der Leistungsart vorausgefüllt.
+        <strong>KVG-Abrechnung:</strong> Angehörigen-Einsätze werden nach KLV Art. 7 pro Stunde abgerechnet — Minuten × CHF/h (KK-Anteil Grundpflege ca. CHF 52.60/h, kantonal hinterlegt unter Stammdaten → Regionen → «KVG Angehöriger CHF/h»). Gleiche Logik wie Fachperson, nur mit tieferem KK-Ansatz.
     </div>
     <ol style="margin: 0 0 0.75rem 1.25rem; font-size: 0.875rem; line-height: 1.9;">
         <li>Angehörigenpflege → <strong>«+ Neuer Angehöriger»</strong> — Name, E-Mail eingeben → Einladungsmail automatisch</li>

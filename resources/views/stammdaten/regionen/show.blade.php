@@ -65,7 +65,7 @@
                 <th class="text-rechts">KVG</th>
                 <th class="text-rechts">Ansatz akut</th>
                 <th class="text-rechts">KVG akut</th>
-                <th class="text-rechts">KVG Angeh./Tag</th>
+                <th class="text-rechts">KVG Angeh./h</th>
                 <th class="text-mitte">Verr.</th>
                 <th class="text-mitte">Min</th>
                 <th class="text-mitte">Std</th>
@@ -150,7 +150,7 @@
                         value="{{ $aktuell?->kkasse_akut ?? $la->kvg_akut_default }}">
                 </div>
                 <div style="min-width: 110px;">
-                    <label class="feld-label">KVG Angeh./Tag</label>
+                    <label class="feld-label">KVG Angeh./h</label>
                     <input type="number" step="0.05" min="0" name="kkasse_angehoerig" class="feld"
                         value="{{ $aktuell?->kkasse_angehoerig ?? 0 }}">
                 </div>
