@@ -1097,14 +1097,34 @@
 
         <div class="abschnitt-trenn"></div>
 
-        {{-- Diagnosen & Pflegestufen --}}
+        {{-- Medizinische Dokumentation --}}
         <div style="margin-bottom: 1.25rem;">
-            <div style="font-weight: 600; margin-bottom: 0.4rem;">Diagnosen & Pflegestufen</div>
-            <p style="font-size: 0.875rem; margin: 0 0 0.5rem 0;">Beim Patienten können Diagnosen (ICD-10) und Pflegestufen mit Datum erfasst werden. Die Historie bleibt erhalten — jede Änderung der Pflegestufe wird als neuer Eintrag gespeichert.</p>
+            <div style="font-weight: 600; margin-bottom: 0.4rem;">Medizinische Dokumentation</div>
+            <p style="font-size: 0.875rem; margin: 0 0 0.75rem 0;">Beim Patienten öffnen → Abschnitt <strong>«Medizinisch»</strong>. Dort sind vier Bereiche:</p>
+
+            <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.25rem;">Pflegebedarf / Einstufungen</div>
+            <ul style="font-size: 0.875rem; margin: 0 0 0.75rem 1.2rem; line-height: 1.8;">
+                <li>Instrument wählen: <strong>BESA, RAI-HC, IBM oder Manuell</strong></li>
+                <li>Stufe und Einstufungsdatum erfassen, nächste Prüfung vormerken, Punkte optional</li>
+                <li>Die gesamte Einstufungs-Historie bleibt erhalten — jede Änderung wird als neuer Eintrag gespeichert</li>
+            </ul>
+
+            <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.25rem;">Diagnosen (ICD-10)</div>
+            <ul style="font-size: 0.875rem; margin: 0 0 0.75rem 1.2rem; line-height: 1.8;">
+                <li>Mehrere Diagnosen pro Patient möglich (Haupt- und Nebendiagnosen)</li>
+                <li>ICD-10 Code + Bezeichnung + Datum + zuständiger Arzt</li>
+            </ul>
+
+            <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.25rem;">Ärztliche Verordnungen</div>
+            <ul style="font-size: 0.875rem; margin: 0 0 0.75rem 1.2rem; line-height: 1.8;">
+                <li>Verordnungen pro Leistungsart mit Gültigkeitsdatum erfassen</li>
+                <li>Für Behandlungspflege (KK-Abrechnung) zwingend erforderlich</li>
+            </ul>
+
+            <div style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.25rem;">Behandelnde Ärzte</div>
             <ul style="font-size: 0.875rem; margin: 0 0 0 1.2rem; line-height: 1.8;">
-                <li>Patient öffnen → Abschnitt <strong>«Diagnosen»</strong> resp. <strong>«Pflegestufen»</strong></li>
-                <li>Mehrere Diagnosen pro Patient möglich</li>
-                <li>Pflegestufe mit Einstufungsdatum — historisiert</li>
+                <li>Mehrere Ärzte pro Patient (behandelnder, einweisender, konsultierender)</li>
+                <li>Werden bei ärztlichen Verordnungen und Rechnungen verwendet</li>
             </ul>
         </div>
 
