@@ -106,8 +106,7 @@ class RechnungslaufController extends Controller
 
         $ltMap           = \App\Models\Leistungstyp::pluck('leistungsart_id', 'bezeichnung')->toArray();
         $tarifCache      = [];
-        $lrAngCache      = [];   // kkasse_angehoerig pro leistungsart_id+region_id
-        $angehoerigTageKk = [];  // Datum-Keys die bereits mit Tages-Pauschale verrechnet wurden
+        $lrAngCache      = [];   // kkasse_angehoerig CHF/h pro leistungsart_id+region_id
         $positionen      = collect();
 
         if ($nurPauschale) {
@@ -159,7 +158,7 @@ class RechnungslaufController extends Controller
                     foreach ($einsatz->einsatzLeistungsarten as $el) {
                         $kassenpflichtig = (bool) ($el->leistungsart?->kassenpflichtig ?? false);
 
-                        // Angehörigen-KVG: Tages-Pauschale statt Minuten×Tarif
+                        // Angehörigen-KVG: Minuten × CHF/h (wie Fachperson, aber mit Angehörigen-Tarif)
                         if ($istAngehoerig && $kassenpflichtig) {
                             $lrAngKey = "{$el->leistungsart_id}-{$regionId}";
                             if (!isset($lrAngCache[$lrAngKey])) {
@@ -171,29 +170,24 @@ class RechnungslaufController extends Controller
                                     ->value('kkasse_angehoerig') ?? 0);
                             }
                             $kkasseAng = $lrAngCache[$lrAngKey];
-                            $datumKey  = \Carbon\Carbon::parse($einsatz->datum)->format('Y-m-d');
-
-                            if ($kkasseAng > 0 && !isset($angehoerigTageKk[$datumKey])) {
-                                // Erste kassenpflichtige Angehörigen-LA an diesem Tag → Tages-Pauschale
-                                $angehoerigTageKk[$datumKey] = true;
-                                $pos = new RechnungsPosition([
-                                    'rechnung_id'             => 0,
-                                    'einsatz_id'              => $einsatz->id,
-                                    'einsatz_leistungsart_id' => $el->id,
-                                    'datum'                   => $einsatz->datum,
-                                    'menge'                   => 1,
-                                    'einheit'                 => 'tag',
-                                    'beschreibung'            => null,
-                                    'tarif_patient'           => 0,
-                                    'tarif_kk'                => $kkasseAng,
-                                    'betrag_patient'          => 0,
-                                    'betrag_kk'               => $kkasseAng,
-                                ]);
-                                $pos->setRelation('einsatz', $einsatz);
-                                $pos->setRelation('einsatzLeistungsart', $el);
-                                $positionen->push($pos);
-                            }
-                            // Weitere kassenpflichtige LA oder Folgetag ohne Wert → keine Position
+                            $menge     = $this->minutenFuerLeistungsart($einsatz, $el->leistungsart_id, $ltMap);
+                            $betragKk  = $this->r5($menge / 60 * $kkasseAng);
+                            $pos = new RechnungsPosition([
+                                'rechnung_id'             => 0,
+                                'einsatz_id'              => $einsatz->id,
+                                'einsatz_leistungsart_id' => $el->id,
+                                'datum'                   => $einsatz->datum,
+                                'menge'                   => $menge,
+                                'einheit'                 => 'minuten',
+                                'beschreibung'            => null,
+                                'tarif_patient'           => 0,
+                                'tarif_kk'                => $kkasseAng,
+                                'betrag_patient'          => 0,
+                                'betrag_kk'               => $betragKk,
+                            ]);
+                            $pos->setRelation('einsatz', $einsatz);
+                            $pos->setRelation('einsatzLeistungsart', $el);
+                            $positionen->push($pos);
                             continue;
                         }
 
@@ -896,7 +890,6 @@ class RechnungslaufController extends Controller
             if ($normale->isNotEmpty()) {
                 $betragPat = 0; $betragKk = 0; $minuten = 0; $ohneTypCount = 0;
                 $vorschauPositionen = collect();
-                $angehoerigTageKkVorschau = [];
                 foreach ($normale as $einsatz) {
                     if ($einsatz->einsatzLeistungsarten->isEmpty()) { $ohneTypCount++; continue; }
                     $regionId      = $einsatz->region_id ?? $klient->region_id;
@@ -915,20 +908,19 @@ class RechnungslaufController extends Controller
                                     ->value('kkasse_angehoerig') ?? 0);
                             }
                             $kkasseAng = $lrAngCache[$lrAngKey];
-                            $datumKey  = \Carbon\Carbon::parse($einsatz->datum)->format('Y-m-d');
-                            if ($kkasseAng > 0 && !isset($angehoerigTageKkVorschau[$datumKey])) {
-                                $angehoerigTageKkVorschau[$datumKey] = true;
-                                $betragKk += $kkasseAng;
-                                $vorschauPositionen->push((object)[
-                                    'einsatzLeistungsart' => $el,
-                                    'leistungsart_id'     => $el->leistungsart_id,
-                                    'einheit'             => 'tag',
-                                    'menge'               => 1,
-                                    'datum'               => $einsatz->datum,
-                                    'betrag_patient'      => 0,
-                                    'betrag_kk'           => $kkasseAng,
-                                ]);
-                            }
+                            $m         = $this->minutenFuerLeistungsart($einsatz, $el->leistungsart_id, $ltMap);
+                            $posKk     = $this->r5($m / 60 * $kkasseAng);
+                            $betragKk += $posKk;
+                            $minuten  += $m;
+                            $vorschauPositionen->push((object)[
+                                'einsatzLeistungsart' => $el,
+                                'leistungsart_id'     => $el->leistungsart_id,
+                                'einheit'             => 'minuten',
+                                'menge'               => $m,
+                                'datum'               => $einsatz->datum,
+                                'betrag_patient'      => 0,
+                                'betrag_kk'           => $posKk,
+                            ]);
                             continue;
                         }
 
@@ -1376,7 +1368,6 @@ class RechnungslaufController extends Controller
                     'rechnungslauf_id'=> $lauf->id,
                 ]);
 
-                $angehoerigTageKk = [];
                 foreach ($daten['normale'] as $einsatz) {
                     if ($einsatz->betrag_fix !== null) {
                         $betragFix = $this->r5((float) $einsatz->betrag_fix);
@@ -1409,23 +1400,21 @@ class RechnungslaufController extends Controller
                                         ->value('kkasse_angehoerig') ?? 0);
                                 }
                                 $kkasseAng = $lrAngCache[$lrAngKey];
-                                $datumKey  = \Carbon\Carbon::parse($einsatz->datum)->format('Y-m-d');
-                                if ($kkasseAng > 0 && !isset($angehoerigTageKk[$datumKey])) {
-                                    $angehoerigTageKk[$datumKey] = true;
-                                    RechnungsPosition::create([
-                                        'rechnung_id'             => $rechnung->id,
-                                        'einsatz_id'              => $einsatz->id,
-                                        'einsatz_leistungsart_id' => $el->id,
-                                        'datum'                   => $einsatz->datum,
-                                        'menge'                   => 1,
-                                        'einheit'                 => 'tag',
-                                        'beschreibung'            => null,
-                                        'tarif_patient'           => 0,
-                                        'tarif_kk'                => $kkasseAng,
-                                        'betrag_patient'          => 0,
-                                        'betrag_kk'               => $kkasseAng,
-                                    ]);
-                                }
+                                $menge     = $this->minutenFuerLeistungsart($einsatz, $el->leistungsart_id, $ltMap);
+                                $betragKk  = $this->r5($menge / 60 * $kkasseAng);
+                                RechnungsPosition::create([
+                                    'rechnung_id'             => $rechnung->id,
+                                    'einsatz_id'              => $einsatz->id,
+                                    'einsatz_leistungsart_id' => $el->id,
+                                    'datum'                   => $einsatz->datum,
+                                    'menge'                   => $menge,
+                                    'einheit'                 => 'minuten',
+                                    'beschreibung'            => null,
+                                    'tarif_patient'           => 0,
+                                    'tarif_kk'                => $kkasseAng,
+                                    'betrag_patient'          => 0,
+                                    'betrag_kk'               => $betragKk,
+                                ]);
                                 continue;
                             }
 

@@ -188,38 +188,38 @@ class CurasoftDemoSeeder extends Seeder
     private function regionen(): void
     {
         // Tarife CHF/h pro Kanton 2026 (tiers_payant — alle Leistungsarten verrechnet)
-        // [bezeichnung => [ansatz, kkasse, kassenpflichtig, verrechnung, kkasse_angehoerig (CHF/Tag)]]
+        // [bezeichnung => [ansatz, kkasse, kassenpflichtig, verrechnung, kkasse_angehoerig (CHF/h, KLV Art. 7)]]
         $tarife = [
             'ZH' => [
-                'Grundpflege'            => [96.00, 60.00, true,  true,  27.60],
+                'Grundpflege'            => [96.00, 60.00, true,  true,  52.60],
                 'Untersuchung Behandlung'=> [92.00, 65.40, true,  true,   0.00],
                 'Abklärung/Beratung'     => [96.00, 79.80, true,  true,   0.00],
                 'Hauswirtschaft'         => [50.00,  0.00, false, true,   0.00],
                 'Pauschale'              => [ 0.00,  0.00, false, false,  0.00],
             ],
             'ZG' => [
-                'Grundpflege'            => [88.00, 54.60, true,  true,  27.60],
+                'Grundpflege'            => [88.00, 54.60, true,  true,  52.60],
                 'Untersuchung Behandlung'=> [92.00, 65.40, true,  true,   0.00],
                 'Abklärung/Beratung'     => [96.00, 79.80, true,  true,   0.00],
                 'Hauswirtschaft'         => [44.00,  0.00, false, true,   0.00],
                 'Pauschale'              => [ 0.00,  0.00, false, false,  0.00],
             ],
             'BE' => [
-                'Grundpflege'            => [68.00, 60.00, true,  true,  27.60],
+                'Grundpflege'            => [68.00, 60.00, true,  true,  52.60],
                 'Untersuchung Behandlung'=> [79.80, 71.80, true,  true,   0.00],
                 'Abklärung/Beratung'     => [68.00, 60.00, true,  true,   0.00],
                 'Hauswirtschaft'         => [57.00,  0.00, false, true,   0.00],
                 'Pauschale'              => [ 0.00,  0.00, false, false,  0.00],
             ],
             'AG' => [
-                'Grundpflege'            => [98.00, 54.60, true,  true,  27.60],
+                'Grundpflege'            => [98.00, 54.60, true,  true,  52.60],
                 'Untersuchung Behandlung'=> [92.00, 65.40, true,  true,   0.00],
                 'Abklärung/Beratung'     => [96.50, 79.80, true,  true,   0.00],
                 'Hauswirtschaft'         => [44.00,  0.00, false, true,   0.00],
                 'Pauschale'              => [130.00, 0.00, false, false,  0.00],
             ],
             'SG' => [
-                'Grundpflege'            => [88.00, 54.60, true,  true,  27.60],
+                'Grundpflege'            => [88.00, 54.60, true,  true,  52.60],
                 'Untersuchung Behandlung'=> [92.00, 65.40, true,  true,   0.00],
                 'Abklärung/Beratung'     => [96.00, 79.80, true,  true,   0.00],
                 'Hauswirtschaft'         => [44.00,  0.00, false, true,   0.00],
