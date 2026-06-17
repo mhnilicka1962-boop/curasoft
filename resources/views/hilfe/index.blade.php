@@ -20,7 +20,7 @@
             <a href="#kap6b"    class="badge badge-grau"      style="text-decoration: none;">6b — Rechnungslauf</a>
             <a href="#kap7"     class="badge badge-grau"      style="text-decoration: none;">7 — FAQ</a>
             <a href="#kap8"     class="badge badge-grau"      style="text-decoration: none;">8 — Audit-Log</a>
-            <a href="#kap9"     class="badge badge-grau"      style="text-decoration: none;">9 — Dokumente & KI</a>
+            <a href="#kap9"     class="badge badge-grau"      style="text-decoration: none;">9 — Sicherheit, Dokumente & KI</a>
             <a href="#demo-zugriff" class="badge badge-erfolg" style="text-decoration: none;">▶ Demo-Zugriff</a>
             <a href="#script-angehoerig" class="badge badge-info" style="text-decoration: none;">▶ Angehörigenpflege</a>
             <a href="#script-lohnabrechnung" class="badge badge-info" style="text-decoration: none;">▶ Lohnabrechnung</a>
@@ -1043,6 +1043,43 @@
     {{-- ═══════════════════════════════════════════════════════════════ --}}
     <div class="karte" id="kap9" style="margin-bottom: 1.5rem;">
         <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 9 — Dokumente, Diagnosen, Vitalzeichen & KI-Assistent</div>
+
+        {{-- Sicherheit & Rollen --}}
+        <div style="margin-bottom: 1.25rem;">
+            <div style="font-weight: 600; margin-bottom: 0.4rem;">Sicherheit & Zugriffsrollen</div>
+            <p style="font-size: 0.875rem; margin: 0 0 0.75rem 0;">Jede Mitarbeitende erhält eine Rolle — damit sieht sie nur was sie braucht. Keine Rolle hat Zugriff auf Daten anderer Organisationen.</p>
+            <table style="width: 100%; font-size: 0.8125rem; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: var(--cs-hintergrund);">
+                        <th style="padding: 0.4rem 0.75rem; text-align: left; border: 1px solid var(--cs-border);">Rolle</th>
+                        <th style="padding: 0.4rem 0.75rem; text-align: left; border: 1px solid var(--cs-border);">Zugriff</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 0.4rem 0.75rem; border: 1px solid var(--cs-border); font-weight: 600;">Admin</td>
+                        <td style="padding: 0.4rem 0.75rem; border: 1px solid var(--cs-border);">Alles — Patienten, Einsätze, Abrechnung, Mitarbeitende, Stammdaten, Audit-Log</td>
+                    </tr>
+                    <tr style="background: var(--cs-hintergrund);">
+                        <td style="padding: 0.4rem 0.75rem; border: 1px solid var(--cs-border); font-weight: 600;">Pflege</td>
+                        <td style="padding: 0.4rem 0.75rem; border: 1px solid var(--cs-border);">Patienten, Einsätze, Vor-Ort, Rapporte, Touren, Kalender, Chat — keine Abrechnung, keine Stammdaten</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.4rem 0.75rem; border: 1px solid var(--cs-border); font-weight: 600;">Buchhaltung</td>
+                        <td style="padding: 0.4rem 0.75rem; border: 1px solid var(--cs-border);">Rechnungen, Rechnungsläufe, Tagespauschalen — keine Patientendaten, keine Mitarbeitenden</td>
+                    </tr>
+                </tbody>
+            </table>
+            <ul style="font-size: 0.875rem; margin: 0.75rem 0 0 1.2rem; line-height: 1.8;">
+                <li><strong>Datentrennung:</strong> Jede Organisation hat eine eigene Datenbank — kein Zugriff auf Daten anderer Organisationen möglich</li>
+                <li><strong>Einladung per E-Mail:</strong> Neue Mitarbeitende erhalten einen Einladungslink (48h gültig) — kein Admin setzt das Passwort</li>
+                <li><strong>Vertrauliche Dokumente & Rapporte:</strong> Können als vertraulich markiert werden — nur Admin sieht sie</li>
+                <li><strong>Audit-Log:</strong> Alle Änderungen an Patientendaten werden protokolliert (siehe Kapitel 8)</li>
+                <li><strong>nDSG-konform:</strong> Protokollierungspflicht bei Gesundheitsdaten erfüllt, 10 Jahre Aufbewahrung</li>
+            </ul>
+        </div>
+
+        <div class="abschnitt-trenn"></div>
 
         {{-- Dokumente --}}
         <div style="margin-bottom: 1.25rem;">
