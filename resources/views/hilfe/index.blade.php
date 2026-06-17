@@ -20,6 +20,8 @@
             <a href="#kap6b"    class="badge badge-grau"      style="text-decoration: none;">6b — Rechnungslauf</a>
             <a href="#kap7"     class="badge badge-grau"      style="text-decoration: none;">7 — FAQ</a>
             <a href="#kap8"     class="badge badge-grau"      style="text-decoration: none;">8 — Audit-Log</a>
+            <a href="#kap9"     class="badge badge-grau"      style="text-decoration: none;">9 — Dokumente & KI</a>
+            <a href="#demo-zugriff" class="badge badge-erfolg" style="text-decoration: none;">▶ Demo-Zugriff</a>
             <a href="#script-angehoerig" class="badge badge-info" style="text-decoration: none;">▶ Angehörigenpflege</a>
             <a href="#script-lohnabrechnung" class="badge badge-info" style="text-decoration: none;">▶ Lohnabrechnung</a>
             <a href="#script-einsatz" class="badge badge-info" style="text-decoration: none;">▶ Einsatz erfassen</a>
@@ -27,6 +29,16 @@
             <a href="#script-serie" class="badge badge-info" style="text-decoration: none;">▶ Einsatzserie</a>
             <a href="#kap5-pdf" class="badge badge-info" style="text-decoration: none;">▶ Rapport-PDF</a>
         </div>
+    </div>
+
+    {{-- Demo-Zugriff --}}
+    <div id="demo-zugriff" class="karte" style="margin-bottom: 1.5rem; background: var(--cs-primaer-hell); border: 1px solid var(--cs-primaer);">
+        <div class="abschnitt-label" style="margin-bottom: 0.75rem;">Demo-Zugriff</div>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="https://curasoft.ch/demo/admin" target="_blank" class="btn btn-primaer">Admin-Demo öffnen →</a>
+            <a href="https://curasoft.ch/demo/pflege" target="_blank" class="btn btn-sekundaer">Pflege-Demo öffnen →</a>
+        </div>
+        <div class="text-klein text-hell" style="margin-top: 0.5rem;">Admin-Ansicht: volle Verwaltung, Abrechnung, Stammdaten &nbsp;·&nbsp; Pflege-Ansicht: Einsätze, Vor-Ort, Rapporte</div>
     </div>
 
     {{-- Suche --}}
@@ -1024,6 +1036,64 @@
             </div>
 
         </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════════════ --}}
+    {{-- KAPITEL 9: DOKUMENTE, DIAGNOSEN, VITALZEICHEN, KI-ASSISTENT   --}}
+    {{-- ═══════════════════════════════════════════════════════════════ --}}
+    <div class="karte" id="kap9" style="margin-bottom: 1.5rem;">
+        <div class="abschnitt-label" style="margin-bottom: 1rem;">Kapitel 9 — Dokumente, Diagnosen, Vitalzeichen & KI-Assistent</div>
+
+        {{-- Dokumente --}}
+        <div style="margin-bottom: 1.25rem;">
+            <div style="font-weight: 600; margin-bottom: 0.4rem;">Dokumente beim Patienten</div>
+            <p style="font-size: 0.875rem; margin: 0 0 0.5rem 0;">Beim jedem Patienten können beliebige Dokumente hinterlegt werden — Pflegeplanung, Arztzeugnis, Vertrag, Berichte, Vollmacht und mehr. Die Dokumente sind kategorisiert und jederzeit abrufbar.</p>
+            <ul style="font-size: 0.875rem; margin: 0 0 0 1.2rem; line-height: 1.8;">
+                <li>Patient öffnen → Abschnitt <strong>«Dokumente»</strong> → <strong>«+ Dokument hochladen»</strong></li>
+                <li>Typ wählen (Pflegeplanung, Arztzeugnis, Bericht usw.)</li>
+                <li>Vertraulich-Markierung möglich — nur Admin sieht vertrauliche Dokumente</li>
+                <li>PDF, Word, Bilder — alle gängigen Formate</li>
+            </ul>
+        </div>
+
+        <div class="abschnitt-trenn"></div>
+
+        {{-- Diagnosen & Pflegestufen --}}
+        <div style="margin-bottom: 1.25rem;">
+            <div style="font-weight: 600; margin-bottom: 0.4rem;">Diagnosen & Pflegestufen</div>
+            <p style="font-size: 0.875rem; margin: 0 0 0.5rem 0;">Beim Patienten können Diagnosen (ICD-10) und Pflegestufen mit Datum erfasst werden. Die Historie bleibt erhalten — jede Änderung der Pflegestufe wird als neuer Eintrag gespeichert.</p>
+            <ul style="font-size: 0.875rem; margin: 0 0 0 1.2rem; line-height: 1.8;">
+                <li>Patient öffnen → Abschnitt <strong>«Diagnosen»</strong> resp. <strong>«Pflegestufen»</strong></li>
+                <li>Mehrere Diagnosen pro Patient möglich</li>
+                <li>Pflegestufe mit Einstufungsdatum — historisiert</li>
+            </ul>
+        </div>
+
+        <div class="abschnitt-trenn"></div>
+
+        {{-- Vitalzeichen --}}
+        <div style="margin-bottom: 1.25rem;">
+            <div style="font-weight: 600; margin-bottom: 0.4rem;">Vitalzeichen erfassen</div>
+            <p style="font-size: 0.875rem; margin: 0 0 0.5rem 0;">Im Vor-Ort-Modus beim Einsatz können Vitalzeichen als Tätigkeit mit Zeit erfasst werden (Puls, Blutdruck, Temperatur, Gewicht). Die Aktivität erscheint im Rapport des Einsatzes.</p>
+            <ul style="font-size: 0.875rem; margin: 0 0 0 1.2rem; line-height: 1.8;">
+                <li>Einsatz öffnen → <strong>«Vor-Ort»</strong> → Kategorie <strong>«Untersuchung / Behandlung»</strong> → <strong>«Vitalzeichen»</strong></li>
+                <li>Minuten erfassen → wird im Rapport ausgewiesen</li>
+            </ul>
+        </div>
+
+        <div class="abschnitt-trenn"></div>
+
+        {{-- KI-Assistent --}}
+        <div>
+            <div style="font-weight: 600; margin-bottom: 0.4rem;">KI-Assistent</div>
+            <p style="font-size: 0.875rem; margin: 0 0 0.5rem 0;">Der KI-Assistent hilft beim Schreiben von Rapporttexten — direkt im Einsatz oder beim Rapport erfassen. Er schreibt in der Sprache des Benutzers (Deutsch, Französisch, Italienisch).</p>
+            <ul style="font-size: 0.875rem; margin: 0 0 0 1.2rem; line-height: 1.8;">
+                <li>Rapport schreiben → <strong>«KI-Vorschlag»</strong> Button → Text wird automatisch generiert</li>
+                <li>Vorschlag kann frei bearbeitet werden bevor er gespeichert wird</li>
+                <li>Kein Vorschlag gefällt? Einfach nochmals generieren oder manuell schreiben</li>
+            </ul>
+        </div>
+
     </div>
 
 </div>
