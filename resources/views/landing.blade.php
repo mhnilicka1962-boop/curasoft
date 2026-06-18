@@ -857,8 +857,8 @@
         <div class="problem-grid">
             <div class="problem-card">
                 <div class="problem-icon">🗺️</div>
-                <h3>Verschiedene Kantonstariife</h3>
-                <p>AG, ZH, BE, ZG — jeder Kanton hat eigene Ansätze für KVG und VVG. Manuelle Pflege ist fehleranfällig.</p>
+                <h3>Verschiedene Kantonstarife</h3>
+                <p>AG, ZH, BE, ZG — jeder Kanton hat eigene Ansätze für KVG und VVG. Tarife werden im System hinterlegt und können jederzeit selbst angepasst werden.</p>
             </div>
             <div class="problem-card">
                 <div class="problem-icon">🧾</div>

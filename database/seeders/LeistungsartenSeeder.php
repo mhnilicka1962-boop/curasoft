@@ -70,7 +70,7 @@ class LeistungsartenSeeder extends Seeder
                 'kvg_default'           => 54.60,
                 'ansatz_akut_default'   => 66.00,
                 'kvg_akut_default'      => 41.70,
-                'kvg_angehoerig_default'=> 27.60,
+                'kvg_angehoerig_default'=> 52.60,
                 'created_at'            => now(),
                 'updated_at'            => now(),
             ],

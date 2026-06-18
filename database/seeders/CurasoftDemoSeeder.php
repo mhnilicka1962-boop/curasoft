@@ -30,6 +30,7 @@ class CurasoftDemoSeeder extends Seeder
     private array $la       = []; // mb_strtolower(bezeichnung) → id
     private array $ma       = []; // key → id (Mitarbeiter)
     private array $kl       = []; // key → id (Klienten)
+    private array $ar       = []; // key → id (Ärzte)
 
     // Kurznamen → vollständiger LA-Schlüssel in $this->la
     // Schlüssel = mb_strtolower(bezeichnung) aus der DB
@@ -66,6 +67,7 @@ class CurasoftDemoSeeder extends Seeder
             $this->ladenLeistungsarten();
             $this->regionen();
             $this->mitarbeiter();
+            $this->aerzte();
             $this->klienten();
             $this->kontakte();
             $this->beitraege();
@@ -107,6 +109,7 @@ class CurasoftDemoSeeder extends Seeder
         DB::table('klient_verordnungen')->delete();
         DB::table('klient_adressen')->delete();
         DB::table('klient_aerzte')->delete();
+        DB::table('aerzte')->where('organisation_id', $this->orgId)->delete();
         DB::table('klient_kontakte')->delete();
         DB::table('klient_pflegestufen')->delete();
         DB::table('klient_beitraege')->delete();
@@ -160,9 +163,9 @@ class CurasoftDemoSeeder extends Seeder
             $this->la[mb_strtolower($la->bezeichnung)] = $la->id;
         }
 
-        // kvg_angehoerig_default setzen (27.60 für Grundpflege, 0 für alle anderen)
+        // kvg_angehoerig_default setzen (52.60 CHF/h für Grundpflege, 0 für alle anderen)
         DB::table('leistungsarten')->where('bezeichnung', 'Grundpflege')
-            ->update(['kvg_angehoerig_default' => 27.60]);
+            ->update(['kvg_angehoerig_default' => 52.60]);
     }
 
     /** Leistungsart-ID über Kurzname ('gp','ub','hwl','ab') oder vollständigen Schlüssel */
@@ -335,6 +338,69 @@ class CurasoftDemoSeeder extends Seeder
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // ÄRZTE
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function aerzte(): void
+    {
+        $liste = [
+            'meier' => [
+                'anrede'       => 'Dr. med.',
+                'vorname'      => 'Stefan',
+                'nachname'     => 'Meier',
+                'zsr_nr'       => '1234567',
+                'gln_nr'       => '7601000012345',
+                'fachrichtung' => 'Allgemeine Innere Medizin',
+                'praxis_name'  => 'Praxis Dr. Meier',
+                'adresse'      => 'Bahnhofstrasse 44',
+                'plz'          => '8001',
+                'ort'          => 'Zürich',
+                'region'       => 'ZH',
+                'telefon'      => '044 211 22 33',
+                'email'        => 'praxis@dr-meier-zh.ch',
+            ],
+            'hofer' => [
+                'anrede'       => 'Dr. med.',
+                'vorname'      => 'Claudia',
+                'nachname'     => 'Hofer',
+                'zsr_nr'       => '9876543',
+                'gln_nr'       => '7601000098765',
+                'fachrichtung' => 'Allgemeine Innere Medizin',
+                'praxis_name'  => 'Gemeinschaftspraxis Hofer & Partner',
+                'adresse'      => 'Baarerstrasse 50',
+                'plz'          => '6300',
+                'ort'          => 'Zug',
+                'region'       => 'ZG',
+                'telefon'      => '041 711 44 55',
+                'email'        => 'praxis@hofer-zug.ch',
+            ],
+        ];
+
+        foreach ($liste as $key => $a) {
+            $regionId = $this->regionen[$a['region']] ?? null;
+            $this->ar[$key] = DB::table('aerzte')->insertGetId([
+                'organisation_id' => $this->orgId,
+                'anrede'          => $a['anrede'],
+                'vorname'         => $a['vorname'],
+                'nachname'        => $a['nachname'],
+                'zsr_nr'          => $a['zsr_nr'],
+                'gln_nr'          => $a['gln_nr'],
+                'fachrichtung'    => $a['fachrichtung'],
+                'praxis_name'     => $a['praxis_name'],
+                'adresse'         => $a['adresse'],
+                'plz'             => $a['plz'],
+                'ort'             => $a['ort'],
+                'region_id'       => $regionId,
+                'telefon'         => $a['telefon'],
+                'email'           => $a['email'],
+                'aktiv'           => true,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // KLIENTEN
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -410,13 +476,24 @@ class CurasoftDemoSeeder extends Seeder
         ]);
         DB::table('klient_verordnungen')->insert([
             'klient_id'       => $id,
+            'arzt_id'         => $this->ar['meier'] ?? null,
             'leistungsart_id' => $this->laId('gp'),
             'verordnungs_nr'  => 'VO-2026-0124',
+            'ausgestellt_am'  => '2026-01-10',
             'gueltig_ab'      => '2026-01-15',
             'gueltig_bis'     => '2026-07-15',
             'aktiv'           => true,
             'created_at'      => now(),
             'updated_at'      => now(),
+        ]);
+        DB::table('klient_aerzte')->insert([
+            'klient_id'  => $id,
+            'arzt_id'    => $this->ar['meier'],
+            'rolle'      => 'behandelnder',
+            'hauptarzt'  => true,
+            'gueltig_ab' => '2026-01-01',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         DB::table('klient_benutzer')->insert([
             'klient_id'     => $id,
@@ -485,13 +562,24 @@ class CurasoftDemoSeeder extends Seeder
         ]);
         DB::table('klient_verordnungen')->insert([
             'klient_id'       => $id,
+            'arzt_id'         => $this->ar['meier'] ?? null,
             'leistungsart_id' => $this->laId('ub'),
             'verordnungs_nr'  => 'VO-2026-0198',
+            'ausgestellt_am'  => '2025-12-15',
             'gueltig_ab'      => '2026-01-01',
             'gueltig_bis'     => '2026-12-31',
             'aktiv'           => true,
             'created_at'      => now(),
             'updated_at'      => now(),
+        ]);
+        DB::table('klient_aerzte')->insert([
+            'klient_id'  => $id,
+            'arzt_id'    => $this->ar['meier'],
+            'rolle'      => 'behandelnder',
+            'hauptarzt'  => true,
+            'gueltig_ab' => '2025-12-01',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         DB::table('klient_benutzer')->insert([
             'klient_id'     => $id,
@@ -559,13 +647,24 @@ class CurasoftDemoSeeder extends Seeder
         ]);
         DB::table('klient_verordnungen')->insert([
             'klient_id'       => $id,
+            'arzt_id'         => $this->ar['hofer'] ?? null,
             'leistungsart_id' => $this->laId('gp'),
             'verordnungs_nr'  => 'VO-2026-0215',
+            'ausgestellt_am'  => '2026-01-28',
             'gueltig_ab'      => '2026-02-01',
             'gueltig_bis'     => '2026-07-31',
             'aktiv'           => true,
             'created_at'      => now(),
             'updated_at'      => now(),
+        ]);
+        DB::table('klient_aerzte')->insert([
+            'klient_id'  => $id,
+            'arzt_id'    => $this->ar['hofer'],
+            'rolle'      => 'behandelnder',
+            'hauptarzt'  => true,
+            'gueltig_ab' => '2026-01-01',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         DB::table('klient_benutzer')->insert([
             'klient_id'     => $id,
@@ -630,6 +729,27 @@ class CurasoftDemoSeeder extends Seeder
             ['klient_id' => $id, 'icd10_code' => 'I50', 'icd10_bezeichnung' => 'Herzinsuffizienz',              'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()],
             ['klient_id' => $id, 'icd10_code' => 'N18', 'icd10_bezeichnung' => 'Chronische Niereninsuffizienz', 'diagnose_typ' => 'neben', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()],
         ]);
+        DB::table('klient_verordnungen')->insert([
+            'klient_id'       => $id,
+            'arzt_id'         => $this->ar['hofer'] ?? null,
+            'leistungsart_id' => $this->laId('gp'),
+            'verordnungs_nr'  => 'VO-2026-0241',
+            'ausgestellt_am'  => '2026-02-10',
+            'gueltig_ab'      => '2026-02-15',
+            'gueltig_bis'     => '2026-08-15',
+            'aktiv'           => true,
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+        DB::table('klient_aerzte')->insert([
+            'klient_id'  => $id,
+            'arzt_id'    => $this->ar['hofer'],
+            'rolle'      => 'behandelnder',
+            'hauptarzt'  => true,
+            'gueltig_ab' => '2026-01-01',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
         DB::table('klient_benutzer')->insert([
             'klient_id'     => $id,
             'benutzer_id'   => $this->ma['peter'],
@@ -687,6 +807,28 @@ class CurasoftDemoSeeder extends Seeder
         DB::table('klient_diagnosen')->insert([
             ['klient_id' => $id, 'icd10_code' => 'M16', 'icd10_bezeichnung' => 'Koxarthrose',        'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()],
             ['klient_id' => $id, 'icd10_code' => 'Z74', 'icd10_bezeichnung' => 'Pflegebedürftigkeit', 'diagnose_typ' => 'neben', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+        DB::table('klient_verordnungen')->insert([
+            'klient_id'       => $id,
+            'arzt_id'         => $this->ar['hofer'] ?? null,
+            'leistungsart_id' => $this->laId('gp'),
+            'verordnungs_nr'  => 'VO-2026-0189',
+            'ausgestellt_am'  => '2026-01-05',
+            'gueltig_ab'      => '2026-01-10',
+            'gueltig_bis'     => '2026-12-31',
+            'bemerkung'       => 'Angehörigenpflege durch Tochter Ruth Gerber genehmigt (KLV Art. 7)',
+            'aktiv'           => true,
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+        DB::table('klient_aerzte')->insert([
+            'klient_id'  => $id,
+            'arzt_id'    => $this->ar['hofer'],
+            'rolle'      => 'behandelnder',
+            'hauptarzt'  => true,
+            'gueltig_ab' => '2026-01-01',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
         DB::table('klient_benutzer')->insert([
             'klient_id'     => $id,
