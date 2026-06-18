@@ -1,4 +1,4 @@
-<x-layout titel="Bedarfsanalyse abschliessen">
+<x-layouts.app :titel="'Bedarfsanalyse abschliessen'">
 
 <div class="seiten-kopf">
     <h1>Bedarfsanalyse abschliessen</h1>
@@ -76,4 +76,4 @@
     </form>
 </div>
 
-</x-layout>
+</x-layouts.app>

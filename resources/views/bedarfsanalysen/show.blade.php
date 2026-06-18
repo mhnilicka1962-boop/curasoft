@@ -1,4 +1,4 @@
-<x-layout titel="Bedarfsanalyse — {{ $klient->nachname }} {{ $klient->vorname }}">
+<x-layouts.app :titel="'Bedarfsanalyse — ' . $klient->nachname . ' ' . $klient->vorname">
 
 <div class="seiten-kopf">
     <div>
@@ -129,4 +129,4 @@ $pflegestufen = [
 </details>
 @endforeach
 
-</x-layout>
+</x-layouts.app>

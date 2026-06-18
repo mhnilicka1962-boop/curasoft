@@ -1,4 +1,4 @@
-<x-layout titel="Bedarfsanalysen">
+<x-layouts.app :titel="'Bedarfsanalysen'">
 
 <div class="seiten-kopf">
     <h1>Bedarfsanalysen</h1>
@@ -79,4 +79,4 @@
     @endif
 </div>
 
-</x-layout>
+</x-layouts.app>

@@ -48,6 +48,19 @@ class Klient extends Model
         'qr_token',
         'klient_lat',
         'klient_lng',
+        'klient_typ',
+        // Bedarfsanalyse-Felder
+        'mobile', 'heimatort', 'konfession', 'nationalitaet', 'gewicht_kg',
+        'mobilitaet', 'hilfsmittel', 'hobbies',
+        'aufnahmegrund', 'hilflosenentschaedigung',
+        'pflegeversicherung', 'pflegeversicherung_name',
+        'vorauszahlung', 'personen_haushalt', 'personen_betreuungsbed',
+        'wunschkost', 'wunschkost_details',
+        'pflegedienst_aktuell', 'pflegedienst_name', 'pflegedienst_aufgaben',
+        'pflegedienst_frequenz', 'pflegedienst_abbestellen',
+        'raucher', 'wohntyp', 'anzahl_zimmer', 'lift', 'treppe', 'treppe_stufen',
+        'klinik', 'patientenverfuegung', 'haustiere', 'haustiere_details',
+        'pflegestufe_curapflege',
     ];
 
     protected $casts = [
@@ -56,6 +69,16 @@ class Klient extends Model
         'einsatz_geplant_von'=> 'date',
         'einsatz_geplant_bis'=> 'date',
         'aktiv'              => 'boolean',
+        'pflegeversicherung' => 'boolean',
+        'vorauszahlung'      => 'boolean',
+        'wunschkost'         => 'boolean',
+        'pflegedienst_aktuell'   => 'boolean',
+        'pflegedienst_abbestellen' => 'boolean',
+        'lift'               => 'boolean',
+        'treppe'             => 'boolean',
+        'patientenverfuegung'=> 'boolean',
+        'haustiere'          => 'boolean',
+        'raucher'            => 'boolean',
     ];
 
     public function region()     { return $this->belongsTo(Region::class); }

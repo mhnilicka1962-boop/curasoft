@@ -1,4 +1,4 @@
-<x-layout titel="Bedarfsanalyse — Schritt {{ $schritt }} von 5">
+<x-layouts.app :titel="'Bedarfsanalyse — Schritt ' . $schritt . ' von 5'">
 
 @push('styles')
 <style>
@@ -199,4 +199,4 @@ document.getElementById('ba-form').dataset.nextUrl =
     @endif
 </script>
 
-</x-layout>
+</x-layouts.app>
