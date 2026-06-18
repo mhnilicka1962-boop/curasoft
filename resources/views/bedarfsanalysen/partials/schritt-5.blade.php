@@ -35,9 +35,6 @@
             <label>Anzahl Stufen</label>
             <input type="number" name="treppe_stufen" value="{{ old('treppe_stufen', $analyse->treppe_stufen) }}" min="1" max="100">
         </div>
-        <div class="ba-info-box">
-            <strong>Hinweis:</strong> Die Betreuungsperson benötigt ein separates, abschliessbares Zimmer mit Badbenutzung sowie Kost &amp; Logis vom Auftraggeber.
-        </div>
     </div>
 </div>
 

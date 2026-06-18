@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bedarfsanalyse;
 use App\Models\Klient;
+use App\Models\Krankenkasse;
 use App\Models\Region;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -51,7 +52,11 @@ class BedarfsanalyseController extends Controller
         abort_if($analyse->organisation_id !== $this->orgId(), 403);
         abort_if($schritt < 1 || $schritt > 5, 404);
 
-        return view('bedarfsanalysen.wizard', compact('analyse', 'schritt'));
+        $regionen     = Region::orderBy('bezeichnung')->get();
+        $krankenkassen = Krankenkasse::where('organisation_id', $this->orgId())
+            ->where('aktiv', true)->orderBy('name')->get();
+
+        return view('bedarfsanalysen.wizard', compact('analyse', 'schritt', 'regionen', 'krankenkassen'));
     }
 
     public function schrittSpeichern(Request $request, Bedarfsanalyse $analyse, int $schritt)
@@ -249,8 +254,8 @@ class BedarfsanalyseController extends Controller
                 'ap2_telefon','ap2_mobile','ap2_vormund','ap2_erreichbarkeit','ap2_erreichbarkeit_von','ap2_erreichbarkeit_bis',
             ],
             2 => [
-                'kvg_krankenkasse','kvg_anschrift','vvg_vorhanden','vvg_deckungstyp',
-                'pflegeversicherung','pflegeversicherung_name','zweite_krankenkasse',
+                'kvg_krankenkasse_id','kvg_anschrift','vvg_vorhanden','vvg_deckungstyp',
+                'pflegeversicherung','pflegeversicherung_name','zweite_krankenkasse_id',
                 'zweite_krankenkasse_anschrift','haushaltshilfe','versicherung_bemerkungen',
                 'aufnahmegrund','hilflosenentschaedigung','rechnungsadresse','vorauszahlung',
                 'zustaendiger_arzt','personen_haushalt','personen_betreuungsbed','gewicht_kg',

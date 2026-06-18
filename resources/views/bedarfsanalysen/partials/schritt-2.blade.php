@@ -5,7 +5,12 @@
     <div class="ba-form-grid">
         <div class="feld">
             <label>Krankenkasse</label>
-            <input type="text" name="kvg_krankenkasse" value="{{ old('kvg_krankenkasse', $analyse->kvg_krankenkasse) }}" placeholder="z.B. Helsana">
+            <select name="kvg_krankenkasse_id" class="feld">
+                <option value="">— wählen —</option>
+                @foreach($krankenkassen as $kk)
+                    <option value="{{ $kk->id }}" @selected(old('kvg_krankenkasse_id', $analyse->kvg_krankenkasse_id) == $kk->id)>{{ $kk->name }}</option>
+                @endforeach
+            </select>
         </div>
         <div class="feld">
             <label>Anschrift</label>
@@ -59,7 +64,12 @@
     <div class="ba-form-grid">
         <div class="feld">
             <label>Zweite Krankenkasse</label>
-            <input type="text" name="zweite_krankenkasse" value="{{ old('zweite_krankenkasse', $analyse->zweite_krankenkasse) }}">
+            <select name="zweite_krankenkasse_id" class="feld">
+                <option value="">— keine —</option>
+                @foreach($krankenkassen as $kk)
+                    <option value="{{ $kk->id }}" @selected(old('zweite_krankenkasse_id', $analyse->zweite_krankenkasse_id) == $kk->id)>{{ $kk->name }}</option>
+                @endforeach
+            </select>
         </div>
         <div class="feld">
             <label>Anschrift</label>
