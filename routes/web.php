@@ -30,6 +30,7 @@ use App\Http\Controllers\VertretungController;
 use App\Http\Controllers\SerienController;
 use App\Http\Controllers\PersonalabrechnungController;
 use App\Http\Controllers\AngehoerigenpflegeController;
+use App\Http\Controllers\BedarfsanalyseController;
 use App\Http\Controllers\RapportierungController;
 use Illuminate\Support\Facades\Route;
 
@@ -530,6 +531,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/einsatzarten/{einsatzart}/bearbeiten', [EinsatzartenController::class, 'edit'])->name('einsatzarten.edit');
         Route::put('/einsatzarten/{einsatzart}', [EinsatzartenController::class, 'update'])->name('einsatzarten.update');
         Route::delete('/einsatzarten/{einsatzart}', [EinsatzartenController::class, 'destroy'])->name('einsatzarten.destroy');
+
+        // Bedarfsanalysen
+        Route::get('/bedarfsanalysen', [BedarfsanalyseController::class, 'index'])->name('bedarfsanalysen.index');
+        Route::post('/bedarfsanalysen', [BedarfsanalyseController::class, 'store'])->name('bedarfsanalysen.store');
+        Route::get('/bedarfsanalysen/{analyse}/schritt/{schritt}', [BedarfsanalyseController::class, 'schritt'])->name('bedarfsanalysen.schritt')->where('schritt', '[1-5]');
+        Route::post('/bedarfsanalysen/{analyse}/schritt/{schritt}', [BedarfsanalyseController::class, 'schrittSpeichern'])->name('bedarfsanalysen.schritt.speichern')->where('schritt', '[1-5]');
+        Route::get('/bedarfsanalysen/{analyse}/abschliessen', [BedarfsanalyseController::class, 'abschliessenForm'])->name('bedarfsanalysen.abschliessen.form');
+        Route::post('/bedarfsanalysen/{analyse}/abschliessen', [BedarfsanalyseController::class, 'abschliessen'])->name('bedarfsanalysen.abschliessen');
+        Route::get('/klienten/{klient}/bedarfsanalyse', [BedarfsanalyseController::class, 'show'])->name('bedarfsanalysen.show')->where('klient', '[0-9]+');
+        Route::post('/bedarfsanalysen/{analyse}/sektion/{schritt}', [BedarfsanalyseController::class, 'sektionEditieren'])->name('bedarfsanalysen.sektion')->where('schritt', '[1-5]');
 
         // Audit-Log
         Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit.index');

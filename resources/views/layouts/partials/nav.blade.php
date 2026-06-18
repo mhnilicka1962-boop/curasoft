@@ -30,6 +30,9 @@
 </a>
 
 <div class="nav-abschnitt">Betrieb</div>
+<a href="{{ route('bedarfsanalysen.index') }}" class="nav-link {{ request()->routeIs('bedarfsanalysen.*') ? 'aktiv' : '' }}">
+    Bedarfsanalyse
+</a>
 <a href="{{ route('klienten.index') }}" class="nav-link {{ request()->routeIs('klienten.*') ? 'aktiv' : '' }}">
     Klienten
 </a>
