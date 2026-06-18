@@ -210,6 +210,36 @@ class BedarfsanalyseController extends Controller
                 ]);
             }
 
+            // KVG-Krankenkasse → klient_krankenkassen
+            if ($analyse->kvg_krankenkasse_id) {
+                DB::table('klient_krankenkassen')->insert([
+                    'klient_id'      => $klient->id,
+                    'krankenkasse_id'=> $analyse->kvg_krankenkasse_id,
+                    'versicherungs_typ' => 'kvg',
+                    'deckungstyp'    => 'allgemein',
+                    'gueltig_ab'     => now()->startOfYear()->toDateString(),
+                    'aktiv'          => true,
+                    'tiers_payant'   => false,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+            }
+
+            // Zweite KK (VVG) → klient_krankenkassen
+            if ($analyse->zweite_krankenkasse_id) {
+                DB::table('klient_krankenkassen')->insert([
+                    'klient_id'      => $klient->id,
+                    'krankenkasse_id'=> $analyse->zweite_krankenkasse_id,
+                    'versicherungs_typ' => 'vvg',
+                    'deckungstyp'    => $analyse->vvg_deckungstyp ?? 'allgemein',
+                    'gueltig_ab'     => now()->startOfYear()->toDateString(),
+                    'aktiv'          => true,
+                    'tiers_payant'   => false,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+            }
+
             $analyse->update([
                 'klient_id'        => $klient->id,
                 'status'           => 'abgeschlossen',
