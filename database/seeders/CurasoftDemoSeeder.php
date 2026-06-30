@@ -858,7 +858,10 @@ class CurasoftDemoSeeder extends Seeder
             'klient_lat' => 47.3575, 'klient_lng' => 8.5501,
             'telefon' => '044 381 22 33', 'notfallnummer' => '079 111 22 33',
             'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['sandra'],
-            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+            'rechnungstyp' => 'kombiniert',
+            'gemeinde_name' => 'Stadt Zürich', 'gemeinde_adresse' => 'Stadthaus, Stadthausquai 17',
+            'gemeinde_plz' => '8001', 'gemeinde_ort' => 'Zürich', 'gemeinde_email' => '123@itjob.ch',
+            'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->kl['mueller_m'] = $id;
         $kkId = $this->ladeKrankenkasse('Helsana');
@@ -878,7 +881,10 @@ class CurasoftDemoSeeder extends Seeder
             'klient_lat' => 47.1762, 'klient_lng' => 8.5183,
             'telefon' => '041 760 44 55', 'notfallnummer' => '079 444 55 66',
             'region_id' => $this->regionen['ZG'], 'zustaendig_id' => $this->ma['peter'],
-            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+            'rechnungstyp' => 'kombiniert',
+            'gemeinde_name' => 'Einwohnergemeinde Zug', 'gemeinde_adresse' => 'Stadthaus, Gubelstrasse 22',
+            'gemeinde_plz' => '6301', 'gemeinde_ort' => 'Zug', 'gemeinde_email' => '123@itjob.ch',
+            'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->kl['hofer'] = $id;
         $kkId = $this->ladeKrankenkasse('CSS');
@@ -925,7 +931,10 @@ class CurasoftDemoSeeder extends Seeder
             'klient_lat' => 47.3798, 'klient_lng' => 8.5271,
             'telefon' => '044 242 55 66', 'notfallnummer' => '079 666 77 88',
             'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['lisa'],
-            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+            'rechnungstyp' => 'kombiniert',
+            'gemeinde_name' => 'Stadt Zürich', 'gemeinde_adresse' => 'Stadthaus, Stadthausquai 17',
+            'gemeinde_plz' => '8001', 'gemeinde_ort' => 'Zürich', 'gemeinde_email' => '123@itjob.ch',
+            'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->kl['bauer'] = $id;
         $kkId = $this->ladeKrankenkasse('SWICA');
@@ -945,7 +954,10 @@ class CurasoftDemoSeeder extends Seeder
             'klient_lat' => 47.3704, 'klient_lng' => 8.5088,
             'telefon' => '044 462 77 88', 'notfallnummer' => '079 777 88 99',
             'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['lisa'],
-            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+            'rechnungstyp' => 'kombiniert',
+            'gemeinde_name' => 'Stadt Zürich', 'gemeinde_adresse' => 'Stadthaus, Stadthausquai 17',
+            'gemeinde_plz' => '8001', 'gemeinde_ort' => 'Zürich', 'gemeinde_email' => '123@itjob.ch',
+            'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->kl['vogel'] = $id;
         $kkId = $this->ladeKrankenkasse('Helsana');
@@ -965,7 +977,10 @@ class CurasoftDemoSeeder extends Seeder
             'klient_lat' => 47.3845, 'klient_lng' => 8.5213,
             'telefon' => '044 271 88 99', 'notfallnummer' => '079 888 99 00',
             'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['lisa'],
-            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+            'rechnungstyp' => 'kombiniert',
+            'gemeinde_name' => 'Stadt Zürich', 'gemeinde_adresse' => 'Stadthaus, Stadthausquai 17',
+            'gemeinde_plz' => '8001', 'gemeinde_ort' => 'Zürich', 'gemeinde_email' => '123@itjob.ch',
+            'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->kl['linder'] = $id;
         $kkId = $this->ladeKrankenkasse('CSS');
@@ -985,7 +1000,10 @@ class CurasoftDemoSeeder extends Seeder
             'klient_lat' => 47.3917, 'klient_lng' => 8.5262,
             'telefon' => '044 363 11 22', 'notfallnummer' => '079 100 22 33',
             'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['thomas'],
-            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+            'rechnungstyp' => 'kombiniert',
+            'gemeinde_name' => 'Stadt Zürich', 'gemeinde_adresse' => 'Stadthaus, Stadthausquai 17',
+            'gemeinde_plz' => '8001', 'gemeinde_ort' => 'Zürich', 'gemeinde_email' => '123@itjob.ch',
+            'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->kl['ritter'] = $id;
         $kkId = $this->ladeKrankenkasse('Concordia');
@@ -1005,7 +1023,10 @@ class CurasoftDemoSeeder extends Seeder
             'klient_lat' => 47.4075, 'klient_lng' => 8.5413,
             'telefon' => '044 312 33 44', 'notfallnummer' => '079 200 33 44',
             'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['thomas'],
-            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+            'rechnungstyp' => 'kombiniert',
+            'gemeinde_name' => 'Stadt Zürich', 'gemeinde_adresse' => 'Stadthaus, Stadthausquai 17',
+            'gemeinde_plz' => '8001', 'gemeinde_ort' => 'Zürich', 'gemeinde_email' => '123@itjob.ch',
+            'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->kl['klauser'] = $id;
         $kkId = $this->ladeKrankenkasse('Sanitas');
@@ -1025,7 +1046,10 @@ class CurasoftDemoSeeder extends Seeder
             'klient_lat' => 47.4098, 'klient_lng' => 8.5441,
             'telefon' => '044 313 55 66', 'notfallnummer' => '079 300 44 55',
             'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['thomas'],
-            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+            'rechnungstyp' => 'kombiniert',
+            'gemeinde_name' => 'Stadt Zürich', 'gemeinde_adresse' => 'Stadthaus, Stadthausquai 17',
+            'gemeinde_plz' => '8001', 'gemeinde_ort' => 'Zürich', 'gemeinde_email' => '123@itjob.ch',
+            'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->kl['fuchs'] = $id;
         $kkId = $this->ladeKrankenkasse('SWICA');
