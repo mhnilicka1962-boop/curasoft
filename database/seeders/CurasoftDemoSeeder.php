@@ -898,7 +898,14 @@ class CurasoftDemoSeeder extends Seeder
             'klient_lat' => 47.3762, 'klient_lng' => 8.5175,
             'telefon' => '044 241 33 44', 'notfallnummer' => '079 555 66 77',
             'region_id' => $this->regionen['ZH'], 'zustaendig_id' => $this->ma['lisa'],
-            'rechnungstyp' => 'kombiniert', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
+            'rechnungstyp' => 'kombiniert',
+            'gemeinde_name'                  => 'Stadt Zürich',
+            'gemeinde_adresse'               => 'Stadthaus, Stadthausquai 17',
+            'gemeinde_plz'                   => '8001',
+            'gemeinde_ort'                   => 'Zürich',
+            'gemeinde_email'                 => 'soziales@zuerich.ch',
+            'gemeinde_beitrag_hauswirtschaft'=> 20.00,
+            'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->kl['wenger'] = $id;
         $kkId = $this->ladeKrankenkasse('Sanitas');
