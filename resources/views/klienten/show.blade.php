@@ -271,13 +271,6 @@
                         <input type="email" name="gemeinde_email" class="feld" value="{{ old('gemeinde_email', $klient->gemeinde_email) }}" placeholder="finanzen@gemeinde.ch">
                     </div>
                 </div>
-                <div style="background:#fff8e1;border:2px solid #f59e0b;border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.75rem;max-width:360px;">
-                    <label class="feld-label" style="font-weight:700;color:#92400e;">Gemeindebeitrag Hauswirtschaft (CHF/h)</label>
-                    <div style="font-size:0.78rem;color:#78350f;margin-bottom:0.4rem;">Nur Tiers payant — bewilligter Betrag der Gemeinde pro Stunde Hauswirtschaft. Wird vom Patientenanteil abgezogen. 0 = kein Beitrag.</div>
-                    <input type="number" name="gemeinde_beitrag_hauswirtschaft" class="feld" step="0.05" min="0" max="999"
-                        style="max-width:120px;font-weight:700;font-size:1rem;"
-                        value="{{ old('gemeinde_beitrag_hauswirtschaft', $klient->gemeinde_beitrag_hauswirtschaft ?? 0) }}">
-                </div>
                 <div style="display: grid; grid-template-columns: 1fr 80px 1fr; gap: 0.5rem;">
                     <div>
                         <label class="feld-label">Strasse</label>
@@ -923,8 +916,14 @@
                 </div>
             </form>
 
-            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">Beiträge</div>
-            @if($beitraege->count())
+            @php
+                $kvgBeitraege = $beitraege->where('typ', 'kvg')->values();
+                $hwBeitraege  = $beitraege->where('typ', 'hauswirtschaft')->values();
+            @endphp
+
+            {{-- KVG Beiträge --}}
+            <div class="abschnitt-label" style="margin-bottom: 0.625rem;">KVG-Beiträge (Patientenanteil)</div>
+            @if($kvgBeitraege->count())
             <table style="width: 100%; border-collapse: collapse; font-size: 0.8125rem; margin-bottom: 1rem;">
                 <thead>
                     <tr style="border-bottom: 2px solid var(--cs-border);">
@@ -937,7 +936,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($beitraege as $b)
+                    @foreach($kvgBeitraege as $b)
                     <tr style="border-bottom: 1px solid var(--cs-border); {{ $loop->first ? 'background: var(--cs-hintergrund);' : '' }}">
                         <td style="padding: 0.375rem 0.5rem; font-weight: {{ $loop->first ? '600' : '400' }};">
                             {{ $b->gueltig_ab->format('d.m.Y') }}
@@ -948,44 +947,27 @@
                         <td class="text-rechts" style="padding: 0.375rem 0.5rem;">{{ number_format($b->ansatz_spitex, 2, '.', "'") }}</td>
                         <td class="text-rechts" style="padding: 0.375rem 0.5rem;">{{ number_format($b->kanton_abrechnung, 2, '.', "'") }}</td>
                         <td class="text-rechts" style="padding: 0.375rem 0.5rem; white-space: nowrap;">
-                            <button type="button" onclick="beitragBearbeiten({{ $b->id }})"
-                                style="background: none; border: none; color: var(--cs-primaer); cursor: pointer; font-size: 0.75rem; padding: 0; margin-right: 0.75rem;">bearbeiten</button>
-                            <form method="POST" action="{{ route('klienten.beitrag.loeschen', [$klient, $b]) }}" style="margin: 0; display: inline;" onsubmit="return confirm('Beitrag entfernen?')">
+                            <button type="button" onclick="beitragBearbeiten({{ $b->id }})" style="background:none;border:none;color:var(--cs-primaer);cursor:pointer;font-size:0.75rem;padding:0;margin-right:0.75rem;">bearbeiten</button>
+                            <form method="POST" action="{{ route('klienten.beitrag.loeschen', [$klient, $b]) }}" style="margin:0;display:inline;" onsubmit="return confirm('Beitrag entfernen?')">
                                 @csrf @method('DELETE')
-                                <button type="submit" style="background: none; border: none; color: var(--cs-fehler); cursor: pointer; font-size: 0.75rem; padding: 0;">entfernen</button>
+                                <button type="submit" style="background:none;border:none;color:var(--cs-fehler);cursor:pointer;font-size:0.75rem;padding:0;">entfernen</button>
                             </form>
                         </td>
                     </tr>
-                    {{-- Inline-Bearbeitungsformular --}}
                     <tr id="beitrag-edit-{{ $b->id }}" style="display: none;">
                         <td colspan="6" style="padding: 0.5rem;">
-                            <form method="POST" action="{{ route('klienten.beitrag.aktualisieren', [$klient, $b]) }}" style="background: var(--cs-hintergrund); border-radius: 6px; padding: 0.75rem;">
+                            <form method="POST" action="{{ route('klienten.beitrag.aktualisieren', [$klient, $b]) }}" style="background:var(--cs-hintergrund);border-radius:6px;padding:0.75rem;">
                                 @csrf @method('PATCH')
                                 <div class="form-grid" style="margin-bottom: 0.75rem;">
-                                    <div>
-                                        <label class="feld-label" style="font-size: 0.75rem;">Gültig ab *</label>
-                                        <input type="date" name="gueltig_ab" class="feld" required value="{{ $b->gueltig_ab->format('Y-m-d') }}" style="font-size: 0.875rem;">
-                                    </div>
-                                    <div>
-                                        <label class="feld-label" style="font-size: 0.75rem;">Ansatz Kunde (CHF) *</label>
-                                        <input type="number" name="ansatz_kunde" class="feld" step="0.05" min="0" required value="{{ $b->ansatz_kunde }}" style="font-size: 0.875rem;">
-                                    </div>
-                                    <div>
-                                        <label class="feld-label" style="font-size: 0.75rem;">Limit Restbetrag %</label>
-                                        <input type="number" name="limit_restbetrag_prozent" class="feld" step="0.01" min="0" max="100" value="{{ $b->limit_restbetrag_prozent }}" style="font-size: 0.875rem;">
-                                    </div>
-                                    <div>
-                                        <label class="feld-label" style="font-size: 0.75rem;">Ansatz SPITEX (CHF)</label>
-                                        <input type="number" name="ansatz_spitex" class="feld" step="0.05" min="0" value="{{ $b->ansatz_spitex }}" style="font-size: 0.875rem;">
-                                    </div>
-                                    <div>
-                                        <label class="feld-label" style="font-size: 0.75rem;">Kanton Abrechnung (CHF)</label>
-                                        <input type="number" name="kanton_abrechnung" class="feld" step="0.05" min="0" value="{{ $b->kanton_abrechnung }}" style="font-size: 0.875rem;">
-                                    </div>
+                                    <div><label class="feld-label" style="font-size:0.75rem;">Gültig ab *</label><input type="date" name="gueltig_ab" class="feld" required value="{{ $b->gueltig_ab->format('Y-m-d') }}" style="font-size:0.875rem;"></div>
+                                    <div><label class="feld-label" style="font-size:0.75rem;">Ansatz Kunde (CHF) *</label><input type="number" name="ansatz_kunde" class="feld" step="0.05" min="0" required value="{{ $b->ansatz_kunde }}" style="font-size:0.875rem;"></div>
+                                    <div><label class="feld-label" style="font-size:0.75rem;">Limit Restbetrag %</label><input type="number" name="limit_restbetrag_prozent" class="feld" step="0.01" min="0" max="100" value="{{ $b->limit_restbetrag_prozent }}" style="font-size:0.875rem;"></div>
+                                    <div><label class="feld-label" style="font-size:0.75rem;">Ansatz SPITEX (CHF)</label><input type="number" name="ansatz_spitex" class="feld" step="0.05" min="0" value="{{ $b->ansatz_spitex }}" style="font-size:0.875rem;"></div>
+                                    <div><label class="feld-label" style="font-size:0.75rem;">Kanton Abrechnung (CHF)</label><input type="number" name="kanton_abrechnung" class="feld" step="0.05" min="0" value="{{ $b->kanton_abrechnung }}" style="font-size:0.875rem;"></div>
                                 </div>
-                                <div style="display: flex; gap: 0.5rem;">
-                                    <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">Speichern</button>
-                                    <button type="button" onclick="beitragBearbeiten({{ $b->id }})" class="btn btn-sekundaer" style="font-size: 0.875rem;">Abbrechen</button>
+                                <div style="display:flex;gap:0.5rem;">
+                                    <button type="submit" class="btn btn-primaer" style="font-size:0.875rem;">Speichern</button>
+                                    <button type="button" onclick="beitragBearbeiten({{ $b->id }})" class="btn btn-sekundaer" style="font-size:0.875rem;">Abbrechen</button>
                                 </div>
                             </form>
                         </td>
@@ -994,38 +976,84 @@
                 </tbody>
             </table>
             @else
-            <div style="background: #fef2f2; border: 2px solid #fca5a5; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.875rem; color: #b91c1c;">
-                <strong>Kein Beitrag erfasst</strong> — ohne Beitrag kann keine korrekte Abrechnung erstellt werden.
+            <div style="background:#fef2f2;border:2px solid #fca5a5;border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.875rem;color:#b91c1c;">
+                <strong>Kein KVG-Beitrag erfasst</strong> — ohne Beitrag kann keine korrekte Abrechnung erstellt werden.
             </div>
             @endif
-
-            <details id="beitrag-erfassen" data-beitrag>
-                <summary style="font-size: 0.8125rem; font-weight: 600; color: var(--cs-primaer); cursor: pointer; padding: 0.375rem 0; list-style: none;">+ Beitrag erfassen</summary>
-                <form method="POST" action="{{ route('klienten.beitrag.speichern', $klient) }}" style="margin-top: 0.75rem;">
+            <details id="beitrag-erfassen" data-beitrag style="margin-bottom:1.25rem;">
+                <summary style="font-size:0.8125rem;font-weight:600;color:var(--cs-primaer);cursor:pointer;padding:0.375rem 0;list-style:none;">+ KVG-Beitrag erfassen</summary>
+                <form method="POST" action="{{ route('klienten.beitrag.speichern', $klient) }}" style="margin-top:0.75rem;">
                     @csrf
-                    <div class="form-grid" style="margin-bottom: 0.75rem;">
-                        <div>
-                            <label class="feld-label" style="font-size: 0.75rem;">Gültig ab *</label>
-                            <input type="date" name="gueltig_ab" class="feld" required value="{{ old('gueltig_ab', date('Y-m-d')) }}" style="font-size: 0.875rem;">
-                        </div>
-                        <div>
-                            <label class="feld-label" style="font-size: 0.75rem;">Ansatz Kunde (CHF) *</label>
-                            <input type="number" name="ansatz_kunde" class="feld" step="0.05" min="0" required value="{{ old('ansatz_kunde', '0.00') }}" style="font-size: 0.875rem;">
-                        </div>
-                        <div>
-                            <label class="feld-label" style="font-size: 0.75rem;">Limit Restbetrag %</label>
-                            <input type="number" name="limit_restbetrag_prozent" class="feld" step="0.01" min="0" max="100" value="{{ old('limit_restbetrag_prozent', '0.00') }}" style="font-size: 0.875rem;">
-                        </div>
-                        <div>
-                            <label class="feld-label" style="font-size: 0.75rem;">Ansatz SPITEX (CHF)</label>
-                            <input type="number" name="ansatz_spitex" class="feld" step="0.05" min="0" value="{{ old('ansatz_spitex', '0.00') }}" style="font-size: 0.875rem;">
-                        </div>
-                        <div>
-                            <label class="feld-label" style="font-size: 0.75rem;">Kanton Abrechnung (CHF)</label>
-                            <input type="number" name="kanton_abrechnung" class="feld" step="0.05" min="0" value="{{ old('kanton_abrechnung', '0.00') }}" style="font-size: 0.875rem;">
-                        </div>
+                    <input type="hidden" name="typ" value="kvg">
+                    <div class="form-grid" style="margin-bottom:0.75rem;">
+                        <div><label class="feld-label" style="font-size:0.75rem;">Gültig ab *</label><input type="date" name="gueltig_ab" class="feld" required value="{{ old('gueltig_ab', date('Y-m-d')) }}" style="font-size:0.875rem;"></div>
+                        <div><label class="feld-label" style="font-size:0.75rem;">Ansatz Kunde (CHF) *</label><input type="number" name="ansatz_kunde" class="feld" step="0.05" min="0" required value="{{ old('ansatz_kunde', '0.00') }}" style="font-size:0.875rem;"></div>
+                        <div><label class="feld-label" style="font-size:0.75rem;">Limit Restbetrag %</label><input type="number" name="limit_restbetrag_prozent" class="feld" step="0.01" min="0" max="100" value="{{ old('limit_restbetrag_prozent', '0.00') }}" style="font-size:0.875rem;"></div>
+                        <div><label class="feld-label" style="font-size:0.75rem;">Ansatz SPITEX (CHF)</label><input type="number" name="ansatz_spitex" class="feld" step="0.05" min="0" value="{{ old('ansatz_spitex', '0.00') }}" style="font-size:0.875rem;"></div>
+                        <div><label class="feld-label" style="font-size:0.75rem;">Kanton Abrechnung (CHF)</label><input type="number" name="kanton_abrechnung" class="feld" step="0.05" min="0" value="{{ old('kanton_abrechnung', '0.00') }}" style="font-size:0.875rem;"></div>
                     </div>
-                    <button type="submit" class="btn btn-primaer" style="font-size: 0.875rem;">Beitrag speichern</button>
+                    <button type="submit" class="btn btn-primaer" style="font-size:0.875rem;">Beitrag speichern</button>
+                </form>
+            </details>
+
+            {{-- Hauswirtschaft Beiträge (Gemeindebeitrag) --}}
+            <div class="abschnitt-label" style="margin-bottom:0.625rem;">Hauswirtschaft — Gemeindebeitrag (Tiers payant)</div>
+            @if($hwBeitraege->count())
+            <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;margin-bottom:1rem;">
+                <thead>
+                    <tr style="border-bottom:2px solid var(--cs-border);">
+                        <th style="text-align:left;padding:0.375rem 0.5rem;color:var(--cs-text-hell);font-weight:600;">Gültig ab</th>
+                        <th style="text-align:right;padding:0.375rem 0.5rem;color:var(--cs-text-hell);font-weight:600;">Gemeinde CHF/h</th>
+                        <th style="padding:0.375rem 0.5rem;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($hwBeitraege as $b)
+                    <tr style="border-bottom:1px solid var(--cs-border);{{ $loop->first ? 'background:var(--cs-hintergrund);' : '' }}">
+                        <td style="padding:0.375rem 0.5rem;font-weight:{{ $loop->first ? '600' : '400' }};">
+                            {{ $b->gueltig_ab->format('d.m.Y') }}
+                            @if($loop->first)<span class="badge badge-erfolg" style="font-size:0.65rem;margin-left:0.25rem;">aktuell</span>@endif
+                        </td>
+                        <td class="text-rechts" style="padding:0.375rem 0.5rem;font-weight:{{ $loop->first ? '700' : '400' }};">{{ number_format($b->gemeinde_chf_h, 2, '.', "'") }}</td>
+                        <td class="text-rechts" style="padding:0.375rem 0.5rem;white-space:nowrap;">
+                            <button type="button" onclick="beitragBearbeiten({{ $b->id }})" style="background:none;border:none;color:var(--cs-primaer);cursor:pointer;font-size:0.75rem;padding:0;margin-right:0.75rem;">bearbeiten</button>
+                            <form method="POST" action="{{ route('klienten.beitrag.loeschen', [$klient, $b]) }}" style="margin:0;display:inline;" onsubmit="return confirm('Beitrag entfernen?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" style="background:none;border:none;color:var(--cs-fehler);cursor:pointer;font-size:0.75rem;padding:0;">entfernen</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr id="beitrag-edit-{{ $b->id }}" style="display:none;">
+                        <td colspan="3" style="padding:0.5rem;">
+                            <form method="POST" action="{{ route('klienten.beitrag.aktualisieren', [$klient, $b]) }}" style="background:var(--cs-hintergrund);border-radius:6px;padding:0.75rem;">
+                                @csrf @method('PATCH')
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+                                    <div><label class="feld-label" style="font-size:0.75rem;">Gültig ab *</label><input type="date" name="gueltig_ab" class="feld" required value="{{ $b->gueltig_ab->format('Y-m-d') }}" style="font-size:0.875rem;"></div>
+                                    <div><label class="feld-label" style="font-size:0.75rem;">Gemeinde CHF/h *</label><input type="number" name="gemeinde_chf_h" class="feld" step="0.05" min="0" required value="{{ $b->gemeinde_chf_h }}" style="font-size:0.875rem;font-weight:700;"></div>
+                                </div>
+                                <div style="display:flex;gap:0.5rem;">
+                                    <button type="submit" class="btn btn-primaer" style="font-size:0.875rem;">Speichern</button>
+                                    <button type="button" onclick="beitragBearbeiten({{ $b->id }})" class="btn btn-sekundaer" style="font-size:0.875rem;">Abbrechen</button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @else
+            <div style="font-size:0.8125rem;color:var(--cs-text-hell);margin-bottom:0.75rem;">Kein Gemeindebeitrag erfasst — nur bei Tiers payant mit Leistungsauftrag nötig.</div>
+            @endif
+            <details>
+                <summary style="font-size:0.8125rem;font-weight:600;color:var(--cs-primaer);cursor:pointer;padding:0.375rem 0;list-style:none;">+ Gemeindebeitrag Hauswirtschaft erfassen</summary>
+                <form method="POST" action="{{ route('klienten.beitrag.speichern', $klient) }}" style="margin-top:0.75rem;">
+                    @csrf
+                    <input type="hidden" name="typ" value="hauswirtschaft">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+                        <div><label class="feld-label" style="font-size:0.75rem;">Gültig ab *</label><input type="date" name="gueltig_ab" class="feld" required value="{{ old('gueltig_ab', date('Y-m-d')) }}" style="font-size:0.875rem;"></div>
+                        <div><label class="feld-label" style="font-size:0.75rem;">Gemeinde CHF/h *</label><input type="number" name="gemeinde_chf_h" class="feld" step="0.05" min="0" required value="{{ old('gemeinde_chf_h', '0.00') }}" style="font-size:0.875rem;font-weight:700;"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primaer" style="font-size:0.875rem;">Beitrag speichern</button>
                 </form>
             </details>
         </div>

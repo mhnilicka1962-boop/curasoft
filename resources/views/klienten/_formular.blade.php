@@ -195,19 +195,6 @@
                 value="{{ old('gemeinde_email', $k?->gemeinde_email) }}" placeholder="finanzen@gemeinde.ch">
         </div>
     </div>
-    <div style="background:#fff8e1;border:2px solid #f59e0b;border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.75rem;max-width:360px;">
-        <label class="feld-label" style="font-weight:700;color:#92400e;">
-            Gemeindebeitrag Hauswirtschaft (CHF/h)
-        </label>
-        <div style="font-size:0.78rem;color:#78350f;margin-bottom:0.4rem;">
-            Nur Tiers payant — bewilligter Betrag der Gemeinde pro Stunde Hauswirtschaft.<br>
-            Wird vom Patientenanteil abgezogen. 0 = kein Beitrag.
-        </div>
-        <input type="number" name="gemeinde_beitrag_hauswirtschaft" class="feld"
-            step="0.05" min="0" max="999"
-            style="max-width:120px;font-weight:700;font-size:1rem;"
-            value="{{ old('gemeinde_beitrag_hauswirtschaft', $k?->gemeinde_beitrag_hauswirtschaft ?? 0) }}">
-    </div>
     <div style="display: grid; grid-template-columns: 1fr 90px 1fr; gap: 0.75rem; max-width: 600px; margin-bottom: 0.75rem;">
         <div>
             <label class="feld-label">Strasse</label>

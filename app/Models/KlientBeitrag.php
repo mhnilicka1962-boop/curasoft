@@ -10,11 +10,13 @@ class KlientBeitrag extends Model
 
     protected $fillable = [
         'klient_id',
+        'typ',
         'gueltig_ab',
         'ansatz_kunde',
         'limit_restbetrag_prozent',
         'ansatz_spitex',
         'kanton_abrechnung',
+        'gemeinde_chf_h',
         'erfasst_von',
     ];
 
@@ -24,6 +26,7 @@ class KlientBeitrag extends Model
         'limit_restbetrag_prozent' => 'decimal:2',
         'ansatz_spitex'            => 'decimal:2',
         'kanton_abrechnung'        => 'decimal:2',
+        'gemeinde_chf_h'           => 'decimal:2',
     ];
 
     public function klient()     { return $this->belongsTo(Klient::class); }

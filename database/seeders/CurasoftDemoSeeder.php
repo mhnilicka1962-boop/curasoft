@@ -782,18 +782,18 @@ class CurasoftDemoSeeder extends Seeder
             'notfallnummer'   => '079 456 78 90',
             'region_id'       => $this->regionen['ZG'],
             'zustaendig_id'   => $this->ma['ruth'],
-            'rechnungstyp'                   => 'kombiniert',
-            'gemeinde_name'                  => 'Einwohnergemeinde Zug',
-            'gemeinde_adresse'               => 'Stadthaus, Gubelstrasse 22',
-            'gemeinde_plz'                   => '6301',
-            'gemeinde_ort'                   => 'Zug',
-            'gemeinde_email'                 => '123@itjob.ch',
-            'gemeinde_beitrag_hauswirtschaft'=> 15.00,
-            'aktiv'                          => true,
+            'rechnungstyp'     => 'kombiniert',
+            'gemeinde_name'    => 'Einwohnergemeinde Zug',
+            'gemeinde_adresse' => 'Stadthaus, Gubelstrasse 22',
+            'gemeinde_plz'     => '6301',
+            'gemeinde_ort'     => 'Zug',
+            'gemeinde_email'   => '123@itjob.ch',
+            'aktiv'            => true,
             'created_at'                      => now(),
             'updated_at'                      => now(),
         ]);
         $this->kl['gerber'] = $id;
+        DB::table('klient_beitraege')->insert(['klient_id'=>$id,'typ'=>'hauswirtschaft','gueltig_ab'=>'2026-01-01','ansatz_kunde'=>0,'limit_restbetrag_prozent'=>0,'ansatz_spitex'=>0,'kanton_abrechnung'=>0,'gemeinde_chf_h'=>15.00,'erfasst_von'=>1,'created_at'=>now(),'updated_at'=>now()]);
 
         $kkId = $this->ladeKrankenkasse('Concordia');
         if ($kkId) {
@@ -910,10 +910,10 @@ class CurasoftDemoSeeder extends Seeder
             'gemeinde_plz'                   => '8001',
             'gemeinde_ort'                   => 'Zürich',
             'gemeinde_email'                 => '123@itjob.ch',
-            'gemeinde_beitrag_hauswirtschaft'=> 20.00,
             'aktiv' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->kl['wenger'] = $id;
+        DB::table('klient_beitraege')->insert(['klient_id'=>$id,'typ'=>'hauswirtschaft','gueltig_ab'=>'2026-01-01','ansatz_kunde'=>0,'limit_restbetrag_prozent'=>0,'ansatz_spitex'=>0,'kanton_abrechnung'=>0,'gemeinde_chf_h'=>20.00,'erfasst_von'=>1,'created_at'=>now(),'updated_at'=>now()]);
         $kkId = $this->ladeKrankenkasse('Sanitas');
         if ($kkId) DB::table('klient_krankenkassen')->insert(['klient_id' => $id, 'krankenkasse_id' => $kkId, 'versicherungs_typ' => 'kvg', 'deckungstyp' => 'allgemein', 'versichertennummer' => '756.3333.4444.55', 'tiers_payant' => false, 'gueltig_ab' => '2026-01-01', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('klient_diagnosen')->insert([['klient_id' => $id, 'icd10_code' => 'M17', 'icd10_bezeichnung' => 'Gonarthrose', 'diagnose_typ' => 'haupt', 'aktiv' => true, 'created_at' => now(), 'updated_at' => now()]]);

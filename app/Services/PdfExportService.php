@@ -246,7 +246,8 @@ class PdfExportService
 
     private function hwGemeindeBetrag(Rechnung $rechnung): float
     {
-        $beitrag = (float) ($rechnung->klient->gemeinde_beitrag_hauswirtschaft ?? 0);
+        $rechnung->klient->loadMissing('aktBeitragHw');
+        $beitrag = (float) ($rechnung->klient->aktBeitragHw?->gemeinde_chf_h ?? 0);
         if ($beitrag <= 0) return 0.0;
 
         $hwId = Leistungsart::where('bezeichnung', 'Hauswirtschaft')->value('id');

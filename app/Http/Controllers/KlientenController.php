@@ -324,8 +324,7 @@ class KlientenController extends Controller
             'gemeinde_adresse'    => ['nullable', 'string', 'max:255'],
             'gemeinde_plz'        => ['nullable', 'string', 'max:10'],
             'gemeinde_ort'        => ['nullable', 'string', 'max:255'],
-            'gemeinde_email'                   => ['nullable', 'email', 'max:255'],
-            'gemeinde_beitrag_hauswirtschaft'  => ['nullable', 'numeric', 'min:0', 'max:999'],
+            'gemeinde_email'      => ['nullable', 'email', 'max:255'],
             'aktiv'               => ['boolean'],
         ]);
 
@@ -579,14 +578,24 @@ class KlientenController extends Controller
     public function beitragSpeichern(Request $request, Klient $klient)
     {
         $this->autorisiereZugriff($klient);
-        $daten = $request->validate([
-            'gueltig_ab'               => ['required', 'date'],
-            'ansatz_kunde'             => ['required', 'numeric', 'min:0'],
-            'limit_restbetrag_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'ansatz_spitex'            => ['nullable', 'numeric', 'min:0'],
-            'kanton_abrechnung'        => ['nullable', 'numeric', 'min:0'],
-        ]);
-        $klient->beitraege()->create(array_merge($daten, ['erfasst_von' => auth()->id()]));
+        $typ = $request->input('typ', 'kvg');
+
+        if ($typ === 'hauswirtschaft') {
+            $daten = $request->validate([
+                'gueltig_ab'     => ['required', 'date'],
+                'gemeinde_chf_h' => ['required', 'numeric', 'min:0'],
+            ]);
+            $klient->beitraege()->create(array_merge($daten, ['typ' => 'hauswirtschaft', 'erfasst_von' => auth()->id()]));
+        } else {
+            $daten = $request->validate([
+                'gueltig_ab'               => ['required', 'date'],
+                'ansatz_kunde'             => ['required', 'numeric', 'min:0'],
+                'limit_restbetrag_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+                'ansatz_spitex'            => ['nullable', 'numeric', 'min:0'],
+                'kanton_abrechnung'        => ['nullable', 'numeric', 'min:0'],
+            ]);
+            $klient->beitraege()->create(array_merge($daten, ['typ' => 'kvg', 'erfasst_von' => auth()->id()]));
+        }
         return back()->with('erfolg', 'Beitrag wurde erfasst.');
     }
 
@@ -594,13 +603,21 @@ class KlientenController extends Controller
     {
         $this->autorisiereZugriff($klient);
         if ($beitrag->klient_id !== $klient->id) abort(403);
-        $daten = $request->validate([
-            'gueltig_ab'               => ['required', 'date'],
-            'ansatz_kunde'             => ['required', 'numeric', 'min:0'],
-            'limit_restbetrag_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'ansatz_spitex'            => ['nullable', 'numeric', 'min:0'],
-            'kanton_abrechnung'        => ['nullable', 'numeric', 'min:0'],
-        ]);
+
+        if ($beitrag->typ === 'hauswirtschaft') {
+            $daten = $request->validate([
+                'gueltig_ab'     => ['required', 'date'],
+                'gemeinde_chf_h' => ['required', 'numeric', 'min:0'],
+            ]);
+        } else {
+            $daten = $request->validate([
+                'gueltig_ab'               => ['required', 'date'],
+                'ansatz_kunde'             => ['required', 'numeric', 'min:0'],
+                'limit_restbetrag_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+                'ansatz_spitex'            => ['nullable', 'numeric', 'min:0'],
+                'kanton_abrechnung'        => ['nullable', 'numeric', 'min:0'],
+            ]);
+        }
         $beitrag->update($daten);
         return back()->with('erfolg', 'Beitrag wurde aktualisiert.');
     }

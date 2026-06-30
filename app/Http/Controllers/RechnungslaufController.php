@@ -1621,7 +1621,8 @@ class RechnungslaufController extends Controller
     {
         if ($abrechnungslogik !== 'tiers_payant') return;
 
-        $gemeindeBeitrag = (float) ($rechnung->klient->gemeinde_beitrag_hauswirtschaft ?? 0);
+        $rechnung->klient->loadMissing('aktBeitragHw');
+        $gemeindeBeitrag = (float) ($rechnung->klient->aktBeitragHw?->gemeinde_chf_h ?? 0);
         if ($gemeindeBeitrag <= 0) return;
 
         $hwId = \App\Models\Leistungsart::where('bezeichnung', 'Hauswirtschaft')->value('id');
