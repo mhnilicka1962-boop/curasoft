@@ -244,6 +244,23 @@ class PdfExportService
     /** Kaufmännische Rundung auf 0.05 CHF */
     private function r5(float $x): float { return round($x * 20) / 20; }
 
+    private function hwGemeindeBetrag(Rechnung $rechnung): float
+    {
+        $beitrag = (float) ($rechnung->klient->gemeinde_beitrag_hauswirtschaft ?? 0);
+        if ($beitrag <= 0) return 0.0;
+
+        $hwId = Leistungsart::where('bezeichnung', 'Hauswirtschaft')->value('id');
+        if (!$hwId) return 0.0;
+
+        $total = 0.0;
+        foreach ($rechnung->positionen as $pos) {
+            $laId = $pos->einsatzLeistungsart?->leistungsart_id ?? $pos->leistungsart_id ?? null;
+            if ($laId != $hwId || $pos->einheit !== 'minuten') continue;
+            $total += $this->r5((float) $pos->menge / 60 * $beitrag);
+        }
+        return $this->r5($total);
+    }
+
     /**
      * Gemeinde-Rechnung (Restfinanzierung) als PDF generieren und speichern.
      * Gibt Storage-Pfad zurück.
@@ -258,6 +275,9 @@ class PdfExportService
 
         $rapportDaten = $this->rapportblattDaten($rechnung);
 
+        // Hauswirtschaft-Gemeindebeitrag aus Positionen berechnen
+        $hwGemeinde = $this->hwGemeindeBetrag($rechnung);
+
         if (!$rapportDaten) {
             // Fallback: einfache Berechnung aus gespeicherten Beträgen
             $tage   = [];
@@ -266,22 +286,25 @@ class PdfExportService
                 'kk'         => (float) $rechnung->betrag_kk,
                 'pat'        => (float) $rechnung->betrag_patient,
                 'gemeinde'   => (float) $rechnung->betrag_gemeinde,
+                'hw_gemeinde'=> $hwGemeinde,
             ];
         } else {
+            $kvgGemeinde = $rapportDaten['summen']['gemeinde'];
             $tage   = $rapportDaten['tage'];
             $summen = [
-                'vollkosten' => $this->r5(
+                'vollkosten'  => $this->r5(
                     $rapportDaten['summen']['taxe_abkl'] +
                     $rapportDaten['summen']['taxe_unt']  +
                     $rapportDaten['summen']['taxe_gp']
                 ),
-                'kk'         => $this->r5(
+                'kk'          => $this->r5(
                     $rapportDaten['summen']['kvg_abkl'] +
                     $rapportDaten['summen']['kvg_unt']  +
                     $rapportDaten['summen']['kvg_gp']
                 ),
-                'pat'        => $rapportDaten['summen']['pat'],
-                'gemeinde'   => $rapportDaten['summen']['gemeinde'],
+                'pat'         => $rapportDaten['summen']['pat'],
+                'gemeinde'    => $this->r5($kvgGemeinde + $hwGemeinde),
+                'hw_gemeinde' => $hwGemeinde,
             ];
         }
 
@@ -298,7 +321,7 @@ class PdfExportService
         $pfad = 'pdf_export/' . $this->org->id . '/gemeinde_' . $rechnung->rechnungsnummer . '.pdf';
         \Illuminate\Support\Facades\Storage::put($pfad, $pdf->output());
 
-        // betrag_gemeinde auf Rechnung speichern
+        // betrag_gemeinde auf Rechnung speichern (KVG + Hauswirtschaft)
         $rechnung->update(['betrag_gemeinde' => $summen['gemeinde']]);
 
         return $pfad;

@@ -115,11 +115,29 @@
         </tbody>
     </table>
 
+    {{-- Hauswirtschaft-Gemeindebeitrag --}}
+    @if(($summen['hw_gemeinde'] ?? 0) > 0)
+    <table>
+        <thead>
+            <tr>
+                <th>Nicht-KVG-Leistungen (Gemeindebeitrag)</th>
+                <th class="text-rechts">Gemeinde CHF</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Hauswirtschaft — Gemeindebeitrag CHF {{ number_format($rechnung->klient->gemeinde_beitrag_hauswirtschaft, 2, '.', "'") }}/h</td>
+                <td class="text-rechts">{{ number_format($summen['hw_gemeinde'], 2, '.', "'") }}</td>
+            </tr>
+        </tbody>
+    </table>
+    @endif
+
     {{-- Totale --}}
     <div style="overflow: hidden;">
         <div class="totale-box">
             <div class="totale-zeile">
-                <span>Vollkosten</span>
+                <span>Vollkosten KVG</span>
                 <span>CHF {{ number_format($summen['vollkosten'], 2, '.', "'") }}</span>
             </div>
             <div class="totale-zeile">
@@ -130,8 +148,18 @@
                 <span>Patient/in</span>
                 <span>CHF {{ number_format($summen['pat'], 2, '.', "'") }}</span>
             </div>
+            @if(($summen['hw_gemeinde'] ?? 0) > 0)
+            <div class="totale-zeile">
+                <span>KVG-Restfinanzierung</span>
+                <span>CHF {{ number_format($summen['gemeinde'] - $summen['hw_gemeinde'], 2, '.', "'") }}</span>
+            </div>
+            <div class="totale-zeile">
+                <span>Hauswirtschaft-Beitrag</span>
+                <span>CHF {{ number_format($summen['hw_gemeinde'], 2, '.', "'") }}</span>
+            </div>
+            @endif
             <div class="totale-zeile haupt">
-                <span>Restfinanzierung Gemeinde</span>
+                <span>Total Gemeinde</span>
                 <span>CHF {{ number_format($summen['gemeinde'], 2, '.', "'") }}</span>
             </div>
         </div>
