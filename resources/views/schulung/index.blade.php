@@ -407,6 +407,9 @@
     <div style="background: var(--cs-hintergrund); border: 1px solid var(--cs-border); border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; margin-bottom: 0.75rem; font-size: 0.875rem;">
         <strong>KVG-Abrechnung:</strong> Angehörigen-Einsätze werden nach KLV Art. 7 pro Stunde abgerechnet — Minuten × CHF/h (KK-Anteil Grundpflege ca. CHF 52.60/h, kantonal hinterlegt unter Stammdaten → Regionen → «KVG Angehöriger CHF/h»). Gleiche Logik wie Fachperson, nur mit tieferem KK-Ansatz.
     </div>
+    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: var(--cs-radius); padding: 0.6rem 0.875rem; margin-bottom: 0.75rem; font-size: 0.875rem;">
+        <strong>Wichtig — Gemeinde-Restfinanzierung:</strong> KVG-Einsätze durch pflegende Angehörige sind <strong>nicht</strong> Teil der Gemeinde-Restfinanzierung. Die Krankenkasse vergütet den Angehörigen-Anteil direkt via kkasse_angehoerig-Tarif. Patient und Gemeinde schulden für diese Einsätze nichts zusätzlich. Hauswirtschaft durch Angehörige (nicht-KVG) wird wie bei Fachpersonen dem Patienten verrechnet — es sei denn, ein Gemeindebeitrag ist im Klienten-Formular hinterlegt.
+    </div>
     <ol style="margin: 0 0 0.75rem 1.25rem; font-size: 0.875rem; line-height: 1.9;">
         <li>Angehörigenpflege → <strong>«+ Neuer Angehöriger»</strong> — Name, E-Mail eingeben → Einladungsmail automatisch</li>
         <li>System setzt automatisch Anstellungsart «Pflegender Angehöriger» und Rolle «Pflege» — nur Grundpflege &amp; Hauswirtschaft freigeschaltet</li>
@@ -578,6 +581,7 @@
         ['F', 'Was ist Tiers payant / Tiers garant?', 'Wird auf Firmen-Ebene eingestellt — nur eine Methode pro Organisation. Tiers garant: Klient zahlt Spitex, reicht Rapportblatt bei KK + Gemeinde ein. Tiers payant: Spitex rechnet direkt mit KK + Gemeinde ab.'],
         ['F', 'Wie ändere ich Tarife?', 'Stammdaten → Regionen → Kanton wählen → Tarif für Leistungsart anpassen. Immer neuen Eintrag mit «Gültig ab» erstellen — alte Tarife bleiben als Historie erhalten.'],
         ['F', 'Was ist Angehörigenpflege?', 'Familienangehörige werden als Mitarbeitende angestellt und pflegen ihre Verwandten gegen Lohn (CHF ~37.90/h). Die Spitex übernimmt Aufsicht und Lohnabrechnung.'],
+        ['F', 'Was ist der Gemeindebeitrag Hauswirtschaft?', 'Bei Tiers payant mit kommunalem Leistungsauftrag kann die Gemeinde einen fixen CHF/h-Beitrag an die Hauswirtschaft eines Klienten leisten. Pro Klient im Formular hinterlegen (Abschnitt «Wohngemeinde»). Wird im Rechnungslauf automatisch vom Patientenanteil abgezogen.'],
         ['F', 'MA krank / Ferien?', 'Stammdaten → Ferienvertretung — alle Einsätze mit einem Klick auf eine Vertretung umbuchen. Zeitraum und Vertretungsperson wählen, fertig.'],
     ];
     @endphp

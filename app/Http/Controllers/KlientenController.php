@@ -324,7 +324,8 @@ class KlientenController extends Controller
             'gemeinde_adresse'    => ['nullable', 'string', 'max:255'],
             'gemeinde_plz'        => ['nullable', 'string', 'max:10'],
             'gemeinde_ort'        => ['nullable', 'string', 'max:255'],
-            'gemeinde_email'      => ['nullable', 'email', 'max:255'],
+            'gemeinde_email'                   => ['nullable', 'email', 'max:255'],
+            'gemeinde_beitrag_hauswirtschaft'  => ['nullable', 'numeric', 'min:0', 'max:999'],
             'aktiv'               => ['boolean'],
         ]);
 

@@ -90,27 +90,52 @@ tfoot td.r { text-align: right; }
         <div class="hinweis">
             Hinweis: Nicht-KVG-Leistungen (z.B. Hauswirtschaft) werden voll vom Patient getragen und sind separat unten ausgewiesen.
         </div>
+        @php
+            $hatAngehoerige = collect($rechnung->positionen ?? [])->contains(
+                fn($p) => (($p->leistungserbringer_typ ?? null) ?? ($p->einsatz?->leistungserbringer_typ ?? 'fachperson')) === 'angehoerig'
+            );
+        @endphp
+        @if($hatAngehoerige)
+        <div class="hinweis">
+            Hinweis: Einsätze durch pflegende Angehörige werden nach KVG direkt mit der Krankenkasse abgerechnet. Diese Einsätze sind nicht Bestandteil der Gemeinde-Restfinanzierung und erscheinen daher nicht in der Tagesberechnung unten.
+        </div>
+        @endif
     </div>
 
     @if(!empty($nichtKvgGruppen) && count($nichtKvgGruppen) > 0)
+    @php
+        $hwGemeindeBeitrag = (float) ($rechnung->klient->gemeinde_beitrag_hauswirtschaft ?? 0);
+    @endphp
     <div class="zusatz">
-        <div class="label">Nicht-KVG-Leistungen (voll vom Patient getragen)</div>
+        <div class="label">Nicht-KVG-Leistungen</div>
         <table>
             <thead>
                 <tr>
                     <th>Leistung</th>
                     <th class="r">Minuten</th>
                     <th class="r">Vollkosten CHF</th>
+                    @if($hwGemeindeBeitrag > 0)<th class="r">Gemeindebeitrag CHF</th><th class="r">Ihr Anteil CHF</th>@endif
                 </tr>
             </thead>
             <tbody>
-                @php $nkvSumme = 0; @endphp
+                @php $nkvSumme = 0; $hwGemeindeSumme = 0; @endphp
                 @foreach($nichtKvgGruppen as $g)
-                @php $nkvSumme += $g['betrag']; @endphp
+                @php
+                    $nkvSumme += $g['betrag'];
+                    $istHw = ($g['bezeichnung'] === 'Hauswirtschaft');
+                    $hwGem = ($istHw && $hwGemeindeBeitrag > 0)
+                        ? round(($g['menge'] / 60 * $hwGemeindeBeitrag) * 20) / 20
+                        : 0;
+                    $hwGemeindeSumme += $hwGem;
+                @endphp
                 <tr>
                     <td>{{ $g['bezeichnung'] }}</td>
                     <td class="r">{{ (int)$g['menge'] }}</td>
                     <td class="r">{{ number_format($g['betrag'], 2, '.', "'") }}</td>
+                    @if($hwGemeindeBeitrag > 0)
+                        <td class="r">{{ $hwGem > 0 ? number_format($hwGem, 2, '.', "'") : '—' }}</td>
+                        <td class="r">{{ number_format($g['betrag'] - $hwGem, 2, '.', "'") }}</td>
+                    @endif
                 </tr>
                 @endforeach
             </tbody>
@@ -119,6 +144,10 @@ tfoot td.r { text-align: right; }
                     <td>Total Nicht-KVG</td>
                     <td></td>
                     <td class="r">{{ number_format($nkvSumme, 2, '.', "'") }}</td>
+                    @if($hwGemeindeBeitrag > 0)
+                        <td class="r">{{ number_format($hwGemeindeSumme, 2, '.', "'") }}</td>
+                        <td class="r">{{ number_format($nkvSumme - $hwGemeindeSumme, 2, '.', "'") }}</td>
+                    @endif
                 </tr>
             </tfoot>
         </table>

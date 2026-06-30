@@ -791,6 +791,7 @@
             <li>Pflichtfelder: Vorname, Nachname, Region (Kanton)</li>
             <li>Danach ergänzen: Adresse, Krankenkasse, Arzt, Ärztliche Verordnung</li>
             <li>Einsatzserie anlegen: Klient-Detail → Sektion «Serien» → <strong>«+ Neue Serie»</strong></li>
+            <li><strong>Tiers payant mit Leistungsauftrag:</strong> Falls die Gemeinde einen Beitrag an die Hauswirtschaft leistet → Klient bearbeiten → Feld <strong>«Gemeindebeitrag Hauswirtschaft (CHF/h)»</strong> ausfüllen. Wird automatisch vom Patientenanteil abgezogen und auf der Berechnungs-Beilage ausgewiesen.</li>
         </ol>
     </div>
 
@@ -910,7 +911,8 @@
                 <tr><td><strong>XML-ZIP</strong></td><td>Alle KVG-Dateien (XML 450.100) als ZIP für MediData</td></tr>
                 <tr><td><strong>MediData Upload</strong></td><td>Direkt-Übertragung an KK via MediData (nur Tiers payant + MediData konfiguriert)</td></tr>
                 <tr><td><strong>✓ XML-Versand bestätigen</strong></td><td>KVG-Rechnungen als versendet markieren</td></tr>
-                <tr><td><strong>Gemeinde Sammel-PDF</strong></td><td>Restfinanzierungsrechnungen für Gemeinden (nur Tiers payant)</td></tr>
+                <tr><td><strong>Gemeinde Sammel-PDF</strong></td><td>Restfinanzierungsrechnungen für Gemeinden (nur Tiers payant) — enthält KVG-Restfinanzierung; Hauswirtschaft-Gemeindebeitrag wird separat pro Klient konfiguriert</td></tr>
+                <tr><td><strong>Angehörige + Restfinanzierung</strong></td><td>KVG-Einsätze durch pflegende Angehörige sind <strong>nicht</strong> Teil der Gemeinde-Restfinanzierung — die KK vergütet direkt via kkasse_angehoerig-Tarif (CHF/h)</td></tr>
                 <tr><td><strong>Bexio Abgleich</strong></td><td>Zahlungsstatus aller Rechnungen von Bexio abrufen</td></tr>
                 <tr><td><strong>↺ Wiederholen</strong></td><td>Lauf stornieren und gleiche Periode neu erstellen</td></tr>
                 <tr><td><strong>Stornieren</strong></td><td>Alle Rechnungen löschen, Einsätze zurück auf «unverrechnet» — nur möglich solange nichts versendet</td></tr>
@@ -980,6 +982,8 @@
             <div><strong>KI schreibt Bericht auf Französisch / Serbisch / Englisch?</strong><br>Die KI schreibt den Bericht immer auf <strong>Deutsch</strong> — egal in welcher Sprache diktiert wurde. Einfach lossprechen.</div>
             <div class="abschnitt-trenn"></div>
             <div><strong>Wer hat was geändert?</strong><br><a href="{{ route('audit.index') }}" class="link-primaer">Audit-Log</a> → vollständige Protokollierung aller Aktionen mit Benutzer, Datum und Änderungsdetails. Filter nach <strong>IP-Adresse</strong> möglich — hilfreich bei Fragen zu nicht-autorisierten Zugriffen</div>
+            <div class="abschnitt-trenn"></div>
+            <div><strong>Was ist der Gemeindebeitrag Hauswirtschaft?</strong><br>Bei Tiers-payant-Organisationen mit kommunalem Leistungsauftrag kann die Gemeinde einen fixen CHF/h-Beitrag an die Hauswirtschaft eines bestimmten Klienten leisten. Dieser wird pro Klient im Klienten-Formular hinterlegt (Abschnitt «Wohngemeinde»). Im Rechnungslauf wird er automatisch vom Patientenanteil abgezogen — der Patient zahlt nur die Differenz, die Gemeinde erhält den Restbetrag via Gemeinde-Sammel-PDF.</div>
         </div>
     </div>
 

@@ -782,10 +782,11 @@ class CurasoftDemoSeeder extends Seeder
             'notfallnummer'   => '079 456 78 90',
             'region_id'       => $this->regionen['ZG'],
             'zustaendig_id'   => $this->ma['ruth'],
-            'rechnungstyp'    => 'kombiniert',
-            'aktiv'           => true,
-            'created_at'      => now(),
-            'updated_at'      => now(),
+            'rechnungstyp'                   => 'kombiniert',
+            'gemeinde_beitrag_hauswirtschaft' => 15.00,
+            'aktiv'                           => true,
+            'created_at'                      => now(),
+            'updated_at'                      => now(),
         ]);
         $this->kl['gerber'] = $id;
 
@@ -2065,10 +2066,11 @@ class CurasoftDemoSeeder extends Seeder
             ['klient'=>'keller', 'ma'=>'thomas','la'=>$laGp,  'tage'=>$moFr,  'von'=>'08:30','bis'=>'09:15','min'=>45, 'typ'=>'fachperson'],
             ['klient'=>'keller', 'ma'=>'lisa',  'la'=>$laHwl, 'tage'=>$moMiF, 'von'=>'14:00','bis'=>'15:30','min'=>90, 'typ'=>'fachperson'],
 
-            // ── GERBER Josef: Angehörige Ruth (GP) + Fachperson Sandra (GP) + Peter (UB) ──
+            // ── GERBER Josef: Angehörige Ruth (GP) + Fachperson Sandra (GP) + Peter (UB) + Sandra (HWL 1×/Wo) ──
             ['klient'=>'gerber', 'ma'=>'ruth',  'la'=>$laGp,  'tage'=>$diDo,  'von'=>'08:00','bis'=>'08:35','min'=>35, 'typ'=>'angehoerig'],
             ['klient'=>'gerber', 'ma'=>'sandra','la'=>$laGp,  'tage'=>$moFrT, 'von'=>'09:00','bis'=>'09:45','min'=>45, 'typ'=>'fachperson'],
             ['klient'=>'gerber', 'ma'=>'peter', 'la'=>$laUb,  'tage'=>$mi,    'von'=>'10:00','bis'=>'10:20','min'=>20, 'typ'=>'fachperson'],
+            ['klient'=>'gerber', 'ma'=>'sandra','la'=>$laHwl, 'tage'=>$mo,    'von'=>'10:00','bis'=>'11:00','min'=>60, 'typ'=>'fachperson'],
         ];
 
         foreach ($serien as $serie) {

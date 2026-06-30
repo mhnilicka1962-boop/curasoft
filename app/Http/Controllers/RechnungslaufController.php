@@ -246,6 +246,7 @@ class RechnungslaufController extends Controller
                     $rechnung->betrag_total    = $rechnung->betrag_patient;
                 }
             }
+            $this->hauswirtschaftGemeindeAbzug($rechnung, $org->abrechnungslogik ?? 'tiers_garant');
         }
 
         $pdf = $service->rechnungAlsPdfString($rechnung);
@@ -913,13 +914,14 @@ class RechnungslaufController extends Controller
                             $betragKk += $posKk;
                             $minuten  += $m;
                             $vorschauPositionen->push((object)[
-                                'einsatzLeistungsart' => $el,
-                                'leistungsart_id'     => $el->leistungsart_id,
-                                'einheit'             => 'minuten',
-                                'menge'               => $m,
-                                'datum'               => $einsatz->datum,
-                                'betrag_patient'      => 0,
-                                'betrag_kk'           => $posKk,
+                                'einsatzLeistungsart'    => $el,
+                                'leistungsart_id'        => $el->leistungsart_id,
+                                'einheit'                => 'minuten',
+                                'menge'                  => $m,
+                                'datum'                  => $einsatz->datum,
+                                'betrag_patient'         => 0,
+                                'betrag_kk'              => $posKk,
+                                'leistungserbringer_typ' => 'angehoerig',
                             ]);
                             continue;
                         }
@@ -1452,6 +1454,7 @@ class RechnungslaufController extends Controller
                 $rechnung->load('positionen');
                 $rechnung->berechneTotale();
                 $this->patientCapUndGemeinde($rechnung, $lauf->abrechnungslogik, $org);
+                $this->hauswirtschaftGemeindeAbzug($rechnung, $lauf->abrechnungslogik);
                 AuditLog::schreiben('erstellt', 'Rechnung', $rechnung->id,
                     "Rechnungslauf {$lauf->id}: Rechnung {$rechnung->rechnungsnummer} (Einsätze) für {$klient->nachname}");
                 $erstellt++;
@@ -1614,11 +1617,37 @@ class RechnungslaufController extends Controller
 
     private function r5(float $x): float { return round($x * 20) / 20; }
 
+    private function hauswirtschaftGemeindeAbzug(Rechnung $rechnung, string $abrechnungslogik): void
+    {
+        if ($abrechnungslogik !== 'tiers_payant') return;
+
+        $gemeindeBeitrag = (float) ($rechnung->klient->gemeinde_beitrag_hauswirtschaft ?? 0);
+        if ($gemeindeBeitrag <= 0) return;
+
+        $hwId = \App\Models\Leistungsart::where('bezeichnung', 'Hauswirtschaft')->value('id');
+        if (!$hwId) return;
+
+        $hwGemeinde = 0.0;
+        foreach ($rechnung->positionen as $pos) {
+            $laId = $pos->einsatzLeistungsart?->leistungsart_id ?? $pos->leistungsart_id ?? null;
+            if ($laId != $hwId || $pos->einheit !== 'minuten') continue;
+            $hwGemeinde += $this->r5((float) $pos->menge / 60 * $gemeindeBeitrag);
+        }
+
+        $hwGemeinde = $this->r5($hwGemeinde);
+        if ($hwGemeinde <= 0) return;
+
+        $rechnung->betrag_patient  = $this->r5((float) $rechnung->betrag_patient - $hwGemeinde);
+        $rechnung->betrag_gemeinde = $this->r5((float) $rechnung->betrag_gemeinde + $hwGemeinde);
+        $rechnung->betrag_total    = $rechnung->betrag_patient;
+        if ($rechnung->exists) $rechnung->save();
+    }
+
     private function patientCapUndGemeinde(Rechnung $rechnung, string $abrechnungslogik, Organisation $org): void
     {
         if ($abrechnungslogik !== 'tiers_payant') return;
 
-        $rechnung->load(['klient.aktBeitrag', 'klient.region', 'positionen.einsatzLeistungsart.leistungsart']);
+        $rechnung->load(['klient.aktBeitrag', 'klient.region', 'positionen.einsatzLeistungsart.leistungsart', 'positionen.einsatz']);
 
         $daten = (new PdfExportService($org))->rapportblattDaten($rechnung);
         if ($daten === null) return;

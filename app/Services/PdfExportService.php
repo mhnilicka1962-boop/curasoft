@@ -413,6 +413,11 @@ class PdfExportService
         // Positionen nach Datum × Leistungsart aggregieren
         $tagesMin = [];
         foreach ($positionen as $pos) {
+            // Angehörige: KK zahlt alles via kkasse_angehoerig — kein Gemeinde-Anteil
+            $typ = ($pos->leistungserbringer_typ ?? null)
+                ?? ($pos->einsatz?->leistungserbringer_typ ?? 'fachperson');
+            if ($typ === 'angehoerig') continue;
+
             $laId = $pos->einsatzLeistungsart?->leistungsart_id ?? $pos->leistungsart_id ?? null;
             if (!$laId) continue;
             $key = null;

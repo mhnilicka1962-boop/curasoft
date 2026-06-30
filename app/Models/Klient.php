@@ -44,6 +44,7 @@ class Klient extends Model
         'versandart_kvg',
         'rechnungstyp',
         'gemeinde_name', 'gemeinde_adresse', 'gemeinde_plz', 'gemeinde_ort', 'gemeinde_email',
+        'gemeinde_beitrag_hauswirtschaft',
         'aktiv',
         'qr_token',
         'klient_lat',
