@@ -126,7 +126,7 @@
         </thead>
         <tbody>
             <tr>
-                <td>Hauswirtschaft — Gemeindebeitrag CHF {{ number_format($rechnung->klient->gemeinde_beitrag_hauswirtschaft, 2, '.', "'") }}/h</td>
+                <td>Hauswirtschaft — Gemeindebeitrag CHF {{ number_format($rechnung->klient->aktBeitragHw?->gemeinde_chf_h ?? 0, 2, '.', "'") }}/h</td>
                 <td class="text-rechts">{{ number_format($summen['hw_gemeinde'], 2, '.', "'") }}</td>
             </tr>
         </tbody>
