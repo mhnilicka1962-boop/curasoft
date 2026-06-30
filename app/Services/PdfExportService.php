@@ -270,49 +270,92 @@ class PdfExportService
     {
         $rechnung->loadMissing([
             'klient.aktBeitrag',
+            'klient.aktBeitragHw',
             'klient.region',
             'positionen.einsatzLeistungsart.leistungsart',
         ]);
 
         $rapportDaten = $this->rapportblattDaten($rechnung);
+        $hwCHFh       = (float) ($rechnung->klient->aktBeitragHw?->gemeinde_chf_h ?? 0);
+        $hwId         = Leistungsart::where('bezeichnung', 'Hauswirtschaft')->value('id');
 
-        // Hauswirtschaft-Gemeindebeitrag aus Positionen berechnen
-        $hwGemeinde = $this->hwGemeindeBetrag($rechnung);
-
-        if (!$rapportDaten) {
-            // Fallback: einfache Berechnung aus gespeicherten Beträgen
-            $tage   = [];
-            $summen = [
-                'vollkosten' => (float) $rechnung->betrag_total,
-                'kk'         => (float) $rechnung->betrag_kk,
-                'pat'        => (float) $rechnung->betrag_patient,
-                'gemeinde'   => (float) $rechnung->betrag_gemeinde,
-                'hw_gemeinde'=> $hwGemeinde,
-            ];
-        } else {
-            $kvgGemeinde = $rapportDaten['summen']['gemeinde'];
-            $tage   = $rapportDaten['tage'];
-            $summen = [
-                'vollkosten'  => $this->r5(
-                    $rapportDaten['summen']['taxe_abkl'] +
-                    $rapportDaten['summen']['taxe_unt']  +
-                    $rapportDaten['summen']['taxe_gp']
-                ),
-                'kk'          => $this->r5(
-                    $rapportDaten['summen']['kvg_abkl'] +
-                    $rapportDaten['summen']['kvg_unt']  +
-                    $rapportDaten['summen']['kvg_gp']
-                ),
-                'pat'         => $rapportDaten['summen']['pat'],
-                'gemeinde'    => $this->r5($kvgGemeinde + $hwGemeinde),
-                'hw_gemeinde' => $hwGemeinde,
-            ];
+        // Pro (Datum, Leistungsart) aggregieren
+        $posData = [];
+        foreach ($rechnung->positionen as $pos) {
+            if ($pos->einheit !== 'minuten' || (int) $pos->menge <= 0) continue;
+            $laId   = $pos->einsatzLeistungsart?->leistungsart_id ?? $pos->leistungsart_id ?? null;
+            if (!$laId) continue;
+            $laName = $pos->einsatzLeistungsart?->leistungsart?->bezeichnung ?? '—';
+            $d      = $pos->datum->format('Y-m-d');
+            if (!isset($posData[$d][$laId])) {
+                $posData[$d][$laId] = ['la' => $laName, 'laId' => $laId, 'min' => 0, 'vollkosten' => 0.0, 'kk' => 0.0, 'gemeinde' => 0.0];
+            }
+            $posData[$d][$laId]['min']       += (int) $pos->menge;
+            $posData[$d][$laId]['vollkosten'] += (float) $pos->betrag_patient + (float) $pos->betrag_kk;
+            $posData[$d][$laId]['kk']         += (float) $pos->betrag_kk;
         }
 
+        // KVG-Gemeinde pro Tag aus rapportblattDaten — verteilen nach Netto-Anteil
+        if ($rapportDaten) {
+            foreach ($rapportDaten['tage'] as $tag) {
+                $d          = $tag['datum']->format('Y-m-d');
+                $dayGemeinde = (float) $tag['gemeinde'];
+                if ($dayGemeinde <= 0 || empty($posData[$d])) continue;
+                $dayNetto = 0.0;
+                foreach ($posData[$d] as $laId => $la) {
+                    if ($laId != $hwId) $dayNetto += max(0, $la['vollkosten'] - $la['kk']);
+                }
+                if ($dayNetto <= 0) continue;
+                foreach ($posData[$d] as $laId => &$la) {
+                    if ($laId != $hwId) {
+                        $netto = max(0, $la['vollkosten'] - $la['kk']);
+                        $la['gemeinde'] = $this->r5($dayGemeinde * ($netto / $dayNetto));
+                    }
+                }
+                unset($la);
+            }
+        }
+
+        // Hauswirtschaft-Gemeinde direkt berechnen
+        if ($hwId && $hwCHFh > 0) {
+            foreach ($posData as $d => &$dayData) {
+                if (isset($dayData[$hwId])) {
+                    $dayData[$hwId]['gemeinde'] = $this->r5($dayData[$hwId]['min'] / 60 * $hwCHFh);
+                }
+            }
+            unset($dayData);
+        }
+
+        // Flache Zeilen-Liste (sortiert nach Datum, dann LA-Name)
+        $zeilen = [];
+        ksort($posData);
+        foreach ($posData as $d => $dayData) {
+            uasort($dayData, fn($a, $b) => strcmp($a['la'], $b['la']));
+            foreach ($dayData as $row) {
+                $zeilen[] = array_merge(['datum' => \Carbon\Carbon::parse($d)], $row);
+            }
+        }
+
+        // Totals pro Leistungsart
+        $laTotals = [];
+        foreach ($zeilen as $z) {
+            $la = $z['la'];
+            if (!isset($laTotals[$la])) $laTotals[$la] = ['la' => $la, 'min' => 0, 'vollkosten' => 0.0, 'kk' => 0.0, 'gemeinde' => 0.0];
+            $laTotals[$la]['min']       += $z['min'];
+            $laTotals[$la]['vollkosten'] = $this->r5($laTotals[$la]['vollkosten'] + $z['vollkosten']);
+            $laTotals[$la]['kk']         = $this->r5($laTotals[$la]['kk'] + $z['kk']);
+            $laTotals[$la]['gemeinde']   = $this->r5($laTotals[$la]['gemeinde'] + $z['gemeinde']);
+        }
+
+        $totalGemeinde = $this->r5(array_sum(array_column($laTotals, 'gemeinde')));
+        $summen = ['gemeinde' => $totalGemeinde];
+
         $html = view('pdfs.gemeinde_rechnung', [
-            'rechnung' => $rechnung,
-            'org'      => $this->org,
-            'tage'     => $tage,
+            'rechnung'  => $rechnung,
+            'org'       => $this->org,
+            'zeilen'    => $zeilen,
+            'laTotals'  => array_values($laTotals),
+            'tage'      => [], // legacy — nicht mehr verwendet
             'summen'   => $summen,
         ])->render();
 

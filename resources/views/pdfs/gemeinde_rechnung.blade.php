@@ -83,81 +83,59 @@
         </tr>
     </table>
 
-    {{-- Positionen --}}
+    {{-- Positionen: alle Leistungsarten pro Tag --}}
     <table>
         <thead>
             <tr>
                 <th>Datum</th>
-                <th>Leistung</th>
+                <th>Leistungsart</th>
+                <th class="text-rechts">Min.</th>
                 <th class="text-rechts">Vollkosten CHF</th>
                 <th class="text-rechts">KK-Anteil CHF</th>
-                <th class="text-rechts">Patient CHF</th>
                 <th class="text-rechts">Gemeinde CHF</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($tage as $tag)
-                @if($tag['taxe_abkl'] + $tag['taxe_unt'] + $tag['taxe_gp'] > 0)
-                <tr>
-                    <td>{{ $tag['datum']->format('d.m.') }}</td>
-                    <td style="font-size:8pt; color:#555;">
-                        @if($tag['abkl_min'] > 0) Abklärung {{ $tag['abkl_min'] }} Min. @endif
-                        @if($tag['unt_min'] > 0) Untersuchung/Behandlung {{ $tag['unt_min'] }} Min. @endif
-                        @if($tag['gp_min'] > 0) Grundpflege {{ $tag['gp_min'] }} Min. @endif
-                    </td>
-                    <td class="text-rechts">{{ number_format($tag['taxe_abkl'] + $tag['taxe_unt'] + $tag['taxe_gp'], 2, '.', "'") }}</td>
-                    <td class="text-rechts">{{ number_format($tag['kvg_abkl'] + $tag['kvg_unt'] + $tag['kvg_gp'], 2, '.', "'") }}</td>
-                    <td class="text-rechts">{{ number_format($tag['pat'], 2, '.', "'") }}</td>
-                    <td class="text-rechts">{{ number_format($tag['gemeinde'], 2, '.', "'") }}</td>
-                </tr>
-                @endif
+            @foreach($zeilen as $z)
+            <tr>
+                <td>{{ $z['datum']->format('d.m.Y') }}</td>
+                <td>{{ $z['la'] }}</td>
+                <td class="text-rechts">{{ $z['min'] }}</td>
+                <td class="text-rechts">{{ number_format($z['vollkosten'], 2, '.', "'") }}</td>
+                <td class="text-rechts">{{ number_format($z['kk'], 2, '.', "'") }}</td>
+                <td class="text-rechts">{{ number_format($z['gemeinde'], 2, '.', "'") }}</td>
+            </tr>
             @endforeach
         </tbody>
     </table>
 
-    {{-- Hauswirtschaft-Gemeindebeitrag --}}
-    @if(($summen['hw_gemeinde'] ?? 0) > 0)
-    <table>
+    {{-- Total pro Leistungsart --}}
+    <table style="margin-top: 4mm;">
         <thead>
             <tr>
-                <th>Nicht-KVG-Leistungen (Gemeindebeitrag)</th>
+                <th>Total pro Leistungsart</th>
+                <th class="text-rechts">Min.</th>
+                <th class="text-rechts">Vollkosten CHF</th>
+                <th class="text-rechts">KK-Anteil CHF</th>
                 <th class="text-rechts">Gemeinde CHF</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Hauswirtschaft — Gemeindebeitrag CHF {{ number_format($rechnung->klient->aktBeitragHw?->gemeinde_chf_h ?? 0, 2, '.', "'") }}/h</td>
-                <td class="text-rechts">{{ number_format($summen['hw_gemeinde'], 2, '.', "'") }}</td>
+            @foreach($laTotals as $lt)
+            <tr style="font-weight: 600;">
+                <td>{{ $lt['la'] }}</td>
+                <td class="text-rechts">{{ $lt['min'] }}</td>
+                <td class="text-rechts">{{ number_format($lt['vollkosten'], 2, '.', "'") }}</td>
+                <td class="text-rechts">{{ number_format($lt['kk'], 2, '.', "'") }}</td>
+                <td class="text-rechts">{{ number_format($lt['gemeinde'], 2, '.', "'") }}</td>
             </tr>
+            @endforeach
         </tbody>
     </table>
-    @endif
 
     {{-- Totale --}}
     <div style="overflow: hidden;">
         <div class="totale-box">
-            <div class="totale-zeile">
-                <span>Vollkosten KVG</span>
-                <span>CHF {{ number_format($summen['vollkosten'], 2, '.', "'") }}</span>
-            </div>
-            <div class="totale-zeile">
-                <span>KK-Beitrag</span>
-                <span>CHF {{ number_format($summen['kk'], 2, '.', "'") }}</span>
-            </div>
-            <div class="totale-zeile">
-                <span>Patient/in</span>
-                <span>CHF {{ number_format($summen['pat'], 2, '.', "'") }}</span>
-            </div>
-            @if(($summen['hw_gemeinde'] ?? 0) > 0)
-            <div class="totale-zeile">
-                <span>KVG-Restfinanzierung</span>
-                <span>CHF {{ number_format($summen['gemeinde'] - $summen['hw_gemeinde'], 2, '.', "'") }}</span>
-            </div>
-            <div class="totale-zeile">
-                <span>Hauswirtschaft-Beitrag</span>
-                <span>CHF {{ number_format($summen['hw_gemeinde'], 2, '.', "'") }}</span>
-            </div>
-            @endif
             <div class="totale-zeile haupt">
                 <span>Total Gemeinde</span>
                 <span>CHF {{ number_format($summen['gemeinde'], 2, '.', "'") }}</span>
