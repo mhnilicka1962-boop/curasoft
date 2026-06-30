@@ -103,8 +103,8 @@ class Klient extends Model
     public function aktPflegestufe() { return $this->hasOne(KlientPflegestufe::class)->latestOfMany('einstufung_datum'); }
     public function diagnosen()      { return $this->hasMany(KlientDiagnose::class)->where('aktiv', true); }
     public function beitraege()      { return $this->hasMany(KlientBeitrag::class)->orderByDesc('gueltig_ab'); }
-    public function aktBeitrag()     { return $this->hasOne(KlientBeitrag::class)->where('typ', 'kvg')->latestOfMany('gueltig_ab'); }
-    public function aktBeitragHw()   { return $this->hasOne(KlientBeitrag::class)->where('typ', 'hauswirtschaft')->latestOfMany('gueltig_ab'); }
+    public function aktBeitrag()     { return $this->hasOne(KlientBeitrag::class)->ofMany(['gueltig_ab' => 'max'], fn($q) => $q->where('typ', 'kvg')); }
+    public function aktBeitragHw()   { return $this->hasOne(KlientBeitrag::class)->ofMany(['gueltig_ab' => 'max'], fn($q) => $q->where('typ', 'hauswirtschaft')); }
     public function verordnungen()   { return $this->hasMany(KlientVerordnung::class)->orderByDesc('ausgestellt_am'); }
     public function rechnungen()       { return $this->hasMany(Rechnung::class)->orderByDesc('rechnungsdatum'); }
     public function rapporte()         { return $this->hasMany(Rapport::class)->orderByDesc('datum'); }
